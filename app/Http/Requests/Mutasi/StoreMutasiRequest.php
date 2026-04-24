@@ -1,0 +1,209 @@
+<?php
+
+namespace App\Http\Requests\Mutasi;
+
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+
+class StoreMutasiRequest extends FormRequest
+{
+    /**
+     * Determine if the user is authorized to make this request.
+     */
+    public function authorize(): bool
+    {
+        return true; // Main check is done via Gate/Middleware
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     */
+    public function rules(): array
+    {
+        $rules = [
+            'jenis_mutasi' => 'required|in:kelahiran,kematian,pindah_masuk,pindah_keluar,pindah_rt_rw,pisah_kk',
+            'dokumen_pendukung' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+        ];
+
+        $jenisMutasi = $this->input('jenis_mutasi');
+
+        switch ($jenisMutasi) {
+            case 'kelahiran':
+                $rules += [
+                    'nkk' => ['required', 'string', 'size:16'],
+                    'nik_bayi' => ['required', 'string', 'size:16', Rule::unique('penduduks', 'nik')],
+                    'nama_bayi' => 'required|string|max:255',
+                    'jenis_kelamin_bayi' => 'required|in:LAKI-LAKI,PEREMPUAN',
+                    'tempat_lahir' => 'required|string|max:255',
+                    'tanggal_lahir' => 'required|date',
+                    'agama_bayi' => 'required|string|max:50',
+                    'status_perkawinan_bayi' => 'required|string|max:50',
+                    'kedudukan_keluarga_bayi' => 'required|string|max:50',
+                    'pendidikan_bayi' => 'nullable|string|max:100',
+                    'pekerjaan_bayi' => 'required|string|max:100',
+                    'nama_ayah' => 'required|string|max:255',
+                    'nama_ibu' => 'required|string|max:255',
+                    'alamat_bayi' => 'required|string|max:500',
+                    'rt_bayi' => 'required|string|max:5',
+                    'rw_bayi' => 'required|string|max:5',
+                    'dusun_bayi' => 'nullable|string|max:100',
+                    'keterangan_bayi' => 'nullable|string|max:1000',
+                    'tanggal_mutasi' => 'required|date',
+                ];
+                break;
+
+            case 'kematian':
+                $rules += [
+                    'penduduk_id' => 'required|exists:penduduks,id',
+                    'hari_meninggal' => 'required|string|max:20',
+                    'tanggal_mutasi' => 'required|date',
+                    'jam_meninggal' => 'required|date_format:H:i',
+                    'bertempat_di' => 'required|string|max:255',
+                    'alasan' => 'required|string|max:500',
+                    'hari_pemakaman' => 'required|string|max:20',
+                    'tanggal_pemakaman' => 'required|date',
+                    'jam_pemakaman' => 'required|date_format:H:i',
+                    'lokasi_pemakaman' => 'required|string|max:255',
+                    'pelapor_nama' => 'required|string|max:255',
+                    'pelapor_hubungan' => 'required|string|max:100',
+                    'pelapor_umur' => 'nullable|integer|min:0|max:150',
+                    'pelapor_pekerjaan' => 'nullable|string|max:100',
+                    'pelapor_alamat' => 'nullable|string|max:500',
+                ];
+                break;
+
+            case 'pindah_masuk':
+                $rules += [
+                    'nik' => [
+                        'required',
+                        'string',
+                        'size:16',
+                        Rule::unique('penduduks', 'nik')->whereNull('deleted_at'),
+                    ],
+                    'nama' => 'required|string|max:255',
+                    'jenis_kelamin' => 'required|in:LAKI-LAKI,PEREMPUAN',
+                    'agama' => 'required|string|max:50',
+                    'status_perkawinan' => 'required|string|max:50',
+                    'tempat_lahir' => 'required|string|max:255',
+                    'tanggal_lahir' => 'required|date',
+                    'kedudukan_keluarga' => 'required|string|max:50',
+                    'pendidikan' => 'required|string|max:100',
+                    'pekerjaan' => 'nullable|string|max:100',
+                    'nama_ayah' => 'nullable|string|max:255',
+                    'nama_ibu' => 'nullable|string|max:255',
+                    'nkk' => 'nullable|string|size:16',
+                    'nkk_new' => 'nullable|string|size:16',
+                    'alamat' => 'required|string|max:500',
+                    'rt' => 'required|string|max:5',
+                    'rw' => 'required|string|max:5',
+                    'dusun' => 'nullable|string|max:100',
+                    'kategori_mutasi' => 'required|in:dalam_desa,dalam_kota,luar_kota,luar_negeri',
+                    'asal_tujuan' => 'required|string|max:255',
+                    'tanggal_mutasi' => 'required|date',
+                    'alasan' => 'nullable|string|max:500',
+                    'keterangan' => 'nullable|string|max:1000',
+                ];
+                break;
+
+            case 'pindah_keluar':
+                $rules += [
+                    'penduduk_id' => 'required|exists:penduduks,id',
+                    'kategori_mutasi' => 'required|in:dalam_kota,luar_kota,luar_negeri',
+                    'asal_tujuan' => 'required|string|max:500',
+                    'tanggal_mutasi' => 'required|date',
+                    'alasan' => 'nullable|string|max:500',
+                ];
+                break;
+
+            case 'pindah_rt_rw':
+                $rules += [
+                    'nkk' => 'required|string|size:16',
+                    'rt_tujuan' => 'required|string|max:5',
+                    'rw_tujuan' => 'required|string|max:5',
+                    'dusun_tujuan' => 'nullable|string|max:100',
+                    'alamat_tujuan' => 'nullable|string|max:500',
+                    'asal_tujuan' => 'nullable|string|max:500',
+                    'tanggal_mutasi' => 'required|date',
+                ];
+                break;
+
+            case 'pisah_kk':
+                $rules += [
+                    'penduduk_id' => 'required|exists:penduduks,id',
+                    'kategori_mutasi' => 'required|in:dalam_desa,dalam_kota,luar_kota,luar_negeri',
+                    'kk_option' => 'nullable|in:new,existing',
+                    'nkk_existing' => 'nullable|string|size:16',
+                    'nkk_existing_id' => 'nullable|string|size:16',
+                    'nkk_baru' => 'nullable|string|size:16',
+                    'nkk_tujuan' => 'nullable|string|size:16',
+                    'alamat' => 'nullable|string|max:500',
+                    'rt' => 'nullable|string|max:5',
+                    'rw' => 'nullable|string|max:5',
+                    'kedudukan_keluarga_pisah' => 'required|string|max:50',
+                    'status_perkawinan_pisah' => 'nullable|string|max:50',
+                    'tanggal_mutasi' => 'required|date',
+                    'alasan' => 'nullable|string|max:500',
+                    'move_members' => 'nullable|array',
+                    'move_members.*' => 'integer|exists:penduduks,id',
+                    'anggota_pisah_ids' => 'nullable|array',
+                    'anggota_pisah_ids.*' => 'integer|exists:penduduks,id',
+                ];
+                break;
+        }
+
+        return $rules;
+    }
+
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator) {
+            if ($this->input('jenis_mutasi') !== 'pindah_masuk') {
+                return;
+            }
+
+            $hasExisting = !empty($this->input('nkk'));
+            $hasNew = !empty($this->input('nkk_new'));
+
+            if (!$hasExisting && !$hasNew) {
+                $validator->errors()->add('nkk', 'Pilih KK existing atau isi NKK baru.');
+            }
+
+            if ($hasExisting && $hasNew) {
+                $validator->errors()->add('nkk_new', 'Gunakan salah satu: KK existing atau NKK baru.');
+            }
+        });
+
+        $validator->after(function ($validator) {
+            if ($this->input('jenis_mutasi') !== 'pisah_kk') {
+                return;
+            }
+
+            $kategori = $this->input('kategori_mutasi');
+            $kkOption = $this->input('kk_option');
+
+            if ($kategori === 'dalam_desa') {
+                if ($kkOption === 'new') {
+                    if (empty($this->input('nkk_baru'))) {
+                        $validator->errors()->add('nkk_baru', 'NKK baru wajib diisi untuk pisah KK dalam desa (KK baru).');
+                    }
+                    if (empty($this->input('rt')) || empty($this->input('rw'))) {
+                        $validator->errors()->add('rt', 'RT dan RW wajib diisi untuk pisah KK dalam desa (KK baru).');
+                    }
+                }
+
+                if ($kkOption === 'existing' && empty($this->input('nkk_existing_id')) && empty($this->input('nkk_existing'))) {
+                    $validator->errors()->add('nkk_existing', 'Pilih KK existing untuk pisah KK dalam desa.');
+                }
+            }
+
+            if (in_array($kategori, ['dalam_kota', 'luar_kota', 'luar_negeri'], true)) {
+                if (empty($this->input('nkk_tujuan'))) {
+                    $validator->errors()->add('nkk_tujuan', 'NKK tujuan wajib diisi untuk pisah KK luar wilayah.');
+                }
+                if (empty($this->input('alamat'))) {
+                    $validator->errors()->add('alamat', 'Alamat tujuan wajib diisi untuk pisah KK luar wilayah.');
+                }
+            }
+        });
+    }
+}

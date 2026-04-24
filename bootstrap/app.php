@@ -1,0 +1,53 @@
+<?php
+
+    use Illuminate\Foundation\Application;
+    use Illuminate\Foundation\Configuration\Exceptions;
+    use Illuminate\Foundation\Configuration\Middleware;
+    use App\Http\Middleware\PrivateApiMiddleware;
+    use App\Http\Middleware\ApiKeyMiddleware;
+    use App\Http\Middleware\SignatureValidationMiddleware;
+    use App\Http\Middleware\RecaptchaMiddleware;
+    use App\Http\Middleware\RecaptchaForgotPasswordMiddleware;
+    use App\Http\Middleware\RecaptchaResetPasswordMiddleware;
+    use App\Http\Middleware\CaptureActivityLogData;
+    use App\Http\Middleware\CsrfApiMiddleware;
+    use App\Http\Middleware\CspNonceMiddleware;
+    use App\Http\Middleware\AdminSecurityMiddleware;
+
+    return Application::configure(basePath: dirname(__DIR__))
+        ->withRouting(
+            web: __DIR__.'/../routes/web.php',
+            api: __DIR__.'/../routes/api.php',
+            commands: __DIR__.'/../routes/console.php',
+            health: '/up',
+        )
+        ->withMiddleware(function (Middleware $middleware): void {
+            // Register custom middleware
+            $middleware->alias([
+                'private.api' => PrivateApiMiddleware::class,
+                'api.key' => ApiKeyMiddleware::class,
+                'signature.validation' => SignatureValidationMiddleware::class,
+                'recaptcha' => RecaptchaMiddleware::class,
+                'recaptcha.forgot' => RecaptchaForgotPasswordMiddleware::class,
+                'recaptcha.reset' => RecaptchaResetPasswordMiddleware::class,
+                'capture.activity' => CaptureActivityLogData::class,
+                'csrf.api' => CsrfApiMiddleware::class,
+                'csp.nonce' => CspNonceMiddleware::class,
+                'admin.security' => AdminSecurityMiddleware::class,
+            ]);
+
+            // Add activity log capture middleware to web group
+            $middleware->web(append: [
+                CaptureActivityLogData::class,
+                CspNonceMiddleware::class,
+            ]);
+
+
+            // API middleware group - minimal untuk private API
+            $middleware->group('api', [
+                // Rate limiting diatur per route, bukan di group
+            ]);
+        })
+        ->withExceptions(function (Exceptions $exceptions): void {
+            //
+        })->create();

@@ -1,0 +1,502 @@
+## AnggaranController.php
+- __construct
+- createAnggaranTahunan
+- storeAnggaranTahunan
+- createPengeluaran
+- storePengeluaran
+- createProyek
+- storeProyek
+- updateRealisasiProyek
+- historiPengeluaran
+- editPengeluaran
+- updatePengeluaran
+- deletePengeluaran
+- editApbdes
+- updateApbdes
+- deleteApbdes
+
+## AuditLogController.php
+- __construct
+- index
+- show
+- export
+- clear
+- exportPdf
+- exportExcel
+
+## BackupController.php
+- __construct
+- index
+- create
+- download
+- destroy
+- delete
+- restore
+- clean
+- exportData
+- statistics
+
+## BantuanSosialController.php
+- __construct
+- index
+- create
+- store
+- show
+- edit
+- update
+- destroy
+- checkByNik
+- penerimaIndex
+- penerimaCreate
+- penerimaStore
+- penerimaShow
+- penerimaEdit
+- penerimaUpdate
+- penerimaDestroy
+
+## BeritaController.php
+- __construct
+- index
+- create
+- store
+- show
+- edit
+- update
+- destroy
+
+## ComparisonController.php
+- index
+- getDetailedComparison
+
+## DashboardController.php
+- index
+- refresh
+
+## DesaSettingsController.php
+- __construct
+- index
+- update
+- updateSetting
+- reset
+- export
+- import
+
+## ExportImportController.php
+- __construct
+- exportBantuanSosial
+- exportPenerimaBantuanSosial
+- exportPengaduan
+- exportUmkm
+- exportSuratPengajuan
+- exportPenduduk
+- exportKartuKeluarga
+- importBantuanSosial
+- importUmkm
+- previewPenduduk
+- downloadPendudukInvalidReport
+- __construct
+- headings
+- array
+- importPenduduk
+- downloadTemplate
+- index
+
+## FasilitasDesaController.php
+- __construct
+- index
+- create
+- store
+- show
+- edit
+- update
+- destroy
+
+## ImportController.php
+- index
+- excel
+
+## KartuKeluargaController.php
+- __construct
+- index
+- create
+- store
+- show
+- edit
+- update
+- destroy
+- export
+- autoUpdateKepalaKeluarga
+- syncSummary
+- batchUpdateKepalaKeluarga
+- getKkBermasalah
+- downloadPdf
+- updateKepalaKeluarga
+
+## KontakDesaController.php
+- __construct
+- index
+- create
+- store
+- show
+- edit
+- update
+- destroy
+
+## LaporanController.php
+- __construct
+- index
+- generate
+- getReportData
+- generatePdf
+- generateExcel
+- penduduk
+- kk
+- mutasi
+- berita
+- surat
+- exportMutasiExcel
+
+## ManifestController.php
+- manifest
+
+## MutasiController.php
+- __construct
+- index
+- create
+- store
+- show
+- edit
+- update
+- cancel
+- searchKK
+- searchPenduduk
+- checkNKKExists
+- undo
+- printSuratKematian
+
+## PendudukController.php
+- __construct
+- index
+- create
+- store
+- show
+- edit
+- update
+- destroy
+- exportExcel
+- updateFamilyAddress
+- showFamilyAddressForm
+- checkNIKExists
+- search
+
+## PengaduanController.php
+- __construct
+- index
+- create
+- store
+- show
+- edit
+- update
+- destroy
+
+## ProfileController.php
+- edit
+- update
+- updatePassword
+- destroy
+
+## RoleController.php
+- index
+- create
+- store
+- show
+- edit
+- update
+- destroy
+
+## SettingsController.php
+- index
+- users
+- updateUser
+- createUser
+- deleteUser
+- updateRole
+- createRole
+- deleteRole
+
+## StatisticsController.php
+- index
+- refreshCache
+- getChartData
+
+## StrukturDesaController.php
+- __construct
+- index
+- create
+- store
+- show
+- edit
+- update
+- destroy
+
+## SuratController.php
+- __construct
+- index
+- generate
+- preview
+- store
+- statistics
+- history
+- show
+- download
+- edit
+- update
+- destroy
+
+## SuratPengajuanController.php
+- __construct
+- index
+- create
+- store
+- show
+- updateStatus
+- generatePdf
+- preview
+- markAsRead
+- edit
+- update
+
+## TestimoniController.php
+- index
+- create
+- store
+- show
+- edit
+- update
+- destroy
+- updateStatus
+- approve
+- reject
+
+## TransparansiDesaController.php
+- __construct
+- index
+- apbdes
+- proyek
+
+## UmkmController.php
+- __construct
+- index
+- create
+- store
+- show
+- edit
+- update
+- destroy
+
+## UserController.php
+- __construct
+- index
+- create
+- store
+- show
+- edit
+- update
+- destroy
+
+## WilayahController.php
+- index
+- storeDusun
+- updateDusun
+- storeRw
+- updateRw
+- storeRt
+- updateRt
+- applyRtUpdate
+- rollbackWilayahChange
+- previewImpactDusun
+- previewImpactRw
+- detailRtPenduduk
+- destroyRt
+- previewImpactRt
+- importConflicts
+- resolveImportConflict
+- reprocessImportIssue
+
+## Admin\ContactMessageController.php
+- index
+- show
+- markAsRead
+- markAsReplied
+- archive
+- destroy
+- bulkAction
+- notifications
+
+## Api\AgendaDesaController.php
+- index
+- categories
+
+## Api\ApiProxyController.php
+- __construct
+- proxy
+- options
+
+## Api\BantuanSosialController.php
+- index
+- checkByNik
+- generateCaptcha
+
+## Api\BeritaController.php
+- index
+- show
+- featured
+- categories
+- latest
+- search
+- getByCategory
+
+## Api\BeritaEksternalController.php
+- index
+- combined
+- internalExternalCombined
+
+## Api\ContactController.php
+- submit
+- info
+
+## Api\FasilitasDesaController.php
+- index
+- byJenis
+
+## Api\KontakDesaController.php
+- index
+
+## Api\NotificationController.php
+- index
+- markAsRead
+- counts
+
+## Api\OptimizedWebDesaController.php
+- getStatistics
+- getDesaInfo
+- clearStatisticsCache
+- clearDesaInfoCache
+- clearAllCache
+
+## Api\PendudukApiController.php
+- index
+- ageStatistics
+- filterOptions
+
+## Api\PengaduanController.php
+- index
+- submit
+
+## Api\ProyekDesaController.php
+- index
+- show
+- byYear
+
+## Api\PublicApiProxyController.php
+- __construct
+- checkNik
+- searchPenduduk
+- getSuratByNik
+- getSuratByNomor
+- getStatistics
+- getTestimonials
+- getStrukturDesa
+
+## Api\SecureSearchController.php
+- searchByNikAndDob
+- generateCaptcha
+- getRateLimitStatus
+- clearRateLimit
+
+## Api\StrukturDesaController.php
+- index
+- perangkatDesa
+- rtRw
+- bumdes
+- byCategory
+
+## Api\SuratPengajuanApiController.php
+- store
+- checkNik
+- checkStatus
+- getByNik
+- getByNomorSurat
+
+## Api\TestimoniController.php
+- index
+- store
+- stats
+- categories
+
+## Api\TransparansiController.php
+- index
+- apbdes
+- proyekPembangunan
+- bantuanSosialTransparansi
+
+## Api\UmkmController.php
+- index
+- show
+- unggulan
+- byJenisUsaha
+- statistics
+
+## Api\WebDesaController.php
+- getSuratTypes
+- searchPenduduk
+- submitPengajuan
+- checkStatus
+- getDesaInfo
+- getStatistics
+- getPendudukStats
+- getKKStats
+- getMutasiStats
+- getPublicStatistics
+- getPublicPendudukStats
+- getContactInfo
+- submitContact
+- getServices
+- getAnnouncements
+- getAnnouncement
+- desaInfo
+- contactInfo
+
+## Auth\AuthenticatedSessionController.php
+- create
+- store
+- destroy
+
+## Auth\ConfirmablePasswordController.php
+- show
+- store
+
+## Auth\EmailVerificationNotificationController.php
+- store
+
+## Auth\EmailVerificationPromptController.php
+- __invoke
+
+## Auth\NewPasswordController.php
+- create
+- store
+
+## Auth\PasswordController.php
+- update
+
+## Auth\PasswordResetLinkController.php
+- create
+- store
+
+## Auth\RegisteredUserController.php
+- create
+- store
+
+## Auth\VerifyEmailController.php
+- __invoke
+

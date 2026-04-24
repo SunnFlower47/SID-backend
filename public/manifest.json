@@ -1,0 +1,114 @@
+{
+  "name": "Admin Panel Desa Cibatu - Sistem Informasi Desa",
+  "short_name": "Admin Desa Cibatu",
+  "description": "Panel administrasi sistem informasi desa untuk mengelola data penduduk, surat, keuangan, dan layanan desa",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#059669",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "id",
+  "dir": "ltr",
+  "categories": ["government", "productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/logo-desa-cibatu.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo-desa-cibatu.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo-desa-cibatu.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/logo-desa-cibatu.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/logo-desa-cibatu.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/logo-desa-cibatu.png",
+      "sizes": "48x48",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/logo-desa-cibatu.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Dashboard Admin Desa Cibatu"
+    },
+    {
+      "src": "/logo-desa-cibatu.png",
+      "sizes": "750x1334",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Mobile Admin Panel"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Data Penduduk",
+      "short_name": "Penduduk",
+      "description": "Kelola data penduduk desa",
+      "url": "/penduduk",
+      "icons": [
+        {
+          "src": "/logo-desa-cibatu.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Surat Pengajuan",
+      "short_name": "Surat",
+      "description": "Kelola pengajuan surat warga",
+      "url": "/surat",
+      "icons": [
+        {
+          "src": "/logo-desa-cibatu.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "Halaman utama admin panel",
+      "url": "/dashboard",
+      "icons": [
+        {
+          "src": "/logo-desa-cibatu.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false,
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "launch_handler": {
+    "client_mode": "focus-existing"
+  }
+}

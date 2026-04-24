@@ -1,0 +1,131 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
+
+class SuratPengajuan extends Model
+{
+    use HasFactory, LogsActivity;
+
+    protected $fillable = [
+        'nik_pengaju',
+        'nama_pengaju',
+        'email_pengaju',
+        'no_hp_pengaju',
+        'jenis_surat',
+        'penduduk_id',
+        'nomor_surat',
+        'keperluan',
+        'tujuan',
+        'tanggal_surat',
+        'keterangan_tambahan',
+        'data_tambahan',
+        'status',
+        'keterangan',
+        'keterangan_admin',
+        'admin_id',
+        'approved_at',
+        'completed_at',
+        'penandatangan'
+    ];
+
+    protected $casts = [
+        'tanggal_surat' => 'date',
+        'approved_at' => 'datetime',
+        'completed_at' => 'datetime',
+        'data_tambahan' => 'array'
+    ];
+
+    /**
+     * Get the penduduk that owns the surat pengajuan.
+     */
+    public function penduduk()
+    {
+        return $this->belongsTo(Penduduk::class);
+    }
+
+    /**
+     * Get the admin that processed the surat pengajuan.
+     */
+    public function admin()
+    {
+        return $this->belongsTo(User::class, 'admin_id');
+    }
+
+    /**
+     * Get surat type name
+     */
+    public function getSuratTypeNameAttribute()
+    {
+        $types = [
+            'keterangan-domisili' => 'Surat Keterangan Domisili',
+            'pengantar' => 'Surat Pengantar',
+            'pindah' => 'Surat Keterangan Pindah',
+            'kematian' => 'Surat Keterangan Kematian',
+            'kelahiran' => 'Surat Keterangan Kelahiran',
+            'tidak-mampu-dewasa' => 'Surat Keterangan Tidak Mampu (Dewasa)',
+            'tidak-mampu-anak' => 'Surat Keterangan Tidak Mampu (Anak)',
+            'sku' => 'Surat Keterangan Usaha',
+            'sktm_dewasa' => 'Surat Keterangan Tidak Mampu (Dewasa)',
+            'sktm_anak' => 'Surat Keterangan Tidak Mampu (Anak)',
+            'domisili' => 'Surat Keterangan Domisili'
+        ];
+
+        return $types[$this->jenis_surat] ?? 'Surat Tidak Diketahui';
+    }
+
+    /**
+     * Get status badge color
+     */
+    public function getStatusColorAttribute()
+    {
+        $colors = [
+            'pending' => 'yellow',
+            'approved' => 'green',
+            'rejected' => 'red',
+            'completed' => 'blue'
+        ];
+
+        return $colors[$this->status] ?? 'gray';
+    }
+
+    /**
+     * Scope for pending surat
+     */
+    public function scopePending($query)
+    {
+        return $query->where('status', 'pending');
+    }
+
+    /**
+     * Scope for approved surat
+     */
+    public function scopeApproved($query)
+    {
+        return $query->where('status', 'approved');
+    }
+
+    /**
+     * Scope for completed surat
+     */
+    public function scopeCompleted($query)
+    {
+        return $query->where('status', 'completed');
+    }
+
+    /**
+     * Get the activity log options for the model.
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['nik_pengaju', 'nama_pengaju', 'email_pengaju', 'no_hp_pengaju', 'jenis_surat', 'penduduk_id', 'nomor_surat', 'keperluan', 'status', 'tanggal_pengajuan', 'tanggal_selesai'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
+}
+

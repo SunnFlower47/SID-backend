@@ -1,0 +1,313 @@
+<?php
+
+namespace App\Http\Requests;
+
+use Illuminate\Foundation\Http\FormRequest;
+use App\Rules\NikValidation;
+use App\Rules\DataConsistencyValidation;
+use App\Models\Rt;
+use App\Rules\RtValidation;
+
+class StorePendudukRequest extends FormRequest
+{
+    /**
+     * Determine if the user is authorized to make this request.
+     */
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     */
+    public function rules(): array
+    {
+        return [
+            'nik' => [
+                'required',
+                'string',
+                'size:16',
+                new NikValidation(),
+                new DataConsistencyValidation($this->all())
+            ],
+            'nama' => 'required|string|max:255|min:2',
+            'jenis_kelamin' => 'required|in:LAKI-LAKI,PEREMPUAN',
+            'tempat_lahir' => 'required|string|max:100',
+            'tanggal_lahir' => [
+                'required',
+                'date',
+                'before:today',
+                'after:1900-01-01',
+                new DataConsistencyValidation($this->all())
+            ],
+            'agama' => 'required|string|max:50',
+            'status_perkawinan' => [
+                'required',
+                'string',
+                'max:50',
+                new DataConsistencyValidation($this->all())
+            ],
+            'kedudukan_keluarga' => [
+                'required',
+                'in:Kepala Keluarga,Istri,Anak,Menantu,Cucu,Orang Tua,Famili Lain,Lainnya',
+                new DataConsistencyValidation($this->all())
+            ],
+            'pendidikan' => 'nullable|string|max:100',
+            'pekerjaan' => 'nullable|string|max:100',
+            'nama_ayah' => 'nullable|string|max:255',
+            'nama_ibu' => 'nullable|string|max:255',
+            'alamat' => 'required|string|max:500',
+            'rt' => [
+                'required',
+                'string',
+                'size:3',
+                new RtValidation()
+            ],
+            'rw' => 'required|string|max:3|regex:/^[0-9]+$/',
+            'rw_id' => 'nullable|exists:rws,id|required_if:kk_option,manual',
+            'rt_id' => 'nullable|exists:rts,id|required_if:kk_option,manual',
+            'dusun' => 'nullable|string|max:100',
+            'keterangan' => 'nullable|string|max:500',
+            'kk_option' => 'required|in:existing,manual',
+            'nkk_existing' => 'nullable|string|max:20|required_if:kk_option,existing',
+            'nkk' => 'nullable|string|max:20|required_if:kk_option,manual',
+            'family_members' => 'nullable|array',
+            'family_members.*.nik' => 'required|string|size:16',
+            'family_members.*.nama' => 'required|string|max:255|min:2',
+            'family_members.*.jenis_kelamin' => 'required|in:LAKI-LAKI,PEREMPUAN',
+            'family_members.*.tempat_lahir' => 'required|string|max:100',
+            'family_members.*.tanggal_lahir' => 'nullable|date|before:today|after:1900-01-01',
+            'family_members.*.agama' => 'required|string|max:50',
+            'family_members.*.kedudukan_keluarga' => 'required|in:Istri,Anak,Cucu,Lainnya',
+            'family_members.*.status_perkawinan' => 'nullable|in:Belum Kawin,Kawin,Cerai Hidup,Cerai Mati',
+            'family_members.*.pendidikan' => 'required|string|max:100',
+            'family_members.*.pekerjaan' => 'required|string|max:100',
+            'family_members.*.nama_ayah' => 'nullable|string|max:255',
+            'family_members.*.nama_ibu' => 'nullable|string|max:255',
+            'family_members.*.alamat' => 'required|string|max:500',
+            'family_members.*.rt' => [
+                'required',
+                'string',
+                'size:3',
+                new RtValidation()
+            ],
+            'family_members.*.rw' => 'required|string|max:3|regex:/^[0-9]+$/',
+            'family_members.*.dusun' => 'nullable|string|max:100'
+        ];
+    }
+
+    /**
+     * Get custom messages for validator errors.
+     */
+    public function messages(): array
+    {
+        return [
+            'nik.required' => 'NIK wajib diisi.',
+            'nik.size' => 'NIK harus terdiri dari 16 digit.',
+            'nama.required' => 'Nama wajib diisi.',
+            'nama.min' => 'Nama minimal 2 karakter.',
+            'nama.max' => 'Nama maksimal 255 karakter.',
+            'jenis_kelamin.required' => 'Jenis kelamin wajib dipilih.',
+            'jenis_kelamin.in' => 'Jenis kelamin harus Laki-laki atau Perempuan.',
+            'tempat_lahir.required' => 'Tempat lahir wajib diisi.',
+            'tempat_lahir.max' => 'Tempat lahir maksimal 100 karakter.',
+            'tanggal_lahir.required' => 'Tanggal lahir wajib diisi.',
+            'tanggal_lahir.date' => 'Format tanggal lahir tidak valid.',
+            'tanggal_lahir.before' => 'Tanggal lahir tidak boleh di masa depan.',
+            'tanggal_lahir.after' => 'Tanggal lahir tidak boleh sebelum tahun 1900.',
+            'agama.required' => 'Agama wajib dipilih.',
+            'agama.in' => 'Agama tidak valid.',
+            'status_perkawinan.required' => 'Status perkawinan wajib dipilih.',
+            'status_perkawinan.in' => 'Status perkawinan tidak valid.',
+            'kedudukan_keluarga.required' => 'Kedudukan keluarga wajib dipilih.',
+            'kedudukan_keluarga.in' => 'Kedudukan keluarga tidak valid.',
+            'pendidikan.in' => 'Pendidikan tidak valid.',
+            'pekerjaan.max' => 'Pekerjaan maksimal 100 karakter.',
+            'nama_ayah.max' => 'Nama ayah maksimal 255 karakter.',
+            'nama_ibu.max' => 'Nama ibu maksimal 255 karakter.',
+            'alamat.required' => 'Alamat wajib diisi.',
+            'alamat.max' => 'Alamat maksimal 500 karakter.',
+            'rt.required' => 'RT wajib diisi.',
+            'rt.size' => 'RT harus terdiri dari 3 digit angka.',
+            'rt.regex' => 'RT harus berupa angka.',
+            'rw.required' => 'RW wajib diisi.',
+            'rw.regex' => 'RW harus berupa angka.',
+            'rw.max' => 'RW maksimal 3 digit.',
+            'dusun.max' => 'Dusun maksimal 100 karakter.',
+            'keterangan.max' => 'Keterangan maksimal 500 karakter.',
+            'kk_option.required' => 'Pilihan KK wajib dipilih.',
+            'kk_option.in' => 'Pilihan KK tidak valid.',
+            'nkk_existing.required_if' => 'No KK wajib dipilih jika menggunakan KK yang sudah ada.',
+            'nkk.max' => 'Nomor KK maksimal 20 karakter.',
+            'nkk.required_if' => 'Nomor KK wajib diisi jika input manual.',
+            'rw_id.required_if' => 'RW master wajib dipilih untuk input manual.',
+            'rt_id.required_if' => 'RT master wajib dipilih untuk input manual.',
+            'family_members.array' => 'Data anggota keluarga harus berupa array.',
+            'family_members.*.nik.required' => 'NIK anggota keluarga harus diisi.',
+            'family_members.*.nik.size' => 'NIK anggota keluarga harus 16 digit.',
+            'family_members.*.nama.required' => 'Nama anggota keluarga harus diisi.',
+            'family_members.*.nama.min' => 'Nama anggota keluarga minimal 2 karakter.',
+            'family_members.*.nama.max' => 'Nama anggota keluarga maksimal 255 karakter.',
+            'family_members.*.jenis_kelamin.required' => 'Jenis kelamin anggota keluarga harus diisi.',
+            'family_members.*.jenis_kelamin.in' => 'Jenis kelamin anggota keluarga harus Laki-laki atau Perempuan.',
+            'family_members.*.tempat_lahir.required' => 'Tempat lahir anggota keluarga harus diisi.',
+            'family_members.*.tempat_lahir.max' => 'Tempat lahir anggota keluarga maksimal 100 karakter.',
+            'family_members.*.tanggal_lahir.date' => 'Format tanggal lahir anggota keluarga tidak valid.',
+            'family_members.*.tanggal_lahir.before' => 'Tanggal lahir anggota keluarga tidak boleh di masa depan.',
+            'family_members.*.tanggal_lahir.after' => 'Tanggal lahir anggota keluarga tidak boleh sebelum tahun 1900.',
+            'family_members.*.agama.required' => 'Agama anggota keluarga harus diisi.',
+            'family_members.*.kedudukan_keluarga.required' => 'Kedudukan keluarga anggota harus diisi.',
+            'family_members.*.kedudukan_keluarga.in' => 'Kedudukan keluarga anggota tidak valid.',
+            'family_members.*.status_perkawinan.in' => 'Status perkawinan anggota keluarga tidak valid.',
+            'family_members.*.pendidikan.required' => 'Pendidikan anggota keluarga harus diisi.',
+            'family_members.*.pekerjaan.required' => 'Pekerjaan anggota keluarga harus diisi.',
+            'family_members.*.pekerjaan.max' => 'Pekerjaan anggota keluarga maksimal 100 karakter.',
+            'family_members.*.nama_ayah.max' => 'Nama ayah anggota keluarga maksimal 255 karakter.',
+            'family_members.*.nama_ibu.max' => 'Nama ibu anggota keluarga maksimal 255 karakter.',
+            'family_members.*.alamat.required' => 'Alamat anggota keluarga harus diisi.',
+            'family_members.*.alamat.max' => 'Alamat anggota keluarga maksimal 500 karakter.',
+            'family_members.*.rt.required' => 'RT anggota keluarga harus diisi.',
+            'family_members.*.rt.size' => 'RT anggota keluarga harus 3 digit angka.',
+            'family_members.*.rt.regex' => 'RT anggota keluarga harus berupa angka.',
+            'family_members.*.rw.required' => 'RW anggota keluarga harus diisi.',
+            'family_members.*.rw.regex' => 'RW anggota keluarga harus berupa angka.',
+            'family_members.*.rw.max' => 'RW anggota keluarga maksimal 3 digit.',
+            'family_members.*.dusun.max' => 'Dusun anggota keluarga maksimal 100 karakter.'
+        ];
+    }
+
+    /**
+     * Get custom attributes for validator errors.
+     */
+    public function attributes(): array
+    {
+        return [
+            'nik' => 'NIK',
+            'nama' => 'Nama',
+            'jenis_kelamin' => 'Jenis Kelamin',
+            'tempat_lahir' => 'Tempat Lahir',
+            'tanggal_lahir' => 'Tanggal Lahir',
+            'agama' => 'Agama',
+            'status_perkawinan' => 'Status Perkawinan',
+            'kedudukan_keluarga' => 'Kedudukan Keluarga',
+            'pendidikan' => 'Pendidikan',
+            'pekerjaan' => 'Pekerjaan',
+            'nama_ayah' => 'Nama Ayah',
+            'nama_ibu' => 'Nama Ibu',
+            'alamat' => 'Alamat',
+            'rt' => 'RT',
+            'rw' => 'RW',
+            'dusun' => 'Dusun',
+            'keterangan' => 'Keterangan',
+            'kk_option' => 'Pilihan KK',
+            'nkk_existing' => 'No KK yang Dipilih',
+            'nkk' => 'Nomor KK'
+        ];
+    }
+
+    /**
+     * Prepare the data for validation.
+     */
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator) {
+            $rtId = $this->input('rt_id');
+            $rwId = $this->input('rw_id');
+
+            if ($rtId && $rwId) {
+                $rt = Rt::find($rtId);
+                if (!$rt || (int)$rt->rw_id !== (int)$rwId) {
+                    $validator->errors()->add('rt_id', 'RT tidak sesuai dengan RW yang dipilih.');
+                }
+            }
+        });
+    }
+
+    protected function prepareForValidation(): void
+    {
+        // Auto-format NIK (hapus spasi dan karakter non-digit)
+        if ($this->has('nik')) {
+            $this->merge([
+                'nik' => preg_replace('/[^0-9]/', '', $this->nik)
+            ]);
+        }
+
+        // Auto-format RT/RW (hapus spasi dan karakter non-digit)
+        if ($this->has('rt')) {
+            $rt = preg_replace('/[^0-9]/', '', $this->rt);
+            // Pad with leading zeros to make it 3 digits
+            $rt = str_pad($rt, 3, '0', STR_PAD_LEFT);
+            $this->merge(['rt' => $rt]);
+        }
+
+        if ($this->has('rw')) {
+            $this->merge([
+                'rw' => preg_replace('/[^0-9]/', '', $this->rw)
+            ]);
+        }
+
+        // Auto-format nama (trim dan title case)
+        if ($this->has('nama')) {
+            $this->merge([
+                'nama' => ucwords(strtolower(trim($this->nama)))
+            ]);
+        }
+
+        // Auto-format tempat lahir
+        if ($this->has('tempat_lahir')) {
+            $this->merge([
+                'tempat_lahir' => ucwords(strtolower(trim($this->tempat_lahir)))
+            ]);
+        }
+
+        // Auto-format alamat
+        if ($this->has('alamat')) {
+            $this->merge([
+                'alamat' => ucwords(strtolower(trim($this->alamat)))
+            ]);
+        }
+
+        // Auto-format family members data
+        if ($this->has('family_members') && is_array($this->family_members)) {
+            $formattedMembers = [];
+            foreach ($this->family_members as $index => $member) {
+                $formattedMember = $member;
+
+                // Auto-format NIK (hapus spasi dan karakter non-digit)
+                if (isset($member['nik'])) {
+                    $formattedMember['nik'] = preg_replace('/[^0-9]/', '', $member['nik']);
+                }
+
+                // Auto-format nama (trim dan title case)
+                if (isset($member['nama'])) {
+                    $formattedMember['nama'] = ucwords(strtolower(trim($member['nama'])));
+                }
+
+                // Auto-format tempat lahir
+                if (isset($member['tempat_lahir'])) {
+                    $formattedMember['tempat_lahir'] = ucwords(strtolower(trim($member['tempat_lahir'])));
+                }
+
+                // Auto-format nama ayah
+                if (isset($member['nama_ayah'])) {
+                    $formattedMember['nama_ayah'] = ucwords(strtolower(trim($member['nama_ayah'])));
+                }
+
+                // Auto-format RT (hapus spasi dan karakter non-digit, pad dengan leading zeros)
+                if (isset($member['rt'])) {
+                    $rt = preg_replace('/[^0-9]/', '', $member['rt']);
+                    $formattedMember['rt'] = str_pad($rt, 3, '0', STR_PAD_LEFT);
+                }
+
+                $formattedMembers[$index] = $formattedMember;
+            }
+
+            $this->merge([
+                'family_members' => $formattedMembers
+            ]);
+        }
+    }
+}
