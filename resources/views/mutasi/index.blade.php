@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Data Mutasi')
 @section('subtitle', 'Kelola data mutasi penduduk')
@@ -809,7 +809,7 @@
     </div>
 </div>
 
-<script>
+@noncescript
 document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('.js-row-link').forEach((row) => {
         row.addEventListener('click', function () {
@@ -931,7 +931,7 @@ function confirmUndo(id, name) {
         }
     });
 }
-</script>
+@endnoncescript
 @endsection
 
 

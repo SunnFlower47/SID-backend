@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Tambah Kartu Keluarga')
 @section('subtitle', 'Buat Kartu Keluarga baru')
@@ -339,7 +339,7 @@
 </div>
 
 @push('scripts')
-<script>
+@noncescript
 // Format NKK dan NIK input
 document.getElementById('nkk').addEventListener('input', function(e) {
     e.target.value = e.target.value.replace(/\D/g, '');
@@ -357,6 +357,6 @@ document.getElementById('rt').addEventListener('input', function(e) {
 document.getElementById('rw').addEventListener('input', function(e) {
     e.target.value = e.target.value.replace(/\D/g, '');
 });
-</script>
+@endnoncescript
 @endpush
 @endsection

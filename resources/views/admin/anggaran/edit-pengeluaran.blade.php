@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Edit Pengeluaran')
 
@@ -103,7 +103,7 @@
 @endsection
 
 @push('scripts')
-<script>
+@noncescript
 // Format number input
 document.getElementById('jumlah').addEventListener('input', function(e) {
     let value = e.target.value.replace(/[^\d]/g, '');
@@ -112,5 +112,5 @@ document.getElementById('jumlah').addEventListener('input', function(e) {
         e.target.value = value;
     }
 });
-</script>
+@endnoncescript
 @endpush

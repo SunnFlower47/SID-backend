@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Tambah Proyek Desa')
 
@@ -205,7 +205,7 @@
 @endsection
 
 @push('scripts')
-<script>
+@noncescript
 // Format number input
 document.getElementById('anggaran').addEventListener('input', function(e) {
     let value = e.target.value.replace(/[^\d]/g, '');
@@ -220,5 +220,5 @@ document.getElementById('tanggal_mulai').addEventListener('change', function(e) 
     const endDateInput = document.getElementById('tanggal_selesai');
     endDateInput.min = e.target.value;
 });
-</script>
+@endnoncescript
 @endpush

@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Data UMKM')
 @section('subtitle', 'Kelola data Usaha Mikro, Kecil, dan Menengah')
@@ -334,7 +334,7 @@
 <!-- SweetAlert2 JS -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<script>
+@noncescript
 // SweetAlert untuk konfirmasi delete
 function confirmDelete(umkmId, umkmName) {
     Swal.fire({
@@ -355,6 +355,6 @@ function confirmDelete(umkmId, umkmName) {
 }
 
 // Session messages handled by global component
-</script>
+@endnoncescript
 @endsection
 

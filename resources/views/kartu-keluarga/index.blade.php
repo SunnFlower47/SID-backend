@@ -50,29 +50,31 @@
         @endcan
 
         @can('kartu-keluarga.edit')
-        <form method="POST" action="{{ route('kartu-keluarga.sync-summary') }}" onsubmit="return confirm('Sinkronisasi KK akan memproses ulang data. Lanjutkan?')">
+        <form method="POST" action="{{ route('kartu-keluarga.sync-summary') }}" onsubmit="return confirm('Proses ini akan mensinkronkan data KK sekaligus memindai KK historis yang tidak memiliki Kepala Keluarga aktif. Lanjutkan?')">
             @csrf
             <button type="submit" class="group flex items-center justify-center px-4 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
-                <div class="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center mr-3 group-hover:scale-110 transition-transform">
+                <div class="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center mr-3 group-hover:scale-110 transition-transform group-hover:rotate-180 duration-500">
                     <i class="fas fa-rotate text-white text-sm"></i>
                 </div>
                 <div class="text-left">
                     <p class="font-semibold text-sm sm:text-base">Sinkronkan KK</p>
-                    <p class="text-indigo-100 text-sm">Update ringkasan dari data penduduk</p>
+                    <p class="text-indigo-100 text-sm">Perbarui & Cek KK Bermasalah</p>
                 </div>
             </button>
         </form>
         @endcan
 
-        <button onclick="batchUpdateKepalaKeluarga()" class="group flex items-center justify-center px-4 py-3 bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02]" id="batch-update-btn">
+        @php $kkBermasalahCount = $stats['bermasalah'] ?? 0; @endphp
+        <a href="{{ route('kk.bermasalah.index') }}"
+           class="group relative flex items-center justify-center px-4 py-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
             <div class="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center mr-3 group-hover:scale-110 transition-transform">
-                <i class="fas fa-tools text-white text-sm"></i>
-                </div>
-            <div class="text-left">
-                <p class="font-semibold text-sm sm:text-base">Perbaiki KK Bermasalah</p>
-                <p class="text-orange-100 text-sm">{{ $stats['bermasalah'] ?? 0 }} KK bermasalah</p>
+                <i class="fas fa-exclamation-triangle text-white text-sm {{ $kkBermasalahCount > 0 ? 'animate-pulse' : '' }}"></i>
             </div>
-        </button>
+            <div class="text-left">
+                <p class="font-semibold text-sm sm:text-base">KK Bermasalah</p>
+                <p class="text-red-100 text-sm">Pantau & audit resolusi KK</p>
+            </div>
+        </a>
         </div>
 
         <!-- Statistics Cards -->
@@ -235,20 +237,28 @@
                                 </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
+                                @php
+                                    $statusKk = $kk->status_kk ?? 'normal';
+                                @endphp
                                 @if($kk->anggota_aktif == 0)
                                 <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                    <i class="fas fa-exclamation-triangle mr-1"></i>
-                                    Kosong
+                                    <i class="fas fa-ban mr-1"></i> Kosong
                                 </span>
-                                @elseif($kk->anggota_meninggal > 0 || $kk->anggota_pindah > 0)
-                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                    <i class="fas fa-exclamation-circle mr-1"></i>
-                                    Bermasalah
+                                @elseif($statusKk === 'bermasalah')
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">
+                                    <i class="fas fa-exclamation-triangle mr-1"></i> Bermasalah
+                                </span>
+                                @elseif($statusKk === 'bermasalah_sementara')
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-700">
+                                    <i class="fas fa-clock mr-1"></i> Sementara
+                                </span>
+                                @elseif($statusKk === 'resolved')
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                                    <i class="fas fa-archive mr-1"></i> Diarsip
                                 </span>
                                 @else
                                 <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                    <i class="fas fa-check-circle mr-1"></i>
-                                    Aktif
+                                    <i class="fas fa-check-circle mr-1"></i> Aktif
                                 </span>
                                 @endif
                             </td>
@@ -267,6 +277,15 @@
                                         <i class="fas fa-eye"></i>
                                     </a>
                                     @endcan
+                                    @if(in_array($kk->status_kk ?? 'normal', ['bermasalah','bermasalah_sementara']))
+                                    @can('kartu-keluarga.edit')
+                                    <a href="{{ route('kk.bermasalah', $kk->nkk) }}"
+                                       class="text-orange-600 hover:text-orange-900"
+                                       title="Selesaikan KK Bermasalah">
+                                        <i class="fas fa-tools"></i>
+                                    </a>
+                                    @endcan
+                                    @endif
                                     @can('kartu-keluarga.view')
                                     <a href="{{ route('kartu-keluarga.download-pdf', $kk->nkk) }}"
                                        class="text-green-600 hover:text-green-900"
@@ -327,20 +346,26 @@
                             <div class="flex-1 min-w-0 overflow-hidden">
                                 <h3 class="text-base sm:text-lg font-bold text-gray-900 truncate" title="{{ $kk->nkk }}">{{ $kk->nkk }}</h3>
                                 <div class="flex items-center space-x-2 mt-1">
+                                    @php $statusKk = $kk->status_kk ?? 'normal'; @endphp
                                     @if($kk->anggota_aktif == 0)
                                     <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                        <i class="fas fa-exclamation-triangle mr-1"></i>
-                                        Kosong
+                                        <i class="fas fa-ban mr-1"></i> Kosong
                                     </span>
-                                    @elseif($kk->anggota_meninggal > 0 || $kk->anggota_pindah > 0)
-                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                        <i class="fas fa-exclamation-circle mr-1"></i>
-                                        Bermasalah
+                                    @elseif($statusKk === 'bermasalah')
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">
+                                        <i class="fas fa-exclamation-triangle mr-1"></i> Bermasalah
+                                    </span>
+                                    @elseif($statusKk === 'bermasalah_sementara')
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-700">
+                                        <i class="fas fa-clock mr-1"></i> Sementara
+                                    </span>
+                                    @elseif($statusKk === 'resolved')
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                                        <i class="fas fa-archive mr-1"></i> Diarsip
                                     </span>
                                     @else
                                     <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                        <i class="fas fa-check-circle mr-1"></i>
-                                        Aktif
+                                        <i class="fas fa-check-circle mr-1"></i> Aktif
                                     </span>
                                     @endif
                                 </div>
@@ -410,12 +435,21 @@
                                 <span class="text-sm font-medium">Detail</span>
                             </a>
                             @endcan
+                            @if(in_array($kk->status_kk ?? 'normal', ['bermasalah','bermasalah_sementara']))
+                            @can('kartu-keluarga.edit')
+                            <a href="{{ route('kk.bermasalah', $kk->nkk) }}" class="flex-1 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-3 py-2.5 rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-105 shadow-md">
+                                <i class="fas fa-tools mr-2 text-sm"></i>
+                                <span class="text-sm font-medium">Selesaikan</span>
+                            </a>
+                            @endcan
+                            @else
                             @can('kartu-keluarga.view')
                             <a href="{{ route('kartu-keluarga.download-pdf', $kk->nkk) }}" class="flex-1 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-3 py-2.5 rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-105 shadow-md">
                                 <i class="fas fa-file-pdf mr-2 text-sm"></i>
                                 <span class="text-sm font-medium">PDF</span>
                             </a>
                             @endcan
+                            @endif
                         </div>
 
                         <!-- Edit & Hapus Row -->
@@ -449,7 +483,7 @@
 </div>
 
 @push('scripts')
-<script>
+@noncescript
 
 function deleteKK(nkk) {
     Swal.fire({
@@ -711,7 +745,7 @@ function batchUpdateKepalaKeluarga() {
         confirmButtonText: 'OK'
     });
 @endif
-</script>
+@endnoncescript
 
 <!-- SweetAlert2 JS -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

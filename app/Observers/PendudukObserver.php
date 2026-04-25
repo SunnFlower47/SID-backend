@@ -41,10 +41,24 @@ class PendudukObserver
 
     /**
      * Handle the Penduduk "restored" event.
+     * FASE 3: Reset flag KK bermasalah saat Kepala Keluarga lama di-restore via Undo.
      */
     public function restored(Penduduk $penduduk): void
     {
-        $this->updateKartuKeluarga($penduduk->nkk);
+        $this->updateKartuKeluarga($penduduk->nkk); // EXISTING — tetap dijalankan
+
+        // BARU (Fase 3): Reset flag status KK jika yang di-restore adalah Kepala Keluarga
+        // Saat ini dipanggil SETELAH undo() di MutasiController sudah rollback KK sementara,
+        // sehingga reset di sini aman (tidak ada konflik 2 Kepala Keluarga).
+        if ($penduduk->kedudukan_keluarga === 'Kepala Keluarga') {
+            KartuKeluarga::where('nkk', $penduduk->nkk)->update([
+                'status_kk'           => 'normal',
+                'mutasi_penyebab_id'  => null,
+                'kk_sementara_id'     => null,
+                'kk_bermasalah_sejak' => null,
+                'catatan_bermasalah'  => null,
+            ]);
+        }
     }
 
     /**

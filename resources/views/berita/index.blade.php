@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('content')
 <!-- SweetAlert2 CSS -->
@@ -184,7 +184,7 @@
 <!-- SweetAlert2 JS -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<script>
+@noncescript
 // SweetAlert untuk konfirmasi delete
 function confirmDelete(beritaId, beritaTitle) {
     Swal.fire({
@@ -205,6 +205,6 @@ function confirmDelete(beritaId, beritaTitle) {
 }
 
 // Session messages handled by global component
-</script>
+@endnoncescript
 @endsection
 

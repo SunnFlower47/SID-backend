@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Bantuan Sosial')
 
@@ -263,7 +263,7 @@
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
+@noncescript
 // SweetAlert untuk konfirmasi delete penerima
 function confirmDeletePenerima(id, name) {
     Swal.fire({
@@ -299,6 +299,6 @@ function confirmDeletePenerima(id, name) {
         }
     });
 }
-</script>
+@endnoncescript
 @endpush
 @endsection

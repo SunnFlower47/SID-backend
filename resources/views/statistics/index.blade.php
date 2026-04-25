@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Statistik Kependudukan')
 @section('subtitle', 'Analisis data kependudukan desa Cibatu')
@@ -454,7 +454,7 @@
 }
 </style>
 
-<script>
+@noncescript
 function refreshStatistics() {
     if (confirm('Apakah Anda yakin ingin me-refresh data statistik? Data akan diperbarui dari database terbaru.')) {
         // Show loading
@@ -500,12 +500,12 @@ function refreshStatistics() {
         });
     }
 }
-</script>
+@endnoncescript
 
 <!-- SweetAlert2 JS -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<script>
+@noncescript
 // SweetAlert untuk notifikasi sukses
 @if(session('success'))
     Swal.fire({
@@ -545,5 +545,5 @@ function refreshStatistics() {
         confirmButtonText: 'OK'
     });
 @endif
-</script>
+@endnoncescript
 @endsection

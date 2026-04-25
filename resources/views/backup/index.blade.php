@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Backup & Restore')
 @section('subtitle', 'Kelola backup dan restore data sistem')
@@ -230,7 +230,7 @@
 <!-- SweetAlert2 JS -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<script>
+@noncescript
 // SweetAlert untuk notifikasi sukses
 @if(session('success'))
     Swal.fire({
@@ -270,6 +270,6 @@
         confirmButtonText: 'OK'
     });
 @endif
-</script>
+@endnoncescript
 @endsection
 

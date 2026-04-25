@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Detail Transparansi Desa')
 @section('subtitle', 'Detail informasi transparansi desa')
@@ -189,7 +189,7 @@
 <!-- SweetAlert2 JS -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<script>
+@noncescript
 // SweetAlert2 untuk notifikasi
 @if(session('success'))
     Swal.fire({
@@ -227,5 +227,5 @@ function confirmDelete() {
         }
     });
 }
-</script>
+@endnoncescript
 @endsection

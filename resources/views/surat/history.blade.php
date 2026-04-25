@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'History Pembuatan Surat')
 @section('subtitle', 'Daftar surat yang telah dibuat')
@@ -446,7 +446,7 @@
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
+@noncescript
 function confirmDelete(suratId, nomorSurat) {
     Swal.fire({
         title: 'Konfirmasi Hapus',
@@ -467,5 +467,5 @@ function confirmDelete(suratId, nomorSurat) {
         }
     });
 }
-</script>
+@endnoncescript
 @endpush

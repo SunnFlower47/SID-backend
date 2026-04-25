@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Tambah Mutasi')
 @section('subtitle', 'Tambah data mutasi penduduk')
@@ -1059,7 +1059,7 @@
     </div>
 </div>
 
-<script>
+@noncescript
 
 // Form validation and submission
 document.getElementById('mutasiForm').addEventListener('submit', function(e) {
@@ -3249,12 +3249,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
 });
-</script>
+@endnoncescript
 
 <!-- SweetAlert2 JS -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<script>
+@noncescript
 // SweetAlert functions
 function showSuccess(message) {
     Swal.fire({
@@ -3396,7 +3396,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
-</script>
+@endnoncescript
 @endsection
 
 

@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Detail Mutasi')
 @section('subtitle', 'Informasi lengkap data mutasi')
@@ -544,7 +544,7 @@
     @endif
 </div>
 
-<script>
+@noncescript
 document.addEventListener('DOMContentLoaded', function () {
     const actionBtn = document.getElementById('mutasiActionBtn');
     if (actionBtn) {
@@ -677,6 +677,6 @@ function confirmAction() {
         });
     @endif
 }
-</script>
+@endnoncescript
 @endsection
 

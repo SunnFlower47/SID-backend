@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Edit Profile')
 @section('subtitle', 'Ubah informasi profil Anda')
@@ -207,7 +207,7 @@
     </div>
 </div>
 
-<script>
+@noncescript
 function resetPasswordForm() {
     Swal.fire({
         title: 'Reset Form Password',
@@ -316,10 +316,10 @@ function confirmPasswordChange() {
     });
     return false; // Prevent default form submission
 }
-</script>
+@endnoncescript
 
 @if (session('status') == 'profile-updated')
-<script>
+@noncescript
     Swal.fire({
         icon: 'success',
         title: 'Profil Berhasil Diperbarui!',
@@ -332,11 +332,11 @@ function confirmPasswordChange() {
             popup: 'swal-toast'
         }
     });
-</script>
+@endnoncescript
 @endif
 
 @if (session('status') == 'password-updated')
-<script>
+@noncescript
     Swal.fire({
         icon: 'success',
         title: 'Password Berhasil Diperbarui!',
@@ -353,11 +353,11 @@ function confirmPasswordChange() {
         confirmButtonText: 'OK',
         confirmButtonColor: '#10b981'
     });
-</script>
+@endnoncescript
 @endif
 
 @if ($errors->any())
-<script>
+@noncescript
     Swal.fire({
         icon: 'error',
         title: 'Terjadi Kesalahan!',
@@ -377,7 +377,7 @@ function confirmPasswordChange() {
             popup: 'swal-wide'
         }
     });
-</script>
+@endnoncescript
 @endif
 
 <style>

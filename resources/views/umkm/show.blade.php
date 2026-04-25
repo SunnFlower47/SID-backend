@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Detail Data UMKM')
 @section('subtitle', 'Detail data Usaha Mikro, Kecil, dan Menengah')
@@ -304,7 +304,7 @@
 <!-- SweetAlert2 JS -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<script>
+@noncescript
 // Open image modal
 function openImageModal(imageSrc) {
     document.getElementById('modalImage').src = imageSrc;
@@ -361,5 +361,5 @@ function confirmDelete(umkmId, umkmName) {
         }
     });
 }
-</script>
+@endnoncescript
 @endsection

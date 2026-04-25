@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Tambah Anggaran Tahunan')
 
@@ -141,7 +141,7 @@
 @endsection
 
 @push('scripts')
-<script>
+@noncescript
 // Format number input
 document.getElementById('anggaran').addEventListener('input', function(e) {
     let value = e.target.value.replace(/[^\d]/g, '');
@@ -150,5 +150,5 @@ document.getElementById('anggaran').addEventListener('input', function(e) {
         e.target.value = value;
     }
 });
-</script>
+@endnoncescript
 @endpush

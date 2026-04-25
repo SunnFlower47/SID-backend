@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Bantuan Sosial')
 
@@ -256,7 +256,7 @@
     </div>
 </div>
 
-<script>
+@noncescript
     function togglePembayaranSistem() {
         const sistemPembayaran = document.querySelector('input[name="sistem_pembayaran"]:checked').value;
         const nilaiSekaliContainer = document.getElementById('nilai_sekali_container');
@@ -310,5 +310,5 @@
     document.addEventListener('DOMContentLoaded', function() {
         togglePembayaranSistem();
     });
-</script>
+@endnoncescript
 @endsection

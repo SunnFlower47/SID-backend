@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Transparansi Desa')
 @section('subtitle', 'Informasi keuangan dan proyek desa untuk transparansi publik')
@@ -204,8 +204,8 @@
 </div>
 
 
-<script>
+@noncescript
 // Session messages handled by global component
-</script>
+@endnoncescript
 @endsection
 

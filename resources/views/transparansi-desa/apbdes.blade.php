@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'APBDes')
 @section('subtitle', 'Data anggaran dan realisasi keuangan desa')
@@ -279,7 +279,7 @@
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
+@noncescript
 function confirmDeleteApbdes(apbdesId, namaRekening) {
     Swal.fire({
         title: 'Konfirmasi Hapus',
@@ -329,11 +329,11 @@ function confirmDeleteApbdes(apbdesId, namaRekening) {
         }
     });
 }
-</script>
+@endnoncescript
 @endpush
 
 @push('scripts')
-<script>
+@noncescript
 $(document).ready(function() {
     $('#dataTable').DataTable({
         "paging": false,
@@ -344,5 +344,5 @@ $(document).ready(function() {
         "responsive": true
     });
 });
-</script>
+@endnoncescript
 @endpush

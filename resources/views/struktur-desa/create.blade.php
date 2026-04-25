@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Tambah Struktur Desa')
 
@@ -314,7 +314,7 @@
     </div>
 </div>
 
-<script>
+@noncescript
     let searchTimeout;
 
     // Penduduk search functions
@@ -436,5 +436,5 @@
             }
         });
     });
-</script>
+@endnoncescript
 @endsection

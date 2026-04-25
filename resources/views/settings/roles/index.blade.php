@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Manajemen Role')
 @section('subtitle', 'Kelola role dan permission sistem')
@@ -138,7 +138,7 @@
     </div>
 </div>
 
-<script>
+@noncescript
 // SweetAlert untuk konfirmasi delete
 function confirmDelete(id, name) {
     Swal.fire({
@@ -174,7 +174,7 @@ function confirmDelete(id, name) {
         }
     });
 }
-</script>
+@endnoncescript
 
 <!-- SweetAlert2 JS -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -219,6 +219,6 @@ function confirmDelete(id, name) {
         confirmButtonText: 'OK'
     });
 @endif
-</script>
+@endnoncescript
 @endsection
 

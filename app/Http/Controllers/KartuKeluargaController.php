@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Mutasi;
 use App\Models\Penduduk;
 use App\Models\KartuKeluarga;
 use App\Exports\KartuKeluargaExport;
@@ -40,11 +41,10 @@ class KartuKeluargaController extends Controller
 
         // Filter by Status
         if ($status === 'aktif') {
-            $query->where('anggota_aktif', '>', 0)
-                  ->where('anggota_mutasi', 0);
+            $query->where('anggota_aktif', '>', 0);
         } elseif ($status === 'bermasalah') {
-            $query->where('anggota_aktif', '>', 0)
-                  ->where('anggota_mutasi', '>', 0);
+            // FASE 5: pakai status_kk, bukan anggota_mutasi > 0 (lebih presisi)
+            $query->bermasalah();
         } elseif ($status === 'kosong') {
             $query->where('anggota_aktif', 0);
         }
@@ -52,12 +52,12 @@ class KartuKeluargaController extends Controller
         // Sort and Paginate
         $kartuKeluarga = $query->orderBy('updated_at', 'desc')->paginate(20);
 
-        // Statistics (now lightning fast sum)
+        // Statistics
         $stats = [
-            'total' => KartuKeluarga::count(),
-            'aktif' => KartuKeluarga::where('anggota_aktif', '>', 0)->where('anggota_mutasi', 0)->count(),
-            'bermasalah' => KartuKeluarga::where('anggota_aktif', '>', 0)->where('anggota_mutasi', '>', 0)->count(),
-            'kosong' => KartuKeluarga::where('anggota_aktif', 0)->count(),
+            'total'       => KartuKeluarga::count(),
+            'aktif'       => KartuKeluarga::where('anggota_aktif', '>', 0)->count(),
+            'bermasalah'  => KartuKeluarga::bermasalah()->count(),
+            'kosong'      => KartuKeluarga::where('anggota_aktif', 0)->count(),
         ];
 
         return view('kartu-keluarga.index', compact('kartuKeluarga', 'stats', 'search', 'status'));
@@ -291,14 +291,18 @@ class KartuKeluargaController extends Controller
         Gate::authorize('kartu-keluarga.edit');
 
         try {
+            // 1. Sync data KK secara umum
             Artisan::call('sync:kartu-keluarga');
-            $output = trim(Artisan::output());
+            $outputSync = trim(Artisan::output());
 
+            // 2. Scan retroaktif KK historis tanpa kepala keluarga (bypass konfirmasi CLI)
+            Artisan::call('kk:scan-historis', ['--force' => true]);
+            
             $total = KartuKeluarga::count();
-            $message = "Sinkronisasi KK selesai. Total KK saat ini: {$total}.";
+            $message = "Sinkronisasi & Pengecekan Historis KK selesai. Total KK saat ini: {$total}.";
 
             // Handle known false-negative message from command transaction handling
-            if (str_contains(strtolower($output), 'there is no active transaction') && $total > 0) {
+            if (str_contains(strtolower($outputSync), 'there is no active transaction') && $total > 0) {
                 return redirect()->route('kartu-keluarga.index')
                     ->with('success', $message . ' (Sinkron berhasil, log command akan dirapikan nanti.)');
             }
@@ -312,28 +316,280 @@ class KartuKeluargaController extends Controller
 
     public function batchUpdateKepalaKeluarga()
     {
-         // Use new table to find problematic KKs quickly!
-         $kkBermasalah = KartuKeluarga::where('anggota_aktif', '>', 0)
-             ->where('anggota_mutasi', '>', 0)
-             ->get();
+        // FASE 5: pakai scope bermasalah() yang presisi
+        $kkBermasalah = KartuKeluarga::bermasalah()->get();
 
         $success = 0;
-        foreach($kkBermasalah as $kk) {
+        foreach ($kkBermasalah as $kk) {
             $res = $this->autoUpdateKepalaKeluarga($kk->nkk);
-            if($res['success'] && $res['action'] === 'updated') $success++;
+            if ($res['success'] && $res['action'] === 'updated') $success++;
         }
-        
+
         return response()->json(['success' => true, 'message' => "Processed {$kkBermasalah->count()} KKs. Fixed: {$success}"]);
     }
-    
+
     public function getKkBermasalah()
     {
-        $data = KartuKeluarga::where('anggota_aktif', '>', 0)
-             ->where('anggota_mutasi', '>', 0)
-             ->orderBy('updated_at', 'desc')
-             ->get();
-             
+        // FASE 5: pakai scope bermasalah() yang presisi
+        $data = KartuKeluarga::bermasalah()->orderBy('updated_at', 'desc')->get();
         return response()->json(['success' => true, 'data' => $data]);
+    }
+
+    // =========================================================
+    // FASE 5: Resolusi KK Bermasalah
+    // =========================================================
+
+    // =========================================================
+    // FASE 6: Halaman Dedicated KK Bermasalah (Index + Audit)
+    // =========================================================
+
+    /**
+     * Halaman dedicated KK Bermasalah:
+     * - Tab "Perlu Ditangani": status bermasalah + bermasalah_sementara
+     * - Tab "Riwayat Resolved": status resolved (audit trail)
+     */
+    public function indexBermasalah(Request $request)
+    {
+        $tab    = $request->get('tab', 'pending');   // pending | resolved
+        $search = $request->get('search');
+
+        $baseQuery = KartuKeluarga::query()
+            ->when($search, fn($q) => $q->where(function ($q) use ($search) {
+                $q->where('nkk', 'like', "%{$search}%")
+                  ->orWhere('nama_kepala_keluarga', 'like', "%{$search}%");
+            }));
+
+        if ($tab === 'resolved') {
+            $kkList = (clone $baseQuery)
+                ->where('status_kk', 'resolved')
+                ->orderBy('updated_at', 'desc')
+                ->paginate(20);
+        } else {
+            $kkList = (clone $baseQuery)
+                ->bermasalah()
+                ->orderBy('kk_bermasalah_sejak', 'asc')   // terlama dulu
+                ->paginate(20);
+        }
+
+        $stats = [
+            'bermasalah'         => KartuKeluarga::where('status_kk', 'bermasalah')->count(),
+            'bermasalah_sementara' => KartuKeluarga::where('status_kk', 'bermasalah_sementara')->count(),
+            'resolved'           => KartuKeluarga::where('status_kk', 'resolved')->count(),
+        ];
+        $stats['pending_total'] = $stats['bermasalah'] + $stats['bermasalah_sementara'];
+
+        return view('kartu-keluarga.bermasalah-index', compact('kkList', 'stats', 'tab', 'search'));
+    }
+
+    /**
+     * Halaman resolusi KK bermasalah — tampilkan anggota aktif sebagai kandidat KK baru.
+     */
+    public function showBermasalah($nkk)
+    {
+        $kkRecord = KartuKeluarga::where('nkk', $nkk)->firstOrFail();
+
+        if (!$kkRecord->isBermasalah()) {
+            return redirect()->route('kartu-keluarga.show', $nkk)
+                ->with('info', 'KK ini tidak dalam status bermasalah.');
+        }
+
+        // Anggota aktif (tidak soft-deleted) sebagai kandidat KK baru
+        $anggotaAktif = Penduduk::where('nkk', $nkk)
+            ->where('kedudukan_keluarga', '!=', 'Kepala Keluarga')
+            ->orderByRaw("FIELD(kedudukan_keluarga,'Istri','Suami','Anak','Menantu','Cucu','Orang Tua','Mertua','Saudara')")
+            ->get();
+
+        $mutasiPenyebab = $kkRecord->mutasiPenyebab;
+        $kkSementara    = $kkRecord->kkSementara;
+
+        return view('kartu-keluarga.bermasalah', compact(
+            'kkRecord', 'nkk', 'anggotaAktif', 'mutasiPenyebab', 'kkSementara'
+        ));
+    }
+
+    /**
+     * Step 1 — Tunjuk KK Sementara.
+     * KK baru ditunjuk, NKK masih lama. Undo mutasi masih bisa dilakukan.
+     */
+    public function resolveKkSementara(Request $request, $nkk)
+    {
+        $request->validate(['kandidat_id' => 'required|exists:penduduks,id']);
+
+        $kkRecord = KartuKeluarga::where('nkk', $nkk)->firstOrFail();
+
+        if ($kkRecord->status_kk !== 'bermasalah') {
+            return redirect()->back()->with('error', 'KK ini tidak dalam status bermasalah atau sudah ada KK sementara.');
+        }
+
+        $kandidat = Penduduk::findOrFail($request->kandidat_id);
+
+        DB::beginTransaction();
+        try {
+            // Simpan kedudukan asal kandidat ke detail_tambahan mutasi penyebab
+            // agar bisa di-rollback saat Undo (Guard 2 di MutasiController)
+            if ($kkRecord->mutasi_penyebab_id) {
+                $mutasiPenyebab = Mutasi::find($kkRecord->mutasi_penyebab_id);
+                if ($mutasiPenyebab) {
+                    $detail = $mutasiPenyebab->detail_tambahan ?? [];
+                    $detail['kk_sementara_id']              = $kandidat->id;
+                    $detail['kk_sementara_kedudukan_asal']  = $kandidat->kedudukan_keluarga;
+                    $mutasiPenyebab->update(['detail_tambahan' => $detail]);
+                }
+            }
+
+            // Naikkan kandidat jadi Kepala Keluarga
+            $kandidat->update(['kedudukan_keluarga' => 'Kepala Keluarga']);
+
+            // Update flag KK
+            $kkRecord->update([
+                'status_kk'      => 'bermasalah_sementara',
+                'kk_sementara_id' => $kandidat->id,
+            ]);
+
+            // Log audit trail mutasi
+            Mutasi::create([
+                'penduduk_id'     => $kandidat->id,
+                'jenis_mutasi'    => 'pembaruan_kk',
+                'kategori_mutasi' => 'dalam_desa',
+                'asal_tujuan'     => "Dinaikkan jadi Kepala Keluarga sementara NKK {$nkk}",
+                'tanggal_mutasi'  => now()->toDateString(),
+                'alasan'          => 'Resolusi KK bermasalah — penunjukan sementara',
+                'detail_tambahan' => ['nkk' => $nkk, 'tipe' => 'sementara'],
+            ]);
+
+            DB::commit();
+            return redirect()->route('kk.bermasalah', $nkk)
+                ->with('success', "{$kandidat->nama} berhasil ditunjuk sebagai Kepala Keluarga sementara.");
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Gagal menunjuk KK sementara: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Step 2 — Finalisasi Permanen dengan NKK Baru (wajib).
+     * Setelah ini Undo mutasi asal akan diblokir.
+     */
+    public function resolveKkPermanen(Request $request, $nkk)
+    {
+        $request->validate([
+            'nkk_baru' => 'required|string|size:16|unique:kartu_keluargas,nkk|unique:penduduks,nkk',
+        ]);
+
+        $kkRecord = KartuKeluarga::where('nkk', $nkk)->firstOrFail();
+
+        if ($kkRecord->status_kk !== 'bermasalah_sementara') {
+            return redirect()->back()->with('error', 'Harus menunjuk KK sementara terlebih dahulu (Step 1).');
+        }
+
+        $nkkBaru = $request->nkk_baru;
+
+        DB::beginTransaction();
+        try {
+            // Mass update NKK anggota TANPA trigger Observer (cegah false-positive flag)
+            Penduduk::withoutEvents(function () use ($nkk, $nkkBaru) {
+                Penduduk::where('nkk', $nkk)->update(['nkk' => $nkkBaru]);
+            });
+
+            // Buat record KK baru untuk NKK baru
+            $kkBaru = KartuKeluarga::updateOrCreate(
+                ['nkk' => $nkkBaru],
+                [
+                    'nama_kepala_keluarga' => $kkRecord->kkSementara?->nama ?? $kkRecord->nama_kepala_keluarga,
+                    'nik_kepala_keluarga'  => $kkRecord->kkSementara?->nik  ?? $kkRecord->nik_kepala_keluarga,
+                    'alamat'               => $kkRecord->alamat,
+                    'rt'                   => $kkRecord->rt,
+                    'rw'                   => $kkRecord->rw,
+                    'dusun'                => $kkRecord->dusun,
+                    'status_kk'            => 'normal',
+                ]
+            );
+
+            // Arsip KK lama — tetap ada untuk audit, tapi tidak aktif
+            $kkRecord->update([
+                'status_kk'              => 'resolved',
+                'anggota_aktif'          => 0,
+                'kk_bermasalah_sejak'    => $kkRecord->kk_bermasalah_sejak, // tetap
+            ]);
+
+            // Tandai mutasi penyebab — Undo diblokir setelah ini
+            if ($kkRecord->mutasi_penyebab_id) {
+                $mutasiPenyebab = Mutasi::find($kkRecord->mutasi_penyebab_id);
+                if ($mutasiPenyebab) {
+                    $detail = $mutasiPenyebab->detail_tambahan ?? [];
+                    $detail['kk_sudah_diselesaikan'] = true;
+                    $detail['nkk_baru']              = $nkkBaru;
+                    $mutasiPenyebab->update(['detail_tambahan' => $detail]);
+                }
+            }
+
+            // Log audit trail
+            $kkSementara = $kkRecord->kkSementara;
+            if ($kkSementara) {
+                Mutasi::create([
+                    'penduduk_id'     => $kkSementara->id,
+                    'jenis_mutasi'    => 'pembaruan_kk',
+                    'kategori_mutasi' => 'dalam_desa',
+                    'asal_tujuan'     => "NKK lama: {$nkk} → NKK baru: {$nkkBaru}",
+                    'tanggal_mutasi'  => now()->toDateString(),
+                    'alasan'          => 'Resolusi KK bermasalah — penyelesaian permanen (NKK baru diterbitkan)',
+                    'detail_tambahan' => ['nkk_lama' => $nkk, 'nkk_baru' => $nkkBaru, 'tipe' => 'permanen'],
+                ]);
+            }
+
+            DB::commit();
+            return redirect()->route('kartu-keluarga.show', $nkkBaru)
+                ->with('success', "KK berhasil diselesaikan. NKK baru: {$nkkBaru}. Undo mutasi asal telah diblokir.");
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Gagal menyelesaikan KK permanen: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Batalkan KK Sementara — rollback ke status bermasalah (sebelum Step 2).
+     * Digunakan jika admin salah memilih kandidat KK sementara.
+     */
+    public function batalkanSementara($nkk)
+    {
+        $kkRecord = KartuKeluarga::where('nkk', $nkk)->firstOrFail();
+
+        if ($kkRecord->status_kk !== 'bermasalah_sementara') {
+            return redirect()->back()->with('error', 'Tidak ada KK sementara yang perlu dibatalkan.');
+        }
+
+        DB::beginTransaction();
+        try {
+            // Baca data rollback dari detail_tambahan mutasi penyebab
+            $mutasiPenyebab       = Mutasi::find($kkRecord->mutasi_penyebab_id);
+            $kkSementaraId        = $mutasiPenyebab?->detail_tambahan['kk_sementara_id'] ?? null;
+            $kkSementaraAsal      = $mutasiPenyebab?->detail_tambahan['kk_sementara_kedudukan_asal'] ?? null;
+
+            // Rollback kedudukan KK sementara ke posisi asal
+            if ($kkSementaraId && $kkSementaraAsal) {
+                Penduduk::find($kkSementaraId)?->update(['kedudukan_keluarga' => $kkSementaraAsal]);
+            }
+
+            // Hapus info kk_sementara dari mutasi penyebab
+            if ($mutasiPenyebab) {
+                $detail = $mutasiPenyebab->detail_tambahan ?? [];
+                unset($detail['kk_sementara_id'], $detail['kk_sementara_kedudukan_asal']);
+                $mutasiPenyebab->update(['detail_tambahan' => $detail]);
+            }
+
+            // Reset KK flag ke bermasalah
+            $kkRecord->update([
+                'status_kk'       => 'bermasalah',
+                'kk_sementara_id' => null,
+            ]);
+
+            DB::commit();
+            return redirect()->route('kk.bermasalah', $nkk)
+                ->with('success', 'Penunjukan KK sementara berhasil dibatalkan. Silakan pilih kandidat lain.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Gagal membatalkan KK sementara: ' . $e->getMessage());
+        }
     }
 
     public function downloadPdf($nkk)

@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Detail Struktur Desa')
 
@@ -210,7 +210,7 @@
 
 <!-- SweetAlert2 JS -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
+@noncescript
 function confirmDelete(id, name) {
     Swal.fire({
         title: 'Konfirmasi Hapus',
@@ -246,5 +246,5 @@ function confirmDelete(id, name) {
         }
     });
 }
-</script>
+@endnoncescript
 @endsection

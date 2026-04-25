@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Tambah Pengeluaran Anggaran')
 
@@ -131,7 +131,7 @@
 @endsection
 
 @push('scripts')
-<script>
+@noncescript
 function loadApbdesList() {
     const tahun = document.getElementById('tahun').value;
     const jenis = document.getElementById('jenis').value;
@@ -148,5 +148,5 @@ document.getElementById('jumlah').addEventListener('input', function(e) {
         e.target.value = value;
     }
 });
-</script>
+@endnoncescript
 @endpush

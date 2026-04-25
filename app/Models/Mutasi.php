@@ -99,18 +99,27 @@ class Mutasi extends Model
     }
 
     /**
+     * Scope untuk mutasi pembaruan KK (resolusi KK bermasalah) — FASE 4
+     */
+    public function scopePembaruanKk($query)
+    {
+        return $query->where('jenis_mutasi', 'pembaruan_kk');
+    }
+
+    /**
      * Accessor untuk jenis mutasi label
      */
     public function getJenisMutasiLabelAttribute(): string
     {
         return match($this->jenis_mutasi) {
-            'kelahiran' => 'Kelahiran',
-            'kematian' => 'Kematian',
-            'pindah_masuk' => 'Pindah Masuk',
+            'kelahiran'     => 'Kelahiran',
+            'kematian'      => 'Kematian',
+            'pindah_masuk'  => 'Pindah Masuk',
             'pindah_keluar' => 'Pindah Keluar',
-            'pindah_rt_rw' => 'Pindah RT/RW',
-            'pisah_kk' => 'Pisah KK',
-            default => 'Tidak Diketahui'
+            'pindah_rt_rw'  => 'Pindah RT/RW',
+            'pisah_kk'      => 'Pisah KK',
+            'pembaruan_kk'  => 'Pembaruan KK',  // FASE 4: resolusi KK bermasalah
+            default         => 'Tidak Diketahui'
         };
     }
 

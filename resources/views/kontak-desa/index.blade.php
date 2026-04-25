@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Kontak Desa')
 @section('subtitle', 'Kelola data kontak dan informasi komunikasi desa')
@@ -252,7 +252,7 @@
 <!-- SweetAlert2 JS -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<script>
+@noncescript
 // SweetAlert untuk notifikasi sukses
 @if(session('success'))
     Swal.fire({
@@ -311,6 +311,6 @@ function confirmDelete(kontakId, kontakName) {
         }
     });
 }
-</script>
+@endnoncescript
 @endsection
 

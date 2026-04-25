@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('content')
 <!-- SweetAlert2 CSS -->
@@ -249,8 +249,8 @@
     </div>
 </div>
 
-<script>
+@noncescript
 // Session messages handled by global component
-</script>
+@endnoncescript
 @endsection
 

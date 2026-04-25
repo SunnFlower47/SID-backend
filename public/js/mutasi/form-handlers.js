@@ -1538,12 +1538,79 @@ function selectPendudukPindahKeluar(penduduk) {
     }
     if (searchInput) searchInput.value = '';
     if (results) results.classList.add('hidden');
+    
+    // Fetch anggota keluarga lainnya
+    if (penduduk.nkk) {
+        fetchAnggotaKeluargaPindah(penduduk.nkk, penduduk.id);
+    }
+}
+
+function fetchAnggotaKeluargaPindah(nkk, excludeId) {
+    const container = document.getElementById('anggota_keluarga_container_pindah_keluar');
+    const loading = document.getElementById('anggota_keluarga_loading_pindah_keluar');
+    const list = document.getElementById('anggota_keluarga_list_pindah_keluar');
+    const checkAll = document.getElementById('check_all_anggota_pindah');
+    
+    if (!container || !loading || !list) return;
+    
+    container.classList.remove('hidden');
+    loading.classList.remove('hidden');
+    list.innerHTML = '';
+    list.classList.add('hidden');
+    if(checkAll) checkAll.checked = false;
+    
+    fetch(`/mutasi/get-anggota-keluarga?nkk=${encodeURIComponent(nkk)}&exclude_id=${excludeId}`, {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        loading.classList.add('hidden');
+        if (data.length > 0) {
+            data.forEach(anggota => {
+                const item = document.createElement('label');
+                item.className = 'flex items-center p-3 hover:bg-orange-50 cursor-pointer transition-colors duration-150';
+                item.innerHTML = `
+                    <input type="checkbox" name="anggota_pindah[]" value="${anggota.id}" class="anggota-checkbox rounded border-gray-300 text-orange-600 shadow-sm focus:border-orange-300 focus:ring focus:ring-orange-200 focus:ring-opacity-50">
+                    <div class="ml-3">
+                        <p class="text-sm font-medium text-gray-900">${anggota.nama}</p>
+                        <p class="text-xs text-gray-500">${anggota.kedudukan_keluarga} • NIK: ${anggota.nik}</p>
+                    </div>
+                `;
+                list.appendChild(item);
+            });
+            list.classList.remove('hidden');
+            
+            // Setup check all logic
+            if (checkAll) {
+                checkAll.onchange = function() {
+                    const checkboxes = list.querySelectorAll('.anggota-checkbox');
+                    checkboxes.forEach(cb => cb.checked = this.checked);
+                };
+            }
+        } else {
+            list.innerHTML = '<div class="p-3 text-sm text-gray-500 italic text-center">Tidak ada anggota keluarga lain di KK ini.</div>';
+            list.classList.remove('hidden');
+            if(checkAll) checkAll.disabled = true;
+        }
+    })
+    .catch(error => {
+        console.error('Error fetching anggota keluarga:', error);
+        loading.classList.add('hidden');
+        list.innerHTML = '<div class="p-3 text-sm text-red-500 text-center">Gagal memuat data keluarga.</div>';
+        list.classList.remove('hidden');
+    });
 }
 
 function hidePendudukSearchResultsPindahKeluar() {
     const results = document.getElementById('penduduk_search_results_pindah_keluar');
     if (results) results.classList.add('hidden');
 }
+
+// (removed clearPendudukSelection to avoid duplication)
 
 // Penduduk Search functions for Pindah RT/RW
 function searchPendudukPindahRTRW(query) {

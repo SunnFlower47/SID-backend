@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Tambah Data UMKM')
 @section('subtitle', 'Tambah data Usaha Mikro, Kecil, dan Menengah baru')
@@ -337,7 +337,7 @@
 <!-- SweetAlert2 JS -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<script>
+@noncescript
 // Add produk unggulan
 function addProduk() {
     const container = document.getElementById('produk-container');
@@ -377,5 +377,5 @@ function removeProduk(button) {
         confirmButtonText: 'OK'
     });
 @endif
-</script>
+@endnoncescript
 @endsection

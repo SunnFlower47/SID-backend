@@ -468,6 +468,35 @@ class MutasiController extends Controller
 
         $wantsJson = $request->expectsJson() || $request->wantsJson() || $request->ajax();
 
+        // ============================================================
+        // FASE 3: Guard Proteksi Undo — KK Bermasalah
+        // ============================================================
+
+        // Guard 1: Blokir Undo jika KK sudah diselesaikan secara PERMANEN.
+        // Setelah resolveKkPermanen(), NKK seluruh anggota sudah berbeda.
+        // Merestore KK lama ke NKK yang sudah berubah akan merusak integritas data.
+        if ($mutasi->detail_tambahan['kk_sudah_diselesaikan'] ?? false) {
+            $msg = 'Undo tidak dapat dilakukan. KK dari mutasi ini sudah diselesaikan secara permanen oleh admin (NKK baru sudah diterbitkan). Gunakan menu Kartu Keluarga untuk melakukan koreksi manual.';
+            return $wantsJson
+                ? response()->json(['success' => false, 'message' => $msg], 422)
+                : redirect()->back()->with('error', $msg);
+        }
+
+        // Guard 2: Rollback KK Sementara jika status masih 'bermasalah_sementara'.
+        // Jika admin sudah menunjuk KK sementara tapi belum permanen, rollback dulu
+        // kedudukan KK sementara ke posisi asalnya sebelum KK lama di-restore.
+        // Ini mencegah 2 orang berstatus 'Kepala Keluarga' secara bersamaan.
+        $kkSementaraId      = $mutasi->detail_tambahan['kk_sementara_id'] ?? null;
+        $kkSementaraAsal    = $mutasi->detail_tambahan['kk_sementara_kedudukan_asal'] ?? null;
+        if ($kkSementaraId && $kkSementaraAsal) {
+            $kkSementara = Penduduk::find($kkSementaraId);
+            if ($kkSementara) {
+                $kkSementara->update(['kedudukan_keluarga' => $kkSementaraAsal]);
+            }
+        }
+        // Setelah guard selesai, PendudukObserver::restored() akan otomatis
+        // mereset status_kk = 'normal' saat penduduk KK lama di-restore di bawah.
+
         try {
             DB::beginTransaction();
 
@@ -559,5 +588,26 @@ class MutasiController extends Controller
                 ->count() + 1;
         
         return sprintf("%03d", $count);
+    }
+    /**
+     * Get anggota keluarga based on NKK for collective mutations
+     */
+    public function getAnggotaKeluarga(Request $request)
+    {
+        $nkk = $request->query('nkk');
+        $excludeId = $request->query('exclude_id');
+
+        if (!$nkk) {
+            return response()->json([]);
+        }
+
+        $anggota = Penduduk::where('nkk', $nkk)
+            ->when($excludeId, function ($query, $excludeId) {
+                return $query->where('id', '!=', $excludeId);
+            })
+            ->select('id', 'nik', 'nama', 'kedudukan_keluarga', 'nkk')
+            ->get();
+
+        return response()->json($anggota);
     }
 }

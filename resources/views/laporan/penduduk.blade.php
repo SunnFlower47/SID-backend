@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Laporan Data Penduduk')
 @section('subtitle', 'Laporan lengkap data penduduk desa Cibatu')
@@ -251,7 +251,7 @@
     </div>
 </div>
 
-<script>
+@noncescript
 function exportToExcel() {
     // Get current filter parameters
     const params = new URLSearchParams(window.location.search);
@@ -260,7 +260,7 @@ function exportToExcel() {
     // Redirect to export URL
     window.location.href = '{{ route("laporan.penduduk.export.excel") }}?' + params.toString();
 }
-</script>
+@endnoncescript
 
 <style>
 @media print {

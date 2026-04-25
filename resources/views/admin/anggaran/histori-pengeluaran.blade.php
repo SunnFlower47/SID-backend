@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Histori Pergerakan Dana')
 
@@ -179,7 +179,7 @@
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
+@noncescript
 function confirmDelete(pengeluaranId, namaPengeluaran) {
     Swal.fire({
         title: 'Konfirmasi Hapus',
@@ -214,5 +214,5 @@ function confirmDelete(pengeluaranId, namaPengeluaran) {
         }
     });
 }
-</script>
+@endnoncescript
 @endpush

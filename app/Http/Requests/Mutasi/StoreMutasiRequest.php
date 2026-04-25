@@ -21,7 +21,7 @@ class StoreMutasiRequest extends FormRequest
     public function rules(): array
     {
         $rules = [
-            'jenis_mutasi' => 'required|in:kelahiran,kematian,pindah_masuk,pindah_keluar,pindah_rt_rw,pisah_kk',
+            'jenis_mutasi' => 'required|in:kelahiran,kematian,pindah_masuk,pindah_keluar,pindah_rt_rw,pisah_kk,pembaruan_kk',
             'dokumen_pendukung' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
         ];
 

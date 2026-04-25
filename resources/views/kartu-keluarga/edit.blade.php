@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Edit Kartu Keluarga')
 @section('subtitle', 'Edit data Kartu Keluarga')
@@ -144,7 +144,7 @@
 </div>
 
 @push('scripts')
-<script>
+@noncescript
 // Format RT dan RW
 document.getElementById('rt').addEventListener('input', function(e) {
     e.target.value = e.target.value.replace(/\D/g, '');
@@ -153,6 +153,6 @@ document.getElementById('rt').addEventListener('input', function(e) {
 document.getElementById('rw').addEventListener('input', function(e) {
     e.target.value = e.target.value.replace(/\D/g, '');
 });
-</script>
+@endnoncescript
 @endpush
 @endsection

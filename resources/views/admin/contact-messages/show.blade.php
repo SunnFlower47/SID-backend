@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Detail Pesan Kontak')
 
@@ -252,7 +252,7 @@
     </div>
 </div>
 
-<script>
+@noncescript
 document.addEventListener('DOMContentLoaded', function() {
     // Individual delete confirmation
     window.confirmDelete = function(messageId, subject) {
@@ -334,5 +334,5 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
-</script>
+@endnoncescript
 @endsection

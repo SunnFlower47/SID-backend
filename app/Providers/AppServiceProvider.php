@@ -3,22 +3,14 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Blade;
 use Spatie\Activitylog\Models\Activity;
 use App\Observers\ActivityLogObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
-    public function register(): void
-    {
-        //
-    }
+    public function register(): void {}
 
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
     {
         // Register Activity Log Observer
@@ -34,6 +26,20 @@ class AppServiceProvider extends ServiceProvider
                 return \App\Models\ContactMessage::unread()->count();
             });
             $view->with('unreadContactCount', $unreadCount);
+        });
+
+        // ============================================================
+        // Blade directive: @noncescript / @endnoncescript
+        // Otomatis inject CSP nonce ke setiap <script> block inline
+        // Pengganti untuk semua <script> di views yang tidak punya nonce.
+        // Usage: @noncescript ... @endnoncescript
+        // ============================================================
+        Blade::directive('noncescript', function () {
+            return '<?php echo "<script nonce=\"" . ($csp_nonce ?? "") . "\">"; ?>';
+        });
+
+        Blade::directive('endnoncescript', function () {
+            return '<?php echo "</script>"; ?>';
         });
     }
 }

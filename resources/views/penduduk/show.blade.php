@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Detail Penduduk')
 @section('subtitle', 'Informasi lengkap data penduduk')
@@ -537,7 +537,7 @@
     @method('DELETE')
 </form>
 
-<script>
+@noncescript
 function confirmDeletePenduduk() {
     Swal.fire({
         title: 'Konfirmasi Hapus',
@@ -554,7 +554,7 @@ function confirmDeletePenduduk() {
         }
     });
 }
-</script>
+@endnoncescript
 
 <!-- Session messages handled by global component -->
 

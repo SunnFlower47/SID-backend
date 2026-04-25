@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Tambah Berita Baru')
 @section('subtitle', 'Buat berita atau pengumuman untuk desa')
@@ -137,7 +137,7 @@
 @endsection
 
 @push('scripts')
-<script>
+@noncescript
 function validateFileSize(input) {
     const maxSize = 5 * 1024 * 1024; // 5MB in bytes
     const file = input.files[0];
@@ -175,5 +175,5 @@ document.querySelector('form').addEventListener('submit', function(e) {
         }
     }
 });
-</script>
+@endnoncescript
 @endpush

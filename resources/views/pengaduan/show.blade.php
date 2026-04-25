@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Detail Pengaduan')
 @section('subtitle', 'Lihat detail pengaduan warga')
@@ -223,7 +223,7 @@
     </div>
 </div>
 
-<script>
+@noncescript
 function openImageModal(imageSrc) {
     document.getElementById('modalImage').src = imageSrc;
     document.getElementById('imageModal').classList.remove('hidden');
@@ -241,12 +241,12 @@ document.getElementById('imageModal').addEventListener('click', function(e) {
         closeImageModal();
     }
 });
-</script>
+@endnoncescript
 
 <!-- SweetAlert2 JS -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<script>
+@noncescript
 // SweetAlert untuk notifikasi sukses
 @if(session('success'))
     Swal.fire({
@@ -322,5 +322,5 @@ function confirmDelete(id, title) {
         }
     });
 }
-</script>
+@endnoncescript
 @endsection

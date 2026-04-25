@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Kelola Pesan Kontak')
 
@@ -489,7 +489,7 @@
     <div id="bulk-message-ids"></div>
 </form>
 
-<script>
+@noncescript
 document.addEventListener('DOMContentLoaded', function() {
     const selectAllCheckbox = document.getElementById('select-all');
     const messageCheckboxes = document.querySelectorAll('.message-checkbox');
@@ -658,5 +658,5 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     @endif
 });
-</script>
+@endnoncescript
 @endsection

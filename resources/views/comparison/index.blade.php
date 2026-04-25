@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Perbandingan Data')
 @section('subtitle', 'Bulan ini vs Bulan lalu')
@@ -258,7 +258,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
+@noncescript
     // Trend Chart
     const ctx = document.getElementById('trendChart').getContext('2d');
     const trendData = @json($monthlyTrends);
@@ -310,12 +310,12 @@
     function refreshData() {
         location.reload();
     }
-</script>
+@endnoncescript
 
 <!-- SweetAlert2 JS -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<script>
+@noncescript
 // SweetAlert untuk notifikasi sukses
 @if(session('success'))
     Swal.fire({
@@ -355,6 +355,6 @@
         confirmButtonText: 'OK'
     });
 @endif
-</script>
+@endnoncescript
 @endsection
 

@@ -62,4 +62,9 @@ function clearPendudukSelection(formType) {
     if (pendudukIdInput) pendudukIdInput.value = '';
     if (selectedPendudukDiv) selectedPendudukDiv.classList.add('hidden');
     if (searchInput) searchInput.value = '';
+    
+    if (actualFormType === 'pindah_keluar') {
+        const container = document.getElementById('anggota_keluarga_container_pindah_keluar');
+        if (container) container.classList.add('hidden');
+    }
 }

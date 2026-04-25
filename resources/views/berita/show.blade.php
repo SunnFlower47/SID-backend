@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('content')
 <div class="min-h-screen bg-gray-50 py-8">
@@ -95,7 +95,7 @@
 <!-- SweetAlert2 JS -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<script>
+@noncescript
 // SweetAlert untuk konfirmasi delete
 function confirmDelete(beritaId, beritaTitle) {
     Swal.fire({
@@ -134,5 +134,5 @@ function confirmDelete(beritaId, beritaTitle) {
         confirmButtonText: 'OK'
     });
 @endif
-</script>
+@endnoncescript
 @endsection

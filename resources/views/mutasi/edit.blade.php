@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Edit Mutasi')
 @section('subtitle', 'Ubah data mutasi penduduk')
@@ -405,7 +405,7 @@
 @endsection
 
 @push('scripts')
-<script>
+@noncescript
 document.addEventListener('DOMContentLoaded', function() {
     // Auto-fill hari berdasarkan tanggal untuk form kematian
     const tanggalInput = document.getElementById('tanggal_mutasi');
@@ -435,6 +435,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
-</script>
+@endnoncescript
 @endpush
 

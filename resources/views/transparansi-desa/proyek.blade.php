@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Proyek Desa')
 
@@ -205,7 +205,7 @@
 @endsection
 
 @push('scripts')
-<script>
+@noncescript
 $(document).ready(function() {
     $('#dataTable').DataTable({
         "paging": false,
@@ -216,5 +216,5 @@ $(document).ready(function() {
         "responsive": true
     });
 });
-</script>
+@endnoncescript
 @endpush

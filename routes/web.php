@@ -109,6 +109,7 @@ Route::middleware('auth')->group(function () {
     Route::prefix('mutasi')->name('mutasi.')->group(function () {
         Route::get('/search-kk', [MutasiController::class, 'searchKK'])->name('search-kk');
         Route::get('/search-penduduk', [MutasiController::class, 'searchPenduduk'])->name('search-penduduk');
+        Route::get('/get-anggota-keluarga', [MutasiController::class, 'getAnggotaKeluarga'])->name('get-anggota-keluarga');
         Route::get('/check-nkk', [MutasiController::class, 'checkNKKExists'])->name('check-nkk');
         Route::post('/undo/{mutasi}', [MutasiController::class, 'undo'])->name('undo');
         Route::delete('/cancel/{mutasi}', [MutasiController::class, 'cancel'])->name('cancel');
@@ -210,7 +211,16 @@ Route::middleware('auth')->group(function () {
     Route::get('/kartu-keluarga/bermasalah/list', [App\Http\Controllers\KartuKeluargaController::class, 'getKkBermasalah'])->name('kartu-keluarga.bermasalah.list');
     Route::post('/kartu-keluarga/{nkk}/update-kepala-keluarga', [App\Http\Controllers\KartuKeluargaController::class, 'updateKepalaKeluarga'])->name('kartu-keluarga.update-kepala-keluarga');
     Route::post('/kartu-keluarga/{nkk}/auto-update-kepala-keluarga', [App\Http\Controllers\KartuKeluargaController::class, 'autoUpdateKepalaKeluarga'])->name('kartu-keluarga.auto-update-kepala-keluarga');
+
+    // FASE 6: KK Bermasalah — resolution routes (harus sebelum resource agar tidak ter-capture)
+    Route::get('/kartu-keluarga/bermasalah',             [App\Http\Controllers\KartuKeluargaController::class, 'indexBermasalah'])->name('kk.bermasalah.index');
+    Route::get('/kartu-keluarga/{nkk}/bermasalah',       [App\Http\Controllers\KartuKeluargaController::class, 'showBermasalah'])->name('kk.bermasalah');
+    Route::post('/kartu-keluarga/{nkk}/resolve-sementara',  [App\Http\Controllers\KartuKeluargaController::class, 'resolveKkSementara'])->name('kk.resolve.sementara');
+    Route::post('/kartu-keluarga/{nkk}/resolve-permanen',   [App\Http\Controllers\KartuKeluargaController::class, 'resolveKkPermanen'])->name('kk.resolve.permanen');
+    Route::post('/kartu-keluarga/{nkk}/batalkan-sementara', [App\Http\Controllers\KartuKeluargaController::class, 'batalkanSementara'])->name('kk.batalkan.sementara');
+
     Route::resource('kartu-keluarga', App\Http\Controllers\KartuKeluargaController::class)->parameters(['kartu-keluarga' => 'nkk']);
+
 
 // Web Desa routes
 Route::prefix('web-desa')->name('web-desa.')->group(function () {

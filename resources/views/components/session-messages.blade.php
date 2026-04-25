@@ -1,5 +1,5 @@
-@if(session('success'))
-<script>
+﻿@if(session('success'))
+@noncescript
 document.addEventListener('DOMContentLoaded', function() {
     Swal.fire({
         title: 'Berhasil!',
@@ -22,11 +22,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }).catch(err => console.log('Failed to clear session message'));
     });
 });
-</script>
+@endnoncescript
 @endif
 
 @if(session('error'))
-<script>
+@noncescript
 document.addEventListener('DOMContentLoaded', function() {
     Swal.fire({
         title: 'Error!',
@@ -35,11 +35,11 @@ document.addEventListener('DOMContentLoaded', function() {
         confirmButtonText: 'OK'
     });
 });
-</script>
+@endnoncescript
 @endif
 
 @if(session('warning'))
-<script>
+@noncescript
 document.addEventListener('DOMContentLoaded', function() {
     Swal.fire({
         title: 'Peringatan!',
@@ -52,11 +52,11 @@ document.addEventListener('DOMContentLoaded', function() {
         position: 'top-end'
     });
 });
-</script>
+@endnoncescript
 @endif
 
 @if(session('info'))
-<script>
+@noncescript
 document.addEventListener('DOMContentLoaded', function() {
     Swal.fire({
         title: 'Informasi!',
@@ -69,11 +69,11 @@ document.addEventListener('DOMContentLoaded', function() {
         position: 'top-end'
     });
 });
-</script>
+@endnoncescript
 @endif
 
 @if($errors->any())
-<script>
+@noncescript
 document.addEventListener('DOMContentLoaded', function() {
     Swal.fire({
         title: 'Terjadi Kesalahan Validasi!',
@@ -83,5 +83,5 @@ document.addEventListener('DOMContentLoaded', function() {
         confirmButtonColor: '#ef4444'
     });
 });
-</script>
+@endnoncescript
 @endif

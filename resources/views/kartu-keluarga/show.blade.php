@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Detail Kartu Keluarga')
 @section('subtitle', 'Detail anggota keluarga')
@@ -191,7 +191,7 @@
 @endsection
 
 @push('scripts')
-<script>
+@noncescript
 function updateKepalaKeluarga() {
     if (confirm('Apakah Anda yakin ingin memperbarui kepala keluarga? Sistem akan mencari kandidat kepala keluarga baru berdasarkan prioritas.')) {
         fetch(`/kartu-keluarga/{{ $nkk }}/update-kepala-keluarga`, {
@@ -231,5 +231,5 @@ function updateKepalaKeluarga() {
         });
     }
 }
-</script>
+@endnoncescript
 @endpush

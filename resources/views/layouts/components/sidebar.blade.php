@@ -39,7 +39,7 @@
         </div>
 
         <!-- Data Kependudukan -->
-        <div x-data="{ open: {{ request()->routeIs('penduduk.*') || request()->routeIs('mutasi.*') || request()->routeIs('kartu-keluarga.*') ? 'true' : 'false' }} }">
+        <div x-data="{ open: {{ request()->routeIs('penduduk.*') || request()->routeIs('mutasi.*') || request()->routeIs('kartu-keluarga.*') || request()->routeIs('kk.*') ? 'true' : 'false' }} }">
             <button @click="open = !open" class="flex items-center justify-between w-full px-4 py-3 rounded-2xl transition-all duration-300 text-gray-700 hover:bg-gradient-to-r hover:from-green-50 hover:to-green-100 hover:shadow-md hover:text-green-700">
                 <div class="flex items-center">
                     <i class="fas fa-users mr-3 text-lg"></i>
@@ -64,9 +64,20 @@
                 @endcan
 
                 @can('kartu-keluarga.view')
-                <a href="{{ route('kartu-keluarga.index') }}" class="flex items-center px-4 py-2 rounded-xl transition-all duration-300 {{ request()->routeIs('kartu-keluarga.*') ? 'bg-gradient-to-r from-green-600 to-green-700 text-white shadow-lg shadow-green-200' : 'text-gray-600 hover:bg-gradient-to-r hover:from-green-50 hover:to-green-100 hover:shadow-md hover:text-green-700' }}">
-                    <i class="fas fa-home mr-3 text-sm"></i>
+                <a href="{{ route('kartu-keluarga.index') }}" class="flex items-center px-4 py-2 rounded-xl transition-all duration-300 {{ request()->routeIs('kartu-keluarga.*') && !request()->routeIs('kk.*') ? 'bg-gradient-to-r from-green-600 to-green-700 text-white shadow-lg shadow-green-200' : 'text-gray-600 hover:bg-gradient-to-r hover:from-green-50 hover:to-green-100 hover:shadow-md hover:text-green-700' }}">
+                    <i class="fas fa-id-card mr-3 text-sm"></i>
                     <span class="text-sm font-medium">Kartu Keluarga</span>
+                </a>
+                @endcan
+
+                @can('kartu-keluarga.view')
+                @php $kkBermasalahCount = \App\Models\KartuKeluarga::bermasalah()->count(); @endphp
+                <a href="{{ route('kk.bermasalah.index') }}" class="flex items-center px-4 py-2 rounded-xl transition-all duration-300 {{ request()->routeIs('kk.bermasalah.index') ? 'bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg shadow-red-200' : 'text-gray-600 hover:bg-gradient-to-r hover:from-red-50 hover:to-red-100 hover:shadow-md hover:text-red-700' }}">
+                    <i class="fas fa-exclamation-triangle mr-3 text-sm {{ $kkBermasalahCount > 0 ? 'animate-pulse' : '' }}"></i>
+                    <span class="text-sm font-medium">KK Bermasalah</span>
+                    @if($kkBermasalahCount > 0)
+                        <span class="ml-auto bg-red-500 text-white text-xs rounded-full px-2 py-0.5 font-bold animate-pulse">{{ $kkBermasalahCount }}</span>
+                    @endif
                 </a>
                 @endcan
             </div>

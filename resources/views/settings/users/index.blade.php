@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Kelola Pengguna')
 @section('subtitle', 'Kelola pengguna dan role sistem')
@@ -308,7 +308,7 @@
 </div>
 
 <!-- Modals will be added here -->
-<script>
+@noncescript
 function openCreateUserModal() {
     // Implementation for create user modal
     Swal.fire({
@@ -414,10 +414,10 @@ function deleteRole(roleId) {
         }
     });
 }
-</script>
+@endnoncescript
 
 
-<script>
+@noncescript
 // Session messages handled by global component
-</script>
+@endnoncescript
 @endsection
