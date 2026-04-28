@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Bantuan Sosial')
 
@@ -61,7 +61,7 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-500 mb-1">RT/RW</label>
-                            <p class="text-lg font-semibold text-gray-900">{{ $penerima->penduduk->rt }}/{{ $penerima->penduduk->rw }}</p>
+                            <p class="text-lg font-semibold text-gray-900">{{ $penerima->penduduk->rt_label }}/{{ $penerima->penduduk->rw_label }}</p>
                         </div>
                     </div>
                 </div>
@@ -302,3 +302,4 @@ function confirmDeletePenerima(id, name) {
 @endnoncescript
 @endpush
 @endsection
+

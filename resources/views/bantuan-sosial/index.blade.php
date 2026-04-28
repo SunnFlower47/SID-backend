@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Bantuan Sosial')
 
@@ -434,4 +434,5 @@ function confirmDelete(id, name) {
 }
 @endnoncescript
 @endsection
+
 

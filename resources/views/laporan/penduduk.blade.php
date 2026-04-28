@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Laporan Data Penduduk')
 @section('subtitle', 'Laporan lengkap data penduduk desa Cibatu')
@@ -38,11 +38,11 @@
             <!-- Dusun -->
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Dusun</label>
-                <select name="dusun" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <select name="dusun_id" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                     <option value="">Semua Dusun</option>
                     @foreach($dusunOptions as $dusun)
-                        <option value="{{ $dusun }}" {{ request('dusun') == $dusun ? 'selected' : '' }}>
-                            {{ $dusun }}
+                        <option value="{{ $dusun->id }}" {{ request('dusun_id') == $dusun->id ? 'selected' : '' }}>
+                            {{ $dusun->nama }}
                         </option>
                     @endforeach
                 </select>
@@ -51,11 +51,11 @@
             <!-- RT -->
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">RT</label>
-                <select name="rt" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <select name="rt_id" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                     <option value="">Semua RT</option>
                     @foreach($rtOptions as $rt)
-                        <option value="{{ $rt }}" {{ request('rt') == $rt ? 'selected' : '' }}>
-                            RT {{ $rt }}
+                        <option value="{{ $rt->id }}" {{ request('rt_id') == $rt->id ? 'selected' : '' }}>
+                            RT {{ $rt->kode }} ({{ $rt->dusunMaster?->nama ?: 'Tanpa Dusun' }})
                         </option>
                     @endforeach
                 </select>
@@ -217,10 +217,10 @@
                                 {{ $penduduk->usia }} tahun
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {{ $penduduk->dusun ?: '-' }}
+                                {{ $penduduk->dusun_label ?: '-' }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                RT {{ $penduduk->rt }}
+                                RT {{ $penduduk->rt_label }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                 {{ $penduduk->status_perkawinan ?: '-' }}
@@ -270,3 +270,4 @@ function exportToExcel() {
 }
 </style>
 @endsection
+

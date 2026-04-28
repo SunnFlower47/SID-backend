@@ -17,12 +17,14 @@ return [
 
     'paths' => ['api/*', 'sanctum/csrf-cookie'],
 
-    'allowed_methods' => ['GET', 'POST'],
+    'allowed_methods' => ['*'],
 
     'allowed_origins' => [
+        'http://localhost:3000',
+        'http://localhost:3001',
+        'http://127.0.0.1:3000',
+        'http://sistem-desa-cibatu.test',
         'https://pemdescibatu2001.online',
-        'https://admin-dscibatu.pemdescibatu2001.online',
-        'http://sistem-desa-cibatu.test/',
     ],
 
     'allowed_origins_patterns' => [],
@@ -37,6 +39,7 @@ return [
         'Authorization',
         'Origin',
         'X-Requested-With',
+        'X-XSRF-TOKEN',
     ],
 
     'exposed_headers' => [],

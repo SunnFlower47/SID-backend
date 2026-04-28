@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Detail Struktur Desa')
 
@@ -116,38 +116,38 @@
                 <div class="space-y-4">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">Informasi Lokasi</h3>
 
-                    @if($strukturDesa->rt)
+                    @if($strukturDesa->rt_label)
                     <div class="flex items-center">
                         <div class="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center mr-3">
                             <i class="fas fa-home text-orange-600"></i>
                         </div>
                         <div>
                             <p class="text-sm font-medium text-gray-500">RT</p>
-                            <p class="text-gray-900">{{ $strukturDesa->rt }}</p>
+                            <p class="text-gray-900">{{ $strukturDesa->rt_label }}</p>
                         </div>
                     </div>
                     @endif
 
-                    @if($strukturDesa->rw)
+                    @if($strukturDesa->rw_label)
                     <div class="flex items-center">
                         <div class="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center mr-3">
                             <i class="fas fa-building text-indigo-600"></i>
                         </div>
                         <div>
                             <p class="text-sm font-medium text-gray-500">RW</p>
-                            <p class="text-gray-900">{{ $strukturDesa->rw }}</p>
+                            <p class="text-gray-900">{{ $strukturDesa->rw_label }}</p>
                         </div>
                     </div>
                     @endif
 
-                    @if($strukturDesa->dusun)
+                    @if($strukturDesa->dusun_label)
                     <div class="flex items-center">
                         <div class="w-10 h-10 bg-teal-100 rounded-lg flex items-center justify-center mr-3">
                             <i class="fas fa-map text-teal-600"></i>
                         </div>
                         <div>
                             <p class="text-sm font-medium text-gray-500">Dusun</p>
-                            <p class="text-gray-900">{{ $strukturDesa->dusun }}</p>
+                            <p class="text-gray-900">{{ $strukturDesa->dusun_label }}</p>
                         </div>
                     </div>
                     @endif
@@ -248,3 +248,4 @@ function confirmDelete(id, name) {
 }
 @endnoncescript
 @endsection
+

@@ -27,8 +27,10 @@ class SuratPengajuan extends Model
         'status',
         'keterangan',
         'keterangan_admin',
+        'file_lampiran',
         'admin_id',
         'approved_at',
+        'processed_at',
         'completed_at',
         'penandatangan'
     ];
@@ -36,6 +38,7 @@ class SuratPengajuan extends Model
     protected $casts = [
         'tanggal_surat' => 'date',
         'approved_at' => 'datetime',
+        'processed_at' => 'datetime',
         'completed_at' => 'datetime',
         'data_tambahan' => 'array'
     ];
@@ -75,7 +78,19 @@ class SuratPengajuan extends Model
             'domisili' => 'Surat Keterangan Domisili'
         ];
 
-        return $types[$this->jenis_surat] ?? 'Surat Tidak Diketahui';
+        if (isset($types[$this->jenis_surat])) {
+            return $types[$this->jenis_surat];
+        }
+
+        // Cek ke database jika tidak ada di mapping (untuk surat lainnya)
+        if (is_numeric($this->jenis_surat)) {
+            $masterType = \App\Models\SuratType::find($this->jenis_surat);
+            if ($masterType) {
+                return $masterType->nama;
+            }
+        }
+
+        return $this->jenis_surat ?? 'Surat Tidak Diketahui';
     }
 
     /**

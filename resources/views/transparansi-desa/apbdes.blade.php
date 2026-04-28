@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'APBDes')
 @section('subtitle', 'Data anggaran dan realisasi keuangan desa')
@@ -289,7 +289,7 @@ function confirmDeleteApbdes(apbdesId, namaRekening) {
                 <p class="mb-2">Rekening yang akan dihapus:</p>
                 <p class="font-semibold">${namaRekening}</p>
                 <div class="mt-4 p-3 bg-red-50 border border-red-200 rounded">
-                    <p class="text-sm text-red-800 font-semibold">⚠️ Peringatan:</p>
+                    <p class="text-sm text-red-800 font-semibold">?? Peringatan:</p>
                     <ul class="text-sm text-red-700 mt-1 list-disc list-inside">
                         <li>Rekening yang sudah memiliki histori pengeluaran tidak dapat dihapus</li>
                         <li>Rekening yang sudah terhubung dengan proyek desa tidak dapat dihapus</li>
@@ -346,3 +346,4 @@ $(document).ready(function() {
 });
 @endnoncescript
 @endpush
+

@@ -28,7 +28,22 @@ class Dusun extends Model
 
     public function rts(): HasMany
     {
-        return $this->hasMany(Rt::class);
+        return $this->hasMany(Rt::class, 'dusun_id');
+    }
+
+    public function penduduks(): HasMany
+    {
+        return $this->hasMany(Penduduk::class, 'dusun_id');
+    }
+
+    public function kartuKeluargas(): HasMany
+    {
+        return $this->hasMany(KartuKeluarga::class, 'dusun_id');
+    }
+
+    public function umkms(): HasMany
+    {
+        return $this->hasMany(Umkm::class, 'dusun_id');
     }
 
     public function getActivitylogOptions(): LogOptions

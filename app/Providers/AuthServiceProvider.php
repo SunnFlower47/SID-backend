@@ -19,6 +19,7 @@ class AuthServiceProvider extends ServiceProvider
     protected $policies = [
         Penduduk::class => PendudukPolicy::class,
         Mutasi::class => MutasiPolicy::class,
+        KartuKeluarga::class => \App\Policies\KartuKeluargaPolicy::class,
     ];
 
     /**

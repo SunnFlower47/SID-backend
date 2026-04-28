@@ -31,7 +31,7 @@ class PendudukExport implements FromCollection, WithHeadings, WithMapping, WithS
     */
     public function collection()
     {
-        $query = Penduduk::with('kartuKeluarga');
+        $query = Penduduk::withWilayah()->with('kartuKeluarga');
 
         // Apply same filters as controller
         if ($this->request->filled('search')) {
@@ -43,20 +43,20 @@ class PendudukExport implements FromCollection, WithHeadings, WithMapping, WithS
             });
         }
 
-        if ($this->request->filled('rt') && $this->request->rt !== 'all') {
-            $query->where('rt', $this->request->rt);
+        if ($this->request->filled('rt_id') && $this->request->rt_id !== 'all') {
+            $query->where('rt_id', $this->request->rt_id);
         }
 
-        if ($this->request->filled('rw') && $this->request->rw !== 'all') {
-            $query->where('rw', $this->request->rw);
+        if ($this->request->filled('rw_id') && $this->request->rw_id !== 'all') {
+            $query->where('rw_id', $this->request->rw_id);
         }
 
         if ($this->request->filled('jenis_kelamin') && $this->request->jenis_kelamin !== 'all') {
             $query->where('jenis_kelamin', $this->request->jenis_kelamin);
         }
 
-        if ($this->request->filled('dusun') && $this->request->dusun !== 'all') {
-            $query->where('dusun', $this->request->dusun);
+        if ($this->request->filled('dusun_id') && $this->request->dusun_id !== 'all') {
+            $query->where('dusun_id', $this->request->dusun_id);
         }
 
         // Filter by age range
@@ -66,63 +66,36 @@ class PendudukExport implements FromCollection, WithHeadings, WithMapping, WithS
 
             switch ($filterUmur) {
                 case 'bayi':
-                    // 0-2 tahun
                     $query->where('tanggal_lahir', '>=', $today->copy()->subYears(2));
                     break;
                 case 'balita':
-                    // 2-5 tahun
                     $query->where('tanggal_lahir', '>=', $today->copy()->subYears(5))
                           ->where('tanggal_lahir', '<', $today->copy()->subYears(2));
                     break;
                 case 'anak':
-                    // 5-12 tahun
                     $query->where('tanggal_lahir', '>=', $today->copy()->subYears(12))
                           ->where('tanggal_lahir', '<', $today->copy()->subYears(5));
                     break;
                 case 'remaja':
-                    // 12-18 tahun
                     $query->where('tanggal_lahir', '>=', $today->copy()->subYears(18))
                           ->where('tanggal_lahir', '<', $today->copy()->subYears(12));
                     break;
                 case 'dewasa_muda':
-                    // 18-30 tahun
                     $query->where('tanggal_lahir', '>=', $today->copy()->subYears(30))
                           ->where('tanggal_lahir', '<', $today->copy()->subYears(18));
                     break;
                 case 'dewasa':
-                    // 30-60 tahun
                     $query->where('tanggal_lahir', '>=', $today->copy()->subYears(60))
                           ->where('tanggal_lahir', '<', $today->copy()->subYears(30));
                     break;
                 case 'lansia':
-                    // >=60 tahun
                     $query->where('tanggal_lahir', '<=', $today->copy()->subYears(60));
-                    break;
-                case 'umur_20_keatas':
-                    // >=20 tahun
-                    $query->where('tanggal_lahir', '<=', $today->copy()->subYears(20));
-                    break;
-                case 'umur_20_kebawah':
-                    // <20 tahun
-                    $query->where('tanggal_lahir', '>', $today->copy()->subYears(20));
-                    break;
-                case 'umur_40_keatas':
-                    // >=40 tahun
-                    $query->where('tanggal_lahir', '<=', $today->copy()->subYears(40));
-                    break;
-                case 'umur_60_keatas':
-                    // >=60 tahun
-                    $query->where('tanggal_lahir', '<=', $today->copy()->subYears(60));
-                    break;
-                case 'umur_60_kebawah':
-                    // <60 tahun
-                    $query->where('tanggal_lahir', '>', $today->copy()->subYears(60));
                     break;
             }
         }
 
-        return $query->orderBy('rt')
-                     ->orderBy('rw')
+        return $query->orderBy('rt_id')
+                     ->orderBy('rw_id')
                      ->orderBy('nkk')
                      ->orderByRaw("CASE
                          WHEN kedudukan_keluarga = 'Kepala Keluarga' THEN 1
@@ -164,6 +137,7 @@ class PendudukExport implements FromCollection, WithHeadings, WithMapping, WithS
             'Alamat',
             'RT',
             'RW',
+            'Dusun',
             'Keterangan'
         ];
     }
@@ -171,10 +145,10 @@ class PendudukExport implements FromCollection, WithHeadings, WithMapping, WithS
     public function map($penduduk): array
     {
         return [
-            "'" . $penduduk->nik, // Add single quote to force text format
+            "'" . $penduduk->nik, 
             $penduduk->nama,
-            "'" . $penduduk->nkk, // Add single quote to force text format
-            $penduduk->jenis_kelamin,
+            "'" . $penduduk->nkk, 
+            $penduduk->jenis_kelamin_label,
             $penduduk->tempat_lahir,
             $penduduk->tanggal_lahir ? $penduduk->tanggal_lahir->format('d/m/Y') : '',
             $penduduk->usia,
@@ -186,8 +160,9 @@ class PendudukExport implements FromCollection, WithHeadings, WithMapping, WithS
             $penduduk->nama_ayah,
             $penduduk->nama_ibu,
             $penduduk->alamat,
-            $penduduk->rt,
-            $penduduk->rw,
+            optional($penduduk->rtMaster)->kode,
+            optional($penduduk->rwMaster)->kode,
+            optional($penduduk->dusunMaster)->nama,
             $penduduk->keterangan,
         ];
     }

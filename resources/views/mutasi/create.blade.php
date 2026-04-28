@@ -17,3 +17,4 @@
 <script src="{{ asset('js/mutasi/form-handlers.js') }}?v={{ filemtime(public_path('js/mutasi/form-handlers.js')) }}"></script>
 <script src="{{ asset('js/mutasi/sweetalert.js') }}?v={{ filemtime(public_path('js/mutasi/sweetalert.js')) }}"></script>
 @endpush
+

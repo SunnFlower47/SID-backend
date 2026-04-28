@@ -203,11 +203,11 @@
         </div>
         <div class="data-row">
             <div class="data-label">RT/RW</div>
-            <div class="data-value">: {{ $penduduk->rt ?? '-' }}/{{ $penduduk->rw ?? '-' }}</div>
+            <div class="data-value">: {{ $penduduk->rt_label ?? '-' }}/{{ $penduduk->rw_label ?? '-' }}</div>
         </div>
         <div class="data-row">
             <div class="data-label">Dusun</div>
-            <div class="data-value">: {{ $penduduk->dusun ?? '-' }}</div>
+            <div class="data-value">: {{ $penduduk->dusun_label ?? '-' }}</div>
         </div>
     </div>
 
@@ -257,4 +257,5 @@
     </div>
 </body>
 </html>
+
 

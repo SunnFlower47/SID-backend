@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Proyek Desa')
 
@@ -218,3 +218,4 @@ $(document).ready(function() {
 });
 @endnoncescript
 @endpush
+

@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Tambah Mutasi')
 @section('subtitle', 'Tambah data mutasi penduduk')
@@ -1034,7 +1034,7 @@
                             <div>
                                 <h4 class="font-medium text-yellow-900">Informasi Pisah KK</h4>
                                 <ul class="text-sm text-yellow-800 mt-2 space-y-1">
-                                    <li>• Proses ini akan tercatat dalam riwayat mutasi</li>
+                                    <li>� Proses ini akan tercatat dalam riwayat mutasi</li>
                                 </ul>
                             </div>
                         </div>
@@ -1817,11 +1817,11 @@ function updateRWFromRT() {
 
     // Map RT to RW
     const rtRwMap = {
-        '001': '001', '002': '001',  // RT 001,002 → RW 001
-        '003': '002', '004': '002',  // RT 003,004 → RW 002
-        '007': '003', '008': '003',  // RT 007,008 → RW 003
-        '005': '004', '006': '004',  // RT 005,006 → RW 004
-        '009': '005', '010': '005'   // RT 009,010 → RW 005
+        '001': '001', '002': '001',  // RT 001,002 ? RW 001
+        '003': '002', '004': '002',  // RT 003,004 ? RW 002
+        '007': '003', '008': '003',  // RT 007,008 ? RW 003
+        '005': '004', '006': '004',  // RT 005,006 ? RW 004
+        '009': '005', '010': '005'   // RT 009,010 ? RW 005
     };
 
     if (rt && rtRwMap[rt]) {
@@ -1859,7 +1859,7 @@ function addFamilyMember(kedudukan = '') {
     const memberHtml = `
         <div id="familyMember${familyMemberCount}" class="mb-6 p-4 bg-white rounded-lg border border-purple-200 relative">
             <div class="flex justify-between items-center mb-4">
-                <h5 class="text-md font-medium text-gray-900">👤 Anggota Keluarga #${familyMemberCount}</h5>
+                <h5 class="text-md font-medium text-gray-900">?? Anggota Keluarga #${familyMemberCount}</h5>
                 <button type="button" onclick="removeFamilyMember(${familyMemberCount})"
                         class="text-red-600 hover:text-red-800 p-1 rounded">
                     <i class="fas fa-trash text-sm"></i>
@@ -3398,5 +3398,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 @endnoncescript
 @endsection
+
 
 

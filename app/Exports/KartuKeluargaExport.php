@@ -31,12 +31,15 @@ class KartuKeluargaExport implements FromCollection, WithHeadings, WithMapping, 
                 $join->on('m.penduduk_id', '=', 'p.id')
                      ->whereIn('m.jenis_mutasi', ['kematian', 'pindah_keluar', 'pisah_kk']);
             })
+            ->leftJoin('rts', 'p.rt_id', '=', 'rts.id')
+            ->leftJoin('rws', 'p.rw_id', '=', 'rws.id')
+            ->leftJoin('dusuns', 'p.dusun_id', '=', 'dusuns.id')
             ->select([
                 'p.nkk',
                 DB::raw('MAX(CASE WHEN p.kedudukan_keluarga = "Kepala Keluarga" THEN p.nama ELSE NULL END) as nama_kepala_keluarga'),
-                DB::raw('MAX(CASE WHEN p.kedudukan_keluarga = "Kepala Keluarga" THEN p.rt ELSE NULL END) as rt'),
-                DB::raw('MAX(CASE WHEN p.kedudukan_keluarga = "Kepala Keluarga" THEN p.rw ELSE NULL END) as rw'),
-                DB::raw('MAX(CASE WHEN p.kedudukan_keluarga = "Kepala Keluarga" THEN p.dusun ELSE NULL END) as dusun'),
+                DB::raw('MAX(CASE WHEN p.kedudukan_keluarga = "Kepala Keluarga" THEN rts.kode ELSE NULL END) as rt'),
+                DB::raw('MAX(CASE WHEN p.kedudukan_keluarga = "Kepala Keluarga" THEN rws.kode ELSE NULL END) as rw'),
+                DB::raw('MAX(CASE WHEN p.kedudukan_keluarga = "Kepala Keluarga" THEN dusuns.nama ELSE NULL END) as dusun'),
                 DB::raw('MAX(CASE WHEN p.kedudukan_keluarga = "Kepala Keluarga" THEN p.alamat ELSE NULL END) as alamat'),
                 DB::raw('COUNT(DISTINCT p.id) as jumlah_anggota'),
                 DB::raw('SUM(CASE WHEN m.id IS NULL THEN 1 ELSE 0 END) as anggota_aktif'),

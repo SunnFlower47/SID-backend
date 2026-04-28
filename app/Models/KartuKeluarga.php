@@ -5,17 +5,20 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Traits\HasWilayahLabels;
 
 class KartuKeluarga extends Model
 {
+    use HasWilayahLabels, SoftDeletes;
     protected $fillable = [
         'nkk',
         'nama_kepala_keluarga',
         'nik_kepala_keluarga',
         'alamat',
-        'rt',
-        'rw',
-        'dusun',
+        'rt_id',
+        'rw_id',
+        'dusun_id',
         'jumlah_anggota',
         'anggota_aktif',
         'anggota_mutasi',
@@ -32,7 +35,42 @@ class KartuKeluarga extends Model
 
     protected $casts = [
         'kk_bermasalah_sejak' => 'datetime',
+        'rt_id' => 'integer',
+        'rw_id' => 'integer',
+        'dusun_id' => 'integer',
+        'kk_sementara_id' => 'integer',
+        'mutasi_penyebab_id' => 'integer',
     ];
+
+    protected $appends = ['rt_label', 'rw_label', 'dusun_label'];
+
+    // =========================================================
+    // RELATIONS - WILAYAH MASTER
+    // =========================================================
+
+    public function rtMaster(): BelongsTo
+    {
+        return $this->belongsTo(Rt::class, 'rt_id');
+    }
+
+    public function rwMaster(): BelongsTo
+    {
+        return $this->belongsTo(Rw::class, 'rw_id');
+    }
+
+    public function dusunMaster(): BelongsTo
+    {
+        return $this->belongsTo(Dusun::class, 'dusun_id');
+    }
+
+    /**
+     * Scope for Eager Loading Wilayah Master (High Performance)
+     */
+    public function scopeWithWilayah($query)
+    {
+        return $query->with(['rtMaster', 'rwMaster', 'dusunMaster']);
+    }
+
 
     // =========================================================
     // RELATIONS — existing

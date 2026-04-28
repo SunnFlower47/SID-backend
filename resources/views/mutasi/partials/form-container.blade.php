@@ -90,3 +90,40 @@
         </div>
     </form>
 </div>
+
+<script nonce="{{ $csp_nonce ?? '' }}">
+    const masterRwOptions = @json($masterRwOptions ?? []);
+
+    function populateRtByRwMutasi(rwId, rtSelectId, callback) {
+        const rtSelect = document.getElementById(rtSelectId);
+        if (!rtSelect) return;
+
+        rtSelect.innerHTML = '<option value="">Pilih RT...</option>';
+        const rwObj = masterRwOptions.find(r => String(r.id) === String(rwId));
+        if (rwObj && rwObj.rts) {
+            rwObj.rts.forEach(rt => {
+                const opt = document.createElement('option');
+                opt.value = rt.id;
+                opt.textContent = `RT ${rt.kode}${rt.dusun ? ` - ${rt.dusun}` : ''}`;
+                rtSelect.appendChild(opt);
+            });
+        }
+        if (callback) callback();
+    }
+
+    function syncDusunByRtMutasi(rtId, rwId, baseId) {
+        const dusunLabel = document.getElementById(baseId + '_label');
+        const dusunHidden = document.getElementById(baseId);
+        
+        const rwObj = masterRwOptions.find(r => String(r.id) === String(rwId));
+        const rtObj = rwObj?.rts?.find(r => String(r.id) === String(rtId));
+        
+        const dusunName = rtObj?.dusun || '';
+        
+        if (dusunLabel) dusunLabel.value = dusunName;
+        if (dusunHidden) dusunHidden.value = rtObj?.id ? (rtObj.dusun_id || '') : ''; // wait, rtObj has dusun name, but we need dusun_id too
+        
+        // Let's refine the masterRwOptions structure in the controller to include dusun_id
+    }
+</script>
+

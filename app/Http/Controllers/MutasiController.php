@@ -65,8 +65,24 @@ class MutasiController extends Controller
         Gate::authorize('mutasi.create');
 
         $penduduks = Penduduk::orderBy('nama')->get();
+        $rws = \App\Models\Rw::with(['rts.dusun'])->orderBy('kode')->get();
+        $masterRwOptions = $rws->map(function ($rw) {
+            return [
+                'id' => $rw->id,
+                'kode' => $rw->kode,
+                'nama' => $rw->nama,
+                'rts' => $rw->rts->map(function ($rt) {
+                    return [
+                        'id' => $rt->id,
+                        'kode' => $rt->kode,
+                        'dusun_id' => $rt->dusun_id,
+                        'dusun' => optional($rt->dusun)->nama,
+                    ];
+                })->values(),
+            ];
+        })->values();
 
-        return view('mutasi.create', compact('penduduks'));
+        return view('mutasi.create', compact('penduduks', 'masterRwOptions'));
     }
 
     /**
@@ -153,7 +169,24 @@ class MutasiController extends Controller
         Gate::authorize('mutasi.edit');
 
         $penduduks = Penduduk::orderBy('nama')->get();
-        return view('mutasi.edit', compact('mutasi', 'penduduks'));
+        $rws = \App\Models\Rw::with(['rts.dusun'])->orderBy('kode')->get();
+        $masterRwOptions = $rws->map(function ($rw) {
+            return [
+                'id' => $rw->id,
+                'kode' => $rw->kode,
+                'nama' => $rw->nama,
+                'rts' => $rw->rts->map(function ($rt) {
+                    return [
+                        'id' => $rt->id,
+                        'kode' => $rt->kode,
+                        'dusun_id' => $rt->dusun_id,
+                        'dusun' => optional($rt->dusun)->nama,
+                    ];
+                })->values(),
+            ];
+        })->values();
+        
+        return view('mutasi.edit', compact('mutasi', 'penduduks', 'masterRwOptions'));
     }
 
     /**
@@ -321,9 +354,9 @@ class MutasiController extends Controller
                         $penduduk = Penduduk::find($anggotaData['id']);
                         if ($penduduk) {
                             $penduduk->update([
-                                'rt' => $anggotaData['rt_asal'] ?? $penduduk->rt,
-                                'rw' => $anggotaData['rw_asal'] ?? $penduduk->rw,
-                                'dusun' => $anggotaData['dusun_asal'] ?? $penduduk->dusun,
+                                'rt_id' => $anggotaData['rt_id_asal'] ?? $penduduk->rt_id,
+                                'rw_id' => $anggotaData['rw_id_asal'] ?? $penduduk->rw_id,
+                                'dusun_id' => $anggotaData['dusun_id_asal'] ?? $penduduk->dusun_id,
                                 'alamat' => $anggotaData['alamat_asal'] ?? $penduduk->alamat,
                             ]);
                         }
@@ -340,9 +373,9 @@ class MutasiController extends Controller
                     if ($penduduk && !empty($snapshot['nkk_asal'])) {
                         $penduduk->update([
                             'nkk' => $snapshot['nkk_asal'],
-                            'rt' => $snapshot['rt_asal'] ?? $penduduk->rt,
-                            'rw' => $snapshot['rw_asal'] ?? $penduduk->rw,
-                            'dusun' => $snapshot['dusun_asal'] ?? $penduduk->dusun,
+                            'rt_id' => $snapshot['rt_id_asal'] ?? $penduduk->rt_id,
+                            'rw_id' => $snapshot['rw_id_asal'] ?? $penduduk->rw_id,
+                            'dusun_id' => $snapshot['dusun_id_asal'] ?? $penduduk->dusun_id,
                             'alamat' => $snapshot['alamat_asal'] ?? $penduduk->alamat,
                             'kedudukan_keluarga' => $snapshot['kedudukan_asal'] ?? $penduduk->kedudukan_keluarga,
                         ]);
@@ -354,9 +387,9 @@ class MutasiController extends Controller
                             if ($anggota) {
                                 $anggota->update([
                                     'nkk' => $anggotaData['nkk_asal'] ?? $anggota->nkk,
-                                    'rt' => $anggotaData['rt_asal'] ?? $anggota->rt,
-                                    'rw' => $anggotaData['rw_asal'] ?? $anggota->rw,
-                                    'dusun' => $anggotaData['dusun_asal'] ?? $anggota->dusun,
+                                    'rt_id' => $anggotaData['rt_id_asal'] ?? $anggota->rt_id,
+                                    'rw_id' => $anggotaData['rw_id_asal'] ?? $anggota->rw_id,
+                                    'dusun_id' => $anggotaData['dusun_id_asal'] ?? $anggota->dusun_id,
                                     'alamat' => $anggotaData['alamat_asal'] ?? $anggota->alamat,
                                 ]);
                             }
@@ -386,7 +419,7 @@ class MutasiController extends Controller
     // Search helper methods
     public function searchKK(Request $request) {
         $search = $request->get('query');
-        $kks = Penduduk::select('nkk', 'nama', 'alamat', 'rt', 'rw', 'dusun', 'kartu_keluarga_id')
+        $kks = Penduduk::withWilayah()
                 ->where('kedudukan_keluarga', 'Kepala Keluarga')
                 ->where(function($q) use ($search) {
                     $q->where('nkk', 'like', "%{$search}%")
@@ -400,10 +433,13 @@ class MutasiController extends Controller
                 'kepala_keluarga' => $kk->nama,
                 'nama' => $kk->nama,
                 'alamat' => $kk->alamat,
-                'rt' => $kk->rt,
-                'rw' => $kk->rw,
-                'dusun' => $kk->dusun,
-                'kartu_keluarga_id' => $kk->kartu_keluarga_id,
+                'rt' => optional($kk->rtMaster)->kode,
+                'rw' => optional($kk->rwMaster)->kode,
+                'dusun' => optional($kk->dusunMaster)->nama,
+                'rt_id' => $kk->rt_id,
+                'rw_id' => $kk->rw_id,
+                'dusun_id' => $kk->dusun_id,
+
                 'jumlah_anggota' => Penduduk::where('nkk', $kk->nkk)->count(),
             ];
         })->values();
@@ -413,12 +449,20 @@ class MutasiController extends Controller
 
     public function searchPenduduk(Request $request) {
         $search = $request->get('query');
-        $penduduks = Penduduk::select('id', 'nik', 'nama', 'nkk', 'alamat', 'agama', 'jenis_kelamin', 'tanggal_lahir')
+        $penduduks = Penduduk::withWilayah()
+                ->select('id', 'nik', 'nama', 'nkk', 'alamat', 'agama', 'jenis_kelamin', 'tanggal_lahir', 'rt_id', 'rw_id', 'dusun_id')
                 ->where(function($q) use ($search) {
                     $q->where('nik', 'like', "%{$search}%")
                       ->orWhere('nama', 'like', "%{$search}%");
                 })
-                ->limit(10)->get();
+                ->limit(10)->get()
+                ->map(function($p) {
+                    $p->rt_label = optional($p->rtMaster)->kode;
+                    $p->rw_label = optional($p->rwMaster)->kode;
+                    $p->dusun_label = optional($p->dusunMaster)->nama;
+                    return $p;
+                });
+
 
         return response()->json($penduduks);
     }
@@ -431,13 +475,14 @@ class MutasiController extends Controller
         }
 
         // Kembalikan format array agar kompatibel dengan caller lama (penduduk/create.js)
-        $kk = Penduduk::select('nkk', 'nama as kepala_keluarga', 'rt', 'rw', 'dusun')
+        $kk = Penduduk::withWilayah()
+            ->select('nkk', 'nama', 'rt_id', 'rw_id', 'dusun_id')
             ->where('nkk', $nkk)
             ->whereIn('kedudukan_keluarga', ['KEPALA KELUARGA', 'Kepala Keluarga', 'kepala keluarga'])
             ->first();
 
         if (!$kk) {
-            $fallback = Penduduk::select('nkk', 'rt', 'rw', 'dusun')->where('nkk', $nkk)->first();
+            $fallback = Penduduk::withWilayah()->select('nkk', 'rt_id', 'rw_id', 'dusun_id')->where('nkk', $nkk)->first();
             if (!$fallback) {
                 return response()->json([]);
             }
@@ -445,9 +490,12 @@ class MutasiController extends Controller
             $result = [
                 'nkk' => $fallback->nkk,
                 'kepala_keluarga' => 'Data KK ditemukan',
-                'rt' => $fallback->rt,
-                'rw' => $fallback->rw,
-                'dusun' => $fallback->dusun,
+                'rt' => optional($fallback->rtMaster)->kode,
+                'rw' => optional($fallback->rwMaster)->kode,
+                'dusun' => optional($fallback->dusunMaster)->nama,
+                'rt_id' => $fallback->rt_id,
+                'rw_id' => $fallback->rw_id,
+                'dusun_id' => $fallback->dusun_id,
             ];
 
             return response()->json([$result]);
@@ -455,10 +503,13 @@ class MutasiController extends Controller
 
         return response()->json([[
             'nkk' => $kk->nkk,
-            'kepala_keluarga' => $kk->kepala_keluarga,
-            'rt' => $kk->rt,
-            'rw' => $kk->rw,
-            'dusun' => $kk->dusun,
+            'kepala_keluarga' => $kk->nama,
+            'rt' => optional($kk->rtMaster)->kode,
+            'rw' => optional($kk->rwMaster)->kode,
+            'dusun' => optional($kk->dusunMaster)->nama,
+            'rt_id' => $kk->rt_id,
+            'rw_id' => $kk->rw_id,
+            'dusun_id' => $kk->dusun_id,
         ]]);
     }
     

@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Edit Struktur Desa')
 
@@ -217,48 +217,43 @@
                     <!-- RT, RW, Dusun -->
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div>
-                            <label for="rt" class="block text-sm font-medium text-gray-700 mb-2">
-                                RT
+                            <label for="rw_id" class="block text-sm font-medium text-gray-700 mb-2">
+                                RW Master <span class="text-red-500">*</span>
                             </label>
-                            <input type="text"
-                                   id="rt"
-                                   name="rt"
-                                   value="{{ old('rt', $strukturDesa->rt) }}"
-                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent @error('rt') border-red-500 @enderror"
-                                   placeholder="Masukkan RT">
-                            @error('rt')
-                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                            <select id="rw_id" name="rw_id" onchange="populateRtByRw()" required
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent @error('rw_id') border-red-500 @enderror">
+                                <option value="">Pilih RW</option>
+                                @foreach($masterRwOptions as $rw)
+                                    <option value="{{ $rw['id'] }}" {{ old('rw_id', $strukturDesa->rw_id) == $rw['id'] ? 'selected' : '' }}>RW {{ $rw['kode'] }} - {{ $rw['nama'] }}</option>
+                                @endforeach
+                            </select>
+                            @error('rw_id')
+                            <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
 
                         <div>
-                            <label for="rw" class="block text-sm font-medium text-gray-700 mb-2">
-                                RW
+                            <label for="rt_id" class="block text-sm font-medium text-gray-700 mb-2">
+                                RT Master <span class="text-red-500">*</span>
+                                @if(!$strukturDesa->rt_id)
+                                    <span class="text-red-600 text-xs font-bold animate-pulse">(DATA TIDAK VALID)</span>
+                                @endif
                             </label>
-                            <input type="text"
-                                   id="rw"
-                                   name="rw"
-                                   value="{{ old('rw', $strukturDesa->rw) }}"
-                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent @error('rw') border-red-500 @enderror"
-                                   placeholder="Masukkan RW">
-                            @error('rw')
-                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                            <select id="rt_id" name="rt_id" onchange="syncDusunFromRt()" required
+                                    class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent @if(!$strukturDesa->rt_id) border-red-500 bg-red-50 @else border-gray-300 @endif @error('rt_id') border-red-500 @enderror">
+                                <option value="">Pilih RT</option>
+                            </select>
+                            @error('rt_id')
+                            <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
 
                         <div>
-                            <label for="dusun" class="block text-sm font-medium text-gray-700 mb-2">
-                                Dusun
-                            </label>
-                            <input type="text"
-                                   id="dusun"
-                                   name="dusun"
-                                   value="{{ old('dusun', $strukturDesa->dusun) }}"
-                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent @error('dusun') border-red-500 @enderror"
-                                   placeholder="Masukkan dusun">
-                            @error('dusun')
-                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
+                            <label for="dusun_display" class="block text-sm font-medium text-gray-700 mb-2">Dusun</label>
+                            <input type="text" id="dusun_display" value="{{ $strukturDesa->dusun_label }}" disabled
+                                   class="w-full px-4 py-3 border border-gray-100 bg-gray-50 rounded-lg text-gray-500"
+                                   placeholder="Otomatis dari RT">
+                            <input type="hidden" name="dusun_id" id="dusun_id" value="{{ old('dusun_id', $strukturDesa->dusun_id) }}">
                         </div>
                     </div>
 
@@ -343,7 +338,47 @@
 </div>
 
 @noncescript
+    const masterRwOptions = @json($masterRwOptions);
+    const currentRtId = "{{ $strukturDesa->rt_id }}";
     let searchTimeout;
+
+    function populateRtByRw(initial = false, targetRtId = null) {
+        const rwId = document.getElementById('rw_id').value;
+        const rtSelect = document.getElementById('rt_id');
+        rtSelect.innerHTML = '<option value="">Pilih RT</option>';
+
+        const rwObj = masterRwOptions.find(r => String(r.id) === String(rwId));
+        if (rwObj) {
+            rwObj.rts.forEach(rt => {
+                const opt = document.createElement('option');
+                opt.value = rt.id;
+                opt.textContent = `RT ${rt.kode}${rt.dusun ? ' - ' + rt.dusun : ''}`;
+                if (initial && String(rt.id) === String(targetRtId || currentRtId)) {
+                    opt.selected = true;
+                }
+                rtSelect.appendChild(opt);
+            });
+        }
+        if (!initial) syncDusunFromRt();
+    }
+
+    function syncDusunFromRt() {
+        const rwId = document.getElementById('rw_id').value;
+        const rtId = document.getElementById('rt_id').value;
+        const dusunDisplay = document.getElementById('dusun_display');
+        const dusunHidden = document.getElementById('dusun_id');
+
+        const rwObj = masterRwOptions.find(r => String(r.id) === String(rwId));
+        const rtObj = rwObj?.rts?.find(r => String(r.id) === String(rtId));
+
+        if (rtObj) {
+            dusunDisplay.value = rtObj.dusun || 'N/A';
+            dusunHidden.value = rtObj.dusun_id || '';
+        } else {
+            dusunDisplay.value = '';
+            dusunHidden.value = '';
+        }
+    }
 
     // Penduduk search functions
     function searchPenduduk(query) {
@@ -400,7 +435,7 @@
             resultItem.innerHTML = `
                 <div class="font-medium text-gray-900">${penduduk.nama}</div>
                 <div class="text-sm text-gray-600">NIK: ${penduduk.nik}</div>
-                <div class="text-sm text-gray-500">${penduduk.alamat} - RT ${penduduk.rt}/RW ${penduduk.rw}</div>
+                <div class="text-sm text-gray-500">${penduduk.alamat} - RT ${penduduk.rt_label}/RW ${penduduk.rw_label}</div>
             `;
 
             resultItem.addEventListener('click', () => selectPenduduk(penduduk));
@@ -424,9 +459,15 @@
         // Auto-fill form fields
         document.getElementById('nama').value = penduduk.nama;
         document.getElementById('alamat').value = penduduk.alamat;
-        document.getElementById('rt').value = penduduk.rt;
-        document.getElementById('rw').value = penduduk.rw;
-        document.getElementById('dusun').value = penduduk.dusun;
+        
+        // Handle Wilayah IDs
+        if (penduduk.rw_id && penduduk.rw_id !== 'null') {
+            document.getElementById('rw_id').value = penduduk.rw_id;
+            populateRtByRw(true, penduduk.rt_id);
+            if (penduduk.rt_id && penduduk.rt_id !== 'null') {
+                syncDusunFromRt();
+            }
+        }
 
         // Show selected penduduk info
         document.getElementById('selected_penduduk_name').textContent = penduduk.nama;
@@ -447,9 +488,10 @@
         // Clear form fields
         document.getElementById('nama').value = '';
         document.getElementById('alamat').value = '';
-        document.getElementById('rt').value = '';
-        document.getElementById('rw').value = '';
-        document.getElementById('dusun').value = '';
+        document.getElementById('rw_id').value = '';
+        document.getElementById('rt_id').innerHTML = '<option value="">Pilih RT</option>';
+        document.getElementById('dusun_display').value = '';
+        document.getElementById('dusun_id').value = '';
 
         // Hide selected penduduk display
         document.getElementById('selected_penduduk').classList.add('hidden');
@@ -460,6 +502,11 @@
 
     // Event listeners
     document.addEventListener('DOMContentLoaded', function() {
+        // Initial populate
+        if (document.getElementById('rw_id').value) {
+            populateRtByRw(true);
+        }
+
         const searchInput = document.getElementById('nik_search');
         if (searchInput) {
             searchInput.addEventListener('input', function() {
@@ -485,4 +532,6 @@
         }
     });
 @endnoncescript
+@endnoncescript
 @endsection
+

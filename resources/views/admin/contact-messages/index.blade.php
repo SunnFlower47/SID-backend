@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Kelola Pesan Kontak')
 
@@ -660,3 +660,4 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 @endnoncescript
 @endsection
+

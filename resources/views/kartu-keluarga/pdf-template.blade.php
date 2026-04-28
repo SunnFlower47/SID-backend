@@ -251,7 +251,7 @@
         <div class="family-info">
             <div><strong>Nama Kepala Keluarga:</strong> {{ $kepalaKeluarga->nama ?? '-' }}</div>
             <div><strong>Alamat:</strong> {{ $kepalaKeluarga->alamat ?? '-' }}</div>
-            <div><strong>RT/RW:</strong> {{ $kepalaKeluarga->rt ?? '-' }}/{{ $kepalaKeluarga->rw ?? '-' }}</div>
+            <div><strong>RT/RW:</strong> {{ $kepalaKeluarga->rt_label ?? '-' }}/{{ $kepalaKeluarga->rw_label ?? '-' }}</div>
             <div><strong>Kode Pos:</strong> {{ $desaInfo->kode_pos ?? '-' }}</div>
             <div><strong>Desa/Kelurahan:</strong> {{ $desaInfo->nama_desa ?? '-' }}</div>
             <div><strong>Kecamatan:</strong> {{ $desaInfo->kecamatan ?? '-' }}</div>
@@ -385,3 +385,4 @@
     </div>
 </body>
 </html>
+

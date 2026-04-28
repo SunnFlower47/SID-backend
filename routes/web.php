@@ -9,7 +9,6 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\DesaSettingsController;
-use App\Http\Controllers\SuratController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\BackupController;
@@ -157,6 +156,15 @@ Route::middleware('auth')->group(function () {
         Artisan::call('view:clear');
         return response()->json(['success' => true, 'message' => 'Cache berhasil dibersihkan!']);
     })->name('settings.clear-cache');
+    
+    // Trash Management
+    Route::prefix('settings/trash')->name('settings.trash.')->group(function () {
+        Route::middleware('can:settings.view')->group(function () {
+            Route::get('/penduduk', [App\Http\Controllers\TrashPendudukController::class, 'index'])->name('penduduk.index');
+            Route::post('/penduduk/{id}/restore', [App\Http\Controllers\TrashPendudukController::class, 'restore'])->name('penduduk.restore');
+            Route::delete('/penduduk/{id}/force-delete', [App\Http\Controllers\TrashPendudukController::class, 'forceDelete'])->name('penduduk.force-delete');
+        });
+    });
 
     // Master wilayah (Dusun/RW/RT)
     Route::prefix('settings/wilayah')->name('settings.wilayah.')->group(function () {
@@ -185,6 +193,7 @@ Route::middleware('auth')->group(function () {
 
         Route::middleware('can:wilayah.import_conflict.manage')->group(function () {
             Route::post('/import-conflicts/{conflict}/resolve', [App\Http\Controllers\WilayahController::class, 'resolveImportConflict'])->name('import-conflicts.resolve');
+            Route::post('/import-conflicts/{conflict}/reset', [App\Http\Controllers\WilayahController::class, 'resetImportConflict'])->name('import-conflicts.reset');
             Route::post('/import-conflicts/{conflict}/reprocess', [App\Http\Controllers\WilayahController::class, 'reprocessImportIssue'])->name('import-conflicts.reprocess');
         });
     });
@@ -192,6 +201,7 @@ Route::middleware('auth')->group(function () {
     // Admin Surat Pengajuan routes
     Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/surat-pengajuan', [App\Http\Controllers\SuratPengajuanController::class, 'index'])->name('surat-pengajuan.index');
+        Route::get('/surat-pengajuan/history', [App\Http\Controllers\SuratPengajuanController::class, 'history'])->name('surat-pengajuan.history');
         Route::get('/surat-pengajuan/create', [App\Http\Controllers\SuratPengajuanController::class, 'create'])->name('surat-pengajuan.create');
         Route::post('/surat-pengajuan', [App\Http\Controllers\SuratPengajuanController::class, 'store'])->name('surat-pengajuan.store');
         Route::get('/surat-pengajuan/{suratPengajuan}', [App\Http\Controllers\SuratPengajuanController::class, 'show'])->name('surat-pengajuan.show');
@@ -201,6 +211,14 @@ Route::middleware('auth')->group(function () {
         Route::get('/surat-pengajuan/{suratPengajuan}/pdf', [App\Http\Controllers\SuratPengajuanController::class, 'generatePdf'])->name('surat-pengajuan.pdf');
         Route::get('/surat-pengajuan/{suratPengajuan}/edit', [App\Http\Controllers\SuratPengajuanController::class, 'edit'])->name('surat-pengajuan.edit');
         Route::put('/surat-pengajuan/{suratPengajuan}', [App\Http\Controllers\SuratPengajuanController::class, 'update'])->name('surat-pengajuan.update');
+        Route::delete('/surat-pengajuan/{id}', [App\Http\Controllers\SuratPengajuanController::class, 'destroy'])->name('surat-pengajuan.destroy');
+        
+        // Master Jenis Surat
+        Route::resource('surat-type', App\Http\Controllers\Admin\SuratTypeController::class);
+        
+        // Legacy Surat Routes
+        Route::get('/surat-pengajuan/legacy/{id}', [App\Http\Controllers\SuratPengajuanController::class, 'downloadLegacy'])->name('surat-pengajuan.download-legacy');
+        Route::delete('/surat-pengajuan/legacy/{id}', [App\Http\Controllers\SuratPengajuanController::class, 'destroyLegacy'])->name('surat-pengajuan.destroy-legacy');
     });
 
     // Kartu Keluarga routes
@@ -380,20 +398,6 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/statistics', [BackupController::class, 'statistics'])->name('statistics');
     });
 
-    // Surat routes
-    Route::prefix('surat')->name('surat.')->group(function () {
-        Route::get('/', [SuratController::class, 'index'])->name('index');
-        Route::post('/{type}/generate', [SuratController::class, 'generate'])->name('generate');
-        Route::get('/{type}/preview', [SuratController::class, 'preview'])->name('preview');
-        Route::post('/{type}/store', [SuratController::class, 'store'])->name('store');
-        Route::get('/statistics', [SuratController::class, 'statistics'])->name('statistics');
-        Route::get('/history', [SuratController::class, 'history'])->name('history');
-        Route::get('/{id}/show', [SuratController::class, 'show'])->name('show');
-        Route::get('/{id}/download', [SuratController::class, 'download'])->name('download');
-        Route::get('/{surat}/edit', [SuratController::class, 'edit'])->name('edit');
-        Route::put('/{surat}', [SuratController::class, 'update'])->name('update');
-        Route::delete('/{id}', [SuratController::class, 'destroy'])->name('destroy');
-    });
 
     // Desa Settings routes
     Route::prefix('settings')->name('settings.')->group(function () {

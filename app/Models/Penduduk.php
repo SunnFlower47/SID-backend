@@ -9,12 +9,13 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 
+use App\Traits\HasWilayahLabels;
+
 class Penduduk extends Model
 {
-    use SoftDeletes, LogsActivity;
+    use SoftDeletes, LogsActivity, HasWilayahLabels;
 
     protected $fillable = [
-        'kartu_keluarga_id',
         'nkk',
         'nik',
         'nama',
@@ -29,16 +30,21 @@ class Penduduk extends Model
         'nama_ayah',
         'nama_ibu',
         'alamat',
-        'rt',
-        'rw',
-        'dusun',
+        'rt_id',
+        'rw_id',
+        'dusun_id',
         'keterangan',
-        'status',
+        'kartu_keluarga_id',
     ];
 
     protected $casts = [
         'tanggal_lahir' => 'date',
+        'rt_id' => 'integer',
+        'rw_id' => 'integer',
+        'dusun_id' => 'integer',
     ];
+    
+    protected $appends = ['rt_label', 'rw_label', 'dusun_label'];
 
     /**
      * Get the activity log options for the model.
@@ -46,9 +52,36 @@ class Penduduk extends Model
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['nama', 'nik', 'nkk', 'jenis_kelamin', 'tempat_lahir', 'tanggal_lahir', 'agama', 'status_perkawinan', 'kedudukan_keluarga', 'pendidikan', 'pekerjaan', 'alamat', 'rt', 'rw', 'dusun'])
+            ->logOnly(['nama', 'nik', 'nkk', 'jenis_kelamin', 'tempat_lahir', 'tanggal_lahir', 'agama', 'status_perkawinan', 'kedudukan_keluarga', 'pendidikan', 'pekerjaan', 'alamat', 'rt_id', 'rw_id', 'dusun_id'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
+    }
+
+    // =========================================================
+    // RELATIONS - WILAYAH MASTER
+    // =========================================================
+
+    public function rtMaster(): BelongsTo
+    {
+        return $this->belongsTo(Rt::class, 'rt_id');
+    }
+
+    public function rwMaster(): BelongsTo
+    {
+        return $this->belongsTo(Rw::class, 'rw_id');
+    }
+
+    public function dusunMaster(): BelongsTo
+    {
+        return $this->belongsTo(Dusun::class, 'dusun_id');
+    }
+
+    /**
+     * Scope for Eager Loading Wilayah Master (High Performance)
+     */
+    public function scopeWithWilayah($query)
+    {
+        return $query->with(['rtMaster', 'rwMaster', 'dusunMaster']);
     }
 
     /**
@@ -138,14 +171,6 @@ class Penduduk extends Model
     }
 
     /**
-     * Scope untuk penduduk berdasarkan dusun
-     */
-    public function scopeDusun($query, $dusun)
-    {
-        return $query->where('dusun', $dusun);
-    }
-
-    /**
      * Accessor untuk usia
      */
     public function getUsiaAttribute(): int
@@ -159,39 +184,18 @@ class Penduduk extends Model
     public function getJenisKelaminLabelAttribute(): string
     {
         return match($this->jenis_kelamin) {
-            'L' => 'Laki-laki',
-            'P' => 'Perempuan',
-            default => 'Tidak Diketahui'
+            'LAKI-LAKI' => 'Laki-laki',
+            'PEREMPUAN' => 'Perempuan',
+            default => $this->jenis_kelamin ?? 'Tidak Diketahui'
         };
     }
 
     /**
-     * Accessor untuk status label
+     * Accessor untuk status label (Legacy removed)
      */
     public function getStatusLabelAttribute(): string
     {
-        return match($this->status) {
-            'aktif' => 'Aktif',
-            'meninggal' => 'Meninggal',
-            'pindah' => 'Pindah',
-            default => 'Tidak Diketahui'
-        };
-    }
-
-    /**
-     * Accessor untuk RT formatted
-     */
-    public function getRtFormattedAttribute(): string
-    {
-        return str_pad($this->rt, 3, '0', STR_PAD_LEFT);
-    }
-
-    /**
-     * Accessor untuk RW formatted
-     */
-    public function getRwFormattedAttribute(): string
-    {
-        return str_pad($this->rw, 3, '0', STR_PAD_LEFT);
+        return $this->deleted_at ? 'Mutasi' : 'Aktif';
     }
 
     /**
@@ -199,8 +203,9 @@ class Penduduk extends Model
      */
     public function getAlamatLengkapAttribute(): string
     {
-        return "{$this->alamat}, RT {$this->rt_formatted}/RW {$this->rw_formatted}, {$this->dusun}";
+        return "{$this->alamat}, RT {$this->rt_label}/RW {$this->rw_label}, {$this->dusun_label}";
     }
+
     /**
      * Scope for filtering penduduk
      */
@@ -218,19 +223,27 @@ class Penduduk extends Model
 
         // Filter by gender
         $query->when($filters['jenis_kelamin'] ?? null, function ($q, $jenisKelamin) {
-            if (in_array($jenisKelamin, ['L', 'Laki-laki', 'LAKI-LAKI'])) {
+            $val = strtoupper(trim($jenisKelamin));
+            if (in_array($val, ['L', 'LAKI-LAKI', 'LAKI LAKI', 'PRIA', 'MALE'])) {
                 $q->where('jenis_kelamin', 'LAKI-LAKI');
-            } elseif (in_array($jenisKelamin, ['P', 'Perempuan', 'PEREMPUAN'])) {
+            } elseif (in_array($val, ['P', 'PEREMPUAN', 'WANITA', 'FEMALE'])) {
                 $q->where('jenis_kelamin', 'PEREMPUAN');
             } else {
-                $q->where('jenis_kelamin', $jenisKelamin);
+                $q->where('jenis_kelamin', $val);
             }
         });
 
-        // Filter by RT, RW, Dusun
-        $query->when($filters['rt'] ?? null, fn($q, $rt) => $q->where('rt', $rt));
-        $query->when($filters['rw'] ?? null, fn($q, $rw) => $q->where('rw', $rw));
-        $query->when($filters['dusun'] ?? null, fn($q, $dusun) => $q->where('dusun', $dusun));
+
+        // Filter by RT_ID, RW_ID, Dusun_ID (Support both legacy and new keys)
+        $query->when($filters['rt_id'] ?? $filters['rt'] ?? null, function ($q, $id) {
+            if (is_numeric($id)) $q->where('rt_id', $id);
+        });
+        $query->when($filters['rw_id'] ?? $filters['rw'] ?? null, function ($q, $id) {
+            if (is_numeric($id)) $q->where('rw_id', $id);
+        });
+        $query->when($filters['dusun_id'] ?? $filters['dusun'] ?? null, function ($q, $id) {
+            if (is_numeric($id)) $q->where('dusun_id', $id);
+        });
 
         // Filter by age range
         $query->when($filters['filter_umur'] ?? null, function ($q, $filterUmur) {
@@ -253,6 +266,7 @@ class Penduduk extends Model
             }
         });
     }
+
 
     /**
      * Scope for ordering by family role

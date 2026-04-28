@@ -138,6 +138,51 @@
                     @enderror
                 </div>
 
+                <!-- RT, RW, Dusun -->
+                <div class="lg:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <label for="rw_id" class="block text-sm font-semibold text-gray-700 mb-2">
+                            <i class="fas fa-map-marker-alt text-orange-500 mr-2"></i>
+                            RW Master <span class="text-red-500">*</span>
+                        </label>
+                        <select id="rw_id" name="rw_id" onchange="populateRtByRw()" required
+                                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-base @error('rw_id') border-red-500 @enderror">
+                            <option value="">Pilih RW</option>
+                            @foreach($masterRwOptions as $rw)
+                                <option value="{{ $rw['id'] }}" {{ old('rw_id') == $rw['id'] ? 'selected' : '' }}>RW {{ $rw['kode'] }} - {{ $rw['nama'] }}</option>
+                            @endforeach
+                        </select>
+                        @error('rw_id')
+                        <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label for="rt_id" class="block text-sm font-semibold text-gray-700 mb-2">
+                            <i class="fas fa-map-marker-alt text-orange-500 mr-2"></i>
+                            RT Master <span class="text-red-500">*</span>
+                        </label>
+                        <select id="rt_id" name="rt_id" onchange="syncDusunFromRt()" required
+                                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-base @error('rt_id') border-red-500 @enderror">
+                            <option value="">Pilih RT</option>
+                        </select>
+                        @error('rt_id')
+                        <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label for="dusun_display" class="block text-sm font-semibold text-gray-700 mb-2">
+                            <i class="fas fa-map text-orange-500 mr-2"></i>
+                            Dusun
+                        </label>
+                        <input type="text" id="dusun_display" disabled
+                               class="w-full px-4 py-3 border border-gray-100 bg-gray-50 rounded-xl text-gray-500 text-base"
+                               placeholder="Otomatis dari RT">
+                        <input type="hidden" name="dusun_id" id="dusun_id" value="{{ old('dusun_id') }}">
+                    </div>
+                </div>
+
                 <!-- Anonymous -->
                 <div class="lg:col-span-2">
                     <div class="flex items-center">
@@ -187,4 +232,43 @@
         </form>
     </div>
 </div>
+@noncescript
+const masterRwOptions = @json($masterRwOptions);
+
+function populateRtByRw(initial = false) {
+    const rwId = document.getElementById('rw_id').value;
+    const rtSelect = document.getElementById('rt_id');
+    rtSelect.innerHTML = '<option value="">Pilih RT</option>';
+
+    const rwObj = masterRwOptions.find(r => String(r.id) === String(rwId));
+    if (rwObj) {
+        rwObj.rts.forEach(rt => {
+            const opt = document.createElement('option');
+            opt.value = rt.id;
+            opt.textContent = `RT ${rt.kode}${rt.dusun ? ' - ' + rt.dusun : ''}`;
+            rtSelect.appendChild(opt);
+        });
+    }
+    syncDusunFromRt();
+}
+
+function syncDusunFromRt() {
+    const rwId = document.getElementById('rw_id').value;
+    const rtId = document.getElementById('rt_id').value;
+    const dusunDisplay = document.getElementById('dusun_display');
+    const dusunHidden = document.getElementById('dusun_id');
+
+    const rwObj = masterRwOptions.find(r => String(r.id) === String(rwId));
+    const rtObj = rwObj?.rts?.find(r => String(r.id) === String(rtId));
+
+    if (rtObj) {
+        dusunDisplay.value = rtObj.dusun || 'N/A';
+        dusunHidden.value = rtObj.dusun_id || '';
+    } else {
+        dusunDisplay.value = '';
+        dusunHidden.value = '';
+    }
+}
+@endnoncescript
 @endsection
+

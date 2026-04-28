@@ -34,6 +34,8 @@ class PrivateApiMiddleware
             'https://admin-dscibatu.pemdescibatu2001.online',
             'http://sistem-desa-cibatu.test',
             'http://localhost',
+            'http://localhost:3000',
+            'http://localhost:3001',
             'http://127.0.0.1',
             'http://192.168.0.101:8080'
         ];

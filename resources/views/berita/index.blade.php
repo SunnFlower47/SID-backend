@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('content')
 <!-- SweetAlert2 CSS -->
@@ -207,4 +207,5 @@ function confirmDelete(beritaId, beritaTitle) {
 // Session messages handled by global component
 @endnoncescript
 @endsection
+
 

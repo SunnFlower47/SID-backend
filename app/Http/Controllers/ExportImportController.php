@@ -17,6 +17,7 @@ use App\Imports\UmkmImport;
 use App\Imports\PendudukImport;
 use App\Models\Dusun;
 use App\Models\KartuKeluarga;
+use App\Models\Mutasi;
 use App\Models\Penduduk;
 use App\Models\Rt;
 use App\Models\Rw;
@@ -191,6 +192,10 @@ class ExportImportController extends Controller
             $nikIndex = $findHeaderIndex($headers, ['nik', 'nomor induk kependudukan']);
             $namaIndex = $findHeaderIndex($headers, ['nama', 'nama lengkap']);
             $nkkIndex = $findHeaderIndex($headers, ['nkk', 'no kk', 'nomor kk', 'kartu keluarga']);
+            $alamatIndex = $findHeaderIndex($headers, ['alamat', 'domisili']);
+            $rtIndex = $findHeaderIndex($headers, ['rt']);
+            $rwIndex = $findHeaderIndex($headers, ['rw']);
+            $dusunIndex = $findHeaderIndex($headers, ['dusun', 'lingkungan']);
 
             if ($nikIndex === false || $namaIndex === false) {
                 return response()->json([
@@ -207,16 +212,20 @@ class ExportImportController extends Controller
                 'nik' => 0,
                 'nama' => 0,
                 'nkk' => 0,
+                'wilayah' => 0,
             ];
 
             foreach (array_slice($rows, 1) as $i => $row) {
                 $rowNumber = $i + 2; // +1 header +1 1-indexed
 
                 $nikRaw = isset($row[$nikIndex]) ? trim((string) $row[$nikIndex]) : '';
-                // handle exported format that prefixes apostrophe to force text in Excel
                 $nik = preg_replace('/\D+/', '', $nikRaw);
                 $nama = isset($row[$namaIndex]) ? trim((string) $row[$namaIndex]) : '';
                 $nkk = ($nkkIndex !== false && isset($row[$nkkIndex])) ? trim((string) $row[$nkkIndex]) : null;
+                $alamat = ($alamatIndex !== false && isset($row[$alamatIndex])) ? trim((string) $row[$alamatIndex]) : '';
+                $rtRaw = ($rtIndex !== false && isset($row[$rtIndex])) ? trim((string) $row[$rtIndex]) : '';
+                $rwRaw = ($rwIndex !== false && isset($row[$rwIndex])) ? trim((string) $row[$rwIndex]) : '';
+                $dusunRaw = ($dusunIndex !== false && isset($row[$dusunIndex])) ? trim((string) $row[$dusunIndex]) : '';
 
                 // skip truly empty row
                 if ($nik === '' && $nama === '') {
@@ -232,8 +241,8 @@ class ExportImportController extends Controller
                     $errors['nama'][] = 'Nama wajib diisi';
                     $columnErrorCounts['nama']++;
                 }
-                if ($nik !== '' && strlen($nik) > 16) {
-                    $errors['nik'][] = 'NIK maksimal 16 karakter';
+                if ($nik !== '' && strlen($nik) !== 16) {
+                    $errors['nik'][] = 'NIK harus 16 karakter';
                     $columnErrorCounts['nik']++;
                 }
                 if ($nik !== '' && isset($seenNik[$nik])) {
@@ -241,16 +250,45 @@ class ExportImportController extends Controller
                     $columnErrorCounts['nik']++;
                 }
 
-                if ($nkk !== null && $nkk !== '' && strlen(preg_replace('/\D+/', '', $nkk)) > 16) {
-                    $errors['nkk'][] = 'No. KK maksimal 16 digit';
-                    $columnErrorCounts['nkk']++;
+                if ($nkk !== null && $nkk !== '') {
+                    $nkkClean = preg_replace('/\D+/', '', $nkk);
+                    if (strlen($nkkClean) !== 16) {
+                        $errors['nkk'][] = 'No. KK harus 16 digit';
+                        $columnErrorCounts['nkk']++;
+                    }
+                }
+
+                // Wilayah Validation Preview (Strict)
+                $wilayahRes = $this->resolveWilayahForWebImport($rwRaw, $rtRaw, $dusunRaw);
+                if ($wilayahRes['status'] === 'conflict') {
+                    $errors['wilayah'][] = $wilayahRes['reason'];
+                    $columnErrorCounts['wilayah']++;
+                } else {
+                    // Check if it exists but needs review
+                    $rwObj = Rw::find($wilayahRes['rw_id']);
+                    $rtObj = Rt::find($wilayahRes['rt_id']);
+                    if (($rwObj && $rwObj->needs_review) || ($rtObj && $rtObj->needs_review)) {
+                        $errors['wilayah_info'] = 'Peringatan: Wilayah ini belum diverifikasi di Master';
+                    }
                 }
 
                 if ($nik !== '') {
-                    $exists = \App\Models\Penduduk::where('nik', $nik)->exists();
-                    if ($exists) {
-                        $errors['nik'][] = 'NIK sudah terdaftar di database (duplikat tidak diizinkan)';
-                        $columnErrorCounts['nik']++;
+                    $existingAny = \App\Models\Penduduk::withTrashed()->where('nik', $nik)->first();
+                    
+                    if ($existingAny) {
+                        // 1. Hard Reject: Death / Moved Out
+                        $permanentMutasi = \App\Models\Mutasi::where('penduduk_id', $existingAny->id)
+                            ->whereIn('jenis_mutasi', ['kematian', 'pindah_keluar'])
+                            ->exists();
+
+                        if ($permanentMutasi) {
+                            $errors['nik'][] = "Terlarang: Penduduk ini sudah berstatus Meninggal/Pindah (Mutasi)";
+                            $columnErrorCounts['nik']++;
+                        } else {
+                            // 2. Hybrid Review: Active Duplicates go to Issue Queue
+                            $errors['nik'][] = "Review: NIK sudah ada di sistem (Perlu keputusan)";
+                            $columnErrorCounts['nik']++;
+                        }
                     }
                 }
 
@@ -259,6 +297,10 @@ class ExportImportController extends Controller
                     'nik' => $nik,
                     'nama' => $nama,
                     'nkk' => $nkk,
+                    'alamat' => $alamat,
+                    'rt' => $rtRaw,
+                    'rw' => $rwRaw,
+                    'dusun' => $dusunRaw,
                 ];
 
                 $fatalErrors = collect($errors)
@@ -366,16 +408,34 @@ class ExportImportController extends Controller
                 $nik = preg_replace('/\D+/', '', $nikRaw);
                 $nama = isset($row[$namaIndex]) ? trim((string) $row[$namaIndex]) : '';
                 $nkk = ($nkkIndex !== false && isset($row[$nkkIndex])) ? trim((string) $row[$nkkIndex]) : null;
+                $alamat = ($alamatIndex !== false && isset($row[$alamatIndex])) ? trim((string) $row[$alamatIndex]) : '';
+                $rtRaw = ($rtIndex !== false && isset($row[$rtIndex])) ? trim((string) $row[$rtIndex]) : '';
+                $rwRaw = ($rwIndex !== false && isset($row[$rwIndex])) ? trim((string) $row[$rwIndex]) : '';
+                $dusunRaw = ($dusunIndex !== false && isset($row[$dusunIndex])) ? trim((string) $row[$dusunIndex]) : '';
 
                 if ($nik === '' && $nama === '') continue;
 
                 $errors = [];
                 if ($nik === '') $errors['nik'][] = 'NIK wajib diisi';
                 if ($nama === '') $errors['nama'][] = 'Nama wajib diisi';
-                if ($nik !== '' && strlen($nik) > 16) $errors['nik'][] = 'NIK maksimal 16 karakter';
+                if ($nik !== '' && strlen($nik) !== 16) $errors['nik'][] = 'NIK harus 16 karakter';
                 if ($nik !== '' && isset($seenNik[$nik])) $errors['nik'][] = 'NIK duplikat di file';
-                if ($nkk !== null && $nkk !== '' && strlen(preg_replace('/\D+/', '', $nkk)) > 16) $errors['nkk'][] = 'No. KK maksimal 16 digit';
-                if ($nik !== '' && \App\Models\Penduduk::where('nik', $nik)->exists()) $errors['nik'][] = 'NIK sudah terdaftar di database';
+                
+                if ($nkk !== null && $nkk !== '') {
+                    $nkkClean = preg_replace('/\D+/', '', $nkk);
+                    if (strlen($nkkClean) !== 16) $errors['nkk'][] = 'No. KK harus 16 digit';
+                }
+
+                // Wilayah Validation
+                if ($rtRaw !== '' || $rwRaw !== '') {
+                    $rtKode = $this->normalizeKodeWilayah($rtRaw, '001');
+                    $rwKode = $this->normalizeKodeWilayah($rwRaw, '001');
+                    $rw = Rw::where('kode', $rwKode)->first();
+                    $rtAny = Rt::where('kode', $rtKode)->first();
+                    if ($rw && $rtAny && (int)$rtAny->rw_id !== (int)$rw->id) {
+                        $errors['wilayah'][] = "Konflik: RT {$rtKode} sudah terdaftar di RW lain";
+                    }
+                }
 
                 if (!empty($errors)) {
                     $invalidRows[] = [
@@ -383,9 +443,12 @@ class ExportImportController extends Controller
                         'nik' => $nik,
                         'nama' => $nama,
                         'nkk' => $nkk,
+                        'alamat' => $alamat,
+                        'wilayah' => "RT {$rtRaw}/RW {$rwRaw}",
                         'error_nik' => isset($errors['nik']) ? implode(' | ', $errors['nik']) : '',
                         'error_nama' => isset($errors['nama']) ? implode(' | ', $errors['nama']) : '',
                         'error_nkk' => isset($errors['nkk']) ? implode(' | ', $errors['nkk']) : '',
+                        'error_wilayah' => isset($errors['wilayah']) ? implode(' | ', $errors['wilayah']) : '',
                     ];
                 }
 
@@ -402,7 +465,7 @@ class ExportImportController extends Controller
                 public function __construct(private array $rows) {}
                 public function headings(): array
                 {
-                    return ['Baris', 'NIK', 'Nama', 'No. KK', 'Error NIK', 'Error Nama', 'Error No. KK'];
+                    return ['Baris', 'NIK', 'Nama', 'No. KK', 'Alamat', 'Wilayah (Excel)', 'Error NIK', 'Error Nama', 'Error No. KK', 'Error Wilayah'];
                 }
                 public function array(): array
                 {
@@ -412,9 +475,12 @@ class ExportImportController extends Controller
                             $r['nik'] ?? '',
                             $r['nama'] ?? '',
                             $r['nkk'] ?? '',
+                            $r['alamat'] ?? '',
+                            $r['wilayah'] ?? '',
                             $r['error_nik'] ?? '',
                             $r['error_nama'] ?? '',
                             $r['error_nkk'] ?? '',
+                            $r['error_wilayah'] ?? '',
                         ];
                     }, $this->rows);
                 }
@@ -465,13 +531,15 @@ class ExportImportController extends Controller
 
             $nikIndex = $findHeaderIndex($headers, ['nik', 'nomor induk kependudukan']);
             $namaIndex = $findHeaderIndex($headers, ['nama', 'nama lengkap']);
-            $nkkIndex = $findHeaderIndex($headers, ['nkk', 'no kk', 'nomor kk', 'kartu keluarga']);
-            $jkIndex = $findHeaderIndex($headers, ['jenis kelamin', 'jenis_kelamin']);
-            $alamatIndex = $findHeaderIndex($headers, ['alamat']);
+            $nkkIndex = $findHeaderIndex($headers, ['nkk', 'no kk', 'nomor kk', 'kartu keluarga', 'no_kk']);
+            $jkIndex = $findHeaderIndex($headers, ['jenis kelamin', 'jenis_kelamin', 'jk', 'sex']);
+            $alamatIndex = $findHeaderIndex($headers, ['alamat', 'domisili', 'tempat tinggal']);
             $rtIndex = $findHeaderIndex($headers, ['rt']);
             $rwIndex = $findHeaderIndex($headers, ['rw']);
             $dusunIndex = $findHeaderIndex($headers, ['dusun']);
             $ttlIndex = $findHeaderIndex($headers, ['tanggal lahir', 'tanggal_lahir', 'tgl lahir']);
+            
+            $filename = $request->file('file')->getClientOriginalName();
             $tempatLahirIndex = $findHeaderIndex($headers, ['tempat lahir', 'tempat_lahir']);
             $agamaIndex = $findHeaderIndex($headers, ['agama']);
             $statusPerkawinanIndex = $findHeaderIndex($headers, ['status perkawinan', 'status_perkawinan']);
@@ -500,7 +568,8 @@ class ExportImportController extends Controller
                 $rowNumber = $i + 2;
                 $payloadRaw = [];
                 foreach ($rawHeader as $idx => $head) {
-                    $payloadRaw[(string) $head] = $row[$idx] ?? null;
+                    $cleanHead = Str::lower(trim((string)$head));
+                    $payloadRaw[$cleanHead] = $row[$idx] ?? null;
                 }
 
                 $nik = preg_replace('/\D+/', '', trim((string)($row[$nikIndex] ?? '')));
@@ -510,6 +579,9 @@ class ExportImportController extends Controller
                 $rwRaw = $rwIndex !== false ? (string)($row[$rwIndex] ?? '') : '001';
                 $rtRaw = $rtIndex !== false ? (string)($row[$rtIndex] ?? '') : '001';
                 $dusunRaw = $dusunIndex !== false ? (string)($row[$dusunIndex] ?? '') : '';
+
+                $alamat = $alamatIndex !== false ? trim((string)($row[$alamatIndex] ?? '')) : '';
+                $jk = $jkIndex !== false ? trim((string)($row[$jkIndex] ?? '')) : '';
 
                 if (!$nik || !$nama) {
                     $summary['issues']++;
@@ -540,19 +612,36 @@ class ExportImportController extends Controller
                     continue;
                 }
 
-                $existingNik = Penduduk::where('nik', $nik)->first();
-                if ($existingNik && trim((string)$existingNik->nkk) !== trim((string)$nkk)) {
+                $existingAny = Penduduk::withTrashed()->where('nik', $nik)->first();
+                if ($existingAny) {
+                    // 1. Hard Reject for Permanent Mutations
+                    $permanentMutasi = Mutasi::where('penduduk_id', $existingAny->id)
+                        ->whereIn('jenis_mutasi', ['kematian', 'pindah_keluar'])
+                        ->exists();
+
+                    if ($permanentMutasi) {
+                        $summary['issues']++;
+                        $summary['issue_nik']++;
+                        $this->storeWebImportIssue($batchId, $filename, 'nik_conflict', 'NIK ini sudah tercatat Meninggal Dunia atau Pindah Keluar (Mutasi)', $rowNumber, $nik, $nama, $nkk, $rwRaw, $rtRaw, $dusunRaw, [], $payloadRaw);
+                        continue;
+                    }
+
+                    // 2. Hybrid Flow: Send Active Duplicates to Queue
                     $summary['issues']++;
                     $summary['issue_nik']++;
-                    $this->storeWebImportIssue($batchId, $request->file('file')->getClientOriginalName(), 'nik_conflict', 'NIK sudah ada dengan NKK berbeda', $rowNumber, $nik, $nama, $nkk, $rwRaw, $rtRaw, $dusunRaw, ['existing_nkk' => $existingNik->nkk], $payloadRaw);
+                    $this->storeWebImportIssue($batchId, $filename, 'nik_conflict', 'NIK sudah terdaftar di sistem. Perlu review untuk update atau abaikan.', $rowNumber, $nik, $nama, $nkk, $rwRaw, $rtRaw, $dusunRaw, [
+                        'existing_nkk' => $existingAny->nkk,
+                        'incoming_alamat' => $alamat,
+                        'incoming_jk' => $jk,
+                    ], $payloadRaw);
                     continue;
                 }
 
-                $kartuKeluargaId = $this->upsertKartuKeluargaAndGetId($nkk, [
+                $this->upsertKartuKeluargaAndGetId($nkk, [
                     'alamat' => $alamatIndex !== false ? (trim((string)($row[$alamatIndex] ?? '')) ?: 'Alamat tidak diketahui') : 'Alamat tidak diketahui',
-                    'rt' => $wilayah['rt_kode'],
-                    'rw' => $wilayah['rw_kode'],
-                    'dusun' => $wilayah['dusun_nama'],
+                    'rt_id' => $wilayah['rt_id'],
+                    'rw_id' => $wilayah['rw_id'],
+                    'dusun_id' => $wilayah['dusun_id'],
                 ]);
 
                 $tempatLahir = $tempatLahirIndex !== false ? trim((string)($row[$tempatLahirIndex] ?? '')) : '';
@@ -566,7 +655,6 @@ class ExportImportController extends Controller
                 $keterangan = $keteranganIndex !== false ? trim((string)($row[$keteranganIndex] ?? '')) : '';
 
                 $payload = [
-                    'kartu_keluarga_id' => $kartuKeluargaId,
                     'nkk' => $nkk,
                     'nik' => $nik,
                     'nama' => $nama,
@@ -582,9 +670,9 @@ class ExportImportController extends Controller
                     'nama_ibu' => $namaIbu !== '' ? $namaIbu : null,
                     'keterangan' => $keterangan !== '' ? $keterangan : null,
                     'alamat' => $alamatIndex !== false ? (trim((string)($row[$alamatIndex] ?? '')) ?: 'Alamat tidak diketahui') : 'Alamat tidak diketahui',
-                    'rt' => $wilayah['rt_kode'],
-                    'rw' => $wilayah['rw_kode'],
-                    'dusun' => $wilayah['dusun_nama'],
+                    'rt_id' => $wilayah['rt_id'],
+                    'rw_id' => $wilayah['rw_id'],
+                    'dusun_id' => $wilayah['dusun_id'],
                 ];
 
                 $existingAny = Penduduk::withTrashed()->where('nik', $nik)->first();
@@ -641,19 +729,17 @@ class ExportImportController extends Controller
         return redirect()->back()->with('error', 'File template tidak ditemukan!');
     }
 
-    private function upsertKartuKeluargaAndGetId(string $nkk, array $attrs = []): int
+    private function upsertKartuKeluargaAndGetId(string $nkk, array $attrs = []): void
     {
-        $kk = KartuKeluarga::firstOrCreate(
+        KartuKeluarga::updateOrCreate(
             ['nkk' => $nkk],
             [
                 'alamat' => $attrs['alamat'] ?? null,
-                'rt' => $attrs['rt'] ?? null,
-                'rw' => $attrs['rw'] ?? null,
-                'dusun' => $attrs['dusun'] ?? null,
+                'rt_id' => $attrs['rt_id'] ?? null,
+                'rw_id' => $attrs['rw_id'] ?? null,
+                'dusun_id' => $attrs['dusun_id'] ?? null,
             ]
         );
-
-        return (int)$kk->id;
     }
 
     private function normalizeKodeWilayah(?string $value, string $default = '001'): string
@@ -669,53 +755,43 @@ class ExportImportController extends Controller
     {
         $rwKode = $this->normalizeKodeWilayah($rwRaw, '001');
         $rtKode = $this->normalizeKodeWilayah($rtRaw, '001');
+        $dusunName = trim((string)$dusunRaw);
 
+        // 1. Check RW
         $rw = Rw::where('kode', $rwKode)->first();
-        $rtAny = Rt::where('kode', $rtKode)->first();
-
-        if ($rw && $rtAny && (int)$rtAny->rw_id !== (int)$rw->id) {
-            return ['status' => 'conflict', 'reason' => "RT {$rtKode} sudah terdaftar di RW lain"];
-        }
-
         if (!$rw) {
-            $rw = Rw::create([
-                'kode' => $rwKode,
-                'nama' => "RW {$rwKode}",
-                'is_active' => true,
-                'is_auto_generated' => true,
-                'needs_review' => true,
-            ]);
+            return ['status' => 'conflict', 'reason' => "RW {$rwKode} belum terdaftar di Master Wilayah"];
         }
 
+        // 2. Check RT
         $rt = Rt::where('kode', $rtKode)->where('rw_id', $rw->id)->first();
         if (!$rt) {
-            $dusun = null;
-            $dusunName = trim((string)$dusunRaw);
-            if ($dusunName !== '') {
-                $dusun = Dusun::firstOrCreate(
-                    ['nama' => $dusunName],
-                    [
-                        'kode' => strtoupper(substr(preg_replace('/\s+/', '', $dusunName), 0, 12)),
-                        'is_active' => true,
-                        'is_auto_generated' => true,
-                        'needs_review' => true,
-                    ]
-                );
+            // Check if RT exists but in different RW
+            $rtAny = Rt::where('kode', $rtKode)->first();
+            if ($rtAny) {
+                return ['status' => 'conflict', 'reason' => "RT {$rtKode} terdaftar di RW lain (RW {$rtAny->rw->kode}), bukan RW {$rwKode}"];
             }
+            return ['status' => 'conflict', 'reason' => "RT {$rtKode} belum terdaftar di RW {$rwKode}"];
+        }
 
-            $rt = Rt::create([
-                'kode' => $rtKode,
-                'rw_id' => $rw->id,
-                'dusun_id' => $dusun?->id,
-                'nama' => "RT {$rtKode}",
-                'is_active' => true,
-                'is_auto_generated' => true,
-                'needs_review' => true,
-            ]);
+        // 3. Check Dusun (if provided)
+        if ($dusunName !== '') {
+            $dusun = Dusun::where('nama', 'like', "%{$dusunName}%")->first();
+            if (!$dusun) {
+                return ['status' => 'conflict', 'reason' => "Dusun '{$dusunName}' tidak ditemukan di Master"];
+            }
+            
+            // Validate if RT/RW is actually in this Dusun
+            if ($rt->dusun_id && (int)$rt->dusun_id !== (int)$dusun->id) {
+                return ['status' => 'conflict', 'reason' => "RT {$rtKode} berada di Dusun " . optional($rt->dusun)->nama . ", bukan {$dusunName}"];
+            }
         }
 
         return [
             'status' => 'ok',
+            'rw_id' => $rw->id,
+            'rt_id' => $rt->id,
+            'dusun_id' => $rt->dusun_id,
             'rw_kode' => $rw->kode,
             'rt_kode' => $rt->kode,
             'dusun_nama' => optional($rt->dusun)->nama,

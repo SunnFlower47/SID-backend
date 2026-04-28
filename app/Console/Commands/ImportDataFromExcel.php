@@ -139,7 +139,7 @@ class ImportDataFromExcel extends Command
                 $nik = preg_replace('/\D+/', '', (string)$this->getCellValue($rowData, $headers, ['nik', 'NIK', 'C']));
                 $nama = trim((string)$this->getCellValue($rowData, $headers, ['nama', 'Nama', 'NAMA', 'N A M A', 'D']));
 
-                if (!$nik || !$nama) {
+                if (!$nik || !$nama || strlen($nik) !== 16) {
                     $this->importReport['rows_skipped_invalid']++;
                     $this->storeIssue(
                         issueType: 'required_field_missing',
@@ -151,7 +151,7 @@ class ImportDataFromExcel extends Command
                         rwRaw: (string)($this->getCellValue($rowData, $headers, ['rw', 'RW', 'R']) ?? ''),
                         rtRaw: (string)($this->getCellValue($rowData, $headers, ['rt', 'RT', 'Q']) ?? ''),
                         dusunRaw: (string)($this->getCellValue($rowData, $headers, ['dusun', 'Dusun', 'DUSUN']) ?? ''),
-                        reason: 'NIK atau nama kosong/tidak valid',
+                        reason: (strlen($nik) !== 16 && $nik) ? 'NIK harus tepat 16 digit' : 'NIK atau nama kosong/tidak valid',
                         meta: ['headers' => $headers],
                         payloadRaw: $rowData
                     );
@@ -159,8 +159,23 @@ class ImportDataFromExcel extends Command
                 }
 
                 $nkk = preg_replace('/\D+/', '', (string)$this->getCellValue($rowData, $headers, ['nkk', 'NKK', 'no_kk', 'NO_KK', 'B']));
-                if (!$nkk) {
-                    $nkk = 'KK' . date('ymd') . str_pad((string)$row, 6, '0', STR_PAD_LEFT);
+                if (!$nkk || strlen($nkk) !== 16) {
+                    $this->importReport['rows_skipped_invalid']++;
+                    $this->storeIssue(
+                        issueType: 'required_field_missing',
+                        sheetName: $sheetName,
+                        row: $row,
+                        nik: $nik,
+                        nama: $nama,
+                        nkk: $nkk ?: '',
+                        rwRaw: (string)($this->getCellValue($rowData, $headers, ['rw', 'RW', 'R']) ?? ''),
+                        rtRaw: (string)($this->getCellValue($rowData, $headers, ['rt', 'RT', 'Q']) ?? ''),
+                        dusunRaw: (string)($this->getCellValue($rowData, $headers, ['dusun', 'Dusun', 'DUSUN']) ?? ''),
+                        reason: 'NKK harus tepat 16 digit',
+                        meta: ['headers' => $headers],
+                        payloadRaw: $rowData
+                    );
+                    continue;
                 }
 
                 $rawRt = $this->getCellValue($rowData, $headers, ['rt', 'RT', 'Q']) ?? $this->extractRTFromSheet($sheetName);

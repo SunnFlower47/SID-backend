@@ -33,39 +33,48 @@ class StatisticsController extends Controller
 
             // Single query untuk semua statistik grup - hanya data aktif (tidak di-soft delete)
             $groupStats = DB::table('penduduks as p')
+                ->leftJoin('rts as rt', 'p.rt_id', '=', 'rt.id')
+                ->leftJoin('rws as rw', 'p.rw_id', '=', 'rw.id')
+                ->leftJoin('dusuns as d', 'p.dusun_id', '=', 'd.id')
                 ->select([
                     'p.jenis_kelamin',
-                    'p.rt',
-                    'p.dusun',
+                    'rt.kode as rt_kode',
+                    'rw.kode as rw_kode',
+                    'd.nama as dusun_nama',
                     'p.status_perkawinan',
                     'p.kedudukan_keluarga',
                     DB::raw('COUNT(*) as total')
                 ])
                 ->whereNull('p.deleted_at')
-                ->groupBy('p.jenis_kelamin', 'p.rt', 'p.dusun', 'p.status_perkawinan', 'p.kedudukan_keluarga')
+                ->groupBy('p.jenis_kelamin', 'rt.kode', 'rw.kode', 'd.nama', 'p.status_perkawinan', 'p.kedudukan_keluarga')
                 ->get();
 
             // Process group statistics
             $genderStats = $groupStats->where('jenis_kelamin', '!=', null)
-                ->groupBy('jenis_kelamin')
+                ->groupBy(function($item) {
+                    $val = strtoupper(trim($item->jenis_kelamin));
+                    if (in_array($val, ['L', 'LAKI-LAKI', 'LAKI LAKI'])) return 'LAKI-LAKI';
+                    if (in_array($val, ['P', 'PEREMPUAN'])) return 'PEREMPUAN';
+                    return 'LAINNYA';
+                })
                 ->map(function($group) {
                     return $group->sum('total');
                 });
 
-            $rtStats = $groupStats->where('rt', '!=', null)
-                ->groupBy('rt')
+            $rtStats = $groupStats->where('rt_kode', '!=', null)
+                ->groupBy('rt_kode')
                 ->map(function($group) {
-                    return (object)['rt' => $group->first()->rt, 'total' => $group->sum('total')];
+                    return (object)['rt_label' => $group->first()->rt_kode, 'total' => $group->sum('total')];
                 })
-                ->sortBy('rt')
+                ->sortBy('rt_label')
                 ->values();
 
-            $dusunStats = $groupStats->where('dusun', '!=', null)
-                ->groupBy('dusun')
+            $dusunStats = $groupStats->where('dusun_nama', '!=', null)
+                ->groupBy('dusun_nama')
                 ->map(function($group) {
-                    return (object)['dusun' => $group->first()->dusun, 'total' => $group->sum('total')];
+                    return (object)['dusun_label' => $group->first()->dusun_nama, 'total' => $group->sum('total')];
                 })
-                ->sortBy('dusun')
+                ->sortBy('dusun_label')
                 ->values();
 
             $maritalStats = $groupStats->where('status_perkawinan', '!=', null)
@@ -93,6 +102,7 @@ class StatisticsController extends Controller
                 'marital' => $maritalStats,
                 'family_position' => $familyPositionStats
             ];
+
 
             // Extract cached data
             $totalPenduduk = $stats['basic']->total_penduduk;
@@ -191,15 +201,19 @@ class StatisticsController extends Controller
 
             // RW statistics - hanya data aktif
             $rwStats = DB::table('penduduks as p')
+                ->leftJoin('rws as rw', 'p.rw_id', '=', 'rw.id')
                 ->leftJoin('mutasis as m', function($join) {
                     $join->on('m.penduduk_id', '=', 'p.id')
                          ->whereIn('m.jenis_mutasi', ['kematian', 'pindah_keluar']);
                 })
-                ->select('p.rw', DB::raw('COUNT(CASE WHEN m.id IS NULL THEN 1 END) as total'))
+                ->select('rw.kode as rw_kode', DB::raw('COUNT(CASE WHEN m.id IS NULL THEN 1 END) as total'))
                 ->whereNull('m.id')
-                ->groupBy('p.rw')
-                ->orderBy('p.rw')
-                ->get();
+                ->groupBy('rw.kode')
+                ->orderBy('rw.kode')
+                ->get()
+                ->map(function($item) {
+                    return (object)['rw_label' => $item->rw_kode, 'total' => $item->total];
+                });
 
             // Mutation statistics
             $mutationStats = Mutasi::select('jenis_mutasi', DB::raw('count(*) as total'))
@@ -304,20 +318,20 @@ class StatisticsController extends Controller
                     $query->whereIn('jenis_mutasi', ['kematian', 'pindah_keluar']);
                 })->select(
                     DB::raw('CASE
-                        WHEN usia < 5 THEN "0-4"
-                        WHEN usia BETWEEN 5 AND 9 THEN "5-9"
-                        WHEN usia BETWEEN 10 AND 14 THEN "10-14"
-                        WHEN usia BETWEEN 15 AND 19 THEN "15-19"
-                        WHEN usia BETWEEN 20 AND 24 THEN "20-24"
-                        WHEN usia BETWEEN 25 AND 29 THEN "25-29"
-                        WHEN usia BETWEEN 30 AND 34 THEN "30-34"
-                        WHEN usia BETWEEN 35 AND 39 THEN "35-39"
-                        WHEN usia BETWEEN 40 AND 44 THEN "40-44"
-                        WHEN usia BETWEEN 45 AND 49 THEN "45-49"
-                        WHEN usia BETWEEN 50 AND 54 THEN "50-54"
-                        WHEN usia BETWEEN 55 AND 59 THEN "55-59"
-                        WHEN usia BETWEEN 60 AND 64 THEN "60-64"
-                        WHEN usia >= 65 THEN "65+"
+                        WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) < 5 THEN "0-4"
+                        WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 5 AND 9 THEN "5-9"
+                        WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 10 AND 14 THEN "10-14"
+                        WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 15 AND 19 THEN "15-19"
+                        WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 20 AND 24 THEN "20-24"
+                        WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 25 AND 29 THEN "25-29"
+                        WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 30 AND 34 THEN "30-34"
+                        WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 35 AND 39 THEN "35-39"
+                        WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 40 AND 44 THEN "40-44"
+                        WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 45 AND 49 THEN "45-49"
+                        WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 50 AND 54 THEN "50-54"
+                        WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 55 AND 59 THEN "55-59"
+                        WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 60 AND 64 THEN "60-64"
+                        WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) >= 65 THEN "65+"
                         ELSE "Tidak Diketahui"
                     END as age_group'),
                     DB::raw('count(*) as total')
@@ -351,12 +365,21 @@ class StatisticsController extends Controller
                     ->get();
 
             case 'rt':
-                return Penduduk::whereDoesntHave('mutasis', function($query) {
-                    $query->whereIn('jenis_mutasi', ['kematian', 'pindah_keluar']);
-                })->select('rt', DB::raw('count(*) as total'))
-                    ->groupBy('rt')
-                    ->orderBy('rt')
-                    ->get();
+                return DB::table('penduduks as p')
+                    ->join('rts as rt', 'p.rt_id', '=', 'rt.id')
+                    ->leftJoin('mutasis as m', function($join) {
+                        $join->on('m.penduduk_id', '=', 'p.id')
+                             ->whereIn('m.jenis_mutasi', ['kematian', 'pindah_keluar']);
+                    })
+                    ->select('rt.kode as rt_kode', DB::raw('COUNT(CASE WHEN m.id IS NULL THEN 1 END) as total'))
+                    ->whereNull('m.id')
+                    ->groupBy('rt.kode')
+                    ->orderBy('rt.kode')
+                    ->get()
+                    ->map(function($item) {
+                        return (object)['rt_label' => $item->rt_kode, 'total' => $item->total];
+                    });
+
 
             default:
                 return response()->json(['error' => 'Invalid chart type'], 400);

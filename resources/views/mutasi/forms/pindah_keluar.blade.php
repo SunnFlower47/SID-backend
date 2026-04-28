@@ -53,12 +53,12 @@
             </div>
         </div>
         <div>
-            <label for="kategori_mutasi_pindah_keluar" class="block text-sm font-medium text-gray-700 mb-2">Kategori Mutasi</label>
+            <label for="kategori_mutasi_pindah_keluar" class="block text-sm font-medium text-gray-700 mb-2">Kategori Tujuan (Pindah Ke)</label>
             <select name="kategori_mutasi" id="kategori_mutasi_pindah_keluar"
                     class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-orange-500 focus:border-orange-500" required>
                 <option value="">Pilih kategori...</option>
-                <option value="dalam_kota">Dalam Kota</option>
-                <option value="luar_kota">Luar Kota</option>
+                <option value="dalam_kota">Dalam Kabupaten / Kota</option>
+                <option value="luar_kota">Luar Kabupaten / Kota</option>
                 <option value="luar_negeri">Luar Negeri</option>
             </select>
         </div>
@@ -188,3 +188,4 @@
         </div>
     </div>
 </div>
+

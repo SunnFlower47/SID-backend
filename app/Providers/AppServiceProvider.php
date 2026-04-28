@@ -41,5 +41,18 @@ class AppServiceProvider extends ServiceProvider
         Blade::directive('endnoncescript', function () {
             return '<?php echo "</script>"; ?>';
         });
+        // Customize Password Reset URL (Support both Legacy Laravel & New Next.js)
+        \Illuminate\Auth\Notifications\ResetPassword::createUrlUsing(function ($user, string $token) {
+            // Jika request datang dari API Next.js
+            if (request()->wantsJson() || str_contains(request()->header('Referer') ?? '', 'localhost:3000')) {
+                return config('app.frontend_url') . '/reset-password/' . $token . '?email=' . $user->email;
+            }
+            
+            // Jika request dari Laravel lama (default behavior)
+            return url(route('password.reset', [
+                'token' => $token,
+                'email' => $user->email,
+            ], false));
+        });
     }
 }

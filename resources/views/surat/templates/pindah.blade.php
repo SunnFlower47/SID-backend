@@ -223,16 +223,21 @@
     <!-- Alamat Asal -->
     <div class="alamat-section">
         <div class="alamat-title">Alamat Asal:</div>
-        <p>{{ $penduduk->alamat ?? '-' }}, RT {{ $penduduk->rt ?? '-' }}/RW {{ $penduduk->rw ?? '-' }}, Dusun {{ $penduduk->dusun ?? '-' }}, {{ $desa['nama_desa'] }}, Kecamatan {{ $desa['kecamatan'] }}, Kabupaten {{ $desa['kabupaten'] }}, Provinsi {{ $desa['provinsi'] }}</p>
+        <p>{{ $penduduk->alamat ?? '-' }}, RT {{ $penduduk->rt_label ?? '-' }}/RW {{ $penduduk->rw_label ?? '-' }}, Dusun {{ $penduduk->dusun_label ?? '-' }}, {{ $desa['nama_desa'] }}, Kecamatan {{ $desa['kecamatan'] }}, Kabupaten {{ $desa['kabupaten'] }}, Provinsi {{ $desa['provinsi'] }}</p>
     </div>
 
     <!-- Tujuan Pindah -->
-    @if($tujuan)
     <div class="tujuan-section">
         <div class="tujuan-title">Tujuan Pindah:</div>
-        <p>{{ $tujuan }}</p>
+        <p>
+            {{ $alamat_tujuan ?? $tujuan ?? '-' }}<br>
+            RT/RW: {{ $rt_rw_tujuan ?? '-' }}<br>
+            Desa/Kel: {{ $kelurahan_tujuan ?? '-' }}<br>
+            Kec: {{ $kecamatan_tujuan ?? '-' }}<br>
+            Kab/Kota: {{ $kabupaten_tujuan ?? '-' }}<br>
+            Provinsi: {{ $provinsi_tujuan ?? '-' }}
+        </p>
     </div>
-    @endif
 
     <!-- Keperluan -->
     @if($keperluan)
@@ -261,7 +266,7 @@
     <div class="signature-section">
         <div class="signature">
             <div class="signature-line">
-                <strong>{{ $kepala_desa['nama'] }}</strong><br>
+                <strong>{{ strtoupper($kepala_desa['nama']) }}</strong><br>
                 {{ $kepala_desa['jabatan'] }}<br>
                 NIP. {{ $kepala_desa['nip'] }}
             </div>
@@ -275,4 +280,5 @@
     </div>
 </body>
 </html>
+
 

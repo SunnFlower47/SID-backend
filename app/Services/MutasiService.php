@@ -23,7 +23,6 @@ class MutasiService
 
         // Buat penduduk baru
         $penduduk = Penduduk::create([
-            'kartu_keluarga_id' => $kartuKeluarga->kartu_keluarga_id,
             'nkk' => $validated['nkk'],
             'nik' => $validated['nik_bayi'],
             'nama' => $validated['nama_bayi'],
@@ -38,11 +37,10 @@ class MutasiService
             'nama_ayah' => $validated['nama_ayah'],
             'nama_ibu' => $validated['nama_ibu'],
             'alamat' => $validated['alamat_bayi'],
-            'rt' => $validated['rt_bayi'],
-            'rw' => $validated['rw_bayi'],
-            'dusun' => $validated['dusun_bayi'] ?? $kartuKeluarga->dusun,
+            'rt_id' => $validated['rt_id_bayi'],
+            'rw_id' => $validated['rw_id_bayi'],
+            'dusun_id' => $validated['dusun_id_bayi'] ?? $kartuKeluarga->dusun_id,
             'keterangan' => $validated['keterangan_bayi'],
-            'status' => 'aktif',
         ]);
 
         // Buat log mutasi
@@ -76,10 +74,21 @@ class MutasiService
             'alasan' => $validated['alasan'],
             'dokumen_pendukung' => null,
             'detail_tambahan' => [
-                'alasan' => $validated['alasan'],
+                'snapshot_asal' => [
+                    'nkk' => $penduduk->nkk,
+                    'alamat' => $penduduk->alamat,
+                    'rt_id' => $penduduk->rt_id,
+                    'rt_kode' => $penduduk->rt_label,
+                    'rw_id' => $penduduk->rw_id,
+                    'rw_kode' => $penduduk->rw_label,
+                    'dusun_id' => $penduduk->dusun_id,
+                    'dusun_nama' => $penduduk->dusun_label,
+                    'kedudukan' => $penduduk->kedudukan_keluarga,
+                ],
+                'alasan_kematian' => $validated['alasan'],
                 'kematian' => [
                     'hari' => $validated['hari_meninggal'],
-                    'tanggal' => $validated['tanggal_mutasi'], // Added for consistency
+                    'tanggal' => $validated['tanggal_mutasi'],
                     'jam' => $validated['jam_meninggal'],
                     'bertempat_di' => $validated['bertempat_di']
                 ],
@@ -89,7 +98,6 @@ class MutasiService
                     'jam' => $validated['jam_pemakaman'],
                     'lokasi' => $validated['lokasi_pemakaman']
                 ],
-                // Data Pelapor (Optional)
                 'pelapor_nama' => $validated['pelapor_nama'] ?? null,
                 'pelapor_umur' => $validated['pelapor_umur'] ?? null,
                 'pelapor_pekerjaan' => $validated['pelapor_pekerjaan'] ?? null,
@@ -107,36 +115,11 @@ class MutasiService
      */
     public function handlePindahMasuk(array $validated)
     {
-        // Determine dusun based on RT
-        $dusunSatu = ['001', '002', '003', '004', '007', '008'];
-        $rtFormatted = str_pad($validated['rt'], 3, '0', STR_PAD_LEFT);
-        $rwFormatted = str_pad($validated['rw'], 3, '0', STR_PAD_LEFT);
-        $dusun = in_array($rtFormatted, $dusunSatu) ? 'Dusun Satu' : 'Dusun Dua';
-
-        // Determine which NKK to use and clean up unused field
-        $nkkToUse = null;
-        $kartuKeluargaId = null;
-
-        if (!empty($validated['nkk'])) {
-            // Gabung ke KK yang sudah ada
-            $nkkToUse = $validated['nkk'];
-
-            // Get kartu_keluarga_id from existing KK
-            $existingKK = Penduduk::where('nkk', $validated['nkk'])->first();
-            if ($existingKK) {
-                $kartuKeluargaId = $existingKK->kartu_keluarga_id;
-            }
-        } else {
-            // Buat KK baru
-            $nkkToUse = $validated['nkk_new'];
-
-            // Generate new kartu_keluarga_id
-            $kartuKeluargaId = Penduduk::max('kartu_keluarga_id') + 1;
-        }
+        // Determine which NKK to use
+        $nkkToUse = !empty($validated['nkk']) ? $validated['nkk'] : $validated['nkk_new'];
 
         // Create new penduduk
         $penduduk = Penduduk::create([
-            'kartu_keluarga_id' => $kartuKeluargaId,
             'nkk' => $nkkToUse,
             'nik' => $validated['nik'],
             'nama' => $validated['nama'],
@@ -151,11 +134,10 @@ class MutasiService
             'nama_ayah' => $validated['nama_ayah'] ?? 'Tidak Diketahui',
             'nama_ibu' => $validated['nama_ibu'] ?? 'Tidak Diketahui',
             'alamat' => $validated['alamat'],
-            'rt' => $rtFormatted,
-            'rw' => $rwFormatted,
-            'dusun' => $dusun,
+            'rt_id' => $validated['rt_id'],
+            'rw_id' => $validated['rw_id'],
+            'dusun_id' => $validated['dusun_id'] ?? null,
             'keterangan' => $validated['keterangan'] ?? null,
-            'status' => 'aktif', // Status aktif untuk penduduk baru pindah masuk
         ]);
 
         // Create mutasi log
@@ -172,14 +154,47 @@ class MutasiService
         return $penduduk;
     }
 
-    /**
-     * Handle Pindah Keluar logic
-     */
     public function handlePindahKeluar(array $validated)
     {
         $penduduk = Penduduk::findOrFail($validated['penduduk_id']);
+        
+        $snapshotAsal = [
+            'nkk' => $penduduk->nkk,
+            'alamat' => $penduduk->alamat,
+            'rt_id' => $penduduk->rt_id,
+            'rt_kode' => $penduduk->rt_label,
+            'rw_id' => $penduduk->rw_id,
+            'rw_kode' => $penduduk->rw_label,
+            'dusun_id' => $penduduk->dusun_id,
+            'dusun_nama' => $penduduk->dusun_label,
+            'kedudukan' => $penduduk->kedudukan_keluarga,
+        ];
+
+        // Handle collective move (anggota_pindah)
+        $anggotaPindahIds = $validated['anggota_pindah'] ?? [];
+        $snapshotAnggota = [];
+        
+        if (!empty($anggotaPindahIds)) {
+            $anggotaPindah = Penduduk::whereIn('id', $anggotaPindahIds)->get();
+            foreach ($anggotaPindah as $member) {
+                $snapshotAnggota[] = [
+                    'id' => $member->id,
+                    'nama' => $member->nama,
+                    'nik' => $member->nik,
+                    'kedudukan' => $member->kedudukan_keluarga,
+                    'rt_id' => $member->rt_id,
+                    'rw_id' => $member->rw_id,
+                    'dusun_id' => $member->dusun_id,
+                    'alamat' => $member->alamat,
+                ];
+                // Soft delete member
+                $member->delete();
+            }
+        }
 
         // Buat log mutasi
+        $snapshotAsal['anggota_pindah'] = $snapshotAnggota;
+
         Mutasi::create([
             'penduduk_id' => $penduduk->id,
             'jenis_mutasi' => 'pindah_keluar',
@@ -188,9 +203,14 @@ class MutasiService
             'tanggal_mutasi' => $validated['tanggal_mutasi'],
             'alasan' => $validated['alasan'] ?: 'Pindah keluar dari Desa Cibatu',
             'dokumen_pendukung' => null,
+            'detail_tambahan' => [
+                'snapshot_asal' => $snapshotAsal,
+                'tujuan' => $validated['asal_tujuan'],
+                'kategori' => $validated['kategori_mutasi'],
+            ],
         ]);
 
-        // Soft delete penduduk
+        // Soft delete main resident
         $penduduk->delete();
     }
 
@@ -211,47 +231,59 @@ class MutasiService
             throw new \Exception('Tidak ada anggota keluarga dengan No KK: ' . $validated['nkk']);
         }
 
-        // Determine dusun based on RT or use form value
-        $dusunSatu = ['001', '002', '003', '004', '007', '008'];
-        $rtTujuan = str_pad($validated['rt_tujuan'], 3, '0', STR_PAD_LEFT);
-        $rwTujuan = str_pad($validated['rw_tujuan'], 3, '0', STR_PAD_LEFT);
-        $dusunTujuan = $validated['dusun_tujuan'] ?? (in_array($rtTujuan, $dusunSatu) ? 'Dusun Satu' : 'Dusun Dua');
+        $rtIdTujuan = $validated['rt_id_tujuan'];
+        $rwIdTujuan = $validated['rw_id_tujuan'];
+        $dusunIdTujuan = $validated['dusun_id_tujuan'] ?? null;
 
         // Ambil alamat dari anggota keluarga pertama jika alamat_tujuan kosong
         $alamatTujuan = $validated['alamat_tujuan'] ?? $anggotaKeluarga->first()->alamat;
 
         // Simpan informasi asal untuk log dan revert
         $anggotaPertama = $anggotaKeluarga->first();
-        $rtAsal = $anggotaPertama->rt;
-        $rwAsal = $anggotaPertama->rw;
-        $dusunAsal = $anggotaPertama->dusun;
+        $rtIdAsal = $anggotaPertama->rt_id;
+        $rwIdAsal = $anggotaPertama->rw_id;
+        $dusunIdAsal = $anggotaPertama->dusun_id;
 
         // SIMPAN SNAPSHOT SEMUA ANGGOTA SEBELUM UPDATE (untuk cancel/revert)
         $snapshotAnggota = $anggotaKeluarga->map(function ($anggota) {
             return [
                 'id' => $anggota->id,
                 'nama' => $anggota->nama,
-                'rt_asal' => $anggota->rt,
-                'rw_asal' => $anggota->rw,
-                'dusun_asal' => $anggota->dusun,
+                'rt_id_asal' => $anggota->rt_id,
+                'rt_kode_asal' => optional($anggota->rtMaster)->kode,
+                'rw_id_asal' => $anggota->rw_id,
+                'rw_kode_asal' => optional($anggota->rwMaster)->kode,
+                'dusun_id_asal' => $anggota->dusun_id,
+                'dusun_nama_asal' => optional($anggota->dusunMaster)->nama,
                 'alamat_asal' => $anggota->alamat,
             ];
         })->toArray();
 
         // UPDATE SEMUA ANGGOTA KELUARGA DENGAN NKK YANG SAMA
-        Penduduk::where('nkk', $validated['nkk'])
-            ->update([
-                'rt' => $rtTujuan,
-                'rw' => $rwTujuan,
-                'dusun' => $dusunTujuan,
+        // Use each() to ensure observers (recalculateKK) are triggered for each member
+        $anggotaKeluarga->each(function ($anggota) use ($rtIdTujuan, $rwIdTujuan, $dusunIdTujuan, $alamatTujuan) {
+            $anggota->update([
+                'rt_id' => $rtIdTujuan,
+                'rw_id' => $rwIdTujuan,
+                'dusun_id' => $dusunIdTujuan,
                 'alamat' => $alamatTujuan,
             ]);
+        });
 
         // Ambil kepala keluarga untuk log mutasi
         $kepalaKeluarga = $anggotaKeluarga->where('kedudukan_keluarga', 'Kepala Keluarga')->first();
 
-        $asalLengkap = 'RT ' . $rtAsal . '/RW ' . $rwAsal . ' (' . $dusunAsal . ')';
-        $tujuanLengkap = 'RT ' . $rtTujuan . '/RW ' . $rwTujuan . ' (' . $dusunTujuan . ')';
+        // Helper untuk label di log
+        $rtAsal = optional(\App\Models\Rt::find($rtIdAsal))->kode;
+        $rwAsal = optional(\App\Models\Rw::find($rwIdAsal))->kode;
+        $dusunAsal = optional(\App\Models\Dusun::find($dusunIdAsal))->nama;
+        
+        $rtTujuan = optional(\App\Models\Rt::find($rtIdTujuan))->kode;
+        $rwTujuan = optional(\App\Models\Rw::find($rwIdTujuan))->kode;
+        $dusunTujuan = optional(\App\Models\Dusun::find($dusunIdTujuan))->nama;
+
+        $asalLengkap = 'RT ' . $rtAsal . '/RW ' . $rwAsal . ' (' . ($dusunAsal ?? '-') . ')';
+        $tujuanLengkap = 'RT ' . $rtTujuan . '/RW ' . $rwTujuan . ' (' . ($dusunTujuan ?? '-') . ')';
 
         // Buat log mutasi dengan snapshot untuk revert
         Mutasi::create([
@@ -265,12 +297,18 @@ class MutasiService
             'detail_tambahan' => [
                 'snapshot_asal' => [
                     'nkk' => $validated['nkk'],
-                    'rt_asal' => $rtAsal,
-                    'rw_asal' => $rwAsal,
-                    'dusun_asal' => $dusunAsal,
-                    'rt_tujuan' => $rtTujuan,
-                    'rw_tujuan' => $rwTujuan,
-                    'dusun_tujuan' => $dusunTujuan,
+                    'rt_id_asal' => $rtIdAsal,
+                    'rt_kode_asal' => $rtAsal,
+                    'rw_id_asal' => $rwIdAsal,
+                    'rw_kode_asal' => $rwAsal,
+                    'dusun_id_asal' => $dusunIdAsal,
+                    'dusun_nama_asal' => $dusunAsal,
+                    'rt_id_tujuan' => $rtIdTujuan,
+                    'rt_kode_tujuan' => $rtTujuan,
+                    'rw_id_tujuan' => $rwIdTujuan,
+                    'rw_kode_tujuan' => $rwTujuan,
+                    'dusun_id_tujuan' => $dusunIdTujuan,
+                    'dusun_nama_tujuan' => $dusunTujuan,
                     'anggota' => $snapshotAnggota,
                 ],
             ],
@@ -289,9 +327,9 @@ class MutasiService
         // Determine new NKK and address based on option
         $newNKK = null;
         $alamat = null;
-        $rt = null;
-        $rw = null;
-        $dusun = null;
+        $rtId = null;
+        $rwId = null;
+        $dusunId = null;
         $isNewFamily = false;
 
         if ($validated['kategori_mutasi'] === 'dalam_desa' && ($validated['kk_option'] ?? '') === 'existing' && !empty($validated['nkk_existing_id'])) {
@@ -300,9 +338,9 @@ class MutasiService
             $existingFamily = Penduduk::where('nkk', $newNKK)->first();
             if ($existingFamily) {
                 $alamat = $existingFamily->alamat;
-                $rt = $existingFamily->rt;
-                $rw = $existingFamily->rw;
-                $dusun = $existingFamily->dusun;
+                $rtId = $existingFamily->rt_id;
+                $rwId = $existingFamily->rw_id;
+                $dusunId = $existingFamily->dusun_id;
             }
             $isNewFamily = false;
         } elseif ($validated['kategori_mutasi'] === 'dalam_desa' && ($validated['kk_option'] ?? '') === 'new' && !empty($validated['nkk_baru'])) {
@@ -312,19 +350,18 @@ class MutasiService
                 // NKK already exists - join existing family (use their address)
                 $newNKK = $validated['nkk_baru'];
                 $alamat = $existingFamily->alamat;
-                $rt = $existingFamily->rt;
-                $rw = $existingFamily->rw;
-                $dusun = $existingFamily->dusun;
+                $rtId = $existingFamily->rt_id;
+                $rwId = $existingFamily->rw_id;
+                $dusunId = $existingFamily->dusun_id;
                 $isNewFamily = false;
             } else {
                 // NKK is new - create new family (use input address)
                 $newNKK = $validated['nkk_baru'];
                 $alamat = $validated['alamat'] ?? $penduduk->alamat; // Gunakan alamat dari form atau alamat lama
                 // Untuk KK baru dalam desa, gunakan RT/RW dari form
-                $rt = $validated['rt'] ?? $penduduk->rt;
-                $rw = $validated['rw'] ?? $penduduk->rw;
-                $dusunSatu = ['001', '002', '003', '004', '007', '008'];
-                $dusun = in_array($rt, $dusunSatu) ? 'Dusun Satu' : 'Dusun Dua';
+                $rtId = $validated['rt_id'] ?? $penduduk->rt_id;
+                $rwId = $validated['rw_id'] ?? $penduduk->rw_id;
+                $dusunId = $validated['dusun_id'] ?? $penduduk->dusun_id;
                 $isNewFamily = true;
             }
         } else {
@@ -332,9 +369,9 @@ class MutasiService
             $newNKK = $validated['nkk_tujuan'];
             $alamat = $validated['alamat'];
             // Untuk kategori luar desa/kota/negeri, tidak perlu RT/RW (soft delete)
-            $rt = null;
-            $rw = null;
-            $dusun = null;
+            $rtId = null;
+            $rwId = null;
+            $dusunId = null;
             $isNewFamily = true;
         }
 
@@ -342,9 +379,12 @@ class MutasiService
         $snapshotAsal = [
             'nkk_asal' => $penduduk->nkk,
             'alamat_asal' => $penduduk->alamat,
-            'rt_asal' => $penduduk->rt,
-            'rw_asal' => $penduduk->rw,
-            'dusun_asal' => $penduduk->dusun,
+            'rt_id_asal' => $penduduk->rt_id,
+            'rt_kode_asal' => optional($penduduk->rtMaster)->kode,
+            'rw_id_asal' => $penduduk->rw_id,
+            'rw_kode_asal' => optional($penduduk->rwMaster)->kode,
+            'dusun_id_asal' => $penduduk->dusun_id,
+            'dusun_nama_asal' => optional($penduduk->dusunMaster)->nama,
             'kedudukan_asal' => $penduduk->kedudukan_keluarga,
             'status_perkawinan_asal' => $penduduk->status_perkawinan,
         ];
@@ -359,9 +399,12 @@ class MutasiService
                     'id' => $anggota->id,
                     'nama' => $anggota->nama,
                     'nkk_asal' => $anggota->nkk,
-                    'rt_asal' => $anggota->rt,
-                    'rw_asal' => $anggota->rw,
-                    'dusun_asal' => $anggota->dusun,
+                    'rt_id_asal' => $anggota->rt_id,
+                    'rt_kode_asal' => optional($anggota->rtMaster)->kode,
+                    'rw_id_asal' => $anggota->rw_id,
+                    'rw_kode_asal' => optional($anggota->rwMaster)->kode,
+                    'dusun_id_asal' => $anggota->dusun_id,
+                    'dusun_nama_asal' => optional($anggota->dusunMaster)->nama,
                     'alamat_asal' => $anggota->alamat,
                 ];
             })->toArray();
@@ -376,9 +419,9 @@ class MutasiService
                 'kedudukan_keluarga' => $validated['kedudukan_keluarga_pisah'],
                 'status_perkawinan' => $validated['status_perkawinan_pisah'] ?? $penduduk->status_perkawinan,
                 'alamat' => $alamat,
-                'rt' => $rt,
-                'rw' => $rw,
-                'dusun' => $dusun,
+                'rt_id' => $rtId,
+                'rw_id' => $rwId,
+                'dusun_id' => $dusunId,
             ]);
         }
         // Untuk luar desa/kota/negeri, TIDAK update data penduduk sama sekali
@@ -389,15 +432,18 @@ class MutasiService
         if (!empty($anggotaIds)) {
             if ($validated['kategori_mutasi'] === 'dalam_desa') {
                 // Untuk dalam desa, update semua field termasuk RT/RW/Dusun
-                Penduduk::whereIn('id', $anggotaIds)->update([
-                    'nkk' => $newNKK,
-                    'alamat' => $alamat,
-                    'rt' => $rt,
-                    'rw' => $rw,
-                    'dusun' => $dusun,
-                ]);
+                // Use models instead of query builder to trigger observers
+                Penduduk::whereIn('id', $anggotaIds)->get()->each(function ($anggota) use ($newNKK, $alamat, $rtId, $rwId, $dusunId) {
+                    $anggota->update([
+                        'nkk' => $newNKK,
+                        'alamat' => $alamat,
+                        'rt_id' => $rtId,
+                        'rw_id' => $rwId,
+                        'dusun_id' => $dusunId,
+                    ]);
+                });
             }
-            // Untuk luar desa/kota/negeri, TIDAK update anggota keluarga sama sekali
+            // Untuk luar desa/kota/negeri, TIDAK anggota keluarga sama sekali
             // Mereka akan di-soft delete tanpa perubahan
             $movedCount += count($anggotaIds);
         }
@@ -458,4 +504,5 @@ class MutasiService
             }
         }
     }
+
 }

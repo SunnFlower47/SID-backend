@@ -58,8 +58,8 @@
         @php
             $activeFilterCount = collect([
                 request('search'),
-                request('rt'),
-                request('rw'),
+                request('rt_id') ?? request('rt'),
+                request('rw_id') ?? request('rw'),
                 request('jenis_kelamin'),
                 request('filter_umur'),
             ])->filter(fn($v) => filled($v))->count();
@@ -104,10 +104,10 @@
                         <!-- RT Filter -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">RT</label>
-                            <select name="rt" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white">
+                            <select name="rt_id" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white">
                                 <option value="">Semua RT</option>
                                 @foreach($rtList as $rt)
-                                    <option value="{{ $rt }}" {{ request('rt') == $rt ? 'selected' : '' }}>RT {{ $rt }}</option>
+                                    <option value="{{ $rt->id }}" {{ (request('rt_id') ?? request('rt')) == $rt->id ? 'selected' : '' }}>RT {{ $rt->kode }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -115,10 +115,10 @@
                         <!-- RW Filter -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">RW</label>
-                            <select name="rw" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm bg-white">
+                            <select name="rw_id" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm bg-white">
                                 <option value="">Semua RW</option>
                                 @foreach($rwList as $rw)
-                                    <option value="{{ $rw }}" {{ request('rw') == $rw ? 'selected' : '' }}>RW {{ $rw }}</option>
+                                    <option value="{{ $rw->id }}" {{ (request('rw_id') ?? request('rw')) == $rw->id ? 'selected' : '' }}>RW {{ $rw->kode }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -339,9 +339,9 @@
                                 <td class="px-4 py-4">
                                     <div class="text-sm text-gray-900">
                                         <div class="font-medium">{{ Str::limit($penduduk->alamat, 50) }}</div>
-                                        <div class="text-xs text-gray-600 mt-1">RT {{ $penduduk->rt }} / RW {{ $penduduk->rw }}</div>
-                                        @if($penduduk->dusun)
-                                            <div class="text-xs text-gray-500">{{ $penduduk->dusun }}</div>
+                                        <div class="text-xs text-gray-600 mt-1">RT {{ $penduduk->rt_label }} / RW {{ $penduduk->rw_label }}</div>
+                                        @if($penduduk->dusun_label !== '-')
+                                            <div class="text-xs text-gray-500">{{ $penduduk->dusun_label }}</div>
                                         @endif
                                     </div>
                                 </td>
@@ -488,9 +488,9 @@
                                     <p class="text-xs sm:text-sm text-gray-900 truncate" title="{{ $penduduk->alamat }}">{{ $penduduk->alamat }}</p>
                                 </div>
                                 <div class="flex flex-wrap items-center gap-2 text-xs text-gray-600">
-                                    <span class="inline-flex items-center"><i class="fas fa-home mr-1"></i>RT {{ $penduduk->rt }} / RW {{ $penduduk->rw }}</span>
-                                    @if($penduduk->dusun)
-                                        <span class="inline-flex items-center"><i class="fas fa-map mr-1"></i>{{ $penduduk->dusun }}</span>
+                                    <span class="inline-flex items-center"><i class="fas fa-home mr-1"></i>RT {{ $penduduk->rt_label }} / RW {{ $penduduk->rw_label }}</span>
+                                    @if($penduduk->dusun_label !== '-')
+                                        <span class="inline-flex items-center"><i class="fas fa-map mr-1"></i>{{ $penduduk->dusun_label }}</span>
                                     @endif
                                 </div>
                             </div>
@@ -703,6 +703,7 @@ function exportExcel() {
 <!-- JavaScript untuk update kepala keluarga dihapus karena tombol KK sudah dihapus -->
 
 @endsection
+
 
 
 

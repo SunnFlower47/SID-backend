@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Detail Fasilitas Desa')
 @section('subtitle', 'Detail data fasilitas dan infrastruktur desa')
@@ -62,24 +62,24 @@
                         <label class="block text-sm font-medium text-gray-500">Alamat Lengkap</label>
                         <p class="text-gray-900">{{ $fasilitasDesa->alamat }}</p>
                     </div>
-                    @if($fasilitasDesa->rt || $fasilitasDesa->rw || $fasilitasDesa->dusun)
+                    @if($fasilitasDesa->rt_label || $fasilitasDesa->rw_label || $fasilitasDesa->dusun_label)
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        @if($fasilitasDesa->rt)
+                        @if($fasilitasDesa->rt_label)
                         <div>
                             <label class="block text-sm font-medium text-gray-500">RT</label>
-                            <p class="text-gray-900">{{ $fasilitasDesa->rt }}</p>
+                            <p class="text-gray-900">{{ $fasilitasDesa->rt_label }}</p>
                         </div>
                         @endif
-                        @if($fasilitasDesa->rw)
+                        @if($fasilitasDesa->rw_label)
                         <div>
                             <label class="block text-sm font-medium text-gray-500">RW</label>
-                            <p class="text-gray-900">{{ $fasilitasDesa->rw }}</p>
+                            <p class="text-gray-900">{{ $fasilitasDesa->rw_label }}</p>
                         </div>
                         @endif
-                        @if($fasilitasDesa->dusun)
+                        @if($fasilitasDesa->dusun_label)
                         <div>
                             <label class="block text-sm font-medium text-gray-500">Dusun</label>
-                            <p class="text-gray-900">{{ $fasilitasDesa->dusun }}</p>
+                            <p class="text-gray-900">{{ $fasilitasDesa->dusun_label }}</p>
                         </div>
                         @endif
                     </div>
@@ -241,3 +241,4 @@ function confirmDelete(fasilitasId, fasilitasName) {
 }
 @endnoncescript
 @endsection
+

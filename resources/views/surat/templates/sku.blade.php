@@ -199,15 +199,11 @@
         </div>
         <div class="data-row">
             <div class="data-label">Alamat</div>
-            <div class="data-value">: {{ $penduduk->alamat ?? '-' }}</div>
-        </div>
-        <div class="data-row">
-            <div class="data-label">RT/RW</div>
-            <div class="data-value">: {{ $penduduk->rt ?? '-' }}/{{ $penduduk->rw ?? '-' }}</div>
+            <div class="data-value">: {{ $penduduk->alamat }}, RT. {{ $penduduk->rt_label }}/RW. {{ $penduduk->rw_label }} Desa {{ $desa['nama_desa'] }} Kec. {{ $desa['kecamatan'] }} Kab. {{ $desa['kabupaten'] }}</div>
         </div>
         <div class="data-row">
             <div class="data-label">Dusun</div>
-            <div class="data-value">: {{ $penduduk->dusun ?? '-' }}</div>
+            <div class="data-value">: {{ $penduduk->dusun_label ?? '-' }}</div>
         </div>
     </div>
 
@@ -273,9 +269,16 @@
     <!-- Tanda Tangan -->
     <div class="signature-section">
         <div class="signature">
-            <div class="signature-line">
-                <strong>{{ $kepala_desa['nama'] }}</strong><br>
-                {{ $kepala_desa['jabatan'] }}<br>
+            <div class="signature-date">
+                {{ $desa['nama_desa'] }}, {{ $tanggal_surat->format('d F Y') }}<br>
+                @if($is_sekdes)
+                    a.n. Kepala Desa {{ $desa['nama_desa'] }}<br>
+                @else
+                    Kepala Desa {{ $desa['nama_desa'] }}
+                @endif
+            </div>
+            <div class="signature-line" style="margin-top: 60px;">
+                <strong>{{ strtoupper($kepala_desa['nama']) }}</strong><br>
                 NIP. {{ $kepala_desa['nip'] }}
             </div>
         </div>
@@ -287,3 +290,4 @@
     </div>
 </body>
 </html>
+

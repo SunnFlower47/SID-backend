@@ -161,26 +161,28 @@
             <h5 class="text-sm font-medium text-gray-700 mb-3">Alamat KK Baru</h5>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label for="rt_baru_pisah" class="block text-sm font-medium text-gray-700 mb-2">RT</label>
-                    <select name="rt" id="rt_baru_pisah"
+                    <label for="rw_id_pisah" class="block text-sm font-medium text-gray-700 mb-2">RW</label>
+                    <select name="rw_id" id="rw_id_pisah" onchange="populateRtByRwMutasi(this.value, 'rt_id_pisah')"
                             class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-green-500 focus:border-green-500">
-                        <option value="">Pilih RT</option>
-                        @for($i = 1; $i <= 10; $i++)
-                            @php $rtValue = str_pad($i, 3, '0', STR_PAD_LEFT); @endphp
-                            <option value="{{ $rtValue }}">RT {{ $rtValue }}</option>
-                        @endfor
+                        <option value="">Pilih RW...</option>
+                        @foreach(($masterRwOptions ?? []) as $rw)
+                            <option value="{{ $rw['id'] }}">RW {{ $rw['kode'] }} - {{ $rw['nama'] }}</option>
+                        @endforeach
                     </select>
                 </div>
                 <div>
-                    <label for="rw_baru_pisah" class="block text-sm font-medium text-gray-700 mb-2">RW</label>
-                    <select name="rw" id="rw_baru_pisah"
+                    <label for="rt_id_pisah" class="block text-sm font-medium text-gray-700 mb-2">RT</label>
+                    <select name="rt_id" id="rt_id_pisah" onchange="syncDusunByRtMutasi(this.value, document.getElementById('rw_id_pisah').value, 'dusun_id_pisah')"
                             class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-green-500 focus:border-green-500">
-                        <option value="">Pilih RW</option>
-                        @for($i = 1; $i <= 5; $i++)
-                            @php $rwValue = str_pad($i, 3, '0', STR_PAD_LEFT); @endphp
-                            <option value="{{ $rwValue }}">RW {{ $rwValue }}</option>
-                        @endfor
+                        <option value="">Pilih RT...</option>
                     </select>
+                </div>
+                <div class="md:col-span-2">
+                    <label for="dusun_id_pisah_label" class="block text-sm font-medium text-gray-700 mb-2">Dusun</label>
+                    <input type="text" id="dusun_id_pisah_label"
+                           class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-green-500 focus:border-green-500 bg-gray-50"
+                           placeholder="Dusun" readonly>
+                    <input type="hidden" name="dusun_id" id="dusun_id_pisah">
                 </div>
             </div>
             <div class="mt-4">
@@ -282,3 +284,4 @@
         </div>
     </div>
 </div>
+

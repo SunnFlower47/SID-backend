@@ -132,9 +132,9 @@ class BantuanSosialController extends Controller
                     'nama' => $penduduk->nama,
                     'nik' => $penduduk->nik, // Tidak perlu hash karena user sudah input NIK
                     'alamat' => $penduduk->alamat,
-                    'rt' => $penduduk->rt,
-                    'rw' => $penduduk->rw,
-                    'dusun' => $penduduk->dusun
+                    'rt' => $penduduk->rt_label,
+                    'rw' => $penduduk->rw_label,
+                    'dusun' => $penduduk->dusun_label
                 ],
                 'bantuan_sosials' => $bantuanSosials->map(function($item) {
                     return [

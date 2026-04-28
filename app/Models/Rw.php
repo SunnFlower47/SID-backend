@@ -33,6 +33,21 @@ class Rw extends Model
         return $this->hasMany(Rt::class, 'rw_id');
     }
 
+    public function penduduks(): HasMany
+    {
+        return $this->hasMany(Penduduk::class, 'rw_id');
+    }
+
+    public function kartuKeluargas(): HasMany
+    {
+        return $this->hasMany(KartuKeluarga::class, 'rw_id');
+    }
+
+    public function umkms(): HasMany
+    {
+        return $this->hasMany(Umkm::class, 'rw_id');
+    }
+
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()

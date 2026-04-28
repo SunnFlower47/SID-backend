@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Detail Kontak Desa')
 
@@ -152,38 +152,38 @@
                     </div>
                     @endif
 
-                    @if($kontakDesa->rt)
+                    @if($kontakDesa->rt_label)
                     <div class="flex items-center">
                         <div class="w-10 h-10 bg-teal-100 rounded-lg flex items-center justify-center mr-3">
                             <i class="fas fa-home text-teal-600"></i>
                         </div>
                         <div>
                             <p class="text-sm font-medium text-gray-500">RT</p>
-                            <p class="text-gray-900">{{ $kontakDesa->rt }}</p>
+                            <p class="text-gray-900">{{ $kontakDesa->rt_label }}</p>
                         </div>
                     </div>
                     @endif
 
-                    @if($kontakDesa->rw)
+                    @if($kontakDesa->rw_label)
                     <div class="flex items-center">
                         <div class="w-10 h-10 bg-cyan-100 rounded-lg flex items-center justify-center mr-3">
                             <i class="fas fa-building text-cyan-600"></i>
                         </div>
                         <div>
                             <p class="text-sm font-medium text-gray-500">RW</p>
-                            <p class="text-gray-900">{{ $kontakDesa->rw }}</p>
+                            <p class="text-gray-900">{{ $kontakDesa->rw_label }}</p>
                         </div>
                     </div>
                     @endif
 
-                    @if($kontakDesa->dusun)
+                    @if($kontakDesa->dusun_label)
                     <div class="flex items-center">
                         <div class="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center mr-3">
                             <i class="fas fa-map text-emerald-600"></i>
                         </div>
                         <div>
                             <p class="text-sm font-medium text-gray-500">Dusun</p>
-                            <p class="text-gray-900">{{ $kontakDesa->dusun }}</p>
+                            <p class="text-gray-900">{{ $kontakDesa->dusun_label }}</p>
                         </div>
                     </div>
                     @endif
@@ -377,3 +377,4 @@ function confirmDelete(id, name) {
 }
 @endnoncescript
 @endsection
+

@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Data Mutasi')
 @section('subtitle', 'Kelola data mutasi penduduk')
@@ -225,9 +225,9 @@
                     </div>
                     @endif
 
-                    @if($mutasi->jenis_mutasi == 'pindah_rt_rw' && strpos($mutasi->asal_tujuan ?? '', ' → ') !== false)
+                    @if($mutasi->jenis_mutasi == 'pindah_rt_rw' && strpos($mutasi->asal_tujuan ?? '', ' ? ') !== false)
                         @php
-                            $parts = explode(' → ', $mutasi->asal_tujuan);
+                            $parts = explode(' ? ', $mutasi->asal_tujuan);
                             $asal = $parts[0] ?? '';
                             $tujuan = $parts[1] ?? '';
                         @endphp
@@ -581,9 +581,9 @@
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 text-sm text-gray-900">
-                                    @if(strpos($mutasi->asal_tujuan ?? '', ' → ') !== false)
+                                    @if(strpos($mutasi->asal_tujuan ?? '', ' ? ') !== false)
                                         @php
-                                            $parts = explode(' → ', $mutasi->asal_tujuan);
+                                            $parts = explode(' ? ', $mutasi->asal_tujuan);
                                             $asal = $parts[0] ?? '';
 
                                             // Extract RT from asal (RT 005/RW 002 (Dusun 2))
@@ -592,13 +592,13 @@
                                         @endphp
                                         {{ $rtLama }}
                                     @else
-                                        {{ $mutasi->penduduk->rt ?? '-' }}
+                                        {{ $mutasi->penduduk->rt_label ?? '-' }}
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 text-sm text-gray-900">
-                                    @if(strpos($mutasi->asal_tujuan ?? '', ' → ') !== false)
+                                    @if(strpos($mutasi->asal_tujuan ?? '', ' ? ') !== false)
                                         @php
-                                            $parts = explode(' → ', $mutasi->asal_tujuan);
+                                            $parts = explode(' ? ', $mutasi->asal_tujuan);
                                             $asal = $parts[0] ?? '';
 
                                             // Extract RW from asal (RT 005/RW 002 (Dusun 2))
@@ -607,13 +607,13 @@
                                         @endphp
                                         {{ $rwLama }}
                                     @else
-                                        {{ $mutasi->penduduk->rw ?? '-' }}
+                                        {{ $mutasi->penduduk->rw_label ?? '-' }}
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 text-sm text-gray-900">
-                                    @if(strpos($mutasi->asal_tujuan ?? '', ' → ') !== false)
+                                    @if(strpos($mutasi->asal_tujuan ?? '', ' ? ') !== false)
                                         @php
-                                            $parts = explode(' → ', $mutasi->asal_tujuan);
+                                            $parts = explode(' ? ', $mutasi->asal_tujuan);
                                             $tujuan = $parts[1] ?? '';
 
                                             // Extract RT from tujuan (RT 008/RW 003 (Dusun 1))
@@ -622,13 +622,13 @@
                                         @endphp
                                         {{ $rtBaru }}
                                     @else
-                                        {{ $mutasi->penduduk->rt ?? '-' }}
+                                        {{ $mutasi->penduduk->rt_label ?? '-' }}
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 text-sm text-gray-900">
-                                    @if(strpos($mutasi->asal_tujuan ?? '', ' → ') !== false)
+                                    @if(strpos($mutasi->asal_tujuan ?? '', ' ? ') !== false)
                                         @php
-                                            $parts = explode(' → ', $mutasi->asal_tujuan);
+                                            $parts = explode(' ? ', $mutasi->asal_tujuan);
                                             $tujuan = $parts[1] ?? '';
 
                                             // Extract RW from tujuan (RT 008/RW 003 (Dusun 1))
@@ -637,7 +637,7 @@
                                         @endphp
                                         {{ $rwBaru }}
                                     @else
-                                        {{ $mutasi->penduduk->rw ?? '-' }}
+                                        {{ $mutasi->penduduk->rw_label ?? '-' }}
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 text-sm text-gray-900">
@@ -933,5 +933,6 @@ function confirmUndo(id, name) {
 }
 @endnoncescript
 @endsection
+
 
 

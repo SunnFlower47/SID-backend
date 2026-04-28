@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'History Pembuatan Surat')
 @section('subtitle', 'Daftar surat yang telah dibuat')
@@ -28,7 +28,7 @@
         </div>
         <!-- Action Buttons -->
         <div class="flex flex-wrap gap-3 justify-center lg:justify-start">
-            <a href="{{ route('surat.index') }}" class="group flex items-center px-6 py-3 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+            <a href="{{ route('admin.surat-pengajuan.create') }}" class="group flex items-center px-6 py-3 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
                 <i class="fas fa-plus mr-2"></i>
                 Buat Surat Baru
             </a>
@@ -46,7 +46,7 @@
                 <p class="text-sm text-gray-600">Saring data surat berdasarkan kriteria</p>
             </div>
         </div>
-                <form method="GET" action="{{ route('surat.history') }}" class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <form method="GET" action="{{ route('admin.surat-pengajuan.history') }}" class="grid grid-cols-1 md:grid-cols-5 gap-4">
                     <div>
                         <label for="search" class="block text-sm font-medium text-gray-700 mb-2">Cari</label>
                         <input type="text" name="search" id="search" value="{{ request('search') }}"
@@ -242,22 +242,23 @@
                                                         <i class="fas fa-download"></i>
                                                     </a>
                                                 @else
-                                                    <a href="{{ route('surat.show', $surat->surat_id) }}"
+                                                    <a href="{{ route('admin.surat-pengajuan.download-legacy', $surat->surat_id) }}?preview=1"
+                                                       target="_blank"
                                                        class="text-blue-600 hover:text-blue-900"
                                                        title="Lihat Detail">
                                                         <i class="fas fa-eye"></i>
                                                     </a>
-                                                    <a href="{{ route('surat.edit', $surat->surat_id) }}"
+                                                    <a href="{{ route('admin.surat-pengajuan.edit', $surat->surat_id) }}"
                                                        class="text-yellow-600 hover:text-yellow-900"
                                                        title="Edit Surat">
                                                         <i class="fas fa-edit"></i>
                                                     </a>
-                                                    <a href="{{ route('surat.download', $surat->surat_id) }}"
+                                                    <a href="{{ route('admin.surat-pengajuan.download-legacy', $surat->surat_id) }}"
                                                        class="text-green-600 hover:text-green-900"
                                                        title="Download PDF">
                                                         <i class="fas fa-download"></i>
                                                     </a>
-                                                    <a href="{{ route('surat.show', $surat->surat_id) }}?print=1"
+                                                    <a href="{{ route('admin.surat-pengajuan.download-legacy', $surat->surat_id) }}?print=1"
                                                        class="text-purple-600 hover:text-purple-900"
                                                        title="Print Surat"
                                                        target="_blank">
@@ -288,7 +289,7 @@
                         <i class="fas fa-file-alt text-gray-400 text-6xl mb-4"></i>
                         <h3 class="text-lg font-medium text-gray-900 mb-2">Belum Ada Surat</h3>
                         <p class="text-gray-500 mb-6">Belum ada surat yang dibuat dan disimpan.</p>
-                        <a href="{{ route('surat.index') }}"
+                        <a href="{{ route('admin.surat-pengajuan.create') }}"
                            class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors">
                             <i class="fas fa-plus mr-2"></i>
                             Buat Surat Pertama
@@ -399,15 +400,15 @@
                                     <span class="text-sm font-medium">PDF</span>
                                 </a>
                             @else
-                                <a href="{{ route('surat.show', $surat->surat_id) }}" class="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-3 py-2.5 rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-105 shadow-md">
+                                <a href="{{ route('admin.surat-pengajuan.download-legacy', $surat->surat_id) }}?preview=1" target="_blank" class="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-3 py-2.5 rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-105 shadow-md">
                                     <i class="fas fa-eye mr-2 text-sm"></i>
                                     <span class="text-sm font-medium">Detail</span>
                                 </a>
-                                <a href="{{ route('surat.edit', $surat->surat_id) }}" class="flex-1 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white px-3 py-2.5 rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-105 shadow-md">
+                                <a href="{{ route('admin.surat-pengajuan.edit', $surat->surat_id) }}" class="flex-1 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white px-3 py-2.5 rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-105 shadow-md">
                                     <i class="fas fa-edit mr-2 text-sm"></i>
                                     <span class="text-sm font-medium">Edit</span>
                                 </a>
-                                <a href="{{ route('surat.download', $surat->surat_id) }}" class="flex-1 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-3 py-2.5 rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-105 shadow-md">
+                                <a href="{{ route('admin.surat-pengajuan.download-legacy', $surat->surat_id) }}" class="flex-1 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-3 py-2.5 rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-105 shadow-md">
                                     <i class="fas fa-download mr-2 text-sm"></i>
                                     <span class="text-sm font-medium">PDF</span>
                                 </a>
@@ -417,7 +418,7 @@
                         <!-- Print & Delete Row -->
                         <div class="flex gap-2">
                             @if($surat->source != 'pengajuan')
-                                <a href="{{ route('surat.show', $surat->surat_id) }}?print=1" target="_blank" class="flex-1 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white px-3 py-2.5 rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-105 shadow-md">
+                                <a href="{{ route('admin.surat-pengajuan.download-legacy', $surat->surat_id) }}?print=1" target="_blank" class="flex-1 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white px-3 py-2.5 rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-105 shadow-md">
                                     <i class="fas fa-print mr-2 text-sm"></i>
                                     <span class="text-sm font-medium">Print</span>
                                 </a>
@@ -462,10 +463,11 @@ function confirmDelete(suratId, nomorSurat) {
         if (result.isConfirmed) {
             // Set form action and submit
             const form = document.getElementById('deleteForm');
-            form.action = `/surat/${suratId}`;
+            form.action = `/admin/surat-pengajuan/legacy/${suratId}`;
             form.submit();
         }
     });
 }
 @endnoncescript
 @endpush
+

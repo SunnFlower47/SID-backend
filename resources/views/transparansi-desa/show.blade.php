@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Detail Transparansi Desa')
 @section('subtitle', 'Detail informasi transparansi desa')
@@ -229,3 +229,4 @@ function confirmDelete() {
 }
 @endnoncescript
 @endsection
+

@@ -5,16 +5,21 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+use App\Traits\HasWilayahLabels;
+
 class Testimoni extends Model
 {
-    use HasFactory;
+    use HasFactory, HasWilayahLabels;
 
     protected $fillable = [
         'nama',
         'email',
         'telepon',
-        'rt',
-        'rw',
+        'rt_id',
+        'rw_id',
+        'dusun_id',
         'testimoni',
         'status',
         'rating',
@@ -25,9 +30,42 @@ class Testimoni extends Model
     ];
 
     protected $casts = [
+        'rt_id' => 'integer',
+        'rw_id' => 'integer',
+        'dusun_id' => 'integer',
         'is_anonymous' => 'boolean',
         'rating' => 'integer',
     ];
+
+    protected $appends = ['rt_label', 'rw_label', 'dusun_label'];
+
+    // =========================================================
+    // RELATIONS - WILAYAH MASTER
+    // =========================================================
+
+    public function rtMaster(): BelongsTo
+    {
+        return $this->belongsTo(Rt::class, 'rt_id');
+    }
+
+    public function rwMaster(): BelongsTo
+    {
+        return $this->belongsTo(Rw::class, 'rw_id');
+    }
+
+    public function dusunMaster(): BelongsTo
+    {
+        return $this->belongsTo(Dusun::class, 'dusun_id');
+    }
+
+    /**
+     * Scope for Eager Loading Wilayah Master (High Performance)
+     */
+    public function scopeWithWilayah($query)
+    {
+        return $query->with(['rtMaster', 'rwMaster', 'dusunMaster']);
+    }
+
 
     // Scope untuk filter status
     public function scopeApproved($query)
@@ -54,11 +92,9 @@ class Testimoni extends Model
     // Accessor untuk RT/RW
     public function getRtRwAttribute()
     {
-        if ($this->rt || $this->rw) {
-            return 'RT ' . ($this->rt ?? '-') . ' / RW ' . ($this->rw ?? '-');
-        }
-        return '-';
+        return "RT {$this->rt_label} / RW {$this->rw_label}";
     }
+
 
     // Accessor untuk nama anonim
     public function getDisplayNameAttribute()

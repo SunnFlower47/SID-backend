@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Tambah Fasilitas Desa')
 @section('subtitle', 'Tambah data fasilitas dan infrastruktur desa baru')
@@ -90,46 +90,44 @@
                     @enderror
                 </div>
 
-                <!-- RT -->
-                <div>
-                    <label for="rt" class="block text-sm font-medium text-gray-700 mb-2">RT</label>
-                    <input type="text" name="rt" id="rt" value="{{ old('rt') }}"
-                           class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent @error('rt') border-red-500 @enderror"
-                           placeholder="RT">
-                    @error('rt')
-                        <p class="mt-2 text-sm text-red-600 flex items-center">
-                            <i class="fas fa-exclamation-circle mr-2"></i>
-                            {{ $message }}
-                        </p>
-                    @enderror
-                </div>
+                <!-- RT, RW, Dusun -->
+                <div class="lg:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <label for="rw_id" class="block text-sm font-medium text-gray-700 mb-2">
+                            RW Master <span class="text-red-500">*</span>
+                        </label>
+                        <select id="rw_id" name="rw_id" onchange="populateRtByRw()" required
+                                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent @error('rw_id') border-red-500 @enderror">
+                            <option value="">Pilih RW</option>
+                            @foreach($masterRwOptions as $rw)
+                                <option value="{{ $rw['id'] }}" {{ old('rw_id') == $rw['id'] ? 'selected' : '' }}>RW {{ $rw['kode'] }} - {{ $rw['nama'] }}</option>
+                            @endforeach
+                        </select>
+                        @error('rw_id')
+                        <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
 
-                <!-- RW -->
-                <div>
-                    <label for="rw" class="block text-sm font-medium text-gray-700 mb-2">RW</label>
-                    <input type="text" name="rw" id="rw" value="{{ old('rw') }}"
-                           class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent @error('rw') border-red-500 @enderror"
-                           placeholder="RW">
-                    @error('rw')
-                        <p class="mt-2 text-sm text-red-600 flex items-center">
-                            <i class="fas fa-exclamation-circle mr-2"></i>
-                            {{ $message }}
-                        </p>
-                    @enderror
-                </div>
+                    <div>
+                        <label for="rt_id" class="block text-sm font-medium text-gray-700 mb-2">
+                            RT Master <span class="text-red-500">*</span>
+                        </label>
+                        <select id="rt_id" name="rt_id" onchange="syncDusunFromRt()" required
+                                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent @error('rt_id') border-red-500 @enderror">
+                            <option value="">Pilih RT</option>
+                        </select>
+                        @error('rt_id')
+                        <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
 
-                <!-- Dusun -->
-                <div>
-                    <label for="dusun" class="block text-sm font-medium text-gray-700 mb-2">Dusun</label>
-                    <input type="text" name="dusun" id="dusun" value="{{ old('dusun') }}"
-                           class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent @error('dusun') border-red-500 @enderror"
-                           placeholder="Dusun">
-                    @error('dusun')
-                        <p class="mt-2 text-sm text-red-600 flex items-center">
-                            <i class="fas fa-exclamation-circle mr-2"></i>
-                            {{ $message }}
-                        </p>
-                    @enderror
+                    <div>
+                        <label for="dusun_display" class="block text-sm font-medium text-gray-700 mb-2">Dusun</label>
+                        <input type="text" id="dusun_display" disabled
+                               class="w-full px-4 py-3 border border-gray-100 bg-gray-50 rounded-xl text-gray-500"
+                               placeholder="Otomatis dari RT">
+                        <input type="hidden" name="dusun_id" id="dusun_id" value="{{ old('dusun_id') }}">
+                    </div>
                 </div>
 
                 <!-- Kontak -->
@@ -236,6 +234,43 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 @noncescript
+const masterRwOptions = @json($masterRwOptions);
+
+function populateRtByRw(initial = false) {
+    const rwId = document.getElementById('rw_id').value;
+    const rtSelect = document.getElementById('rt_id');
+    rtSelect.innerHTML = '<option value="">Pilih RT</option>';
+
+    const rwObj = masterRwOptions.find(r => String(r.id) === String(rwId));
+    if (rwObj) {
+        rwObj.rts.forEach(rt => {
+            const opt = document.createElement('option');
+            opt.value = rt.id;
+            opt.textContent = `RT ${rt.kode}${rt.dusun ? ' - ' + rt.dusun : ''}`;
+            rtSelect.appendChild(opt);
+        });
+    }
+    syncDusunFromRt();
+}
+
+function syncDusunFromRt() {
+    const rwId = document.getElementById('rw_id').value;
+    const rtId = document.getElementById('rt_id').value;
+    const dusunDisplay = document.getElementById('dusun_display');
+    const dusunHidden = document.getElementById('dusun_id');
+
+    const rwObj = masterRwOptions.find(r => String(r.id) === String(rwId));
+    const rtObj = rwObj?.rts?.find(r => String(r.id) === String(rtId));
+
+    if (rtObj) {
+        dusunDisplay.value = rtObj.dusun || 'N/A';
+        dusunHidden.value = rtObj.dusun_id || '';
+    } else {
+        dusunDisplay.value = '';
+        dusunHidden.value = '';
+    }
+}
+
 // SweetAlert untuk notifikasi sukses
 @if(session('success'))
     Swal.fire({
@@ -257,3 +292,4 @@
 @endif
 @endnoncescript
 @endsection
+

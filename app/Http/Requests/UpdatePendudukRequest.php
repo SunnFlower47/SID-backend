@@ -63,19 +63,11 @@ class UpdatePendudukRequest extends FormRequest
             'nama_ayah' => 'nullable|string|max:255',
             'nama_ibu' => 'nullable|string|max:255',
             'alamat' => 'required|string|max:500',
-            'rt' => [
-                'required',
-                'string',
-                'size:3',
-                new RtValidation()
-            ],
-            'rw' => 'required|string|max:3|regex:/^[0-9]+$/',
-            'rw_id' => 'nullable|exists:rws,id',
-            'rt_id' => 'nullable|exists:rts,id',
-            'dusun' => 'nullable|string|max:100',
+            'rt_id' => 'required|exists:rts,id',
+            'rw_id' => 'required|exists:rws,id',
+            'dusun_id' => 'nullable|exists:dusuns,id',
             'keterangan' => 'nullable|string|max:500',
-            'kartu_keluarga_id' => 'nullable|exists:kartu_keluargas,id',
-            'nkk' => 'nullable|string|max:20'
+            'nkk' => 'nullable|string|size:16'
         ];
     }
 
@@ -118,8 +110,8 @@ class UpdatePendudukRequest extends FormRequest
             'rw.max' => 'RW maksimal 3 digit.',
             'dusun.max' => 'Dusun maksimal 100 karakter.',
             'keterangan.max' => 'Keterangan maksimal 500 karakter.',
-            'kartu_keluarga_id.exists' => 'Kartu keluarga tidak ditemukan.',
-            'nkk.max' => 'Nomor KK maksimal 20 karakter.'
+
+            'nkk.size' => 'Nomor KK harus 16 digit.'
         ];
     }
 
@@ -146,7 +138,7 @@ class UpdatePendudukRequest extends FormRequest
             'rw' => 'RW',
             'dusun' => 'Dusun',
             'keterangan' => 'Keterangan',
-            'kartu_keluarga_id' => 'Kartu Keluarga',
+
             'nkk' => 'Nomor KK'
         ];
     }
@@ -178,19 +170,7 @@ class UpdatePendudukRequest extends FormRequest
             ]);
         }
 
-        // Auto-format RT/RW (hapus spasi dan karakter non-digit)
-        if ($this->has('rt')) {
-            $rt = preg_replace('/[^0-9]/', '', $this->rt);
-            // Pad with leading zeros to make it 3 digits
-            $rt = str_pad($rt, 3, '0', STR_PAD_LEFT);
-            $this->merge(['rt' => $rt]);
-        }
-
-        if ($this->has('rw')) {
-            $this->merge([
-                'rw' => preg_replace('/[^0-9]/', '', $this->rw)
-            ]);
-        }
+        // RT/RW processing handled via rt_id and rw_id
 
         // Auto-format nama (trim dan title case)
         if ($this->has('nama')) {

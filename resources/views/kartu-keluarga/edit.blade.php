@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Edit Kartu Keluarga')
 @section('subtitle', 'Edit data Kartu Keluarga')
@@ -83,46 +83,50 @@
                         @enderror
                     </div>
 
-                    <!-- RT -->
+                    <!-- RW Master -->
                     <div>
-                        <label for="rt" class="block text-sm font-medium text-gray-700 mb-2">
-                            RT <span class="text-red-500">*</span>
+                        <label for="rw_id" class="block text-sm font-medium text-gray-700 mb-2">
+                            RW Master <span class="text-red-500">*</span>
                         </label>
-                        <input type="text" name="rt" id="rt"
-                               value="{{ old('rt', $kartuKeluarga->where('kedudukan_keluarga', 'Kepala Keluarga')->first()->rt ?? '') }}"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('rt') border-red-500 @enderror"
-                               placeholder="001" maxlength="3" required>
-                        @error('rt')
+                        <select id="rw_id" name="rw_id" onchange="populateRtByRw()" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('rw_id') border-red-500 @enderror">
+                            <option value="">Pilih RW</option>
+                            @foreach($masterRwOptions as $rw)
+                                <option value="{{ $rw['id'] }}" {{ old('rw_id', $kartuKeluarga->where('kedudukan_keluarga', 'Kepala Keluarga')->first()->rw_id ?? '') == $rw['id'] ? 'selected' : '' }}>RW {{ $rw['kode'] }} - {{ $rw['nama'] }}</option>
+                            @endforeach
+                        </select>
+                        @error('rw_id')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
 
-                    <!-- RW -->
+                    <!-- RT Master -->
                     <div>
-                        <label for="rw" class="block text-sm font-medium text-gray-700 mb-2">
-                            RW <span class="text-red-500">*</span>
+                        <label for="rt_id" class="block text-sm font-medium text-gray-700 mb-2">
+                            RT Master <span class="text-red-500">*</span>
+                            @php
+                                $kepala = $kartuKeluarga->where('kedudukan_keluarga', 'Kepala Keluarga')->first();
+                            @endphp
+                            @if($kepala && !$kepala->rt_id)
+                                <span class="text-red-600 text-xs font-bold animate-pulse">(DATA TIDAK VALID)</span>
+                            @endif
                         </label>
-                        <input type="text" name="rw" id="rw"
-                               value="{{ old('rw', $kartuKeluarga->where('kedudukan_keluarga', 'Kepala Keluarga')->first()->rw ?? '') }}"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('rw') border-red-500 @enderror"
-                               placeholder="001" maxlength="3" required>
-                        @error('rw')
+                        <select id="rt_id" name="rt_id" onchange="syncDusunFromRt()" required
+                                class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @if($kepala && !$kepala->rt_id) border-red-500 bg-red-50 @else border-gray-300 @endif @error('rt_id') border-red-500 @enderror">
+                            <option value="">Pilih RT</option>
+                        </select>
+                        @error('rt_id')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
 
-                    <!-- Dusun -->
+                    <!-- Dusun (Auto-filled) -->
                     <div class="md:col-span-2">
-                        <label for="dusun" class="block text-sm font-medium text-gray-700 mb-2">
-                            Dusun <span class="text-red-500">*</span>
-                        </label>
-                        <input type="text" name="dusun" id="dusun"
-                               value="{{ old('dusun', $kartuKeluarga->where('kedudukan_keluarga', 'Kepala Keluarga')->first()->dusun ?? '') }}"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('dusun') border-red-500 @enderror"
-                               placeholder="Masukkan nama dusun" required>
-                        @error('dusun')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
+                        <label for="dusun_display" class="block text-sm font-medium text-gray-700 mb-2">Dusun</label>
+                        <input type="text" id="dusun_display" disabled
+                               class="w-full px-3 py-2 border border-gray-100 bg-gray-50 rounded-lg text-gray-500"
+                               placeholder="Otomatis dari RT" value="{{ $kepala->dusun_label ?? '' }}">
+                        <input type="hidden" name="dusun_id" id="dusun_id" value="{{ old('dusun_id', $kepala->dusun_id ?? '') }}">
                     </div>
                 </div>
 
@@ -145,14 +149,54 @@
 
 @push('scripts')
 @noncescript
-// Format RT dan RW
-document.getElementById('rt').addEventListener('input', function(e) {
-    e.target.value = e.target.value.replace(/\D/g, '');
-});
+const masterRwOptions = @json($masterRwOptions);
+const currentRtId = "{{ $kepala->rt_id ?? '' }}";
 
-document.getElementById('rw').addEventListener('input', function(e) {
-    e.target.value = e.target.value.replace(/\D/g, '');
+function populateRtByRw(initial = false) {
+    const rwId = document.getElementById('rw_id').value;
+    const rtSelect = document.getElementById('rt_id');
+    rtSelect.innerHTML = '<option value="">Pilih RT</option>';
+
+    const rwObj = masterRwOptions.find(r => String(r.id) === String(rwId));
+    if (rwObj) {
+        rwObj.rts.forEach(rt => {
+            const opt = document.createElement('option');
+            opt.value = rt.id;
+            opt.textContent = `RT ${rt.kode}${rt.dusun ? ' - ' + rt.dusun : ''}`;
+            if (initial && String(rt.id) === String(currentRtId)) {
+                opt.selected = true;
+            }
+            rtSelect.appendChild(opt);
+        });
+    }
+    if (!initial) syncDusunFromRt();
+}
+
+function syncDusunFromRt() {
+    const rwId = document.getElementById('rw_id').value;
+    const rtId = document.getElementById('rt_id').value;
+    const dusunDisplay = document.getElementById('dusun_display');
+    const dusunHidden = document.getElementById('dusun_id');
+
+    const rwObj = masterRwOptions.find(r => String(r.id) === String(rwId));
+    const rtObj = rwObj?.rts?.find(r => String(r.id) === String(rtId));
+
+    if (rtObj) {
+        dusunDisplay.value = rtObj.dusun || 'N/A';
+        dusunHidden.value = rtObj.dusun_id || '';
+    } else {
+        dusunDisplay.value = '';
+        dusunHidden.value = '';
+    }
+}
+
+// Initial populate
+document.addEventListener('DOMContentLoaded', function() {
+    if (document.getElementById('rw_id').value) {
+        populateRtByRw(true);
+    }
 });
 @endnoncescript
 @endpush
 @endsection
+

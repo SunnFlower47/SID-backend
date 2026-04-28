@@ -50,7 +50,7 @@
     },
     
     hasDynamicFields() {
-        return ['sku', 'sktm_dewasa', 'sktm_anak', 'domisili', 'kematian'].includes(this.jenisSurat);
+        return ['sku', 'sktm_dewasa', 'sktm_anak', 'domisili', 'keterangan-domisili', 'kematian', 'kelahiran', 'pindah', 'pengantar'].includes(this.jenisSurat);
     }
 }">
     <!-- Header -->
@@ -300,7 +300,7 @@
                     </div>
 
                      <!-- Form Domisili -->
-                     <div x-show="jenisSurat === 'domisili'" class="space-y-4">
+                     <div x-show="['domisili', 'keterangan-domisili'].includes(jenisSurat)" class="space-y-4">
                         <div class="grid grid-cols-1 gap-4">
                             <div>
                                 <label class="block text-sm font-semibold text-gray-700 mb-1">Status Tempat Tinggal</label>
@@ -407,6 +407,94 @@
 
                     </div>
 
+                    <!-- Form Kelahiran -->
+                    <div x-show="jenisSurat === 'kelahiran'" class="space-y-4">
+                        <div class="bg-purple-50 text-purple-800 p-4 rounded-xl text-sm mb-4 flex items-center">
+                            <i class="fas fa-baby mr-2"></i>
+                            Silakan lengkapi data kelahiran bayi di bawah ini.
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Nama Bayi</label>
+                                <input type="text" name="data_tambahan[nama_bayi]" value="{{ $suratPengajuan->data_tambahan['nama_bayi'] ?? '' }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="Nama lengkap bayi">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Tempat Lahir</label>
+                                <input type="text" name="data_tambahan[tempat_lahir]" value="{{ $suratPengajuan->data_tambahan['tempat_lahir'] ?? '' }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="Kota/Kabupaten">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Tanggal Lahir</label>
+                                <input type="date" name="data_tambahan[tanggal_lahir]" value="{{ $suratPengajuan->data_tambahan['tanggal_lahir'] ?? '' }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Jenis Kelamin</label>
+                                <select name="data_tambahan[jenis_kelamin]" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                    @php $jk = $suratPengajuan->data_tambahan['jenis_kelamin'] ?? ''; @endphp
+                                    <option value="LAKI-LAKI" {{ $jk == 'LAKI-LAKI' ? 'selected' : '' }}>Laki-laki</option>
+                                    <option value="PEREMPUAN" {{ $jk == 'PEREMPUAN' ? 'selected' : '' }}>Perempuan</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Nama Ayah</label>
+                                <input type="text" name="data_tambahan[nama_ayah]" value="{{ $suratPengajuan->data_tambahan['nama_ayah'] ?? '' }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Nama Ibu</label>
+                                <input type="text" name="data_tambahan[nama_ibu]" value="{{ $suratPengajuan->data_tambahan['nama_ibu'] ?? '' }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Berat Badan (kg)</label>
+                                <input type="text" name="data_tambahan[berat_badan]" value="{{ $suratPengajuan->data_tambahan['berat_badan'] ?? '' }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="Contoh: 3.2">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Panjang Badan (cm)</label>
+                                <input type="text" name="data_tambahan[panjang_badan]" value="{{ $suratPengajuan->data_tambahan['panjang_badan'] ?? '' }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="Contoh: 50">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form Pindah -->
+                    <div x-show="jenisSurat === 'pindah'" class="space-y-4">
+                        <div class="bg-yellow-50 text-yellow-800 p-4 rounded-xl text-sm mb-4 flex items-center">
+                            <i class="fas fa-map-marked-alt mr-2"></i>
+                            Silakan lengkapi alamat tujuan pindah di bawah ini.
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Alamat Tujuan</label>
+                                <input type="text" name="data_tambahan[alamat_tujuan]" value="{{ $suratPengajuan->data_tambahan['alamat_tujuan'] ?? '' }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="Jalan / Kp / Dusun">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">RT/RW Tujuan</label>
+                                <input type="text" name="data_tambahan[rt_rw_tujuan]" value="{{ $suratPengajuan->data_tambahan['rt_rw_tujuan'] ?? '' }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="001/002">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Kelurahan/Desa Tujuan</label>
+                                <input type="text" name="data_tambahan[kelurahan_tujuan]" value="{{ $suratPengajuan->data_tambahan['kelurahan_tujuan'] ?? '' }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Kecamatan Tujuan</label>
+                                <input type="text" name="data_tambahan[kecamatan_tujuan]" value="{{ $suratPengajuan->data_tambahan['kecamatan_tujuan'] ?? '' }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Kabupaten/Kota Tujuan</label>
+                                <input type="text" name="data_tambahan[kabupaten_tujuan]" value="{{ $suratPengajuan->data_tambahan['kabupaten_tujuan'] ?? '' }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Provinsi Tujuan</label>
+                                <input type="text" name="data_tambahan[provinsi_tujuan]" value="{{ $suratPengajuan->data_tambahan['provinsi_tujuan'] ?? '' }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form Pengantar / Lainnya -->
+                    <div x-show="jenisSurat === 'pengantar'" class="space-y-4">
+                         <div class="bg-green-50 text-green-800 p-4 rounded-xl text-sm flex items-center">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            Surat pengantar standar. Gunakan kolom Keperluan di atas untuk detail tambahan.
+                        </div>
+                    </div>
+
                 </div>
             </div>
 
@@ -424,3 +512,4 @@
     </div>
 </div>
 @endsection
+

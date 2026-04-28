@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Tambah Pengeluaran Anggaran')
 
@@ -150,3 +150,4 @@ document.getElementById('jumlah').addEventListener('input', function(e) {
 });
 @endnoncescript
 @endpush
+

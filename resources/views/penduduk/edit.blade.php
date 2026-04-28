@@ -333,30 +333,38 @@
                     </div>
 
                     <div>
-                        <label for="rt_id" class="block text-sm font-medium text-gray-700 mb-2">RT Master *</label>
-                        <select id="rt_id" name="rt_id" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('rt_id') border-red-500 @enderror">
+                        <label for="rt_id" class="block text-sm font-medium text-gray-700 mb-2">
+                            RT Master *
+                            @if(!$penduduk->rt_id)
+                                <span class="text-red-600 text-xs font-bold animate-pulse">(DATA TIDAK VALID)</span>
+                            @endif
+                        </label>
+                        <select id="rt_id" name="rt_id" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @if(!$penduduk->rt_id) border-red-500 bg-red-50 @else border-gray-300 @endif @error('rt_id') border-red-500 @enderror">
                             <option value="">Pilih RT</option>
                         </select>
                         @error('rt_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                        @if(!$penduduk->rt_id)
+                            <p class="mt-1 text-xs text-red-500"><i class="fas fa-exclamation-triangle mr-1"></i>RT Master belum terpetakan. Silakan pilih RT kembali untuk memperbaiki data.</p>
+                        @endif
                     </div>
 
                     <div>
                         <label for="rw" class="block text-sm font-medium text-gray-700 mb-2">RW (kode)</label>
-                        <input type="text" name="rw" id="rw" value="{{ old('rw', $penduduk->rw) }}" readonly
+                        <input type="text" name="rw" id="rw" value="{{ old('rw', $penduduk->rw_label) }}" readonly
                                class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed @error('rw') border-red-500 @enderror">
                         @error('rw')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                     </div>
 
                     <div>
                         <label for="rt" class="block text-sm font-medium text-gray-700 mb-2">RT (kode)</label>
-                        <input type="text" name="rt" id="rt" value="{{ old('rt', $penduduk->rt) }}" readonly
+                        <input type="text" name="rt" id="rt" value="{{ old('rt', $penduduk->rt_label) }}" readonly
                                class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed @error('rt') border-red-500 @enderror">
                         @error('rt')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                     </div>
 
                     <div class="md:col-span-2">
                         <label for="dusun" class="block text-sm font-medium text-gray-700 mb-2">Dusun</label>
-                        <input type="text" name="dusun" id="dusun" value="{{ old('dusun', $penduduk->dusun) }}" readonly
+                        <input type="text" name="dusun" id="dusun" value="{{ old('dusun', $penduduk->dusun_label) }}" readonly
                                class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed @error('dusun') border-red-500 @enderror">
                         @error('dusun')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                     </div>
@@ -538,7 +546,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (oldRwId) {
             rwMaster.value = String(oldRwId);
         } else {
-            const currentRwCode = String(@json($penduduk->rw ?? '')).padStart(3, '0');
+            const currentRwCode = String(@json($penduduk->rw_label ?? '')).padStart(3, '0');
             const matchedRw = masterRwOptions.find(r => String(r.kode).padStart(3, '0') === currentRwCode);
             if (matchedRw) rwMaster.value = String(matchedRw.id);
         }
@@ -550,7 +558,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 rtMaster.value = String(oldRtId);
             } else {
                 const rwObj = masterRwOptions.find(r => String(r.id) === String(rwMaster.value));
-                const currentRtCode = String(@json($penduduk->rt ?? '')).padStart(3, '0');
+                const currentRtCode = String(@json($penduduk->rt_label ?? '')).padStart(3, '0');
                 const matchedRt = (rwObj?.rts || []).find(rt => String(rt.kode).padStart(3, '0') === currentRtCode);
                 if (matchedRt) rtMaster.value = String(matchedRt.id);
             }
@@ -618,3 +626,4 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 @endsection
+

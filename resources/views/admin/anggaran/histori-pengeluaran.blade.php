@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Histori Pergerakan Dana')
 
@@ -216,3 +216,4 @@ function confirmDelete(pengeluaranId, namaPengeluaran) {
 }
 @endnoncescript
 @endpush
+

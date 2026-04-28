@@ -33,7 +33,8 @@ class PendudukController extends Controller
         // Simpan query terakhir dari halaman index agar filter + page tidak hilang saat kembali dari CRUD
         session(['penduduk_index_query' => $request->query()]);
 
-        $query = Penduduk::filter($request->all())
+        $query = Penduduk::withWilayah()
+            ->filter($request->all())
             ->orderByFamilyRole();
 
         $penduduks = $query->paginate(50);
@@ -46,10 +47,10 @@ class PendudukController extends Controller
             'total_kk' => Penduduk::whereNull('deleted_at')->select('nkk')->distinct()->count(),
         ];
 
-        // Filter Lists
-        $rtList = Penduduk::select('rt')->distinct()->whereNotNull('rt')->orderBy('rt')->pluck('rt');
-        $rwList = Penduduk::select('rw')->distinct()->whereNotNull('rw')->orderBy('rw')->pluck('rw');
-        $dusunList = Penduduk::select('dusun')->distinct()->whereNotNull('dusun')->orderBy('dusun')->pluck('dusun');
+        // Filter Lists (Fetched from Master Tables)
+        $rtList = \App\Models\Rt::orderBy('kode')->get();
+        $rwList = \App\Models\Rw::orderBy('kode')->get();
+        $dusunList = \App\Models\Dusun::orderBy('nama')->get();
 
         return view('penduduk.index', compact('penduduks', 'stats', 'rtList', 'rwList', 'dusunList'));
     }
@@ -61,8 +62,9 @@ class PendudukController extends Controller
     {
         Gate::authorize('penduduk.create');
 
-        $kepalaKeluargaData = Penduduk::where('kedudukan_keluarga', 'Kepala Keluarga')
-            ->select('nkk', 'nama', 'alamat', 'rt', 'rw')
+        $kepalaKeluargaData = Penduduk::withWilayah()
+            ->where('kedudukan_keluarga', 'Kepala Keluarga')
+            ->select('nkk', 'nama', 'alamat', 'rt_id', 'rw_id')
             ->orderBy('nkk')
             ->get()
             ->keyBy('nkk');
@@ -75,8 +77,8 @@ class PendudukController extends Controller
                 'nkk' => $nkk,
                 'kepala_keluarga' => $kk ? $kk->nama : 'Tidak ada kepala keluarga',
                 'alamat' => $kk ? $kk->alamat : '-',
-                'rt' => $kk ? $kk->rt : '-',
-                'rw' => $kk ? $kk->rw : '-',
+                'rt' => $kk && $kk->rtMaster ? $kk->rtMaster->kode : '-',
+                'rw' => $kk && $kk->rwMaster ? $kk->rwMaster->kode : '-',
             ];
         });
 
@@ -90,6 +92,7 @@ class PendudukController extends Controller
                     return [
                         'id' => $rt->id,
                         'kode' => $rt->kode,
+                        'dusun_id' => $rt->dusun_id,
                         'dusun' => optional($rt->dusun)->nama,
                     ];
                 })->values(),
@@ -108,19 +111,19 @@ class PendudukController extends Controller
 
         try {
             $validated = $request->validated();
-            if (!empty($validated['rt_id'])) {
-                $rtModel = Rt::with(['rw', 'dusun'])->find($validated['rt_id']);
-                if ($rtModel && $rtModel->rw) {
-                    $validated['rt'] = $rtModel->kode;
-                    $validated['rw'] = $rtModel->rw->kode;
-                    $validated['dusun'] = optional($rtModel->dusun)->nama;
-                }
+            
+            // Logic konversi rt_id ke string dihapus karena Service & DB sudah support ID langsung.
+            // Kita hanya perlu memastikan dusun_id ikut terkirim jika ada.
+            if (!empty($validated['rt_id']) && empty($validated['dusun_id'])) {
+                $rtModel = Rt::find($validated['rt_id']);
+                $validated['dusun_id'] = optional($rtModel)->dusun_id;
             }
 
             $penduduk = $this->pendudukService->createPenduduk(
                 $validated,
                 $request->input('family_members', [])
             );
+
 
             $familyCount = count(array_filter($request->input('family_members', []), fn($m) => !empty($m['nik'])));
             $message = 'Data penduduk berhasil ditambahkan!' . ($familyCount > 0 ? " Beserta {$familyCount} anggota keluarga." : '');
@@ -176,13 +179,11 @@ class PendudukController extends Controller
 
         try {
             $validated = $request->validated();
-            if (!empty($validated['rt_id'])) {
-                $rtModel = Rt::with(['rw', 'dusun'])->find($validated['rt_id']);
-                if ($rtModel && $rtModel->rw) {
-                    $validated['rt'] = $rtModel->kode;
-                    $validated['rw'] = $rtModel->rw->kode;
-                    $validated['dusun'] = optional($rtModel->dusun)->nama;
-                }
+            
+            // Sync dusun_id if rt_id changed
+            if (!empty($validated['rt_id']) && $validated['rt_id'] != $penduduk->rt_id) {
+                $rtModel = Rt::find($validated['rt_id']);
+                $validated['dusun_id'] = optional($rtModel)->dusun_id;
             }
 
             $this->pendudukService->updatePenduduk($penduduk, $validated);
@@ -236,14 +237,12 @@ class PendudukController extends Controller
             'rt_id' => 'required|exists:rts,id',
         ]);
 
-        $rtModel = Rt::with(['rw', 'dusun'])->find($validated['rt_id']);
-        if (!$rtModel || !$rtModel->rw || (int)$rtModel->rw_id !== (int)$validated['rw_id']) {
+        $rtModel = Rt::find($validated['rt_id']);
+        if (!$rtModel || (int)$rtModel->rw_id !== (int)$validated['rw_id']) {
             return redirect()->back()->withInput()->with('error', 'RT tidak sesuai dengan RW yang dipilih.');
         }
 
-        $validated['rt'] = $rtModel->kode;
-        $validated['rw'] = $rtModel->rw->kode;
-        $validated['dusun'] = optional($rtModel->dusun)->nama;
+        $validated['dusun_id'] = $rtModel->dusun_id;
 
         try {
             $count = $this->pendudukService->updateFamilyAddress($nkk, $validated);
@@ -276,18 +275,21 @@ class PendudukController extends Controller
         if (!empty($filters) && $penduduk) {
             // Check if visible
             $visible = true;
-            if (($filters['rt'] ?? null) && $filters['rt'] != $penduduk->rt) $visible = false;
-            if (($filters['rw'] ?? null) && $filters['rw'] != $penduduk->rw) $visible = false;
+            if (($filters['rt_id'] ?? null) && $filters['rt_id'] != $penduduk->rt_id) $visible = false;
+            if (($filters['rw_id'] ?? null) && $filters['rw_id'] != $penduduk->rw_id) $visible = false;
+            if (($filters['dusun_id'] ?? null) && $filters['dusun_id'] != $penduduk->dusun_id) $visible = false;
             
             // Override if not visible
             if (!$visible) {
-                $filters['rt'] = $penduduk->rt;
-                $filters['rw'] = $penduduk->rw;
+                $filters['rt_id'] = $penduduk->rt_id;
+                $filters['rw_id'] = $penduduk->rw_id;
+                $filters['dusun_id'] = $penduduk->dusun_id;
             }
         }
 
         return $filters;
     }
+
 
     /**
      * Show family address update form (Unchanged logic)

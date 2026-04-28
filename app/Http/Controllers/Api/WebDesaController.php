@@ -18,80 +18,30 @@ class WebDesaController extends Controller
      */
     public function getSuratTypes()
     {
-        // Cache surat types untuk 1 jam (jarang berubah)
-        return Cache::remember('api_surat_types', 3600, function () {
-            $suratTypes = [
-                [
-                    'id' => 'sku',
-                    'name' => 'Surat Keterangan Usaha (SKU)',
-                    'description' => 'Surat keterangan untuk usaha yang dijalankan',
-                    'icon' => 'fas fa-building',
-                    'color' => 'green',
-                    'required_fields' => ['nama_usaha', 'alamat_usaha', 'jenis_usaha', 'keperluan']
-                ],
-                [
-                    'id' => 'keterangan-domisili',
-                    'name' => 'Surat Keterangan Domisili',
-                    'description' => 'Surat keterangan tempat tinggal',
-                    'icon' => 'fas fa-home',
-                    'color' => 'blue',
-                    'required_fields' => ['keperluan', 'tujuan']
-                ],
-                [
-                    'id' => 'pengantar',
-                    'name' => 'Surat Pengantar',
-                    'description' => 'Surat pengantar untuk berbagai keperluan',
-                    'icon' => 'fas fa-file-alt',
-                    'color' => 'green',
-                    'required_fields' => ['keperluan', 'tujuan']
-                ],
-                [
-                    'id' => 'pindah',
-                    'name' => 'Surat Keterangan Pindah',
-                    'description' => 'Surat keterangan pindah domisili',
-                    'icon' => 'fas fa-walking',
-                    'color' => 'red',
-                    'required_fields' => ['alamat_tujuan', 'rt_rw_tujuan', 'kelurahan_tujuan', 'kecamatan_tujuan', 'kabupaten_tujuan']
-                ],
-                [
-                    'id' => 'kematian',
-                    'name' => 'Surat Keterangan Kematian',
-                    'description' => 'Surat keterangan kematian',
-                    'icon' => 'fas fa-skull',
-                    'color' => 'gray',
-                    'required_fields' => ['tanggal_meninggal', 'penyebab_kematian', 'tempat_meninggal']
-                ],
-                [
-                    'id' => 'kelahiran',
-                    'name' => 'Surat Keterangan Kelahiran',
-                    'description' => 'Surat keterangan kelahiran',
-                    'icon' => 'fas fa-baby',
-                    'color' => 'purple',
-                    'required_fields' => ['nama_bayi', 'tempat_lahir', 'tanggal_lahir', 'jenis_kelamin', 'nama_ayah', 'nama_ibu']
-                ],
-                [
-                    'id' => 'sktm_dewasa',
-                    'name' => 'Surat Keterangan Tidak Mampu (SKTM) - Dewasa',
-                    'description' => 'Surat keterangan tidak mampu untuk dewasa',
-                    'icon' => 'fas fa-hand-holding-heart',
-                    'color' => 'indigo',
-                    'required_fields' => ['pekerjaan', 'penghasilan', 'jumlah_tanggungan', 'alasan_tidak_mampu']
-                ],
-                [
-                    'id' => 'sktm_anak',
-                    'name' => 'Surat Keterangan Tidak Mampu (SKTM) - Anak',
-                    'description' => 'Surat keterangan tidak mampu untuk anak',
-                    'icon' => 'fas fa-hand-holding-heart',
-                    'color' => 'indigo',
-                    'required_fields' => ['nama_anak', 'nama_ortu', 'pekerjaan_ortu', 'penghasilan_ortu', 'jumlah_tanggungan']
-                ]
-            ];
+        $types = \App\Models\SuratType::where('is_active', true)
+            ->orderBy('has_template', 'desc') // Template-based first
+            ->orderBy('nama')
+            ->get()
+            ->map(function ($type) {
+                return [
+                    'id' => (string)$type->id,
+                    'name' => $type->nama,
+                    'description' => $type->deskripsi,
+                    'persyaratan' => $type->persyaratan,
+                    'has_template' => $type->has_template,
+                    'template_code' => $type->template_code,
+                    'icon' => $type->icon ?? 'fas fa-file-alt',
+                    'color' => $type->color ?? 'blue',
+                    'category' => $type->has_template ? 'Template' : 'Lainnya',
+                    'form_json' => $type->form_json,
+                    'required_fields' => collect($type->form_json)->pluck('name')->toArray()
+                ];
+            });
 
-            return response()->json([
-                'success' => true,
-                'data' => $suratTypes
-            ]);
-        });
+        return response()->json([
+            'success' => true,
+            'data' => $types
+        ]);
     }
 
     /**
@@ -103,43 +53,44 @@ class WebDesaController extends Controller
             'query' => 'required|string|min:3|max:255|regex:/^[a-zA-Z0-9\s\-\.]+$/'
         ]);
 
-        if ($validator->fails()) {
+        $query = $request->query('query');
+
+        if (!$query || strlen($query) < 16) {
             return response()->json([
                 'success' => false,
-                'message' => 'Query minimal 3 karakter dan hanya boleh mengandung huruf, angka, spasi, tanda hubung, dan titik',
-                'errors' => $validator->errors()
+                'message' => 'NIK tidak valid atau kurang dari 16 digit'
             ], 400);
         }
 
-        // Cache search results untuk 30 detik
-        $cacheKey = 'api_search_penduduk_' . md5($request->input('query'));
+        // Cache hasil pencarian selama 5 menit
+        $cacheKey = 'api_penduduk_search_' . md5($query);
 
-        return Cache::remember($cacheKey, 30, function () use ($request) {
-            $query = $request->input('query');
+        return Cache::remember($cacheKey, 300, function () use ($query) {
+            // Gunakan EXACT match untuk NIK demi keamanan (tidak boleh %like%)
+            $penduduk = \App\Models\Penduduk::where('nik', $query)
+                ->first();
 
-            $penduduks = Penduduk::whereNull('deleted_at')
-                ->where(function($q) use ($query) {
-                    $q->where('nik', 'like', "%{$query}%")
-                      ->orWhere('nama', 'like', "%{$query}%");
-                })
-                ->limit(10)
-                ->get()
-                ->map(function($penduduk) {
-                    return [
-                        'id' => $penduduk->id,
-                        'nik' => $penduduk->nik,
-                        'nama' => $penduduk->nama,
-                        'alamat' => $penduduk->alamat ?? 'Tidak tersedia',
-                        'rt' => $penduduk->rt,
-                        'rw' => $penduduk->rw,
-                        'dusun' => $penduduk->dusun
-                    ];
-                });
+            if (!$penduduk) {
+                return [
+                    'success' => false,
+                    'message' => 'Data tidak ditemukan',
+                    'data' => []
+                ];
+            }
 
-            return response()->json([
+            // Return data terbatas (Hanya untuk verifikasi pengajuan surat)
+            return [
                 'success' => true,
-                'data' => $penduduks
-            ]);
+                'data' => [[
+                    'id' => $penduduk->id,
+                    'nik' => $penduduk->nik,
+                    'nama' => $penduduk->nama,
+                    // Hilangkan alamat detail, hanya kembalikan info wilayah umum
+                    'rt' => $penduduk->rt_label,
+                    'rw' => $penduduk->rw_label,
+                    'dusun' => $penduduk->dusun_label
+                ]]
+            ];
         });
     }
 
@@ -149,13 +100,14 @@ class WebDesaController extends Controller
     public function submitPengajuan(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'surat_type' => 'required|string|in:keterangan-domisili,pengantar,pindah,kematian,kelahiran,tidak-mampu',
+            'surat_type' => 'required|string',
             'penduduk_id' => 'required|exists:penduduks,id',
             'keperluan' => 'nullable|string|max:500',
             'tujuan' => 'nullable|string|max:255',
             'tanggal_surat' => 'nullable|date',
             'keterangan_tambahan' => 'nullable|string|max:1000',
-            'data_tambahan' => 'nullable|array'
+            'data_tambahan' => 'nullable|array',
+            'file_lampiran' => 'nullable|file|mimes:pdf|max:2048'
         ]);
 
         if ($validator->fails()) {
@@ -169,6 +121,13 @@ class WebDesaController extends Controller
         try {
             DB::beginTransaction();
 
+            $filePath = null;
+            if ($request->hasFile('file_lampiran')) {
+                $file = $request->file('file_lampiran');
+                $filename = time() . '_' . $request->surat_type . '_' . $request->penduduk_id . '.pdf';
+                $filePath = $file->storeAs('surat-pengajuan', $filename, 'public');
+            }
+
             $pengajuan = SuratPengajuan::create([
                 'surat_type' => $request->surat_type,
                 'penduduk_id' => $request->penduduk_id,
@@ -177,6 +136,7 @@ class WebDesaController extends Controller
                 'tanggal_surat' => $request->tanggal_surat ?? now()->format('Y-m-d'),
                 'keterangan_tambahan' => $request->keterangan_tambahan,
                 'data_tambahan' => json_encode($request->data_tambahan ?? []),
+                'file_lampiran' => $filePath,
                 'status' => 'pending',
                 'nomor_surat' => $this->generateNomorSurat($request->surat_type)
             ]);
@@ -239,9 +199,11 @@ class WebDesaController extends Controller
                 'surat_type' => $pengajuan->surat_type,
                 'penduduk' => $pengajuan->penduduk->nama,
                 'status' => $pengajuan->status,
+                'status_label' => ucfirst($pengajuan->status),
                 'tanggal_pengajuan' => $pengajuan->created_at->format('d/m/Y H:i'),
-                'tanggal_selesai' => $pengajuan->updated_at->format('d/m/Y H:i'),
-                'keterangan' => $pengajuan->keterangan
+                'tanggal_proses' => $pengajuan->processed_at ? $pengajuan->processed_at->format('d/m/Y H:i') : null,
+                'tanggal_selesai' => $pengajuan->completed_at ? $pengajuan->completed_at->format('d/m/Y H:i') : null,
+                'keterangan_admin' => $pengajuan->keterangan_admin
             ]
         ]);
     }
@@ -301,15 +263,15 @@ class WebDesaController extends Controller
                     // Total penduduk aktif (tidak di-soft delete)
                     DB::raw('COUNT(*) as total_penduduk'),
 
-                    // Total KK - using KartuKeluargaController logic
-                    DB::raw('COUNT(DISTINCT CASE WHEN p.nkk IS NOT NULL AND p.nkk != "" THEN p.nkk END) as total_kk'),
+                    // Total KK
+                    DB::raw('COUNT(DISTINCT p.nkk) as total_kk'),
 
-                    // Total RT
-                    DB::raw('COUNT(DISTINCT p.rt) as total_rt'),
+                    // Total RT - From master table for accuracy
+                    DB::raw('COUNT(DISTINCT p.rt_id) as total_rt'),
 
                     // Jenis kelamin
-                    DB::raw('COUNT(CASE WHEN p.jenis_kelamin = "LAKI-LAKI" THEN 1 END) as laki_laki'),
-                    DB::raw('COUNT(CASE WHEN p.jenis_kelamin = "PEREMPUAN" THEN 1 END) as perempuan'),
+                    DB::raw('COUNT(CASE WHEN p.jenis_kelamin = "L" THEN 1 END) as laki_laki'),
+                    DB::raw('COUNT(CASE WHEN p.jenis_kelamin = "P" THEN 1 END) as perempuan'),
                     ])
                     ->whereNull('p.deleted_at')
                     ->first();
@@ -481,8 +443,9 @@ class WebDesaController extends Controller
     {
         $stats = [
             'total' => Penduduk::distinct('nkk')->count(),
-            'by_dusun' => Penduduk::selectRaw('dusun, COUNT(DISTINCT nkk) as total')
-                ->groupBy('dusun')
+            'by_dusun' => Penduduk::join('dusuns', 'penduduks.dusun_id', '=', 'dusuns.id')
+                ->selectRaw('dusuns.nama as dusun, COUNT(DISTINCT nkk) as total')
+                ->groupBy('dusuns.nama')
                 ->get()
                 ->pluck('total', 'dusun')
         ];
@@ -523,7 +486,7 @@ class WebDesaController extends Controller
                 $stats = [
                     'total_penduduk' => Penduduk::whereNull('deleted_at')->count(),
                     'total_kk' => Penduduk::whereNull('deleted_at')->distinct('nkk')->count(),
-                    'total_rt' => Penduduk::whereNull('deleted_at')->distinct('rt')->count(),
+                    'total_rt' => Penduduk::whereNull('deleted_at')->distinct('rt_id')->count(),
                     'surat_selesai' => SuratPengajuan::where('status', 'completed')->count(),
                     'pengaduan_total' => \App\Models\Pengaduan::count(),
                     'pengaduan_selesai' => \App\Models\Pengaduan::where('status', 'selesai')->count(),

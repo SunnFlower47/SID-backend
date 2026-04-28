@@ -8,8 +8,8 @@
     <div class="bg-gradient-to-r from-green-600 to-green-700 rounded-2xl shadow-xl p-6 sm:p-8 text-white">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-                <h2 class="text-2xl font-bold">Detail Penduduk RT {{ $rt->kode }} / RW {{ $rt->rw?->kode ?? '-' }}</h2>
-                <p class="text-green-100 mt-1">Dusun: {{ $rt->dusun?->nama ?? '-' }}</p>
+                <h2 class="text-2xl font-bold">Detail Penduduk RT {{ $rt->kode }} / RW {{ $rt->rw->kode ?? '-' }}</h2>
+                <p class="text-green-100 mt-1">Dusun: {{ $rt->dusun->nama ?? '-' }}</p>
                 <p class="text-green-200 text-sm mt-1">Total: <strong>{{ $penduduks->total() }}</strong> orang</p>
             </div>
             <a href="{{ route('settings.wilayah.index') }}" class="inline-flex items-center px-4 py-2 bg-white/20 hover:bg-white/30 rounded-xl text-white text-sm font-semibold transition">
@@ -62,3 +62,4 @@
     </div>
 </div>
 @endsection
+

@@ -176,27 +176,42 @@ class DesaSetting extends Model
             'kode_surat_sku' => static::getValue('kode_surat_sku', 'SKU'),
             'kode_surat_sktm_dewasa' => static::getValue('kode_surat_sktm_dewasa', 'SKTM'),
             'kode_surat_sktm_anak' => static::getValue('kode_surat_sktm_anak', 'SKTM'),
-            'kode_surat_domisili' => static::getValue('kode_surat_domisili', 'SKD')
+            'kode_surat_domisili' => static::getValue('kode_surat_domisili', 'SKD'),
+            'kode_desa_fixed' => '2001'
         ];
     }
 
     /**
-     * Generate nomor surat
+     * Generate nomor surat with standard format: [Nomor Urut]/2001/[Bulan Romawi]/[Tahun]
      */
-    public static function generateNomorSurat($kodeSurat)
+    public static function generateNomorSurat($kodeSurat = null)
     {
-        $suratSettings = static::getSuratSettings();
-        $format = $suratSettings['format_nomor_surat'];
-        $kodeDesa = $suratSettings['kode_desa'];
         $nomorUrut = static::getNextNomorUrut();
-        $bulan = date('m');
+        $bulanRomawi = static::intToRoman(date('n'));
         $tahun = date('Y');
+        $kodeDesa = '2001';
 
-        return str_replace(
-            ['{kode_surat}', '{nomor_urut}', '{kode_desa}', '{bulan}', '{tahun}'],
-            [$kodeSurat, $nomorUrut, $kodeDesa, $bulan, $tahun],
-            $format
-        );
+        // Format: [Nomor Urut]/2001/[Bulan Romawi]/[Tahun]
+        return "{$nomorUrut}/{$kodeDesa}/{$bulanRomawi}/{$tahun}";
+    }
+
+    /**
+     * Convert integer to Roman numeral
+     */
+    public static function intToRoman($number)
+    {
+        $map = array('M' => 1000, 'CM' => 900, 'D' => 500, 'CD' => 400, 'C' => 100, 'XC' => 90, 'L' => 50, 'XL' => 40, 'X' => 10, 'IX' => 9, 'V' => 5, 'IV' => 4, 'I' => 1);
+        $returnValue = '';
+        while ($number > 0) {
+            foreach ($map as $roman => $int) {
+                if($number >= $int) {
+                    $number -= $int;
+                    $returnValue .= $roman;
+                    break;
+                }
+            }
+        }
+        return $returnValue;
     }
 
     /**
@@ -251,9 +266,15 @@ class DesaSetting extends Model
      */
     private static function extractNomorUrutFromNomorSurat($nomorSurat)
     {
-        // Format baru: SKD/001/2001/01/2024
+        // Format standar baru: 001/2001/IV/2024
+        // Format lama: SKD/001/2001/01/2024
         $parts = explode('/', $nomorSurat);
         if (count($parts) >= 2) {
+            // Jika bagian pertama adalah angka, berarti itu nomor urut (format baru)
+            if (is_numeric($parts[0])) {
+                return (int) $parts[0];
+            }
+            // Jika bukan, berarti nomor urut ada di bagian kedua (format lama)
             return (int) $parts[1];
         }
         return 0;

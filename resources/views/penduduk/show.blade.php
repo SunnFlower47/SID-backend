@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Detail Penduduk')
 @section('subtitle', 'Informasi lengkap data penduduk')
@@ -88,7 +88,7 @@
         </div>
         <div class="bg-white rounded-xl border border-gray-200 p-3 sm:p-4">
             <p class="text-[11px] sm:text-xs font-medium text-gray-500 uppercase tracking-wide">RT / RW</p>
-            <p class="mt-1 text-sm sm:text-base font-semibold text-gray-900">{{ $penduduk->rt ?: '-' }} / {{ $penduduk->rw ?: '-' }}</p>
+            <p class="mt-1 text-sm sm:text-base font-semibold text-gray-900">{{ $penduduk->rt_label }} / {{ $penduduk->rw_label }}</p>
         </div>
         <div class="bg-white rounded-xl border border-gray-200 p-3 sm:p-4">
             <p class="text-[11px] sm:text-xs font-medium text-gray-500 uppercase tracking-wide">Status</p>
@@ -241,15 +241,15 @@
                         <div class="grid grid-cols-3 gap-2 sm:gap-3">
                             <div class="bg-blue-50 rounded-lg p-2 sm:p-3 text-center">
                                 <label class="block text-xs font-medium text-gray-500 mb-1">RT</label>
-                                <p class="text-gray-900 font-semibold text-sm">RT {{ $penduduk->rt }}</p>
+                                <p class="text-gray-900 font-semibold text-sm">RT {{ $penduduk->rt_label }}</p>
                             </div>
                             <div class="bg-blue-50 rounded-lg p-2 sm:p-3 text-center">
                                 <label class="block text-xs font-medium text-gray-500 mb-1">RW</label>
-                                <p class="text-gray-900 font-semibold text-sm">RW {{ $penduduk->rw }}</p>
+                                <p class="text-gray-900 font-semibold text-sm">RW {{ $penduduk->rw_label }}</p>
                             </div>
                             <div class="bg-blue-50 rounded-lg p-2 sm:p-3 text-center">
                                 <label class="block text-xs font-medium text-gray-500 mb-1">Dusun</label>
-                                <p class="text-gray-900 font-semibold text-sm">{{ $penduduk->dusun ?: '-' }}</p>
+                                <p class="text-gray-900 font-semibold text-sm">{{ $penduduk->dusun_label }}</p>
                             </div>
                         </div>
                         @if($penduduk->keterangan)
@@ -384,9 +384,9 @@
                     <div class="sm:col-span-2 bg-white rounded-lg p-3">
                         <label class="block text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">RT/RW/Dusun</label>
                         <p class="text-gray-900 text-sm">
-                            RT {{ $penduduk->rt }} / RW {{ $penduduk->rw }}
-                            @if($penduduk->dusun)
-                                / {{ $penduduk->dusun }}
+                            RT {{ $penduduk->rt_label }} / RW {{ $penduduk->rw_label }}
+                            @if($penduduk->dusun_label !== '-')
+                                / {{ $penduduk->dusun_label }}
                             @endif
                         </p>
                     </div>
@@ -561,3 +561,4 @@ function confirmDeletePenduduk() {
 <!-- Session messages handled by global component -->
 
 @endsection
+

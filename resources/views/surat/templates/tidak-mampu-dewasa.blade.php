@@ -241,13 +241,25 @@
       <tr><td>Jenis Kelamin</td><td>:</td><td>{{ $penduduk->jenis_kelamin == 'LAKI-LAKI' ? 'Laki-laki' : 'Perempuan' }}</td></tr>
       <tr><td>Bangsa/Agama</td><td>:</td><td>Indonesia / {{ $penduduk->agama ?? 'Islam' }}</td></tr>
       <tr><td>Pekerjaan</td><td>:</td><td>{{ $penduduk->pekerjaan ?? 'Mengurus Rumah Tangga' }}</td></tr>
-      <tr><td>Alamat</td><td>:</td><td>{{ $penduduk->alamat ?? 'Kp. Galayah RT. 008/003 Desa Cibatu Kec. Cibatu Kab. Purwakarta' }}</td></tr>
+      <tr><td>Alamat</td><td>:</td><td>{{ $penduduk->alamat }}, RT. {{ $penduduk->rt_label }}/RW. {{ $penduduk->rw_label }} Desa {{ $desa['nama_desa'] }} Kec. {{ $desa['kecamatan'] }} Kab. {{ $desa['kabupaten'] }}</td></tr>
     </table>
     <p>
       Nama tersebut diatas adalah benar Penduduk Desa {{ $desa['nama_desa'] ?? 'Cibatu' }} yang tercantum dalam Buku Induk Kependudukan Desa {{ $desa['nama_desa'] ?? 'Cibatu' }}
       dan berdasarkan Catatan serta Penelitian, bahwa nama tersebut berasal dari Keluarga
       <strong><u>TIDAK MAMPU</u></strong> dan terdaftar dalam Daftar Keluarga Miskin (GAKIN).
     </p>
+
+    @if(isset($nama_wali) && $nama_wali)
+    <p style="margin-top: 8px;">Adapun data Orang Tua / Wali adalah sebagai berikut:</p>
+    <table>
+      <tr><td>Nama Wali</td><td>:</td><td>{{ $nama_wali }}</td></tr>
+      <tr><td>Pekerjaan</td><td>:</td><td>{{ $pekerjaan_wali ?? '-' }}</td></tr>
+      <tr><td>Alamat</td><td>:</td><td>{{ $alamat_wali ?? '-' }}</td></tr>
+      @if(isset($penghasilan) && $penghasilan)
+      <tr><td>Penghasilan</td><td>:</td><td>Rp. {{ number_format($penghasilan, 0, ',', '.') }} / Bulan</td></tr>
+      @endif
+    </table>
+    @endif
     <p style="margin-top: 8px;">
       Surat keterangan ini dibuat dengan benar untuk pengajuan <strong>{{ strtoupper($keperluan ?? 'PEMASANGAN LISTRIK GRATIS') }}</strong>.
     </p>
@@ -260,10 +272,15 @@
   <div class="ttd">
     <div class="ttd-content">
       <p>{{ $desa['nama_desa'] ?? 'Cibatu' }}, {{ $tanggal_surat ? \Carbon\Carbon::parse($tanggal_surat)->format('d F Y') : \Carbon\Carbon::now()->format('d F Y') }}</p>
-      <p>A/N Kepala Desa {{ $desa['nama_desa'] ?? 'Cibatu' }}</p>
+      @if($is_sekdes)
+      <p>a.n. Kepala Desa {{ $desa['nama_desa'] ?? 'Cibatu' }}</p>
+      @else
+      <p>Kepala Desa {{ $desa['nama_desa'] ?? 'Cibatu' }}</p>
+      @endif
       <br><br><br>
-      <p class="ttd-nama">{{ $kepala_desa['nama_kepala_desa'] ?? 'FAJAR FERYANTO' }}</p>
+      <p class="ttd-nama">{{ strtoupper($kepala_desa['nama_kepala_desa'] ?? $kepala_desa['nama'] ?? 'FAJAR FERYANTO') }}</p>
     </div>
   </div>
 </body>
 </html>
+

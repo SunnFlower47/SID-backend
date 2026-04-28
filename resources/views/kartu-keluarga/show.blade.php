@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Detail Kartu Keluarga')
 @section('subtitle', 'Detail anggota keluarga')
@@ -40,11 +40,17 @@
         <!-- Kepala Keluarga Info -->
         @if($kepalaKeluarga)
         <div class="bg-white shadow-sm rounded-lg mb-6">
-            <div class="px-6 py-4 border-b border-gray-200">
+            <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
                 <h3 class="text-lg font-medium text-gray-900 flex items-center">
                     <i class="fas fa-crown text-yellow-500 mr-2"></i>
                     Kepala Keluarga
                 </h3>
+                @can('penduduk.view')
+                <a href="{{ route('penduduk.show', $kepalaKeluarga->id) }}" class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 transition-colors shadow-sm">
+                    <i class="fas fa-user-circle mr-2"></i>
+                    Detail Penduduk
+                </a>
+                @endcan
             </div>
             <div class="p-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -94,7 +100,7 @@
                 <div class="mt-6">
                     <label class="block text-sm font-medium text-gray-500">Alamat</label>
                     <p class="mt-1 text-sm text-gray-900">{{ $kepalaKeluarga->alamat }}</p>
-                    <p class="text-sm text-gray-500">RT {{ $kepalaKeluarga->rt }} / RW {{ $kepalaKeluarga->rw }}, {{ $kepalaKeluarga->dusun }}</p>
+                    <p class="text-sm text-gray-500">RT {{ $kepalaKeluarga->rt_label }} / RW {{ $kepalaKeluarga->rw_label }}, {{ $kepalaKeluarga->dusun_label }}</p>
                 </div>
             </div>
         </div>
@@ -118,6 +124,7 @@
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jenis Kelamin</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal Lahir</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
@@ -151,10 +158,18 @@
                                 </span>
                                 @endif
                             </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                @can('penduduk.view')
+                                <a href="{{ route('penduduk.show', $anggota->id) }}" class="text-blue-600 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors">
+                                    <i class="fas fa-eye mr-1"></i>
+                                    Detail
+                                </a>
+                                @endcan
+                            </td>
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="6" class="px-6 py-12 text-center text-gray-500">
+                            <td colspan="7" class="px-6 py-12 text-center text-gray-500">
                                 <i class="fas fa-user-slash text-4xl mb-4"></i>
                                 <p class="text-lg">Tidak ada anggota keluarga</p>
                                 <p class="text-sm">Hanya kepala keluarga yang terdaftar</p>
@@ -233,3 +248,4 @@ function updateKepalaKeluarga() {
 }
 @endnoncescript
 @endpush
+

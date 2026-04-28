@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Statistik Kependudukan')
 @section('subtitle', 'Analisis data kependudukan desa Cibatu')
@@ -100,16 +100,26 @@
                 @foreach($genderStats as $gender => $total)
                     @php
                         $percentage = $totalPenduduk > 0 ? round(($total / $totalPenduduk) * 100, 1) : 0;
-                        $color = $gender == 'LAKI-LAKI' ? 'blue' : 'pink';
+                        $color = match($gender) {
+                            'LAKI-LAKI' => 'blue',
+                            'PEREMPUAN' => 'pink',
+                            default => 'gray'
+                        };
                     @endphp
                     <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                         <div class="flex items-center space-x-3">
                             <div class="bg-{{ $color }}-100 p-2 rounded-lg">
-                                <i class="fas {{ $gender == 'LAKI-LAKI' ? 'fa-male' : 'fa-female' }} text-{{ $color }}-600"></i>
+                                <i class="fas {{ $gender == 'LAKI-LAKI' ? 'fa-male' : ($gender == 'PEREMPUAN' ? 'fa-female' : 'fa-question-circle') }} text-{{ $color }}-600"></i>
                             </div>
                             <div>
                                 <p class="font-medium text-gray-900">
-                                    {{ $gender == 'LAKI-LAKI' ? 'Laki-laki' : 'Perempuan' }}
+                                    @if($gender == 'LAKI-LAKI')
+                                        Laki-laki
+                                    @elseif($gender == 'PEREMPUAN')
+                                        Perempuan
+                                    @else
+                                        Lainnya / Tidak Valid
+                                    @endif
                                 </p>
                                 <p class="text-sm text-gray-500">{{ $percentage }}% dari total</p>
                             </div>
@@ -134,7 +144,7 @@
                 @foreach($dusunStats as $dusun)
                     @php
                         $percentage = $totalPenduduk > 0 ? round(($dusun->total / $totalPenduduk) * 100, 1) : 0;
-                        $dusunName = $dusun->dusun ?: 'Belum Ditentukan';
+                        $dusunName = $dusun->dusun_label ?: 'Belum Ditentukan';
                     @endphp
                     <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                         <div class="flex items-center space-x-3">
@@ -228,7 +238,7 @@
                         $percentage = $totalPenduduk > 0 ? round(($rt->total / $totalPenduduk) * 100, 1) : 0;
                     @endphp
                     <div class="bg-gradient-to-br from-indigo-50 to-indigo-100 p-4 rounded-lg text-center border border-indigo-200">
-                        <p class="text-sm font-semibold text-indigo-700">RT {{ $rt->rt }}</p>
+                        <p class="text-sm font-semibold text-indigo-700">RT {{ $rt->rt_label }}</p>
                         <p class="text-xl font-bold text-indigo-900">{{ number_format($rt->total) }}</p>
                         <p class="text-xs text-indigo-600">{{ $percentage }}%</p>
                     </div>
@@ -547,3 +557,4 @@ function refreshStatistics() {
 @endif
 @endnoncescript
 @endsection
+

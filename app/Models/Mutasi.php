@@ -12,6 +12,14 @@ class Mutasi extends Model
 {
     use SoftDeletes, LogsActivity;
 
+    protected $appends = [
+        'data_kematian',
+        'data_pemakaman',
+        'data_pelapor',
+        'data_snapshot',
+        'jenis_mutasi_label',
+    ];
+
     protected $fillable = [
         'penduduk_id',
         'jenis_mutasi',
@@ -145,6 +153,7 @@ class Mutasi extends Model
      */
     public function getDataKematianAttribute(): ?array
     {
+        if (!is_array($this->detail_tambahan)) return null;
         return $this->detail_tambahan['kematian'] ?? null;
     }
 
@@ -153,6 +162,7 @@ class Mutasi extends Model
      */
     public function getDataPemakamanAttribute(): ?array
     {
+        if (!is_array($this->detail_tambahan)) return null;
         return $this->detail_tambahan['pemakaman'] ?? null;
     }
 
@@ -161,7 +171,7 @@ class Mutasi extends Model
      */
     public function getDataPelaporAttribute(): ?array
     {
-        if (!$this->detail_tambahan) return null;
+        if (!is_array($this->detail_tambahan)) return null;
         return [
             'nama' => $this->detail_tambahan['pelapor_nama'] ?? null,
             'umur' => $this->detail_tambahan['pelapor_umur'] ?? null,
@@ -176,7 +186,7 @@ class Mutasi extends Model
      */
     public function getDataSnapshotAttribute(): ?array
     {
-        if (!$this->detail_tambahan) return null;
+        if (!is_array($this->detail_tambahan)) return null;
         // Untuk pisah KK, snapshot ada di root detail_tambahan
         // Untuk pindah RT/RW, snapshot ada di key 'snapshot_asal'
         return $this->detail_tambahan['snapshot_asal'] ?? $this->detail_tambahan;

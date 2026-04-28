@@ -59,7 +59,23 @@ class StrukturDesaController extends Controller
             'lainnya' => 'Lainnya',
         ];
 
-        return view('struktur-desa.create', compact('kategoriOptions'));
+        $masterRwOptions = \App\Models\Rw::with('rts')->orderBy('kode')->get()->map(function($rw) {
+            return [
+                'id' => $rw->id,
+                'kode' => $rw->kode,
+                'nama' => $rw->nama,
+                'rts' => $rw->rts->map(function($rt) {
+                    return [
+                        'id' => $rt->id,
+                        'kode' => $rt->kode,
+                        'dusun_id' => $rt->dusun_id,
+                        'dusun' => optional($rt->dusun)->nama
+                    ];
+                })
+            ];
+        });
+
+        return view('struktur-desa.create', compact('kategoriOptions', 'masterRwOptions'));
     }
 
     /**
@@ -75,9 +91,9 @@ class StrukturDesaController extends Controller
             'no_hp' => 'nullable|string|max:15',
             'email' => 'nullable|email|max:255',
             'alamat' => 'nullable|string',
-            'rt' => 'nullable|string|max:10',
-            'rw' => 'nullable|string|max:10',
-            'dusun' => 'nullable|string|max:100',
+            'rt_id' => 'nullable|exists:rts,id',
+            'rw_id' => 'nullable|exists:rws,id',
+            'dusun_id' => 'nullable|exists:dusuns,id',
             'tugas_wewenang' => 'nullable|string',
             'tanggal_pengangkatan' => 'nullable|date',
             'tanggal_berakhir' => 'nullable|date|after_or_equal:tanggal_pengangkatan',
@@ -134,7 +150,23 @@ class StrukturDesaController extends Controller
             'lainnya' => 'Lainnya',
         ];
 
-        return view('struktur-desa.edit', compact('strukturDesa', 'kategoriOptions'));
+        $masterRwOptions = \App\Models\Rw::with('rts')->orderBy('kode')->get()->map(function($rw) {
+            return [
+                'id' => $rw->id,
+                'kode' => $rw->kode,
+                'nama' => $rw->nama,
+                'rts' => $rw->rts->map(function($rt) {
+                    return [
+                        'id' => $rt->id,
+                        'kode' => $rt->kode,
+                        'dusun_id' => $rt->dusun_id,
+                        'dusun' => optional($rt->dusun)->nama
+                    ];
+                })
+            ];
+        });
+
+        return view('struktur-desa.edit', compact('strukturDesa', 'kategoriOptions', 'masterRwOptions'));
     }
 
     /**
@@ -150,9 +182,9 @@ class StrukturDesaController extends Controller
             'no_hp' => 'nullable|string|max:15',
             'email' => 'nullable|email|max:255',
             'alamat' => 'nullable|string',
-            'rt' => 'nullable|string|max:10',
-            'rw' => 'nullable|string|max:10',
-            'dusun' => 'nullable|string|max:100',
+            'rt_id' => 'nullable|exists:rts,id',
+            'rw_id' => 'nullable|exists:rws,id',
+            'dusun_id' => 'nullable|exists:dusuns,id',
             'tugas_wewenang' => 'nullable|string',
             'tanggal_pengangkatan' => 'nullable|date',
             'tanggal_berakhir' => 'nullable|date|after_or_equal:tanggal_pengangkatan',

@@ -44,9 +44,9 @@ class StoreMutasiRequest extends FormRequest
                     'nama_ayah' => 'required|string|max:255',
                     'nama_ibu' => 'required|string|max:255',
                     'alamat_bayi' => 'required|string|max:500',
-                    'rt_bayi' => 'required|string|max:5',
-                    'rw_bayi' => 'required|string|max:5',
-                    'dusun_bayi' => 'nullable|string|max:100',
+                    'rt_id_bayi' => 'required|exists:rts,id',
+                    'rw_id_bayi' => 'required|exists:rws,id',
+                    'dusun_id_bayi' => 'nullable|exists:dusuns,id',
                     'keterangan_bayi' => 'nullable|string|max:1000',
                     'tanggal_mutasi' => 'required|date',
                 ];
@@ -64,8 +64,8 @@ class StoreMutasiRequest extends FormRequest
                     'tanggal_pemakaman' => 'required|date',
                     'jam_pemakaman' => 'required|date_format:H:i',
                     'lokasi_pemakaman' => 'required|string|max:255',
-                    'pelapor_nama' => 'required|string|max:255',
-                    'pelapor_hubungan' => 'required|string|max:100',
+                    'pelapor_nama' => 'nullable|string|max:255',
+                    'pelapor_hubungan' => 'nullable|string|max:100',
                     'pelapor_umur' => 'nullable|integer|min:0|max:150',
                     'pelapor_pekerjaan' => 'nullable|string|max:100',
                     'pelapor_alamat' => 'nullable|string|max:500',
@@ -94,9 +94,9 @@ class StoreMutasiRequest extends FormRequest
                     'nkk' => 'nullable|string|size:16',
                     'nkk_new' => 'nullable|string|size:16',
                     'alamat' => 'required|string|max:500',
-                    'rt' => 'required|string|max:5',
-                    'rw' => 'required|string|max:5',
-                    'dusun' => 'nullable|string|max:100',
+                    'rt_id' => 'required|exists:rts,id',
+                    'rw_id' => 'required|exists:rws,id',
+                    'dusun_id' => 'nullable|exists:dusuns,id',
                     'kategori_mutasi' => 'required|in:dalam_desa,dalam_kota,luar_kota,luar_negeri',
                     'asal_tujuan' => 'required|string|max:255',
                     'tanggal_mutasi' => 'required|date',
@@ -112,15 +112,17 @@ class StoreMutasiRequest extends FormRequest
                     'asal_tujuan' => 'required|string|max:500',
                     'tanggal_mutasi' => 'required|date',
                     'alasan' => 'nullable|string|max:500',
+                    'anggota_pindah' => 'nullable|array',
+                    'anggota_pindah.*' => 'integer|exists:penduduks,id',
                 ];
                 break;
 
             case 'pindah_rt_rw':
                 $rules += [
                     'nkk' => 'required|string|size:16',
-                    'rt_tujuan' => 'required|string|max:5',
-                    'rw_tujuan' => 'required|string|max:5',
-                    'dusun_tujuan' => 'nullable|string|max:100',
+                    'rt_id_tujuan' => 'required|exists:rts,id',
+                    'rw_id_tujuan' => 'required|exists:rws,id',
+                    'dusun_id_tujuan' => 'nullable|exists:dusuns,id',
                     'alamat_tujuan' => 'nullable|string|max:500',
                     'asal_tujuan' => 'nullable|string|max:500',
                     'tanggal_mutasi' => 'required|date',
@@ -137,8 +139,9 @@ class StoreMutasiRequest extends FormRequest
                     'nkk_baru' => 'nullable|string|size:16',
                     'nkk_tujuan' => 'nullable|string|size:16',
                     'alamat' => 'nullable|string|max:500',
-                    'rt' => 'nullable|string|max:5',
-                    'rw' => 'nullable|string|max:5',
+                    'rt_id' => 'nullable|exists:rts,id',
+                    'rw_id' => 'nullable|exists:rws,id',
+                    'dusun_id' => 'nullable|exists:dusuns,id',
                     'kedudukan_keluarga_pisah' => 'required|string|max:50',
                     'status_perkawinan_pisah' => 'nullable|string|max:50',
                     'tanggal_mutasi' => 'required|date',
@@ -186,8 +189,8 @@ class StoreMutasiRequest extends FormRequest
                     if (empty($this->input('nkk_baru'))) {
                         $validator->errors()->add('nkk_baru', 'NKK baru wajib diisi untuk pisah KK dalam desa (KK baru).');
                     }
-                    if (empty($this->input('rt')) || empty($this->input('rw'))) {
-                        $validator->errors()->add('rt', 'RT dan RW wajib diisi untuk pisah KK dalam desa (KK baru).');
+                    if (empty($this->input('rt_id')) || empty($this->input('rw_id'))) {
+                        $validator->errors()->add('rt_id', 'RT dan RW wajib diisi untuk pisah KK dalam desa (KK baru).');
                     }
                 }
 
@@ -207,3 +210,4 @@ class StoreMutasiRequest extends FormRequest
         });
     }
 }
+

@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Data UMKM')
 @section('subtitle', 'Kelola data Usaha Mikro, Kecil, dan Menengah')
@@ -357,4 +357,5 @@ function confirmDelete(umkmId, umkmName) {
 // Session messages handled by global component
 @endnoncescript
 @endsection
+
 

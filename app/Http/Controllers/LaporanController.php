@@ -207,13 +207,13 @@ class LaporanController extends Controller
         $query = Penduduk::query();
 
         // Filter berdasarkan dusun
-        if ($request->filled('dusun')) {
-            $query->where('dusun', $request->dusun);
+        if ($request->filled('dusun_id')) {
+            $query->where('dusun_id', $request->dusun_id);
         }
 
         // Filter berdasarkan RT
-        if ($request->filled('rt')) {
-            $query->where('rt', $request->rt);
+        if ($request->filled('rt_id')) {
+            $query->where('rt_id', $request->rt_id);
         }
 
         // Filter berdasarkan jenis kelamin
@@ -254,20 +254,9 @@ class LaporanController extends Controller
             });
         }
 
-        // Get filter options
-        $dusunOptions = Penduduk::select('dusun')
-            ->whereNotNull('dusun')
-            ->where('dusun', '!=', '')
-            ->distinct()
-            ->orderBy('dusun')
-            ->pluck('dusun');
-
-        $rtOptions = Penduduk::select('rt')
-            ->whereNotNull('rt')
-            ->where('rt', '!=', '')
-            ->distinct()
-            ->orderBy('rt')
-            ->pluck('rt');
+        // Get filter options from master tables
+        $dusunOptions = \App\Models\Dusun::orderBy('nama')->get();
+        $rtOptions = \App\Models\Rt::orderBy('kode')->get();
 
         $jenisKelaminOptions = Penduduk::select('jenis_kelamin')
             ->whereNotNull('jenis_kelamin')
@@ -323,19 +312,19 @@ class LaporanController extends Controller
     public function kk(Request $request)
     {
         // Get unique KK data
-        $query = Penduduk::select('nkk', 'nama', 'jenis_kelamin', 'rt', 'rw', 'dusun', 'alamat')
+        $query = Penduduk::select('nkk', 'nama', 'jenis_kelamin', 'rt_id', 'rw_id', 'dusun_id', 'alamat')
             ->whereNotNull('nkk')
             ->where('nkk', '!=', '')
             ->where('kedudukan_keluarga', 'Kepala Keluarga');
 
         // Filter berdasarkan dusun
-        if ($request->filled('dusun')) {
-            $query->where('dusun', $request->dusun);
+        if ($request->filled('dusun_id')) {
+            $query->where('dusun_id', $request->dusun_id);
         }
 
         // Filter berdasarkan RT
-        if ($request->filled('rt')) {
-            $query->where('rt', $request->rt);
+        if ($request->filled('rt_id')) {
+            $query->where('rt_id', $request->rt_id);
         }
 
         // Search by name or NKK
@@ -347,20 +336,9 @@ class LaporanController extends Controller
             });
         }
 
-        // Get filter options
-        $dusunOptions = Penduduk::select('dusun')
-            ->whereNotNull('dusun')
-            ->where('dusun', '!=', '')
-            ->distinct()
-            ->orderBy('dusun')
-            ->pluck('dusun');
-
-        $rtOptions = Penduduk::select('rt')
-            ->whereNotNull('rt')
-            ->where('rt', '!=', '')
-            ->distinct()
-            ->orderBy('rt')
-            ->pluck('rt');
+        // Get filter options from master tables
+        $dusunOptions = \App\Models\Dusun::orderBy('nama')->get();
+        $rtOptions = \App\Models\Rt::orderBy('kode')->get();
 
         // Paginate results
         $kks = $query->orderBy('nkk')->paginate(50);

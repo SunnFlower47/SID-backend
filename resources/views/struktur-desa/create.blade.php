@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Tambah Struktur Desa')
 
@@ -219,48 +219,40 @@
                 <!-- RT, RW, Dusun -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div>
-                        <label for="rt" class="block text-sm font-medium text-gray-700 mb-2">
-                            RT
+                        <label for="rw_id" class="block text-sm font-medium text-gray-700 mb-2">
+                            RW Master <span class="text-red-500">*</span>
                         </label>
-                        <input type="text"
-                               id="rt"
-                               name="rt"
-                               value="{{ old('rt') }}"
-                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent @error('rt') border-red-500 @enderror"
-                               placeholder="Masukkan RT">
-                        @error('rt')
-                            <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                        <select id="rw_id" name="rw_id" onchange="populateRtByRw()" required
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent @error('rw_id') border-red-500 @enderror">
+                            <option value="">Pilih RW</option>
+                            @foreach($masterRwOptions as $rw)
+                                <option value="{{ $rw['id'] }}" {{ old('rw_id') == $rw['id'] ? 'selected' : '' }}>RW {{ $rw['kode'] }} - {{ $rw['nama'] }}</option>
+                            @endforeach
+                        </select>
+                        @error('rw_id')
+                        <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
 
                     <div>
-                        <label for="rw" class="block text-sm font-medium text-gray-700 mb-2">
-                            RW
+                        <label for="rt_id" class="block text-sm font-medium text-gray-700 mb-2">
+                            RT Master <span class="text-red-500">*</span>
                         </label>
-                        <input type="text"
-                               id="rw"
-                               name="rw"
-                               value="{{ old('rw') }}"
-                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent @error('rw') border-red-500 @enderror"
-                               placeholder="Masukkan RW">
-                        @error('rw')
-                            <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                        <select id="rt_id" name="rt_id" onchange="syncDusunFromRt()" required
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent @error('rt_id') border-red-500 @enderror">
+                            <option value="">Pilih RT</option>
+                        </select>
+                        @error('rt_id')
+                        <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
 
                     <div>
-                        <label for="dusun" class="block text-sm font-medium text-gray-700 mb-2">
-                            Dusun
-                        </label>
-                        <input type="text"
-                               id="dusun"
-                               name="dusun"
-                               value="{{ old('dusun') }}"
-                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent @error('dusun') border-red-500 @enderror"
-                               placeholder="Masukkan dusun">
-                        @error('dusun')
-                            <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
+                        <label for="dusun_display" class="block text-sm font-medium text-gray-700 mb-2">Dusun</label>
+                        <input type="text" id="dusun_display" disabled
+                               class="w-full px-4 py-3 border border-gray-100 bg-gray-50 rounded-lg text-gray-500"
+                               placeholder="Otomatis dari RT">
+                        <input type="hidden" name="dusun_id" id="dusun_id" value="{{ old('dusun_id') }}">
                     </div>
                 </div>
 
@@ -315,7 +307,46 @@
 </div>
 
 @noncescript
+    const masterRwOptions = @json($masterRwOptions);
     let searchTimeout;
+
+    function populateRtByRw(initial = false, targetRtId = null) {
+        const rwId = document.getElementById('rw_id').value;
+        const rtSelect = document.getElementById('rt_id');
+        rtSelect.innerHTML = '<option value="">Pilih RT</option>';
+
+        const rwObj = masterRwOptions.find(r => String(r.id) === String(rwId));
+        if (rwObj) {
+            rwObj.rts.forEach(rt => {
+                const opt = document.createElement('option');
+                opt.value = rt.id;
+                opt.textContent = `RT ${rt.kode}${rt.dusun ? ' - ' + rt.dusun : ''}`;
+                if (targetRtId && String(rt.id) === String(targetRtId)) {
+                    opt.selected = true;
+                }
+                rtSelect.appendChild(opt);
+            });
+        }
+        if (!initial) syncDusunFromRt();
+    }
+
+    function syncDusunFromRt() {
+        const rwId = document.getElementById('rw_id').value;
+        const rtId = document.getElementById('rt_id').value;
+        const dusunDisplay = document.getElementById('dusun_display');
+        const dusunHidden = document.getElementById('dusun_id');
+
+        const rwObj = masterRwOptions.find(r => String(r.id) === String(rwId));
+        const rtObj = rwObj?.rts?.find(r => String(r.id) === String(rtId));
+
+        if (rtObj) {
+            dusunDisplay.value = rtObj.dusun || 'N/A';
+            dusunHidden.value = rtObj.dusun_id || '';
+        } else {
+            dusunDisplay.value = '';
+            dusunHidden.value = '';
+        }
+    }
 
     // Penduduk search functions
     function searchPenduduk(query) {
@@ -366,7 +397,7 @@
         } else {
             resultsContainer.innerHTML = penduduks.map(penduduk => `
                 <div class="p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
-                     onclick="selectPenduduk('${penduduk.nik}', '${penduduk.nama}', '${penduduk.alamat}', '${penduduk.rt}', '${penduduk.rw}', '${penduduk.dusun}')">
+                     onclick="selectPenduduk('${penduduk.nik}', '${penduduk.nama}', '${penduduk.alamat}', '${penduduk.rt_id}', '${penduduk.rw_id}', '${penduduk.dusun_id}', '${penduduk.dusun_label}')">
                     <div class="font-medium text-gray-900">${penduduk.nama}</div>
                     <div class="text-sm text-gray-600">NIK: ${penduduk.nik}</div>
                     <div class="text-sm text-gray-500">${penduduk.alamat}</div>
@@ -381,7 +412,7 @@
         document.getElementById('nik_search_results').classList.add('hidden');
     }
 
-    function selectPenduduk(nik, nama, alamat, rt, rw, dusun) {
+    function selectPenduduk(nik, nama, alamat, rt_id, rw_id, dusun_id, dusun_label) {
         // Update hidden input
         document.getElementById('nik').value = nik;
 
@@ -394,9 +425,15 @@
         // Auto-fill form fields
         document.getElementById('nama').value = nama;
         document.getElementById('alamat').value = alamat;
-        document.getElementById('rt').value = rt || '';
-        document.getElementById('rw').value = rw || '';
-        document.getElementById('dusun').value = dusun || '';
+        
+        // Handle Wilayah IDs
+        if (rw_id && rw_id !== 'null') {
+            document.getElementById('rw_id').value = rw_id;
+            populateRtByRw(true, rt_id);
+            if (rt_id && rt_id !== 'null') {
+                syncDusunFromRt();
+            }
+        }
 
         // Clear search input
         document.getElementById('nik_search').value = '';
@@ -413,9 +450,10 @@
         // Clear auto-filled fields
         document.getElementById('nama').value = '';
         document.getElementById('alamat').value = '';
-        document.getElementById('rt').value = '';
-        document.getElementById('rw').value = '';
-        document.getElementById('dusun').value = '';
+        document.getElementById('rw_id').value = '';
+        document.getElementById('rt_id').innerHTML = '<option value="">Pilih RT</option>';
+        document.getElementById('dusun_display').value = '';
+        document.getElementById('dusun_id').value = '';
     }
 
     // Initialize on page load
@@ -437,4 +475,6 @@
         });
     });
 @endnoncescript
+@endnoncescript
 @endsection
+

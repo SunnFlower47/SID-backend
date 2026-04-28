@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Struktur Desa')
 
@@ -214,9 +214,9 @@
                                     <div class="flex-1">
                                         <h5 class="font-semibold text-gray-900">{{ $item->nama }}</h5>
                                         <p class="text-sm text-gray-600">{{ $item->jabatan }}</p>
-                                        @if($item->dusun)
+                                        @if($item->dusun_label)
                                         <p class="text-xs text-orange-600 font-medium">
-                                            <i class="fas fa-map-marker-alt mr-1"></i> {{ $item->dusun }}
+                                            <i class="fas fa-map-marker-alt mr-1"></i> {{ $item->dusun_label }}
                                         </p>
                                         @endif
                                         @if($item->no_hp)
@@ -273,9 +273,9 @@
                                         <div class="flex-1">
                                             <h6 class="font-semibold text-gray-900">{{ $item->nama }}</h6>
                                             <p class="text-sm text-gray-600">{{ $item->jabatan }}</p>
-                                            @if($item->rt)
+                                            @if($item->rt_label)
                                             <p class="text-xs text-teal-600 font-medium">
-                                                <i class="fas fa-home mr-1"></i> RT {{ $item->rt }}
+                                                <i class="fas fa-home mr-1"></i> RT {{ $item->rt_label }}
                                             </p>
                                             @endif
                                             @if($item->no_hp)
@@ -318,9 +318,9 @@
                                         <div class="flex-1">
                                             <h6 class="font-semibold text-gray-900">{{ $item->nama }}</h6>
                                             <p class="text-sm text-gray-600">{{ $item->jabatan }}</p>
-                                            @if($item->rw)
+                                            @if($item->rw_label)
                                             <p class="text-xs text-teal-600 font-medium">
-                                                <i class="fas fa-home mr-1"></i> RW {{ $item->rw }}
+                                                <i class="fas fa-home mr-1"></i> RW {{ $item->rw_label }}
                                             </p>
                                             @endif
                                             @if($item->no_hp)
@@ -655,3 +655,4 @@ function confirmDelete(strukturId, strukturName) {
 }
 @endnoncescript
 @endsection
+

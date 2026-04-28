@@ -26,9 +26,9 @@ class StrukturDesaController extends Controller
                         'kategori' => $item->kategori,
                         'email' => $item->email,
                         'alamat' => $item->alamat,
-                        'rt' => $item->rt,
-                        'rw' => $item->rw,
-                        'dusun' => $item->dusun,
+                        'rt' => $item->rt_label,
+                        'rw' => $item->rw_label,
+                        'dusun' => $item->dusun_label,
                         'foto' => $item->foto,
                         'urutan' => $item->urutan
                     ];
@@ -81,24 +81,18 @@ class StrukturDesaController extends Controller
                     ];
                 });
 
-            // If no data from struktur desa, fallback to penduduk table
+            // If no data from struktur desa, fallback to master table
             if ($strukturRtRw->isEmpty()) {
-                $rtRw = Penduduk::select('rt', 'rw')
-                    ->whereNotNull('rt')
-                    ->whereNotNull('rw')
-                    ->where('rt', '!=', '')
-                    ->where('rw', '!=', '')
-                    ->distinct()
-                    ->orderBy('rt')
-                    ->orderBy('rw')
+                $rtRw = \App\Models\Rt::with(['rwMaster', 'dusunMaster'])
                     ->get()
-                    ->map(function($item) {
+                    ->map(function($rt) {
                         return [
-                            'rt' => $item->rt,
-                            'rw' => $item->rw,
-                            'ketua_rt' => 'Ketua RT ' . $item->rt,
-                            'ketua_rw' => 'Ketua RW ' . $item->rw,
-                            'alamat' => 'RT ' . $item->rt . ' RW ' . $item->rw
+                            'rt' => $rt->kode,
+                            'rw' => optional($rt->rwMaster)->kode,
+                            'ketua_rt' => 'Ketua RT ' . $rt->kode,
+                            'ketua_rw' => 'Ketua RW ' . optional($rt->rwMaster)->kode,
+                            'alamat' => 'RT ' . $rt->kode . ' RW ' . optional($rt->rwMaster)->kode,
+                            'dusun' => optional($rt->dusunMaster)->nama
                         ];
                     });
             } else {
@@ -135,9 +129,9 @@ class StrukturDesaController extends Controller
                         'jabatan' => $item->jabatan,
                         'email' => $item->email,
                         'alamat' => $item->alamat,
-                        'rt' => $item->rt,
-                        'rw' => $item->rw,
-                        'dusun' => $item->dusun,
+                        'rt' => $item->rt_label,
+                        'rw' => $item->rw_label,
+                        'dusun' => $item->dusun_label,
                         'foto' => $item->foto,
                         'urutan' => $item->urutan
                     ];
@@ -174,9 +168,9 @@ class StrukturDesaController extends Controller
                         'kategori' => $item->kategori,
                         'email' => $item->email,
                         'alamat' => $item->alamat,
-                        'rt' => $item->rt,
-                        'rw' => $item->rw,
-                        'dusun' => $item->dusun,
+                        'rt' => $item->rt_label,
+                        'rw' => $item->rw_label,
+                        'dusun' => $item->dusun_label,
                         'foto' => $item->foto,
                         'urutan' => $item->urutan
                     ];

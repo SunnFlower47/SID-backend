@@ -43,12 +43,13 @@
 ## 📋 SISTEM MUTASI V3.0
 
 ### **Jenis Mutasi yang Tersedia**
-- **Kelahiran**: Pendaftaran bayi baru
-- **Kematian**: Pencatatan kematian penduduk
-- **Pindah Masuk**: Penduduk baru masuk desa
-- **Pindah Keluar**: Penduduk pindah keluar desa
-- **Pindah RT/RW**: Perpindahan dalam desa
-- **Pisah KK**: Pemisahan kartu keluarga
+- **Kelahiran**: Pendaftaran bayi baru yang lahir di desa
+- **Kematian**: Pencatatan kematian penduduk desa
+- **Pindah Masuk**: Penduduk baru yang pindah dari luar ke desa kita
+- **Pindah Keluar**: Penduduk desa yang pindah keluar desa
+- **Pindah RT/RW**: Perpindahan alamat di dalam lingkungan desa
+- **Pisah KK**: Pemisahan anggota keluarga ke Kartu Keluarga (KK) lain atau baru
+- **Perubahan Data**: Pembaruan informasi pada kartu keluarga atau data penduduk (misal: ganti pekerjaan, pendidikan)
 
 ### **Cara Membuat Mutasi**
 
@@ -60,24 +61,34 @@
 5. Data orang tua akan terisi otomatis
 6. Klik **"Simpan"**
 
-#### **2. Pisah KK (Dalam Desa)**
-1. Pilih jenis mutasi **"Pisah KK"**
-2. Pilih kategori **"Dalam Desa"**
-3. Pilih penduduk yang akan pisah KK
-4. Pilih opsi:
-   - **Gabung ke KK yang sudah ada**: Pilih NKK tujuan
-   - **Buat KK baru**: Isi NKK baru dan alamat lengkap
-5. Isi data penduduk (kedudukan keluarga, status perkawinan)
+#### **3. Pindah Masuk**
+1. Klik menu **"Mutasi"** → **"Tambah Mutasi"**
+2. Pilih jenis mutasi **"Pindah Masuk"**
+3. Isi data penduduk yang masuk (Nama, NIK, dll)
+4. Pilih **Kategori Asal (Pindah Dari)**:
+   - **Dalam Kabupaten/Kota**: Jika asal dari wilayah yang sama
+   - **Luar Kabupaten/Kota**: Jika asal dari luar kota/kabupaten
+   - **Luar Negeri**: Jika berasal dari luar Indonesia
+5. Isi **Asal Tempat** (Nama kota atau daerah asal)
 6. Klik **"Simpan"**
 
-#### **3. Pisah KK (Luar Desa/Kota/Negeri)**
+#### **4. Pindah Keluar**
+1. Pilih jenis mutasi **"Pindah Keluar"**
+2. Pilih penduduk yang akan pindah
+3. Pilih **Kategori Tujuan (Pindah Ke)**:
+   - **Dalam Kabupaten/Kota** / **Luar Kabupaten/Kota** / **Luar Negeri**
+4. Isi **Alamat Tujuan** lengkap
+5. Klik **"Simpan"**
+
+#### **5. Pisah KK**
 1. Pilih jenis mutasi **"Pisah KK"**
-2. Pilih kategori **"Luar Kota"**, **"Luar Kota"**, atau **"Luar Negeri"**
+2. Pilih kategori: **Dalam Desa**, **Luar Kabupaten/Kota**, atau **Luar Negeri**
 3. Pilih penduduk yang akan pisah KK
-4. Isi **NKK Tujuan** (16 digit)
-5. Isi **Alamat Tujuan** lengkap
-6. Isi data penduduk (kedudukan keluarga, status perkawinan)
-7. Klik **"Simpan"**
+4. Jika **Dalam Desa**, pilih opsi:
+   - **Gabung ke KK yang sudah ada**: Pilih NKK tujuan
+   - **Buat KK baru**: Isi NKK baru (16 digit) dan alamat lengkap
+5. Jika **Luar Desa/Kota**, isi NKK dan Alamat Tujuan lengkap
+6. Klik **"Simpan"**
 
 ### **Melihat Detail Mutasi**
 1. Klik menu **"Mutasi"** → **"Data Mutasi"**
@@ -108,10 +119,9 @@
 - Tekan Enter atau klik tombol search
 
 #### **3. Filter Data**
-- **Jenis Kelamin**: Filter Laki-laki/Perempuan
-- **RT**: Pilih RT tertentu
-- **RW**: Pilih RW tertentu
-- **Dusun**: Pilih dusun tertentu
+- **Jenis Kelamin**: Filter Laki-laki / Perempuan
+- **RT / RW / Dusun**: Pilih wilayah tertentu
+- **Status**: Aktif atau Mutasi (Soft Deleted)
 
 ### **Menambah Data Penduduk**
 
@@ -121,20 +131,18 @@
 
 #### **2. Data yang Harus Diisi**
 ```
-* Nama Lengkap: Nama lengkap penduduk
+* Nama Lengkap: Sesuai KTP/KK
 * NIK: Nomor Induk Kependudukan (16 digit)
-* NKK: Nomor Kartu Keluarga
-* Jenis Kelamin: Laki-laki/Perempuan
-* Tanggal Lahir: Format YYYY-MM-DD
+* NKK: Nomor Kartu Keluarga (16 digit)
+* Jenis Kelamin: Laki-laki / Perempuan (Standardized)
+* Tanggal Lahir: Pilih dari kalender
 * Tempat Lahir: Kota/kabupaten lahir
-* Alamat: Alamat lengkap
-* RT/RW: Nomor RT dan RW
-* Dusun: Nama dusun
-* Kedudukan Keluarga: Kepala Keluarga/Istri/Anak/dll
-* Status Perkawinan: Belum Kawin/Kawin/Cerai/dll
-* Agama: Islam/Kristen/Katolik/Hindu/Budha/Konghucu
-* Pendidikan: SD/SMP/SMA/D3/S1/dll
-* Pekerjaan: Pekerjaan saat ini
+* Alamat: Alamat lengkap saat ini
+* RT/RW & Dusun: Wilayah tempat tinggal
+* Kedudukan Keluarga: Kepala Keluarga, Istri, Anak, dll.
+* Status Perkawinan: Belum Kawin, Kawin, Cerai Hidup, Cerai Mati
+* Agama: Islam, Kristen, Katolik, Hindu, Budha, Konghucu
+* Pendidikan & Pekerjaan: Pilih dari opsi yang tersedia
 ```
 
 #### **3. Simpan Data**

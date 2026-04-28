@@ -13,9 +13,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
+use App\Traits\WilayahResolver;
 
 class WilayahController extends Controller
 {
+    use WilayahResolver;
     public function index()
     {
         Gate::authorize('wilayah.view');
@@ -25,14 +27,12 @@ class WilayahController extends Controller
         $rts = Rt::with(['rw', 'dusun'])->orderBy('kode')->get();
 
         $pendudukCounts = Penduduk::query()
-            ->selectRaw('rw, rt, COUNT(*) as total')
-            ->groupBy('rw', 'rt')
-            ->get()
-            ->keyBy(fn ($row) => trim((string) $row->rw) . '|' . trim((string) $row->rt));
+            ->selectRaw('rt_id, COUNT(*) as total')
+            ->groupBy('rt_id')
+            ->pluck('total', 'rt_id');
 
         foreach ($rts as $rt) {
-            $key = trim((string) optional($rt->rw)->kode) . '|' . trim((string) $rt->kode);
-            $rt->penduduk_count = (int) ($pendudukCounts[$key]->total ?? 0);
+            $rt->penduduk_count = (int) ($pendudukCounts[$rt->id] ?? 0);
         }
 
         $summary = [
@@ -50,6 +50,7 @@ class WilayahController extends Controller
 
         return view('settings.wilayah.index', compact('dusuns', 'rws', 'rts', 'summary', 'recentChangeLogs'));
     }
+
 
     public function storeDusun(Request $request)
     {
@@ -101,7 +102,7 @@ class WilayahController extends Controller
             'nama' => 'nullable|string|max:100',
         ]);
 
-        $kode = str_pad(preg_replace('/\D+/', '', $data['kode']), 3, '0', STR_PAD_LEFT);
+        $kode = str_pad(preg_replace('/[^0-9]/', '', $data['kode']), 3, '0', STR_PAD_LEFT);
 
         Rw::create([
             'kode' => $kode,
@@ -125,7 +126,7 @@ class WilayahController extends Controller
             'needs_review' => 'nullable|boolean',
         ]);
 
-        $kode = str_pad(preg_replace('/\D+/', '', $data['kode']), 3, '0', STR_PAD_LEFT);
+        $kode = str_pad(preg_replace('/[^0-9]/', '', $data['kode']), 3, '0', STR_PAD_LEFT);
 
         $rw->update([
             'kode' => $kode,
@@ -148,7 +149,7 @@ class WilayahController extends Controller
             'nama' => 'nullable|string|max:100',
         ]);
 
-        $kode = str_pad(preg_replace('/\D+/', '', $data['kode']), 3, '0', STR_PAD_LEFT);
+        $kode = str_pad(preg_replace('/[^0-9]/', '', $data['kode']), 3, '0', STR_PAD_LEFT);
 
         Rt::updateOrCreate(
             [
@@ -194,7 +195,7 @@ class WilayahController extends Controller
             return back()->with('error', 'Token preview tidak valid/expired. Silakan preview ulang sebelum apply.');
         }
 
-        $kode = str_pad(preg_replace('/\D+/', '', $data['kode']), 3, '0', STR_PAD_LEFT);
+        $kode = str_pad(preg_replace('/[^0-9]/', '', $data['kode']), 3, '0', STR_PAD_LEFT);
         $exists = Rt::where('kode', $kode)
             ->where('rw_id', $data['rw_id'])
             ->where('id', '!=', $rt->id)
@@ -212,9 +213,8 @@ class WilayahController extends Controller
         $newDusun = !empty($data['dusun_id']) ? optional(Dusun::find($data['dusun_id']))->nama : null;
 
         $affectedRows = Penduduk::query()
-            ->where('rt', $oldRt)
-            ->where('rw', $oldRw)
-            ->get(['id', 'rt', 'rw', 'dusun'])
+            ->where('rt_id', $rt->id)
+            ->get(['id', 'rt_id', 'rw_id', 'dusun_id'])
             ->toArray();
 
         $backupPayload = [
@@ -241,13 +241,16 @@ class WilayahController extends Controller
                 'needs_review' => (bool)($data['needs_review'] ?? false),
             ]);
 
+            // Di arsitektur relasional, kita tidak perlu mengupdate tabel Penduduk 
+            // karena Penduduk sudah nge-link ke rt_id. 
+            // Kecuali jika RW_ID atau DUSUN_ID di penduduk juga harus di-sync (redundancy layer).
+            // Karena kita punya rt_id, rw_id, dusun_id di penduduk, kita pastikan mereka sinkron.
+            
             Penduduk::query()
-                ->where('rt', $oldRt)
-                ->where('rw', $oldRw)
+                ->where('rt_id', $rt->id)
                 ->update([
-                    'rt' => $kode,
-                    'rw' => $newRw,
-                    'dusun' => $newDusun,
+                    'rw_id' => $data['rw_id'],
+                    'dusun_id' => $data['dusun_id'] ?? null,
                 ]);
 
             $log = WilayahChangeLog::create([
@@ -303,9 +306,9 @@ class WilayahController extends Controller
 
             foreach ($pendudukBefore as $p) {
                 Penduduk::where('id', $p['id'])->update([
-                    'rt' => $p['rt'],
-                    'rw' => $p['rw'],
-                    'dusun' => $p['dusun'],
+                    'rt_id' => $p['rt_id'],
+                    'rw_id' => $p['rw_id'],
+                    'dusun_id' => $p['dusun_id'],
                 ]);
             }
 
@@ -315,6 +318,7 @@ class WilayahController extends Controller
                 'rolled_back_by' => optional($request->user())->id,
             ]);
         });
+
 
         return back()->with('success', 'Rollback berhasil, data dikembalikan ke snapshot sebelum perubahan.');
     }
@@ -330,7 +334,7 @@ class WilayahController extends Controller
         $oldNama = trim((string) $dusun->nama);
         $newNama = trim((string) $data['nama']);
 
-        $query = Penduduk::query()->where('dusun', $oldNama);
+        $query = Penduduk::query()->where('dusun_id', $dusun->id);
 
         return response()->json([
             'entity' => 'dusun',
@@ -339,7 +343,7 @@ class WilayahController extends Controller
             'after' => ['nama' => $newNama],
             'will_change' => $oldNama !== $newNama,
             'affected_count' => $query->count(),
-            'sample' => $query->select('id', 'nik', 'nkk', 'nama', 'rt', 'rw', 'dusun')->limit(10)->get(),
+            'sample' => $query->withWilayah()->limit(10)->get(),
         ]);
     }
 
@@ -354,7 +358,7 @@ class WilayahController extends Controller
         $oldKode = trim((string) $rw->kode);
         $newKode = str_pad(preg_replace('/\D+/', '', $data['kode']), 3, '0', STR_PAD_LEFT);
 
-        $query = Penduduk::query()->where('rw', $oldKode);
+        $query = Penduduk::query()->where('rw_id', $rw->id);
 
         return response()->json([
             'entity' => 'rw',
@@ -363,7 +367,7 @@ class WilayahController extends Controller
             'after' => ['kode' => $newKode],
             'will_change' => $oldKode !== $newKode,
             'affected_count' => $query->count(),
-            'sample' => $query->select('id', 'nik', 'nkk', 'nama', 'rt', 'rw', 'dusun')->limit(10)->get(),
+            'sample' => $query->withWilayah()->limit(10)->get(),
         ]);
     }
 
@@ -371,12 +375,9 @@ class WilayahController extends Controller
     {
         Gate::authorize('wilayah.view');
 
-        $rwKode = trim((string) optional($rt->rw)->kode);
-        $rtKode = trim((string) $rt->kode);
-
         $penduduks = Penduduk::query()
-            ->where('rw', $rwKode)
-            ->where('rt', $rtKode)
+            ->withWilayah()
+            ->where('rt_id', $rt->id)
             ->orderBy('nama')
             ->paginate(50)
             ->withQueryString();
@@ -391,21 +392,26 @@ class WilayahController extends Controller
     {
         Gate::authorize('wilayah.view');
 
-        $rwKode = trim((string) optional($rt->rw)->kode);
-        $rtKode = trim((string) $rt->kode);
+        try {
+            // Check residents (including soft-deleted/archived ones)
+            $usedByPenduduk = Penduduk::withTrashed()->where('rt_id', $rt->id)->count();
+            // Check KK
+            $usedByKk = KartuKeluarga::where('rt_id', $rt->id)->count();
 
-        $usedCount = Penduduk::query()
-            ->where('rw', $rwKode)
-            ->where('rt', $rtKode)
-            ->count();
+            if ($usedByPenduduk > 0 || $usedByKk > 0) {
+                $reasons = [];
+                if ($usedByPenduduk > 0) $reasons[] = "{$usedByPenduduk} data penduduk (termasuk yang diarsip/soft-delete)";
+                if ($usedByKk > 0) $reasons[] = "{$usedByKk} data Kartu Keluarga";
+                
+                return back()->with('error', "RT {$rt->kode} tidak bisa dihapus karena masih terhubung dengan: " . implode(', ', $reasons) . ". Silakan pindahkan atau hapus permanen data tersebut terlebih dahulu.");
+            }
 
-        if ($usedCount > 0) {
-            return back()->with('error', "RT {$rtKode}/RW {$rwKode} tidak bisa dihapus karena masih dipakai {$usedCount} penduduk.");
+            $rt->delete();
+            return back()->with('success', "RT {$rt->kode} berhasil dihapus.");
+            
+        } catch (\Illuminate\Database\QueryException $e) {
+            return back()->with('error', "Gagal menghapus RT karena batasan integritas database. Pastikan tidak ada data lain yang menggunakan RT ini.");
         }
-
-        $rt->delete();
-
-        return back()->with('success', "RT {$rtKode}/RW {$rwKode} berhasil dihapus.");
     }
 
     public function previewImpactRt(Request $request, Rt $rt)
@@ -422,13 +428,12 @@ class WilayahController extends Controller
         $oldRw = trim((string) optional($rt->rw)->kode);
         $oldDusun = optional($rt->dusun)->nama;
 
-        $newRt = str_pad(preg_replace('/\D+/', '', $data['kode']), 3, '0', STR_PAD_LEFT);
+        $newRt = str_pad(preg_replace('/[^0-9]/', '', $data['kode']), 3, '0', STR_PAD_LEFT);
         $newRw = optional(Rw::find($data['rw_id']))->kode;
         $newDusun = !empty($data['dusun_id']) ? optional(Dusun::find($data['dusun_id']))->nama : null;
 
         $query = Penduduk::query()
-            ->where('rt', $oldRt)
-            ->where('rw', $oldRw);
+            ->where('rt_id', $rt->id);
 
         $token = Str::uuid()->toString();
         $payload = [
@@ -439,7 +444,7 @@ class WilayahController extends Controller
             'will_change' => $oldRt !== $newRt || $oldRw !== $newRw || $oldDusun !== $newDusun,
             'affected_count' => $query->count(),
             'current_count' => $query->count(),
-            'sample' => $query->select('id', 'nik', 'nkk', 'nama', 'rt', 'rw', 'dusun')->limit(10)->get()->toArray(),
+            'sample' => $query->withWilayah()->limit(10)->get()->toArray(),
             'preview_token' => $token,
             'apply_payload' => [
                 'kode' => $newRt,
@@ -450,6 +455,7 @@ class WilayahController extends Controller
                 'needs_review' => (bool)($request->boolean('needs_review')),
             ],
         ];
+
 
         session()->put('wilayah_preview_rt.' . $token, [
             'rt_id' => $rt->id,
@@ -483,6 +489,17 @@ class WilayahController extends Controller
         }
 
         $conflicts = $query->paginate(30)->withQueryString();
+
+        // Load existing resident data for comparison in NIK conflicts
+        foreach ($conflicts->items() as $conflict) {
+            if ($conflict->issue_type === 'nik_conflict' && $conflict->nik) {
+                $conflict->existing_resident = \App\Models\Penduduk::withTrashed()
+                    ->withWilayah()
+                    ->where('nik', $conflict->nik)
+                    ->first();
+            }
+        }
+
         $rws = Rw::with('rts')->orderBy('kode')->get();
 
         return view('settings.wilayah.import-conflicts', compact('conflicts', 'rws'));
@@ -499,14 +516,43 @@ class WilayahController extends Controller
             'nik_new' => 'nullable|string|max:20',
             'nama_new' => 'nullable|string|max:255',
             'nkk_new' => 'nullable|string|max:20',
+            'alamat_new' => 'nullable|string|max:500',
+            'dusun_new' => 'nullable|string|max:100',
+            'rw_new' => 'nullable|string|max:10',
+            'rt_new' => 'nullable|string|max:10',
         ]);
 
-        $canReEditResolved = $conflict->status === 'resolved' && in_array((string)$conflict->reprocess_status, ['failed', 'pending', ''], true);
-        if ($conflict->status !== 'pending' && !$canReEditResolved) {
-            return back()->with('error', 'Konflik ini sudah final dan tidak dapat diubah lagi.');
+        // Strict validation for NIK and NKK if provided
+        if ($request->filled('nik_new')) {
+            $nikClean = preg_replace('/\D+/', '', $data['nik_new']);
+            if (strlen($nikClean) !== 16) {
+                return back()->with('error', 'Format NIK salah! Harus tepat 16 digit angka.');
+            }
+        }
+        if ($request->filled('nkk_new')) {
+            $nkkClean = preg_replace('/\D+/', '', $data['nkk_new']);
+            if (strlen($nkkClean) !== 16) {
+                return back()->with('error', 'Format No. KK salah! Harus tepat 16 digit angka.');
+            }
+        }
+
+        // Biarkan re-edit jika belum sukses reprocess
+        $canReEdit = $conflict->status === 'pending' || ($conflict->status === 'resolved' && ($conflict->reprocess_status ?? '') !== 'success');
+        if (!$canReEdit) {
+            return back()->with('error', 'Konflik ini sudah sukses di-import dan tidak dapat diubah lagi.');
         }
 
         $meta = $conflict->meta ?? [];
+        $payloadFixed = $conflict->payload_fixed ?? [];
+        
+        // Always capture field improvements if provided
+        if ($request->filled('nik_new')) $payloadFixed['nik'] = $data['nik_new'];
+        if ($request->filled('nama_new')) $payloadFixed['nama'] = $data['nama_new'];
+        if ($request->filled('nkk_new')) $payloadFixed['nkk'] = $data['nkk_new'];
+        if ($request->filled('alamat_new')) $payloadFixed['alamat'] = $data['alamat_new'];
+        if ($request->filled('rt_new')) $payloadFixed['rt_raw'] = $data['rt_new'];
+        if ($request->filled('rw_new')) $payloadFixed['rw_raw'] = $data['rw_new'];
+        if ($request->filled('dusun_new')) $payloadFixed['dusun_raw'] = $data['dusun_new'];
 
         if ($data['action'] === 'use_existing') {
             if ($conflict->issue_type !== 'wilayah_conflict') {
@@ -534,8 +580,9 @@ class WilayahController extends Controller
             if ($conflict->issue_type !== 'wilayah_conflict') {
                 return back()->with('error', 'Aksi create_override hanya untuk issue konflik wilayah.');
             }
-            $rwKode = str_pad(preg_replace('/\D+/', '', (string)$conflict->rw_raw), 3, '0', STR_PAD_LEFT);
-            $rtKode = str_pad(preg_replace('/\D+/', '', (string)$conflict->rt_raw), 3, '0', STR_PAD_LEFT);
+            // Use manually typed codes or raw codes from excel
+            $rwKode = $this->normalizeKodeWilayah($data['rw_new'] ?? $conflict->rw_raw, '001');
+            $rtKode = $this->normalizeKodeWilayah($data['rt_new'] ?? $conflict->rt_raw, '001');
 
             $rw = Rw::firstOrCreate(
                 ['kode' => $rwKode],
@@ -556,15 +603,6 @@ class WilayahController extends Controller
             ];
         }
 
-        $payloadFixed = $conflict->payload_fixed ?? [];
-
-        if ($data['action'] === 'fix_fields') {
-            $payloadFixed['nik'] = $data['nik_new'] ?? $conflict->nik;
-            $payloadFixed['nama'] = $data['nama_new'] ?? $conflict->nama;
-            $payloadFixed['nkk'] = $data['nkk_new'] ?? $conflict->nkk;
-            $meta['resolution'] = ['action' => 'fix_fields'];
-        }
-
         if ($data['action'] === 'keep_existing_nik') {
             if ($conflict->issue_type !== 'nik_conflict') {
                 return back()->with('error', 'Aksi ini hanya untuk issue nik_conflict.');
@@ -583,7 +621,7 @@ class WilayahController extends Controller
             if ($conflict->issue_type !== 'nik_conflict') {
                 return back()->with('error', 'Aksi ini hanya untuk issue nik_conflict.');
             }
-            $newNik = preg_replace('/\D+/', '', (string)($data['nik_new'] ?? ''));
+            $newNik = preg_replace('/[^0-9]/', '', (string)($data['nik_new'] ?? ''));
             if (!$newNik) {
                 return back()->with('error', 'NIK baru wajib diisi untuk aksi change_incoming_nik.');
             }
@@ -593,6 +631,10 @@ class WilayahController extends Controller
 
         if ($data['action'] === 'skip') {
             $meta['resolution'] = ['action' => 'skip'];
+        }
+
+        if ($data['action'] === 'fix_fields') {
+            $meta['resolution'] = ['action' => 'fix_fields'];
         }
 
         $conflict->update([
@@ -606,7 +648,28 @@ class WilayahController extends Controller
             'reprocess_message' => in_array($data['action'], ['skip', 'keep_existing_nik']) ? 'Tidak perlu reprocess untuk aksi ini.' : null,
         ]);
 
-        return back()->with('success', 'Issue import berhasil diproses.');
+        return back()->with('success', 'Issue import berhasil diproses. Silakan jalankan Reprocess jika diperlukan.');
+    }
+
+    public function resetImportConflict(Request $request, WilayahImportConflict $conflict)
+    {
+        Gate::authorize('wilayah.view');
+
+        if (($conflict->reprocess_status ?? '') === 'success') {
+            return back()->with('error', 'Tidak bisa reset issue yang sudah sukses di-import.');
+        }
+
+        $conflict->update([
+            'status' => 'pending',
+            'resolution_action' => null,
+            'reprocess_status' => null,
+            'reprocess_message' => null,
+            'resolved_at' => null,
+            'resolved_by' => null,
+            'payload_fixed' => null,
+        ]);
+
+        return back()->with('success', 'Status issue berhasil di-reset menjadi Pending.');
     }
 
     public function reprocessImportIssue(Request $request, WilayahImportConflict $conflict)
@@ -680,9 +743,9 @@ class WilayahController extends Controller
         $fixed = is_array($conflict->payload_fixed) ? $conflict->payload_fixed : [];
         $meta = is_array($conflict->meta) ? $conflict->meta : [];
 
-        $nik = preg_replace('/\D+/', '', (string)($fixed['nik'] ?? $conflict->nik ?? $this->extractPayloadValue($raw, ['nik', 'nomor induk kependudukan']) ?? ''));
+        $nik = preg_replace('/[^0-9]/', '', (string)($fixed['nik'] ?? $conflict->nik ?? $this->extractPayloadValue($raw, ['nik', 'nomor induk kependudukan']) ?? ''));
         $nama = trim((string)($fixed['nama'] ?? $conflict->nama ?? $this->extractPayloadValue($raw, ['nama', 'nama lengkap']) ?? ''));
-        $nkk = preg_replace('/\D+/', '', (string)($fixed['nkk'] ?? $conflict->nkk ?? $this->extractPayloadValue($raw, ['nkk', 'no kk', 'nomor kk', 'kartu keluarga']) ?? ''));
+        $nkk = preg_replace('/[^0-9]/', '', (string)($fixed['nkk'] ?? $conflict->nkk ?? $this->extractPayloadValue($raw, ['nkk', 'no kk', 'nomor kk', 'kartu keluarga']) ?? ''));
 
         if ($nik === '' || $nama === '') {
             throw new \RuntimeException('NIK/Nama belum valid untuk reprocess. Lengkapi dulu via resolve issue.');
@@ -725,25 +788,21 @@ class WilayahController extends Controller
             $rtKode = trim((string)$rt->kode);
             $dusunNama = trim((string)optional($rt->dusun)->nama);
         } else {
-            $wilayah = $this->resolveWilayahFromCode($rwKode, $rtKode, $dusunNama);
-            if (($wilayah['status'] ?? '') !== 'ok') {
-                throw new \RuntimeException((string)($wilayah['reason'] ?? 'Gagal menyelesaikan mapping wilayah saat reprocess.'));
-            }
-
-            $rwKode = $wilayah['rw_kode'];
-            $rtKode = $wilayah['rt_kode'];
-            $dusunNama = (string)($wilayah['dusun_nama'] ?? '');
+            $wilayah = $this->resolveWilayah($rtKode, $rwKode, $dusunNama);
+            
+            $rtId = $wilayah['rt_id'];
+            $rwId = $wilayah['rw_id'];
+            $dusunId = $wilayah['dusun_id'];
         }
 
-        $kartuKeluargaId = $this->upsertKartuKeluargaAndGetId($nkk, [
+        $this->upsertKartuKeluargaAndGetId($nkk, [
             'alamat' => $alamat !== '' ? $alamat : 'Alamat tidak diketahui',
-            'rt' => $rtKode,
-            'rw' => $rwKode,
-            'dusun' => $dusunNama !== '' ? $dusunNama : null,
+            'rt_id' => $rtId,
+            'rw_id' => $rwId,
+            'dusun_id' => $dusunId,
         ]);
 
         return [
-            'kartu_keluarga_id' => $kartuKeluargaId,
             'nkk' => $nkk,
             'nik' => $nik,
             'nama' => $nama,
@@ -759,25 +818,23 @@ class WilayahController extends Controller
             'nama_ibu' => $namaIbu !== '' ? $namaIbu : null,
             'keterangan' => $keterangan !== '' ? $keterangan : null,
             'alamat' => $alamat !== '' ? $alamat : 'Alamat tidak diketahui',
-            'rt' => $rtKode,
-            'rw' => $rwKode,
-            'dusun' => $dusunNama !== '' ? $dusunNama : null,
+            'rt_id' => $rtId,
+            'rw_id' => $rwId,
+            'dusun_id' => $dusunId,
         ];
     }
 
-    private function upsertKartuKeluargaAndGetId(string $nkk, array $attrs = []): int
+    private function upsertKartuKeluargaAndGetId(string $nkk, array $attrs = []): void
     {
-        $kk = KartuKeluarga::firstOrCreate(
+        KartuKeluarga::updateOrCreate(
             ['nkk' => $nkk],
             [
                 'alamat' => $attrs['alamat'] ?? null,
-                'rt' => $attrs['rt'] ?? null,
-                'rw' => $attrs['rw'] ?? null,
-                'dusun' => $attrs['dusun'] ?? null,
+                'rt_id' => $attrs['rt_id'] ?? null,
+                'rw_id' => $attrs['rw_id'] ?? null,
+                'dusun_id' => $attrs['dusun_id'] ?? null,
             ]
         );
-
-        return (int)$kk->id;
     }
 
     private function extractPayloadValue(array $payloadRaw, array $candidates): ?string

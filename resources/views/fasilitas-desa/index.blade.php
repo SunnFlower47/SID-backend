@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Fasilitas Desa')
 @section('subtitle', 'Kelola data fasilitas dan infrastruktur desa')
@@ -221,8 +221,8 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="text-sm text-gray-900">{{ Str::limit($item->alamat, 30) }}</div>
-                            @if($item->rt && $item->rw)
-                            <div class="text-sm text-gray-500">RT {{ $item->rt }}/RW {{ $item->rw }}</div>
+                            @if($item->rt_label && $item->rw_label)
+                            <div class="text-sm text-gray-500">RT {{ $item->rt_label }}/RW {{ $item->rw_label }}</div>
                             @endif
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -362,3 +362,4 @@ function confirmDelete(fasilitasId, fasilitasName) {
 }
 @endnoncescript
 @endsection
+

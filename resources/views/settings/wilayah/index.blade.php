@@ -99,8 +99,8 @@
                     @forelse($rts as $rt)
                         <tr class="hover:bg-gray-50 transition-colors border-t align-top">
                             <td class="px-4 py-3 font-semibold text-gray-900">{{ $rt->kode }}</td>
-                            <td class="px-4 py-3 text-gray-700">{{ $rt->rw?->kode ?? '-' }}</td>
-                            <td class="px-4 py-3 text-gray-700">{{ $rt->dusun?->nama ?? '-' }}</td>
+                            <td class="px-4 py-3 text-gray-700">{{ $rt->rw->kode ?? '-' }}</td>
+                            <td class="px-4 py-3 text-gray-700">{{ $rt->dusun->nama ?? '-' }}</td>
                             <td class="px-4 py-3">
                                 <span class="inline-flex items-center px-2.5 py-1 rounded-full bg-sky-100 text-sky-800 font-semibold">{{ $rt->penduduk_count ?? 0 }} orang</span>
                             </td>
@@ -222,10 +222,16 @@
                                 @forelse(($pv['sample'] ?? []) as $s)
                                     <tr class="border-t">
                                         <td class="px-3 py-2">{{ $s['nama'] ?? '-' }}</td>
-                                        <td class="px-3 py-2">{{ $s['nik'] ?? '-' }}</td>
-                                        <td class="px-3 py-2">{{ $s['nkk'] ?? '-' }}</td>
-                                        <td class="px-3 py-2">{{ $s['rt'] ?? '-' }} / {{ $s['rw'] ?? '-' }}</td>
-                                        <td class="px-3 py-2">{{ $s['dusun'] ?? '-' }}</td>
+                                        <td class="px-3 py-2 text-xs font-mono">{{ $s['nik'] ?? '-' }}</td>
+                                        <td class="px-3 py-2 text-xs font-mono">{{ $s['nkk'] ?? '-' }}</td>
+                                        <td class="px-3 py-2">
+                                            @if(($s['rt_label'] ?? '-') !== '-')
+                                                RT {{ $s['rt_label'] }} / RW {{ $s['rw_label'] }}
+                                            @else
+                                                <span class="text-red-500 font-bold">BELUM TERPETAKAN</span>
+                                            @endif
+                                        </td>
+                                        <td class="px-3 py-2">{{ $s['dusun_label'] ?? '-' }}</td>
                                     </tr>
                                 @empty
                                     <tr>
@@ -310,5 +316,6 @@
     </div>
 </div>
 @endsection
+
 
 

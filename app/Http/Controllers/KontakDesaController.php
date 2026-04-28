@@ -62,7 +62,23 @@ class KontakDesaController extends Controller
             'lainnya' => 'Lainnya',
         ];
 
-        return view('kontak-desa.create', compact('jenisOptions'));
+        $masterRwOptions = \App\Models\Rw::with('rts')->orderBy('kode')->get()->map(function($rw) {
+            return [
+                'id' => $rw->id,
+                'kode' => $rw->kode,
+                'nama' => $rw->nama,
+                'rts' => $rw->rts->map(function($rt) {
+                    return [
+                        'id' => $rt->id,
+                        'kode' => $rt->kode,
+                        'dusun_id' => $rt->dusun_id,
+                        'dusun' => optional($rt->dusun)->nama
+                    ];
+                })
+            ];
+        });
+
+        return view('kontak-desa.create', compact('jenisOptions', 'masterRwOptions'));
     }
 
     /**
@@ -75,9 +91,9 @@ class KontakDesaController extends Controller
             'jenis' => 'required|in:kantor_desa,kepala_desa,sekretaris,bendahara,kasi_pemerintahan,kasi_kesejahteraan,kasi_pelayanan,kepala_dusun,ketua_rw,ketua_rt,ketua_bumdes,puskesmas,posyandu,sekolah,masjid,lainnya',
             'jabatan' => 'nullable|string|max:255',
             'alamat' => 'required|string',
-            'rt' => 'nullable|string|max:10',
-            'rw' => 'nullable|string|max:10',
-            'dusun' => 'nullable|string|max:100',
+            'rt_id' => 'nullable|exists:rts,id',
+            'rw_id' => 'nullable|exists:rws,id',
+            'dusun_id' => 'nullable|exists:dusuns,id',
             'no_telepon' => 'nullable|string|max:15',
             'no_hp' => 'nullable|string|max:15',
             'email' => 'nullable|email|max:255',
@@ -145,7 +161,23 @@ class KontakDesaController extends Controller
             'lainnya' => 'Lainnya',
         ];
 
-        return view('kontak-desa.edit', compact('kontakDesa', 'jenisOptions'));
+        $masterRwOptions = \App\Models\Rw::with('rts')->orderBy('kode')->get()->map(function($rw) {
+            return [
+                'id' => $rw->id,
+                'kode' => $rw->kode,
+                'nama' => $rw->nama,
+                'rts' => $rw->rts->map(function($rt) {
+                    return [
+                        'id' => $rt->id,
+                        'kode' => $rt->kode,
+                        'dusun_id' => $rt->dusun_id,
+                        'dusun' => optional($rt->dusun)->nama
+                    ];
+                })
+            ];
+        });
+
+        return view('kontak-desa.edit', compact('kontakDesa', 'jenisOptions', 'masterRwOptions'));
     }
 
     /**
@@ -158,9 +190,9 @@ class KontakDesaController extends Controller
             'jenis' => 'required|in:kantor_desa,kepala_desa,sekretaris,bendahara,kasi_pemerintahan,kasi_kesejahteraan,kasi_pelayanan,kepala_dusun,ketua_rw,ketua_rt,ketua_bumdes,puskesmas,posyandu,sekolah,masjid,lainnya',
             'jabatan' => 'nullable|string|max:255',
             'alamat' => 'required|string',
-            'rt' => 'nullable|string|max:10',
-            'rw' => 'nullable|string|max:10',
-            'dusun' => 'nullable|string|max:100',
+            'rt_id' => 'nullable|exists:rts,id',
+            'rw_id' => 'nullable|exists:rws,id',
+            'dusun_id' => 'nullable|exists:dusuns,id',
             'no_telepon' => 'nullable|string|max:15',
             'no_hp' => 'nullable|string|max:15',
             'email' => 'nullable|email|max:255',

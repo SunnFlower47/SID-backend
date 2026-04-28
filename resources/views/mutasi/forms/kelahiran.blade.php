@@ -150,22 +150,28 @@
                       placeholder="Alamat lengkap bayi" required></textarea>
         </div>
         <div>
-            <label for="rt_bayi" class="block text-sm font-medium text-gray-700 mb-2">RT</label>
-            <input type="text" name="rt_bayi" id="rt_bayi"
-                   class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm transition-colors"
-                   placeholder="001" maxlength="3" pattern="[0-9]{3}" required>
+            <label for="rw_id_bayi" class="block text-sm font-medium text-gray-700 mb-2">RW</label>
+            <select name="rw_id_bayi" id="rw_id_bayi" onchange="populateRtByRwMutasi(this.value, 'rt_id_bayi')"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm transition-colors" required>
+                <option value="">Pilih RW...</option>
+                @foreach(($masterRwOptions ?? []) as $rw)
+                    <option value="{{ $rw['id'] }}">RW {{ $rw['kode'] }} - {{ $rw['nama'] }}</option>
+                @endforeach
+            </select>
         </div>
         <div>
-            <label for="rw_bayi" class="block text-sm font-medium text-gray-700 mb-2">RW</label>
-            <input type="text" name="rw_bayi" id="rw_bayi"
-                   class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm transition-colors"
-                   placeholder="001" maxlength="3" pattern="[0-9]{3}" required>
+            <label for="rt_id_bayi" class="block text-sm font-medium text-gray-700 mb-2">RT</label>
+            <select name="rt_id_bayi" id="rt_id_bayi" onchange="syncDusunByRtMutasi(this.value, document.getElementById('rw_id_bayi').value, 'dusun_id_bayi')"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm transition-colors" required>
+                <option value="">Pilih RT...</option>
+            </select>
         </div>
         <div>
-            <label for="dusun_bayi" class="block text-sm font-medium text-gray-700 mb-2">Dusun</label>
-            <input type="text" name="dusun_bayi" id="dusun_bayi"
+            <label for="dusun_id_bayi_label" class="block text-sm font-medium text-gray-700 mb-2">Dusun</label>
+            <input type="text" id="dusun_id_bayi_label"
                    class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm transition-colors bg-gray-50"
                    placeholder="Dusun" readonly>
+            <input type="hidden" name="dusun_id_bayi" id="dusun_id_bayi">
         </div>
         <div>
             <label for="keterangan_bayi" class="block text-sm font-medium text-gray-700 mb-2">Keterangan</label>
@@ -193,3 +199,4 @@
         </div>
     </div>
 </div>
+

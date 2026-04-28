@@ -4,8 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+use App\Traits\HasWilayahLabels;
+
 class StrukturDesa extends Model
 {
+    use HasWilayahLabels;
 
     protected $fillable = [
         'nama',
@@ -15,9 +20,9 @@ class StrukturDesa extends Model
         'no_hp',
         'email',
         'alamat',
-        'rt',
-        'rw',
-        'dusun',
+        'rt_id',
+        'rw_id',
+        'dusun_id',
         'tugas_wewenang',
         'tanggal_pengangkatan',
         'tanggal_berakhir',
@@ -27,11 +32,42 @@ class StrukturDesa extends Model
     ];
 
     protected $casts = [
+        'rt_id' => 'integer',
+        'rw_id' => 'integer',
+        'dusun_id' => 'integer',
         'tanggal_pengangkatan' => 'date',
         'tanggal_berakhir' => 'date',
         'status_aktif' => 'boolean',
         'urutan' => 'integer',
     ];
+
+    // =========================================================
+    // RELATIONS - WILAYAH MASTER
+    // =========================================================
+
+    public function rtMaster(): BelongsTo
+    {
+        return $this->belongsTo(Rt::class, 'rt_id');
+    }
+
+    public function rwMaster(): BelongsTo
+    {
+        return $this->belongsTo(Rw::class, 'rw_id');
+    }
+
+    public function dusunMaster(): BelongsTo
+    {
+        return $this->belongsTo(Dusun::class, 'dusun_id');
+    }
+
+    /**
+     * Scope for Eager Loading Wilayah Master (High Performance)
+     */
+    public function scopeWithWilayah($query)
+    {
+        return $query->with(['rtMaster', 'rwMaster', 'dusunMaster']);
+    }
+
 
     /**
      * Get the kategori label
@@ -65,11 +101,9 @@ class StrukturDesa extends Model
     public function getAlamatLengkapAttribute()
     {
         $alamat = $this->alamat ?? '';
-        if ($this->rt) $alamat .= ', RT ' . $this->rt;
-        if ($this->rw) $alamat .= '/RW ' . $this->rw;
-        if ($this->dusun) $alamat .= ', Dusun ' . $this->dusun;
-        return $alamat ?: 'Alamat tidak tersedia';
+        return "{$alamat}, RT {$this->rt_label}/RW {$this->rw_label}, {$this->dusun_label}";
     }
+
 
     /**
      * Get the status label

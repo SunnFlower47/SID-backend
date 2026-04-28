@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Tambah Berita Baru')
 @section('subtitle', 'Buat berita atau pengumuman untuk desa')
@@ -177,3 +177,4 @@ document.querySelector('form').addEventListener('submit', function(e) {
 });
 @endnoncescript
 @endpush
+

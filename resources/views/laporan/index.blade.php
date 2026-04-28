@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Laporan')
 @section('subtitle', 'Laporan dan statistik data kependudukan')
@@ -201,4 +201,5 @@
 @endif
 @endnoncescript
 @endsection
+
 

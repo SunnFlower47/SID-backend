@@ -3,14 +3,20 @@
 namespace App\Imports;
 
 use App\Models\Penduduk;
+use App\Traits\WilayahResolver;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithValidation;
+use Maatwebsite\Excel\Concerns\WithChunkReading;
 
-class PendudukImport implements ToCollection, WithHeadingRow, WithValidation
+class PendudukImport implements ToCollection, WithHeadingRow, WithValidation, WithChunkReading
 {
+    use WilayahResolver;
+
     /**
      * @param Collection $collection
      */
@@ -18,10 +24,20 @@ class PendudukImport implements ToCollection, WithHeadingRow, WithValidation
     {
         foreach ($collection as $row) {
             try {
-                // Skip empty rows
-                if (empty($row['nik']) || empty($row['nama'])) {
+                // 1. Basic Cleaning
+                $nik = trim($row['nik'] ?? '');
+                $nama = trim($row['nama'] ?? '');
+
+                if (empty($nik) || empty($nama)) {
                     continue;
                 }
+
+                // 2. Resolve Wilayah (Using Standardized Regex & Sanity Check from Trait)
+                $wilayah = $this->resolveWilayah(
+                    $row['rt'] ?? '001',
+                    $row['rw'] ?? '001',
+                    $row['dusun'] ?? null
+                );
 
                 // Generate NKK if not provided
                 $nkk = $row['nkk'] ?? $row['no_kk'] ?? $this->generateNKK();
@@ -44,56 +60,29 @@ class PendudukImport implements ToCollection, WithHeadingRow, WithValidation
                         'nama_ayah' => $row['nama_ayah'] ?? null,
                         'nama_ibu' => $row['nama_ibu'] ?? null,
                         'alamat' => $row['alamat'] ?? 'Alamat tidak diketahui',
-                        'rt' => $this->formatRT($row['rt'] ?? '01'),
-                        'rw' => $this->formatRW($row['rw'] ?? '01'),
-                        'dusun' => $this->determineDusun($row['rt'] ?? '01'),
+                        'rt_id' => $wilayah['rt_id'],
+                        'rw_id' => $wilayah['rw_id'],
+                        'dusun_id' => $wilayah['dusun_id'],
                         'keterangan' => $row['keterangan'] ?? null,
                     ]
                 );
 
             } catch (\Exception $e) {
                 Log::error('Error importing row: ' . $e->getMessage(), [
-                    'row' => $row->toArray()
+                    'row' => is_array($row) ? $row : (method_exists($row, 'toArray') ? $row->toArray() : $row)
                 ]);
                 continue;
             }
         }
     }
 
+
     /**
      * Generate NKK if not provided
      */
     private function generateNKK()
     {
-        // Generate 16-digit NKK
-        return str_pad(rand(1000000000000000, 9999999999999999), 16, '0', STR_PAD_LEFT);
-    }
-
-    /**
-     * Format RT to 3 digits
-     */
-    private function formatRT($rt)
-    {
-        return str_pad($rt, 3, '0', STR_PAD_LEFT);
-    }
-
-    /**
-     * Format RW to 3 digits
-     */
-    private function formatRW($rw)
-    {
-        return str_pad($rw, 3, '0', STR_PAD_LEFT);
-    }
-
-    /**
-     * Determine dusun based on RT
-     */
-    private function determineDusun($rt)
-    {
-        $rtFormatted = str_pad($rt, 3, '0', STR_PAD_LEFT);
-        $dusunSatu = ['001', '002', '003', '004', '007', '008'];
-        
-        return in_array($rtFormatted, $dusunSatu) ? 'Dusun Satu' : 'Dusun Dua';
+        return date('Ymd') . str_pad(rand(1, 99999999), 8, '0', STR_PAD_LEFT);
     }
 
     /**
@@ -101,15 +90,15 @@ class PendudukImport implements ToCollection, WithHeadingRow, WithValidation
      */
     private function mapJenisKelamin($value)
     {
-        $value = strtolower(trim($value));
+        $value = strtoupper(trim($value));
         
-        if (in_array($value, ['l', 'laki-laki', 'male', 'pria'])) {
-            return 'L';
-        } elseif (in_array($value, ['p', 'perempuan', 'female', 'wanita'])) {
-            return 'P';
+        if (in_array($value, ['L', 'LAKI-LAKI', 'LAKI LAKI', 'PRIA', 'MALE'])) {
+            return 'LAKI-LAKI';
+        } elseif (in_array($value, ['P', 'PEREMPUAN', 'WANITA', 'FEMALE'])) {
+            return 'PEREMPUAN';
         }
         
-        return 'L'; // Default
+        return 'LAKI-LAKI'; // Default
     }
 
     /**
@@ -236,8 +225,13 @@ class PendudukImport implements ToCollection, WithHeadingRow, WithValidation
     public function rules(): array
     {
         return [
-            '*.nik' => 'required|string|max:16|distinct|unique:penduduks,nik',
+            '*.nik' => 'required|string|size:16|distinct',
             '*.nama' => 'required|string|max:255',
         ];
+    }
+
+    public function chunkSize(): int
+    {
+        return 100;
     }
 }

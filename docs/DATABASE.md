@@ -79,8 +79,10 @@ DB_COLLATION=utf8mb4_unicode_ci
 |------------|-------------|
 | `penduduks` | Core resident data |
 | `mutasis` | Population mutations |
+| `kartu_keluargas` | KK Summary & Synchronization Cache |
 | `surat_pengajuans` | Letter applications |
 | `surats` | Letter templates |
+| `dusuns`, `rws`, `rts` | Master data wilayah (RT/RW/Dusun) |
 | `desa_settings` | Village settings |
 | `struktur_desas` | Village structure |
 | `kontak_desas` | Village contact info |
@@ -90,19 +92,18 @@ DB_COLLATION=utf8mb4_unicode_ci
 | `penerima_bantuan_sosials` | Social assistance recipients |
 | `apbdes` | Village budget |
 | `proyek_desas` | Village projects |
+| `histori_pengeluarans` | Financial expenditure logs |
 | `fasilitas_desas` | Village facilities |
 | `umkms` | UMKM data |
 | `histori_pisah_kk` | KK separation history |
 | `contact_messages` | Contact form messages |
 | `users` | System users |
-| `roles` | User roles |
-| `permissions` | User permissions |
+| `roles`, `permissions` | RBAC tables |
 | `activity_log` | System activity logs |
 | `migrations` | Migration records |
 | `sessions` | User sessions |
-| `password_reset_tokens` | Password reset tokens |
-| `cache` | Application cache |
-| `cache_locks` | Cache locks |
+| `cache`, `cache_locks` | Application cache |
+
 
 ---
 
@@ -114,11 +115,10 @@ DB_COLLATION=utf8mb4_unicode_ci
 ```sql
 CREATE TABLE penduduks (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    kartu_keluarga_id BIGINT UNSIGNED NULL COMMENT 'Foreign key to kartu_keluargas (legacy)',
     nkk VARCHAR(255) NOT NULL COMMENT 'Nomor Kartu Keluarga',
     nik VARCHAR(255) UNIQUE NOT NULL COMMENT 'Nomor Induk Kependudukan (16 digit)',
     nama VARCHAR(255) NOT NULL COMMENT 'Nama lengkap penduduk',
-    jenis_kelamin VARCHAR(10) NOT NULL COMMENT 'Jenis kelamin (L/P)',
+    jenis_kelamin VARCHAR(20) NOT NULL COMMENT 'LAKI-LAKI / PEREMPUAN',
     tempat_lahir VARCHAR(255) NOT NULL COMMENT 'Tempat lahir',
     tanggal_lahir DATE NULL COMMENT 'Tanggal lahir',
     agama VARCHAR(255) NOT NULL COMMENT 'Agama',
@@ -133,11 +133,15 @@ CREATE TABLE penduduks (
     rw VARCHAR(255) NOT NULL COMMENT 'Nomor RW',
     dusun VARCHAR(255) NULL COMMENT 'Nama dusun',
     keterangan TEXT NULL COMMENT 'Keterangan tambahan',
-    deleted_at TIMESTAMP NULL DEFAULT NULL COMMENT 'Soft delete timestamp',
+    deleted_at TIMESTAMP NULL DEFAULT NULL COMMENT 'Soft delete (Menandakan Mutasi)',
     created_at TIMESTAMP NULL DEFAULT NULL,
-    updated_at TIMESTAMP NULL DEFAULT NULL
+    updated_at TIMESTAMP NULL DEFAULT NULL,
+    kartu_keluarga_id BIGINT UNSIGNED NULL COMMENT 'DEPRECATED: Tidak digunakan lagi'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
+
+> [!IMPORTANT]
+> **Struktur Utama**: Sistem ini beralih sepenuhnya ke penggunaan `nkk` (string) untuk mengelola hubungan keluarga. Kolom `kartu_keluarga_id` hanya dipertahankan untuk kompatibilitas database lama tetapi tidak digunakan dalam logika aplikasi.
 
 #### **Indexes**
 - `PRIMARY KEY` on `id`
@@ -157,13 +161,13 @@ CREATE TABLE penduduks (
 | Field | Type | Description | Constraints |
 |-------|------|-------------|-------------|
 | `id` | BIGINT UNSIGNED | Primary key | AUTO_INCREMENT |
-| `nkk` | VARCHAR(255) | Nomor Kartu Keluarga | NOT NULL |
+| `nkk` | VARCHAR(255) | Nomor Kartu Keluarga (Kunci Hubungan) | NOT NULL |
 | `nik` | VARCHAR(255) | NIK 16 digit | UNIQUE, NOT NULL |
 | `nama` | VARCHAR(255) | Nama lengkap penduduk | NOT NULL |
-| `jenis_kelamin` | VARCHAR(20) | Jenis kelamin (L/P) | NOT NULL |
+| `jenis_kelamin` | VARCHAR(20) | LAKI-LAKI / PEREMPUAN | NOT NULL |
 | `tempat_lahir` | VARCHAR(255) | Tempat lahir | NOT NULL |
 | `tanggal_lahir` | DATE | Tanggal lahir | NULLABLE |
-| `usia` | INT | Usia (calculated) | NULLABLE |
+| `usia` | INT | Usia (dihitung otomatis) | NULLABLE |
 | `agama` | VARCHAR(255) | Agama | NOT NULL |
 | `status_perkawinan` | VARCHAR(255) | Status perkawinan | NULLABLE |
 | `kedudukan_keluarga` | VARCHAR(255) | Kedudukan dalam keluarga | NULLABLE |
@@ -176,10 +180,13 @@ CREATE TABLE penduduks (
 | `rw` | VARCHAR(255) | Nomor RW | NOT NULL |
 | `dusun` | VARCHAR(255) | Nama dusun | NULLABLE |
 | `keterangan` | TEXT | Keterangan tambahan | NULLABLE |
-| `status` | VARCHAR(20) | Status penduduk | NOT NULL |
+| `deleted_at` | TIMESTAMP | Menandakan penduduk sudah Mutasi (Soft Delete) | NULLABLE |
 | `created_at` | TIMESTAMP | Waktu dibuat | NULLABLE |
 | `updated_at` | TIMESTAMP | Waktu diupdate | NULLABLE |
-| `deleted_at` | TIMESTAMP | Soft delete | NULLABLE |
+| `kartu_keluarga_id` | BIGINT | **DEPRECATED** (Legacy Field) | NULLABLE |
+
+> [!NOTE]
+> **Kolom Status**: Kolom `status` telah dihapus. Status penduduk kini ditentukan oleh `deleted_at`. Jika `NULL`, penduduk aktif. Jika terisi, penduduk tersebut sudah mutasi (mati/pindah).
 
 ---
 
@@ -688,7 +695,88 @@ CREATE TABLE role_has_permissions (
 
 ---
 
-### **14. SYSTEM TABLES (Laravel Default Tables)**
+### **14. KARTU_KELUARGAS (KK Cache Table)**
+
+#### **Table Definition**
+```sql
+CREATE TABLE kartu_keluargas (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    nkk VARCHAR(16) UNIQUE NOT NULL,
+    nama_kepala_keluarga VARCHAR(255) NULL,
+    nik_kepala_keluarga VARCHAR(16) NULL,
+    alamat TEXT NULL,
+    rt VARCHAR(3) NULL,
+    rw VARCHAR(3) NULL,
+    dusun VARCHAR(255) NULL,
+    jumlah_anggota INT DEFAULT 0,
+    anggota_aktif INT DEFAULT 0,
+    anggota_mutasi INT DEFAULT 0,
+    anggota_meninggal INT DEFAULT 0,
+    anggota_pindah INT DEFAULT 0,
+    anggota_pisah_kk INT DEFAULT 0,
+    status_kk ENUM('normal', 'bermasalah', 'bermasalah_sementara', 'resolved') DEFAULT 'normal',
+    mutasi_penyebab_id BIGINT UNSIGNED NULL,
+    kk_sementara_id BIGINT UNSIGNED NULL,
+    kk_bermasalah_sejak TIMESTAMP NULL,
+    catatan_bermasalah TEXT NULL,
+    created_at TIMESTAMP NULL,
+    updated_at TIMESTAMP NULL,
+    
+    FOREIGN KEY (mutasi_penyebab_id) REFERENCES mutasis(id) ON DELETE SET NULL,
+    FOREIGN KEY (kk_sementara_id) REFERENCES penduduks(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+```
+
+> [!TIP]
+> **Sinkronisasi**: Tabel ini disinkronkan secara otomatis oleh `MutasiObserver` dan `PendudukObserver`. Jangan melakukan update manual pada kolom jumlah anggota.
+
+---
+
+### **15. WILAYAH MASTER (Dusun, RW, RT)**
+
+#### **dusuns Table**
+| Field | Type | Description |
+|-------|------|-------------|
+| `nama` | VARCHAR(100) | Nama Dusun (Unique) |
+| `is_active` | BOOLEAN | Status Aktif |
+
+#### **rws Table**
+| Field | Type | Description |
+|-------|------|-------------|
+| `kode` | VARCHAR(3) | Nomor RW (001, 002, dst) |
+| `nama` | VARCHAR(100) | Nama RW (Opsional) |
+
+#### **rts Table**
+| Field | Type | Description |
+|-------|------|-------------|
+| `kode` | VARCHAR(3) | Nomor RT (001, 002, dst) |
+| `rw_id` | BIGINT | Foreign key ke rws |
+| `dusun_id` | BIGINT | Foreign key ke dusuns |
+
+---
+
+### **16. FINANCIAL MODULE (APBDes & Proyek)**
+
+#### **apbdes Table**
+| Field | Type | Description |
+|-------|------|-------------|
+| `tahun` | YEAR | Tahun Anggaran |
+| `jenis` | ENUM | pendapatan, belanja, pembiayaan |
+| `nama_rekening` | VARCHAR | Nama mata anggaran |
+| `anggaran` | DECIMAL | Nilai Pagu |
+| `realisasi` | DECIMAL | Nilai Penyerapan |
+
+#### **proyek_desas Table**
+| Field | Type | Description |
+|-------|------|-------------|
+| `nama_proyek` | VARCHAR | Nama pembangunan |
+| `anggaran` | DECIMAL | Nilai Proyek |
+| `progress` | INT | Persentase (0-100) |
+| `status` | ENUM | perencanaan, pelaksanaan, selesai |
+
+---
+
+### **17. SYSTEM TABLES (Laravel Default Tables)**
 
 #### **Migrations Table**
 ```sql
@@ -765,13 +853,12 @@ CREATE TABLE failed_jobs (
 ## 🔗 RELATIONSHIPS OVERVIEW
 
 ### **Main Relationships**
-- `penduduks` ↔ `mutasis` (One-to-Many)
-- `penduduks` ↔ `surat_pengajuans` (One-to-Many)
-- `users` ↔ `surat_pengajuans` (One-to-Many, admin_id)
-- `users` ↔ `pengaduans` (One-to-Many, admin_id)
-- `bantuan_sosials` ↔ `penerima_bantuan_sosials` (One-to-Many)
-- `penduduks` ↔ `penerima_bantuan_sosials` (One-to-Many)
-- `struktur_desas` ↔ `struktur_desas` (Self-referencing, parent_id)
+- `penduduks` ↔ `mutasis` (One-to-Many): History mutasi tiap warga.
+- `penduduks` ↔ `kartu_keluargas` (Many-to-One via `nkk`): Pengelompokan keluarga.
+- `kartu_keluargas` ↔ `mutasis` (Many-to-One via `mutasi_penyebab_id`): Tracking penyebab KK bermasalah.
+- `apbdes` ↔ `histori_pengeluarans` (One-to-Many): Pelacakan penggunaan anggaran per rekening.
+- `rws` ↔ `rts` (One-to-Many): Hierarki wilayah desa.
+- `surats` ↔ `surat_pengajuans` (One-to-Many): Template yang digunakan untuk pengajuan.
 
 ### **Permission System**
 - `users` ↔ `roles` (Many-to-Many via `model_has_roles`)
@@ -837,37 +924,21 @@ database/migrations/
 ├── 0001_01_01_000000_create_users_table.php
 ├── 0001_01_01_000001_create_cache_table.php
 ├── 0001_01_01_000002_create_jobs_table.php
-├── 2024_01_15_000000_add_tahun_to_surats_table.php
 ├── 2025_09_20_135447_create_permission_tables.php
 ├── 2025_09_20_135451_create_activity_log_table.php
-├── 2025_09_20_135452_add_event_column_to_activity_log_table.php
-├── 2025_09_20_135453_add_batch_uuid_column_to_activity_log_table.php
 ├── 2025_09_20_135455_create_penduduks_table.php
 ├── 2025_09_20_135458_create_mutasis_table.php
-├── 2025_09_20_182123_make_status_perkawinan_and_kedudukan_keluarga_nullable.php
-├── 2025_09_20_192847_add_dusun_to_penduduks_table.php
 ├── 2025_09_21_154259_create_histori_pisah_kk_table.php
-├── 2025_09_22_055543_fix_mutasi_table.php
 ├── 2025_09_28_080756_create_desa_settings_table.php
 ├── 2025_09_29_040000_create_surat_pengajuans_table.php
 ├── 2025_09_29_040001_create_beritas_table.php
-├── 2025_09_30_183036_add_soft_deletes_to_mutasis_table.php
 ├── 2025_09_30_193336_create_bantuan_sosials_table.php
-├── 2025_09_30_193405_create_penerima_bantuan_sosials_table.php
 ├── 2025_09_30_201535_create_pengaduans_table.php
 ├── 2025_10_01_051624_create_fasilitas_desas_table.php
 ├── 2025_10_01_054501_create_struktur_desas_table.php
-├── 2025_10_01_055250_create_kontak_desas_table.php
 ├── 2025_10_01_061126_create_apbdes_table.php
 ├── 2025_10_01_061130_create_proyek_desas_table.php
-├── 2025_10_01_065310_create_umkms_table.php
-├── 2025_10_02_090645_update_rt_rw_format_to_three_digits.php
-├── 2025_10_02_143806_update_jenis_mutasi_enum_values.php
-├── 2025_10_03_163956_add_pisah_kk_to_jenis_mutasi_enum.php
-├── 2025_10_03_221157_add_jenis_surat_to_surat_pengajuans_table.php
-├── 2025_10_03_221502_add_created_by_to_surat_pengajuans_table.php
 ├── 2025_10_03_222710_create_surats_table.php
-├── 2025_10_03_223704_update_surat_pengajuans_table_for_web_desa.php
 ├── 2025_10_03_224605_add_missing_columns_to_surat_pengajuans_table.php
 └── 2025_10_07_023628_create_contact_messages_table.php
 ```

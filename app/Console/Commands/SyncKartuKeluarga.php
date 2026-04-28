@@ -6,125 +6,126 @@ use Illuminate\Console\Command;
 use App\Models\KartuKeluarga;
 use App\Models\Penduduk;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class SyncKartuKeluarga extends Command
 {
     /**
      * The name and signature of the console command.
-     *
-     * @var string
      */
-    protected $signature = 'sync:kartu-keluarga';
+    protected $signature = 'desa:sync-kk {--force : Force update IDs even if already set}';
 
     /**
      * The console command description.
-     *
-     * @var string
      */
-    protected $description = 'Sync Kartu Keluarga summary table from Penduduk data';
+    protected $description = 'Clean and sync kartu_keluarga_id in penduduks table based on NKK string';
 
     /**
      * Execute the console command.
      */
     public function handle()
     {
-        $this->info('Starting Kartu Keluarga synchronization...');
+        $this->info('Starting Elite Data Cleansing & Sync (Fase 2)...');
+        
+        $conflicts = [];
+        $stats = [
+            'total' => 0,
+            'fixed' => 0,
+            'orphan' => 0,
+            'mismatch' => 0,
+            'already_correct' => 0,
+        ];
 
-        DB::beginTransaction();
-        try {
-            // Truncate to start fresh
-            KartuKeluarga::truncate();
+        $penduduks = Penduduk::withTrashed()->whereNotNull('nkk')->get();
+        $stats['total'] = $penduduks->count();
 
-            // Get all distinct NKKs directly from DB to avoid model scopes initially
-            $nkks = DB::table('penduduks')
-                ->whereNull('deleted_at')
-                ->whereNotNull('nkk')
-                ->where('nkk', '!=', '')
-                ->distinct()
-                ->pluck('nkk');
+        $bar = $this->output->createProgressBar($stats['total']);
+        $bar->start();
 
-            $bar = $this->output->createProgressBar($nkks->count());
-            $bar->start();
-
-            foreach ($nkks as $nkk) {
-                // Get members including soft deletes for checking mutations
-                $members = Penduduk::withTrashed()->where('nkk', $nkk)->get();
-                
-                if ($members->isEmpty()) {
-                    $bar->advance();
-                    continue;
-                }
-
-                // Find head of family (prioritize active)
-                $kepala = $members->where('deleted_at', null)->where('kedudukan_keluarga', 'Kepala Keluarga')->first() 
-                         ?? $members->where('deleted_at', null)->first()
-                         ?? $members->first();
-
-                if (!$kepala) {
-                    $bar->advance();
-                    continue;
-                }
-
-                $active = 0;
-                $dead = 0;
-                $moved = 0;
-                $split = 0;
-                $mutated = 0;
-
-                foreach ($members as $member) {
-                    // Check mutations
-                    $mutasi = DB::table('mutasis')
-                        ->where('penduduk_id', $member->id)
-                        ->whereIn('jenis_mutasi', ['kematian', 'pindah_keluar', 'pisah_kk'])
-                        ->first();
-
-                    if ($mutasi) {
-                        $mutated++;
-                        if ($mutasi->jenis_mutasi === 'kematian') $dead++;
-                        elseif ($mutasi->jenis_mutasi === 'pindah_keluar') $moved++;
-                        elseif ($mutasi->jenis_mutasi === 'pisah_kk') $split++;
-                    } else {
-                        // Only count as active if not soft deleted (unless pure mutation logic requires otherwise)
-                        // In this system, active = no mutation AND not deleted manually
-                        if (!$member->deleted_at) {
-                            $active++;
-                        }
-                    }
-                }
-
-                try {
-                    KartuKeluarga::create([
-                        'nkk' => (string) $nkk,
-                        'nama_kepala_keluarga' => $kepala->nama ?? 'Tidak Diketahui',
-                        'nik_kepala_keluarga' => $kepala->nik ? substr((string)$kepala->nik, 0, 16) : null,
-                        'alamat' => $kepala->alamat ?? '-',
-                        'rt' => $kepala->rt ? substr((string)$kepala->rt, 0, 3) : '000',
-                        'rw' => $kepala->rw ? substr((string)$kepala->rw, 0, 3) : '000',
-                        'dusun' => $kepala->dusun ?? '-',
-                        'jumlah_anggota' => $members->count(), 
-                        'anggota_aktif' => $active,
-                        'anggota_mutasi' => $mutated,
-                        'anggota_meninggal' => $dead,
-                        'anggota_pindah' => $moved,
-                        'anggota_pisah_kk' => $split,
-                    ]);
-                } catch (\Exception $e) {
-                    $this->error("Gagal sync NKK $nkk: " . $e->getMessage());
-                    // Lanjut ke data berikutnya
-                }
-
+        foreach ($penduduks as $p) {
+            $nkkString = trim((string)$p->nkk);
+            
+            if (empty($nkkString)) {
                 $bar->advance();
+                continue;
             }
 
-            $bar->finish();
-            DB::commit();
-            $this->newLine();
-            $this->info('Synchronization completed successfully!');
+            // 1. Find the correct KK record by NKK string
+            $kk = KartuKeluarga::withTrashed()->where('nkk', $nkkString)->first();
 
-        } catch (\Exception $e) {
-            DB::rollBack();
-            $this->error('Synchronization failed: ' . $e->getMessage());
-            return 1;
+            if (!$kk) {
+                // ORPHAN: NKK exists in Penduduk but NO record in KartuKeluarga
+                $stats['orphan']++;
+                $conflicts[] = [
+                    'nik' => $p->nik,
+                    'nama' => $p->nama,
+                    'nkk_string' => $nkkString,
+                    'issue' => 'ORPHAN (KK Record Missing)',
+                    'current_id' => $p->kartu_keluarga_id ?? 'NULL',
+                    'correct_id' => 'NOT FOUND',
+                ];
+                $bar->advance();
+                continue;
+            }
+
+            // 2. Check if current ID is "ngaco" or correct
+            if ($p->kartu_keluarga_id == $kk->id) {
+                $stats['already_correct']++;
+            } else {
+                // MISMATCH / NGACO: ID doesn't match the NKK string's record
+                if ($p->kartu_keluarga_id) {
+                    $stats['mismatch']++;
+                    $conflicts[] = [
+                        'nik' => $p->nik,
+                        'nama' => $p->nama,
+                        'nkk_string' => $nkkString,
+                        'issue' => 'ID MISMATCH (Data Ngaco)',
+                        'current_id' => $p->kartu_keluarga_id,
+                        'correct_id' => $kk->id,
+                    ];
+                }
+
+                // FIX: Perform the update
+                $p->kartu_keluarga_id = $kk->id;
+                $p->saveQuietly(); // Use saveQuietly to avoid triggering observers during sync
+                $stats['fixed']++;
+            }
+
+            $bar->advance();
+        }
+
+        $bar->finish();
+        $this->newLine(2);
+
+        // 3. Generate Report
+        $this->info("=== Sync Results ===");
+        $this->info("Total Residents: {$stats['total']}");
+        $this->info("Fixed (Data Ngaco Cleaned): {$stats['fixed']}");
+        $this->info("Orphans (No KK Record Found): {$stats['orphan']}");
+        $this->info("Already Correct: {$stats['already_correct']}");
+
+        if (!empty($conflicts)) {
+            $filename = 'sync-conflicts-' . now()->format('Y-m-d-His') . '.csv';
+            $path = 'public/logs/' . $filename;
+            
+            $header = ['NIK', 'Nama', 'NKK String', 'Issue', 'Current ID', 'Correct ID'];
+            
+            $handle = fopen('php://temp', 'r+');
+            fputcsv($handle, $header);
+            foreach ($conflicts as $row) {
+                fputcsv($handle, $row);
+            }
+            rewind($handle);
+            $content = stream_get_contents($handle);
+            fclose($handle);
+
+            Storage::disk('local')->put($path, $content);
+            
+            $this->warn("!!! FOUND " . count($conflicts) . " CONFLICTS !!!");
+            $this->warn("Conflict Log saved to: " . storage_path('app/' . $path));
+            $this->warn("Please review this file before proceeding to Fase 3.");
+        } else {
+            $this->info("Great! No conflicts found.");
         }
 
         return 0;

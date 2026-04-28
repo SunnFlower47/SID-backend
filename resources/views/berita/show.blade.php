@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('content')
 <div class="min-h-screen bg-gray-50 py-8">
@@ -136,3 +136,4 @@ function confirmDelete(beritaId, beritaTitle) {
 @endif
 @endnoncescript
 @endsection
+

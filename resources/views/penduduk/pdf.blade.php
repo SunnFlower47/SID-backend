@@ -163,15 +163,15 @@
                 </div>
                 <div class="info-item">
                     <span class="info-label">RT:</span>
-                    <span class="info-value">{{ $penduduk->rt ?? '-' }}</span>
+                    <span class="info-value">{{ $penduduk->rt_label ?? '-' }}</span>
                 </div>
                 <div class="info-item">
                     <span class="info-label">RW:</span>
-                    <span class="info-value">{{ $penduduk->rw ?? '-' }}</span>
+                    <span class="info-value">{{ $penduduk->rw_label ?? '-' }}</span>
                 </div>
                 <div class="info-item">
                     <span class="info-label">Dusun:</span>
-                    <span class="info-value">{{ $penduduk->dusun ?? '-' }}</span>
+                    <span class="info-value">{{ $penduduk->dusun_label ?? '-' }}</span>
                 </div>
             </div>
         </div>
@@ -192,4 +192,5 @@
     </div>
 </body>
 </html>
+
 

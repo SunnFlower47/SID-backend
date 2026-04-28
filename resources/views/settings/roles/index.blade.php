@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Manajemen Role')
 @section('subtitle', 'Kelola role dan permission sistem')
@@ -221,4 +221,5 @@ function confirmDelete(id, name) {
 @endif
 @endnoncescript
 @endsection
+
 

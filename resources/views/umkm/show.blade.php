@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Detail Data UMKM')
 @section('subtitle', 'Detail data Usaha Mikro, Kecil, dan Menengah')
@@ -124,24 +124,24 @@
                         <label class="block text-sm font-medium text-gray-500">Alamat Usaha</label>
                         <p class="text-gray-900">{{ $umkm->alamat_usaha }}</p>
                     </div>
-                    @if($umkm->rt || $umkm->rw || $umkm->dusun)
+                    @if($umkm->rt_label || $umkm->rw_label || $umkm->dusun_label)
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        @if($umkm->rt)
+                        @if($umkm->rt_label)
                         <div>
                             <label class="block text-sm font-medium text-gray-500">RT</label>
-                            <p class="text-gray-900">{{ $umkm->rt }}</p>
+                            <p class="text-gray-900">{{ $umkm->rt_label }}</p>
                         </div>
                         @endif
-                        @if($umkm->rw)
+                        @if($umkm->rw_label)
                         <div>
                             <label class="block text-sm font-medium text-gray-500">RW</label>
-                            <p class="text-gray-900">{{ $umkm->rw }}</p>
+                            <p class="text-gray-900">{{ $umkm->rw_label }}</p>
                         </div>
                         @endif
-                        @if($umkm->dusun)
+                        @if($umkm->dusun_label)
                         <div>
                             <label class="block text-sm font-medium text-gray-500">Dusun</label>
-                            <p class="text-gray-900">{{ $umkm->dusun }}</p>
+                            <p class="text-gray-900">{{ $umkm->dusun_label }}</p>
                         </div>
                         @endif
                     </div>
@@ -363,3 +363,4 @@ function confirmDelete(umkmId, umkmName) {
 }
 @endnoncescript
 @endsection
+

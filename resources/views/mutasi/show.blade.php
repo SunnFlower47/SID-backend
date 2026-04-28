@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Detail Mutasi')
 @section('subtitle', 'Informasi lengkap data mutasi')
@@ -82,7 +82,7 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-500 mb-2">Alamat</label>
-                            <p class="text-gray-900">{{ $mutasi->penduduk->alamat }}, RT {{ $mutasi->penduduk->rt }}/RW {{ $mutasi->penduduk->rw }}</p>
+                            <p class="text-gray-900">{{ $mutasi->penduduk->alamat }}, RT {{ $mutasi->penduduk->rt_label }}/RW {{ $mutasi->penduduk->rw_label }}</p>
                         </div>
                     </div>
                 @else
@@ -291,7 +291,7 @@
                         </div>
                         <div class="md:col-span-2">
                             <label class="block text-sm font-medium text-gray-500 mb-2">Alamat Asli</label>
-                            <p class="text-gray-900">{{ $mutasi->penduduk->alamat }}, RT {{ $mutasi->penduduk->rt }}/RW {{ $mutasi->penduduk->rw }}, {{ $mutasi->penduduk->dusun }}</p>
+                            <p class="text-gray-900">{{ $mutasi->penduduk->alamat }}, RT {{ $mutasi->penduduk->rt_label }}/RW {{ $mutasi->penduduk->rw_label }}, {{ $mutasi->penduduk->dusun_label }}</p>
                         </div>
                     </div>
                 @else
@@ -421,7 +421,7 @@
                         </div>
                         <div class="md:col-span-2">
                             <label class="block text-sm font-medium text-gray-500 mb-2">Alamat</label>
-                            <p class="text-gray-900">{{ $mutasi->penduduk->alamat }}, RT {{ $mutasi->penduduk->rt }}/RW {{ $mutasi->penduduk->rw }}, {{ $mutasi->penduduk->dusun }}</p>
+                            <p class="text-gray-900">{{ $mutasi->penduduk->alamat }}, RT {{ $mutasi->penduduk->rt_label }}/RW {{ $mutasi->penduduk->rw_label }}, {{ $mutasi->penduduk->dusun_label }}</p>
                         </div>
                     </div>
                 @else
@@ -498,9 +498,9 @@
                 <label class="block text-sm font-medium text-gray-500 mb-2 uppercase tracking-wide">Tanggal Mutasi</label>
                 <p class="text-gray-900 font-medium">{{ $mutasi->tanggal_mutasi->format('d F Y') }}</p>
             </div>
-                @if($mutasi->jenis_mutasi == 'pindah_rt_rw' && !empty($mutasi->asal_tujuan) && str_contains($mutasi->asal_tujuan, ' → '))
+                @if($mutasi->jenis_mutasi == 'pindah_rt_rw' && !empty($mutasi->asal_tujuan) && str_contains($mutasi->asal_tujuan, ' ? '))
                     @php
-                        $parts = explode(' → ', $mutasi->asal_tujuan);
+                        $parts = explode(' ? ', $mutasi->asal_tujuan);
                         $asal = $parts[0] ?? '';
                         $tujuan = $parts[1] ?? '';
                     @endphp
@@ -679,4 +679,5 @@ function confirmAction() {
 }
 @endnoncescript
 @endsection
+
 

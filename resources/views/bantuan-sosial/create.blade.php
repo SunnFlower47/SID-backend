@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Bantuan Sosial')
 
@@ -255,3 +255,4 @@
 @endif
 @endnoncescript
 @endsection
+

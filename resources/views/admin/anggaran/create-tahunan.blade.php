@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Tambah Anggaran Tahunan')
 
@@ -152,3 +152,4 @@ document.getElementById('anggaran').addEventListener('input', function(e) {
 });
 @endnoncescript
 @endpush
+

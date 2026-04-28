@@ -50,7 +50,23 @@ class FasilitasDesaController extends Controller
             'lainnya' => 'Lainnya',
         ];
 
-        return view('fasilitas-desa.create', compact('jenisOptions'));
+        $masterRwOptions = \App\Models\Rw::with('rts')->orderBy('kode')->get()->map(function($rw) {
+            return [
+                'id' => $rw->id,
+                'kode' => $rw->kode,
+                'nama' => $rw->nama,
+                'rts' => $rw->rts->map(function($rt) {
+                    return [
+                        'id' => $rt->id,
+                        'kode' => $rt->kode,
+                        'dusun_id' => $rt->dusun_id,
+                        'dusun' => optional($rt->dusun)->nama
+                    ];
+                })
+            ];
+        });
+
+        return view('fasilitas-desa.create', compact('jenisOptions', 'masterRwOptions'));
     }
 
     /**
@@ -62,9 +78,9 @@ class FasilitasDesaController extends Controller
             'nama' => 'required|string|max:255',
             'jenis' => 'required|in:sekolah,posyandu,masjid,gereja,puskesmas,pos_ronda,balai_desa,lapangan,pasar,lainnya',
             'alamat' => 'required|string',
-            'rt' => 'nullable|string|max:10',
-            'rw' => 'nullable|string|max:10',
-            'dusun' => 'nullable|string|max:100',
+            'rt_id' => 'nullable|exists:rts,id',
+            'rw_id' => 'nullable|exists:rws,id',
+            'dusun_id' => 'nullable|exists:dusuns,id',
             'latitude' => 'nullable|numeric|between:-90,90',
             'longitude' => 'nullable|numeric|between:-180,180',
             'deskripsi' => 'nullable|string',
@@ -119,7 +135,23 @@ class FasilitasDesaController extends Controller
             'lainnya' => 'Lainnya',
         ];
 
-        return view('fasilitas-desa.edit', compact('fasilitasDesa', 'jenisOptions'));
+        $masterRwOptions = \App\Models\Rw::with('rts')->orderBy('kode')->get()->map(function($rw) {
+            return [
+                'id' => $rw->id,
+                'kode' => $rw->kode,
+                'nama' => $rw->nama,
+                'rts' => $rw->rts->map(function($rt) {
+                    return [
+                        'id' => $rt->id,
+                        'kode' => $rt->kode,
+                        'dusun_id' => $rt->dusun_id,
+                        'dusun' => optional($rt->dusun)->nama
+                    ];
+                })
+            ];
+        });
+
+        return view('fasilitas-desa.edit', compact('fasilitasDesa', 'jenisOptions', 'masterRwOptions'));
     }
 
     /**
@@ -131,9 +163,9 @@ class FasilitasDesaController extends Controller
             'nama' => 'required|string|max:255',
             'jenis' => 'required|in:sekolah,posyandu,masjid,gereja,puskesmas,pos_ronda,balai_desa,lapangan,pasar,lainnya',
             'alamat' => 'required|string',
-            'rt' => 'nullable|string|max:10',
-            'rw' => 'nullable|string|max:10',
-            'dusun' => 'nullable|string|max:100',
+            'rt_id' => 'nullable|exists:rts,id',
+            'rw_id' => 'nullable|exists:rws,id',
+            'dusun_id' => 'nullable|exists:dusuns,id',
             'latitude' => 'nullable|numeric|between:-90,90',
             'longitude' => 'nullable|numeric|between:-180,180',
             'deskripsi' => 'nullable|string',

@@ -1,4 +1,4 @@
-ï»¿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Edit Pengaduan')
 @section('subtitle', 'Ubah status dan prioritas pengaduan')
@@ -210,7 +210,7 @@
                 <p class="text-gray-700 text-sm leading-relaxed">{{ Str::limit($pengaduan->deskripsi, 150) }}</p>
                 @if(strlen($pengaduan->deskripsi) > 150)
                 <a href="{{ route('pengaduan.show', $pengaduan) }}" class="text-green-600 text-sm hover:text-green-700 mt-2 inline-block">
-                    Baca selengkapnya â†’
+                    Baca selengkapnya ?
                 </a>
                 @endif
             </div>
@@ -239,10 +239,10 @@
                     Tips
                 </h3>
                 <ul class="text-sm text-blue-800 space-y-2">
-                    <li>â€¢ Pilih status yang sesuai dengan kondisi pengaduan</li>
-                    <li>â€¢ Prioritas darurat untuk masalah yang sangat mendesak</li>
-                    <li>â€¢ Berikan tanggapan yang jelas dan informatif</li>
-                    <li>â€¢ Status "Selesai" atau "Ditolak" akan mencatat tanggal tanggapan</li>
+                    <li>• Pilih status yang sesuai dengan kondisi pengaduan</li>
+                    <li>• Prioritas darurat untuk masalah yang sangat mendesak</li>
+                    <li>• Berikan tanggapan yang jelas dan informatif</li>
+                    <li>• Status "Selesai" atau "Ditolak" akan mencatat tanggal tanggapan</li>
                 </ul>
             </div>
         </div>
@@ -324,3 +324,4 @@ document.addEventListener('DOMContentLoaded', function() {
 @endif
 @endnoncescript
 @endsection
+

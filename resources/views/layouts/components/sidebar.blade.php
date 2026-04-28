@@ -99,9 +99,14 @@
             <div x-show="open" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="transform opacity-0 scale-95" x-transition:enter-end="transform opacity-100 scale-100" x-transition:leave="transition ease-in duration-75" x-transition:leave-start="transform opacity-100 scale-100" x-transition:leave-end="transform opacity-0 scale-95" class="ml-4 mt-2 space-y-1">
 
                 @can('surat.view')
-                <a href="{{ route('admin.surat-pengajuan.index') }}" class="flex items-center px-4 py-2 rounded-xl transition-all duration-300 {{ request()->routeIs('admin.surat-pengajuan.*') ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-lg shadow-purple-200' : 'text-gray-600 hover:bg-gradient-to-r hover:from-purple-50 hover:to-purple-100 hover:shadow-md hover:text-purple-700' }}">
+                <a href="{{ route('admin.surat-pengajuan.index') }}" class="flex items-center px-4 py-2 rounded-xl transition-all duration-300 {{ request()->routeIs('admin.surat-pengajuan.*') && !request()->routeIs('admin.surat-type.*') ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-lg shadow-purple-200' : 'text-gray-600 hover:bg-gradient-to-r hover:from-purple-50 hover:to-purple-100 hover:shadow-md hover:text-purple-700' }}">
                     <i class="fas fa-envelope-open-text mr-3 text-sm"></i>
                     <span class="text-sm font-medium">Layanan Surat</span>
+                </a>
+                
+                <a href="{{ route('admin.surat-type.index') }}" class="flex items-center px-4 py-2 rounded-xl transition-all duration-300 {{ request()->routeIs('admin.surat-type.*') ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-lg shadow-purple-200' : 'text-gray-600 hover:bg-gradient-to-r hover:from-purple-50 hover:to-purple-100 hover:shadow-md hover:text-purple-700' }}">
+                    <i class="fas fa-list-ul mr-3 text-sm"></i>
+                    <span class="text-sm font-medium">Master Jenis Surat</span>
                 </a>
                 @endcan
 
@@ -279,6 +284,13 @@
                 </a>
                 @endcan
 
+                @can('settings.view')
+                <a href="{{ route('settings.trash.penduduk.index') }}" class="flex items-center px-4 py-2 rounded-xl transition-all duration-300 {{ request()->routeIs('settings.trash.penduduk.*') ? 'bg-gradient-to-r from-cyan-600 to-cyan-700 text-white shadow-lg shadow-cyan-200' : 'text-gray-600 hover:bg-gradient-to-r hover:from-cyan-50 hover:to-cyan-100 hover:shadow-md hover:text-cyan-700' }}">
+                    <i class="fas fa-trash-alt mr-3 text-sm"></i>
+                    <span class="text-sm font-medium">Sampah Penduduk</span>
+                </a>
+                @endcan
+
                 @can('export.view')
                 <a href="{{ route('export-import.index') }}" class="flex items-center px-4 py-2 rounded-xl transition-all duration-300 {{ request()->routeIs('export-import.*') || request()->routeIs('export.*') ? 'bg-gradient-to-r from-cyan-600 to-cyan-700 text-white shadow-lg shadow-cyan-200' : 'text-gray-600 hover:bg-gradient-to-r hover:from-cyan-50 hover:to-cyan-100 hover:shadow-md hover:text-cyan-700' }}">
                     <i class="fas fa-download mr-3 text-sm"></i>
@@ -336,3 +348,4 @@
         </div>
     </nav>
 </div>
+

@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Kontak Desa')
 @section('subtitle', 'Kelola data kontak dan informasi komunikasi desa')
@@ -313,4 +313,5 @@ function confirmDelete(kontakId, kontakName) {
 }
 @endnoncescript
 @endsection
+
 

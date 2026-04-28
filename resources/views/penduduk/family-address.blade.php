@@ -84,7 +84,7 @@
                     </div>
                     <div class="bg-white rounded-xl p-4 shadow-sm">
                         <p class="text-yellow-800 font-medium mb-2">{{ $currentAddress->alamat }}</p>
-                        <p class="text-yellow-700 text-sm">RT {{ $currentAddress->rt }} / RW {{ $currentAddress->rw }} - {{ $currentAddress->dusun }}</p>
+                        <p class="text-yellow-700 text-sm">RT {{ $currentAddress->rt_label }} / RW {{ $currentAddress->rw_label }} - {{ $currentAddress->dusun_label }}</p>
                     </div>
                 </div>
 
@@ -149,15 +149,15 @@
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
                         <div class="bg-gray-50 rounded-2xl p-6">
                             <label for="rw" class="block text-sm font-medium text-gray-700 mb-2">RW (kode)</label>
-                            <input id="rw" name="rw" type="text" readonly value="{{ old('rw', $currentAddress->rw) }}" class="w-full px-4 py-3 rounded-2xl bg-gray-100 border-0">
+                            <input id="rw" name="rw" type="text" readonly value="{{ old('rw', $currentAddress->rw_label) }}" class="w-full px-4 py-3 rounded-2xl bg-gray-100 border-0">
                         </div>
                         <div class="bg-gray-50 rounded-2xl p-6">
                             <label for="rt" class="block text-sm font-medium text-gray-700 mb-2">RT (kode)</label>
-                            <input id="rt" name="rt" type="text" readonly value="{{ old('rt', $currentAddress->rt) }}" class="w-full px-4 py-3 rounded-2xl bg-gray-100 border-0">
+                            <input id="rt" name="rt" type="text" readonly value="{{ old('rt', $currentAddress->rt_label) }}" class="w-full px-4 py-3 rounded-2xl bg-gray-100 border-0">
                         </div>
                         <div class="bg-gray-50 rounded-2xl p-6">
                             <label for="dusun" class="block text-sm font-medium text-gray-700 mb-2">Dusun</label>
-                            <input id="dusun" name="dusun" type="text" readonly value="{{ old('dusun', $currentAddress->dusun) }}" class="w-full px-4 py-3 rounded-2xl bg-gray-100 border-0">
+                            <input id="dusun" name="dusun" type="text" readonly value="{{ old('dusun', $currentAddress->dusun_label) }}" class="w-full px-4 py-3 rounded-2xl bg-gray-100 border-0">
                         </div>
                     </div>
                 </div>
@@ -227,7 +227,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (oldRwId) {
         rwSelect.value = String(oldRwId);
     } else {
-        const currentRwCode = String(@json($currentAddress->rw ?? '')).padStart(3, '0');
+        const currentRwCode = String(@json($currentAddress->rw_label ?? '')).padStart(3, '0');
         const matchedRw = masterRwOptions.find(r => String(r.kode).padStart(3, '0') === currentRwCode);
         if (matchedRw) rwSelect.value = String(matchedRw.id);
     }
@@ -238,7 +238,7 @@ document.addEventListener('DOMContentLoaded', function () {
         rtSelect.value = String(oldRtId);
     } else {
         const rwObj = masterRwOptions.find(r => String(r.id) === String(rwSelect.value));
-        const currentRtCode = String(@json($currentAddress->rt ?? '')).padStart(3, '0');
+        const currentRtCode = String(@json($currentAddress->rt_label ?? '')).padStart(3, '0');
         const matchedRt = (rwObj?.rts || []).find(rt => String(rt.kode).padStart(3, '0') === currentRtCode);
         if (matchedRt) rtSelect.value = String(matchedRt.id);
     }
@@ -253,3 +253,4 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 @endsection
+

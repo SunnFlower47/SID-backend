@@ -64,18 +64,30 @@
                                         <div class="bg-red-50 text-red-700 rounded p-2">Invalid: <b id="penduduk_sum_invalid">0</b></div>
                                     </div>
 
-                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-2 text-xs mb-2">
-                                        <div class="bg-red-50 rounded p-2 border border-red-100">Error kolom NIK: <b id="err_nik">0</b></div>
-                                        <div class="bg-red-50 rounded p-2 border border-red-100">Error kolom Nama: <b id="err_nama">0</b></div>
-                                        <div class="bg-red-50 rounded p-2 border border-red-100">Error kolom No. KK: <b id="err_nkk">0</b></div>
+                                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs mb-2">
+                                        <div class="bg-red-50 rounded p-2 border border-red-100">Error NIK: <b id="err_nik">0</b></div>
+                                        <div class="bg-red-50 rounded p-2 border border-red-100">Error Nama: <b id="err_nama">0</b></div>
+                                        <div class="bg-red-50 rounded p-2 border border-red-100">Error No. KK: <b id="err_nkk">0</b></div>
+                                        <div class="bg-red-50 rounded p-2 border border-red-100">Error Wilayah: <b id="err_wilayah">0</b></div>
                                     </div>
 
                                     <p id="penduduk_preview_note" class="text-xs text-gray-500 mb-2"></p>
 
-                                    <div id="penduduk_invalid_wrap" class="hidden">
-                                        <p class="text-xs font-semibold text-red-700 mb-1">Detail baris invalid (dengan kolom bermasalah):</p>
-                                        <div id="invalid-scroll-box" class="border border-red-100 rounded-md bg-red-50/40 p-2" style="height:260px; overflow-y:auto; overflow-x:hidden;">
-                                            <ul id="penduduk_invalid_list" class="list-disc ml-4 text-xs text-red-700 space-y-1 pr-2" style="word-break:break-word; white-space:normal;"></ul>
+                                    <div id="penduduk_invalid_wrap" class="hidden mb-4">
+                                        <p class="text-xs font-semibold text-red-700 mb-1 flex items-center">
+                                            <i class="fas fa-exclamation-circle mr-1"></i> Detail baris invalid:
+                                        </p>
+                                        <div id="invalid-scroll-box" class="border border-red-100 rounded-md bg-red-50/40 p-2" style="max-height:200px; overflow-y:auto;">
+                                            <ul id="penduduk_invalid_list" class="list-disc ml-4 text-[10px] text-red-700 space-y-1"></ul>
+                                        </div>
+                                    </div>
+
+                                    <div id="penduduk_valid_wrap" class="hidden mb-4">
+                                        <p class="text-xs font-semibold text-green-700 mb-1 flex items-center">
+                                            <i class="fas fa-check-circle mr-1"></i> Detail baris valid (Siap Import):
+                                        </p>
+                                        <div id="valid-scroll-box" class="border border-green-100 rounded-md bg-green-50/40 p-2" style="max-height:200px; overflow-y:auto;">
+                                            <ul id="penduduk_valid_list" class="list-disc ml-4 text-[10px] text-green-700 space-y-1"></ul>
                                         </div>
                                     </div>
                                 </div>
@@ -369,6 +381,7 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('err_nik').textContent = data.summary.column_error_counts?.nik ?? 0;
             document.getElementById('err_nama').textContent = data.summary.column_error_counts?.nama ?? 0;
             document.getElementById('err_nkk').textContent = data.summary.column_error_counts?.nkk ?? 0;
+            document.getElementById('err_wilayah').textContent = data.summary.column_error_counts?.wilayah ?? 0;
 
             const note = document.getElementById('penduduk_preview_note');
             note.textContent = `Menampilkan ${data.preview.invalid_shown} dari ${data.preview.invalid_total} baris invalid, dan ${data.preview.valid_shown} dari ${data.preview.valid_total} baris valid.`;
@@ -389,11 +402,31 @@ document.addEventListener('DOMContentLoaded', function () {
                         parts.push(`${col.toUpperCase()}: ${msgs}`);
                     });
                     const detail = parts.length ? parts.join(' ; ') : (item.errors || []).join(', ');
-                    li.textContent = `Baris ${item.row} (${item.nik || '-'} / ${item.nama || '-'}): ${detail}`;
+                    const address = item.alamat ? ` [${item.alamat}]` : '';
+                    const wilayah = (item.rt || item.rw) ? ` (RT ${item.rt}/RW ${item.rw})` : '';
+                    li.textContent = `Baris ${item.row} (${item.nik || '-'} / ${item.nama || '-'}) ${wilayah}${address}: ${detail}`;
                     invalidList.appendChild(li);
                 });
             } else {
                 invalidWrap.classList.add('hidden');
+            }
+
+            const validWrap = document.getElementById('penduduk_valid_wrap');
+            const validList = document.getElementById('penduduk_valid_list');
+            validList.innerHTML = '';
+
+            if (data.preview.valid.length > 0) {
+                validWrap.classList.remove('hidden');
+                data.preview.valid.forEach(item => {
+                    const li = document.createElement('li');
+                    const info = item.info ? ` <span class="text-blue-600 font-bold">[${item.info}]</span>` : '';
+                    const address = item.alamat ? ` [${item.alamat}]` : '';
+                    const wilayah = (item.rt || item.rw) ? ` (RT ${item.rt}/RW ${item.rw})` : '';
+                    li.innerHTML = `Baris ${item.row} (${item.nik || '-'} / ${item.nama || '-'}) ${wilayah}${address}${info}`;
+                    validList.appendChild(li);
+                });
+            } else {
+                validWrap.classList.add('hidden');
             }
 
             importBtn.disabled = data.summary.valid_rows === 0;
@@ -459,3 +492,4 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 @endsection
+

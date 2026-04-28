@@ -49,13 +49,26 @@ $groupStats = DB::table('penduduks')
     ->groupBy('jenis_kelamin', 'rt', 'dusun', 'status_perkawinan', 'kedudukan_keluarga')
     ->get();
 
-// Process group statistics dengan Collection methods
+// Standardisasi Data (Data Mapping) - Mencegah duplikasi kategori karena inkonsistensi input
 $genderStats = $groupStats->where('jenis_kelamin', '!=', null)
-    ->groupBy('jenis_kelamin')
+    ->groupBy(function($item) {
+        $val = strtoupper(trim($item->jenis_kelamin));
+        if (in_array($val, ['L', 'LAKI-LAKI'])) return 'LAKI-LAKI';
+        if (in_array($val, ['P', 'PEREMPUAN'])) return 'PEREMPUAN';
+        return 'LAINNYA';
+    })
     ->map(function($group) {
         return $group->sum('total');
     });
 ```
+
+### **3. Observer-Based Real-time Sync**
+
+Alih-alih menghitung ulang (re-calculate) seluruh data setiap kali halaman dibuka, sistem ini menggunakan **Observer Pattern** untuk menjaga integritas data:
+
+- **MutasiObserver**: Otomatis memperbarui `anggota_aktif`, `anggota_mutasi`, dan `status_kk` pada tabel `kartu_keluargas` tepat saat mutasi terjadi.
+- **Service Layer**: Mengenkapsulasi logika perhitungan di `KartuKeluargaService` untuk memastikan statistik selalu konsisten dan tidak membebani query utama di Dashboard.
+
 
 ### **2. Caching Strategy**
 

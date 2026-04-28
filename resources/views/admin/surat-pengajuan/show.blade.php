@@ -88,7 +88,9 @@
                                 <dd class="mt-1 text-sm text-gray-900">{{ $suratPengajuan->tanggal_surat->format('d/m/Y') }}</dd>
                             </div>
                             <div>
-                                <dt class="text-sm font-medium text-gray-500">Keperluan</dt>
+                                <dt class="text-sm font-medium text-gray-500">
+                                    {{ is_numeric($suratPengajuan->jenis_surat) ? 'Deskripsi Keperluan' : 'Keperluan' }}
+                                </dt>
                                 <dd class="mt-1 text-sm text-gray-900">{{ $suratPengajuan->keperluan ?? '-' }}</dd>
                             </div>
                             @if($suratPengajuan->tujuan)
@@ -106,6 +108,53 @@
                         </dl>
                     </div>
                 </div>
+
+                <!-- Berkas Lampiran -->
+                <div class="bg-white overflow-hidden shadow-sm rounded-lg border-2 border-orange-200">
+                    <div class="px-6 py-4 border-b border-orange-100 bg-orange-50 flex justify-between items-center">
+                        <h3 class="text-lg font-bold text-orange-800">
+                            <i class="fas fa-file-pdf mr-2"></i>Berkas Persyaratan (Warga)
+                        </h3>
+                    </div>
+                    <div class="px-6 py-6 text-center">
+                        @if($suratPengajuan->file_lampiran)
+                            <div class="mb-4 text-sm text-gray-600 italic">
+                                Warga telah mengunggah berkas persyaratan. Silakan cek detailnya di bawah ini:
+                            </div>
+                            <a href="{{ asset('storage/' . $suratPengajuan->file_lampiran) }}" target="_blank" class="inline-flex items-center px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-xl shadow-lg transition-all hover:scale-105">
+                                <i class="fas fa-external-link-alt mr-2"></i>
+                                Buka Berkas PDF Warga
+                            </a>
+                        @else
+                            <div class="text-gray-500 italic py-4">
+                                <i class="fas fa-info-circle mr-2"></i>Tidak ada berkas yang diunggah oleh warga.
+                            </div>
+                        @endif
+                    </div>
+                </div>
+
+                <!-- Manual Letter Instruction -->
+                @if(is_numeric($suratPengajuan->jenis_surat))
+                <div class="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-lg shadow-sm">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-info-circle text-blue-500 text-xl mt-1"></i>
+                        </div>
+                        <div class="ml-4">
+                            <h4 class="text-lg font-bold text-blue-800">Instruksi Pengajuan Manual</h4>
+                            <p class="text-sm text-blue-700 mt-2 leading-relaxed">
+                                Pengajuan ini adalah jenis <strong>Surat Lainnya (Manual)</strong>. Silakan ikuti alur berikut:
+                            </p>
+                            <ul class="text-sm text-blue-700 mt-3 space-y-2 list-disc list-inside">
+                                <li><strong>Salin Data:</strong> Copy NIK & Nama warga dari panel sebelah kanan.</li>
+                                <li><strong>Cek Berkas:</strong> Klik tombol oranye di atas untuk melihat persyaratan yang diunggah warga.</li>
+                                <li><strong>Buat Surat:</strong> Gunakan aplikasi <strong>Microsoft Word</strong> Anda untuk membuat surat ini secara manual.</li>
+                                <li><strong>Update Status:</strong> Setelah surat dicetak dan diberikan ke warga, ubah status menjadi <span class="font-bold text-blue-800">"Selesai"</span>.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                @endif
 
                 <!-- Data Tambahan -->
                 @if($suratPengajuan->data_tambahan && is_array($suratPengajuan->data_tambahan) && count($suratPengajuan->data_tambahan) > 0)
@@ -228,3 +277,4 @@
     </div>
 </div>
 @endsection
+

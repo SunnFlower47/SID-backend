@@ -34,42 +34,28 @@
             </div>
         </div>
         <div>
-            <label for="rt_tujuan" class="block text-sm font-medium text-gray-700 mb-2">RT Tujuan</label>
-            <select name="rt_tujuan" id="rt_tujuan"
-                    class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-purple-500 focus:border-purple-500" required>
-                <option value="">Pilih RT...</option>
-                <option value="001">RT 001 (Dusun Satu)</option>
-                <option value="002">RT 002 (Dusun Satu)</option>
-                <option value="003">RT 003 (Dusun Satu)</option>
-                <option value="004">RT 004 (Dusun Satu)</option>
-                <option value="005">RT 005 (Dusun Dua)</option>
-                <option value="006">RT 006 (Dusun Dua)</option>
-                <option value="007">RT 007 (Dusun Satu)</option>
-                <option value="008">RT 008 (Dusun Satu)</option>
-                <option value="009">RT 009 (Dusun Dua)</option>
-                <option value="010">RT 010 (Dusun Dua)</option>
-            </select>
-        </div>
-        <div>
-            <label for="rw_tujuan" class="block text-sm font-medium text-gray-700 mb-2">RW Tujuan</label>
-            <select name="rw_tujuan" id="rw_tujuan"
+            <label for="rw_id_tujuan" class="block text-sm font-medium text-gray-700 mb-2">RW Tujuan</label>
+            <select name="rw_id_tujuan" id="rw_id_tujuan" onchange="populateRtByRwMutasi(this.value, 'rt_id_tujuan')"
                     class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-purple-500 focus:border-purple-500" required>
                 <option value="">Pilih RW...</option>
-                <option value="001">RW 001 (RT 001, 002)</option>
-                <option value="002">RW 002 (RT 003, 004)</option>
-                <option value="003">RW 003 (RT 007, 008)</option>
-                <option value="004">RW 004 (RT 005, 006)</option>
-                <option value="005">RW 005 (RT 009, 010)</option>
+                @foreach(($masterRwOptions ?? []) as $rw)
+                    <option value="{{ $rw['id'] }}">RW {{ $rw['kode'] }} - {{ $rw['nama'] }}</option>
+                @endforeach
             </select>
         </div>
         <div>
-            <label for="dusun_tujuan" class="block text-sm font-medium text-gray-700 mb-2">Dusun Tujuan</label>
-            <select name="dusun_tujuan" id="dusun_tujuan"
-                    class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-purple-500 focus:border-purple-500">
-                <option value="">Pilih dusun...</option>
-                <option value="Dusun 1">Dusun 1</option>
-                <option value="Dusun 2">Dusun 2</option>
+            <label for="rt_id_tujuan" class="block text-sm font-medium text-gray-700 mb-2">RT Tujuan</label>
+            <select name="rt_id_tujuan" id="rt_id_tujuan" onchange="syncDusunByRtMutasi(this.value, document.getElementById('rw_id_tujuan').value, 'dusun_id_tujuan')"
+                    class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-purple-500 focus:border-purple-500" required>
+                <option value="">Pilih RT...</option>
             </select>
+        </div>
+        <div>
+            <label for="dusun_id_tujuan_label" class="block text-sm font-medium text-gray-700 mb-2">Dusun Tujuan</label>
+            <input type="text" id="dusun_id_tujuan_label"
+                   class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-purple-500 focus:border-purple-500 bg-gray-50"
+                   placeholder="Dusun" readonly>
+            <input type="hidden" name="dusun_id_tujuan" id="dusun_id_tujuan">
         </div>
         <div>
             <label for="alamat_tujuan" class="block text-sm font-medium text-gray-700 mb-2">Alamat Tujuan</label>
@@ -104,3 +90,4 @@
         </div>
     </div>
 </div>
+

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Umkm;
+use App\Models\Rw;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
@@ -19,7 +20,7 @@ class UmkmController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Umkm::query();
+        $query = Umkm::withWilayah();
 
         // Filter by status
         if ($request->has('status') && $request->status) {
@@ -34,6 +35,17 @@ class UmkmController extends Controller
         // Filter by unggulan
         if ($request->has('is_unggulan') && $request->is_unggulan !== '') {
             $query->where('is_unggulan', $request->is_unggulan);
+        }
+
+        // Filter by Wilayah
+        if ($request->has('rt_id') && $request->rt_id) {
+            $query->where('rt_id', $request->rt_id);
+        }
+        if ($request->has('rw_id') && $request->rw_id) {
+            $query->where('rw_id', $request->rw_id);
+        }
+        if ($request->has('dusun_id') && $request->dusun_id) {
+            $query->where('dusun_id', $request->dusun_id);
         }
 
         // Search
@@ -64,7 +76,23 @@ class UmkmController extends Controller
      */
     public function create()
     {
-        return view('umkm.create');
+        $rws = Rw::orderBy('kode')->get();
+        $masterRwOptions = Rw::with('rts')->orderBy('kode')->get()->map(function($rw) {
+            return [
+                'id' => $rw->id,
+                'kode' => $rw->kode,
+                'rts' => $rw->rts->map(function($rt) {
+                    return [
+                        'id' => $rt->id,
+                        'kode' => $rt->kode,
+                        'dusun' => optional($rt->dusunMaster)->nama,
+                        'dusun_id' => $rt->dusun_id
+                    ];
+                })
+            ];
+        });
+
+        return view('umkm.create', compact('rws', 'masterRwOptions'));
     }
 
     /**
@@ -77,9 +105,9 @@ class UmkmController extends Controller
             'nama_pemilik' => 'required|string|max:255',
             'nik_pemilik' => 'nullable|string|size:16',
             'alamat_usaha' => 'required|string|max:500',
-            'rt' => 'nullable|string|max:10',
-            'rw' => 'nullable|string|max:10',
-            'dusun' => 'nullable|string|max:100',
+            'rt_id' => 'nullable|exists:rts,id',
+            'rw_id' => 'nullable|exists:rws,id',
+            'dusun_id' => 'nullable|exists:dusuns,id',
             'no_telepon' => 'nullable|string|max:20',
             'email' => 'nullable|email|max:255',
             'jenis_usaha' => 'required|in:makanan,minuman,kerajinan,jasa,perdagangan,pertanian,peternakan,lainnya',
@@ -149,7 +177,23 @@ class UmkmController extends Controller
      */
     public function edit(Umkm $umkm)
     {
-        return view('umkm.edit', compact('umkm'));
+        $rws = Rw::orderBy('kode')->get();
+        $masterRwOptions = Rw::with('rts')->orderBy('kode')->get()->map(function($rw) {
+            return [
+                'id' => $rw->id,
+                'kode' => $rw->kode,
+                'rts' => $rw->rts->map(function($rt) {
+                    return [
+                        'id' => $rt->id,
+                        'kode' => $rt->kode,
+                        'dusun' => optional($rt->dusunMaster)->nama,
+                        'dusun_id' => $rt->dusun_id
+                    ];
+                })
+            ];
+        });
+
+        return view('umkm.edit', compact('umkm', 'rws', 'masterRwOptions'));
     }
 
     /**
@@ -162,9 +206,9 @@ class UmkmController extends Controller
             'nama_pemilik' => 'required|string|max:255',
             'nik_pemilik' => 'nullable|string|size:16',
             'alamat_usaha' => 'required|string|max:500',
-            'rt' => 'nullable|string|max:10',
-            'rw' => 'nullable|string|max:10',
-            'dusun' => 'nullable|string|max:100',
+            'rt_id' => 'nullable|exists:rts,id',
+            'rw_id' => 'nullable|exists:rws,id',
+            'dusun_id' => 'nullable|exists:dusuns,id',
             'no_telepon' => 'nullable|string|max:20',
             'email' => 'nullable|email|max:255',
             'jenis_usaha' => 'required|in:makanan,minuman,kerajinan,jasa,perdagangan,pertanian,peternakan,lainnya',
@@ -227,6 +271,7 @@ class UmkmController extends Controller
         return redirect()->route('umkm.index')
             ->with('success', 'Data UMKM berhasil diperbarui!');
     }
+
 
     /**
      * Remove the specified resource from storage.

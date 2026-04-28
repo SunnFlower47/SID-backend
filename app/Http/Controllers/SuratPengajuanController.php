@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\SuratPengajuan;
 use App\Models\Penduduk;
+use App\Models\Surat;
 use App\Models\DesaSetting;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\DB;
@@ -62,6 +63,7 @@ class SuratPengajuanController extends Controller
             'sktm_dewasa' => 'Surat Keterangan Tidak Mampu (Dewasa)',
             'sktm_anak' => 'Surat Keterangan Tidak Mampu (Anak)',
             'domisili' => 'Surat Keterangan Domisili',
+            'pengantar' => 'Surat Pengantar',
             'kelahiran' => 'Surat Keterangan Kelahiran',
             'kematian' => 'Surat Keterangan Kematian',
             'pindah' => 'Surat Keterangan Pindah'
@@ -85,6 +87,7 @@ class SuratPengajuanController extends Controller
             'sktm_dewasa' => 'Surat Keterangan Tidak Mampu (Dewasa)',
             'sktm_anak' => 'Surat Keterangan Tidak Mampu (Anak)',
             'domisili' => 'Surat Keterangan Domisili',
+            'pengantar' => 'Surat Pengantar',
             'kelahiran' => 'Surat Keterangan Kelahiran',
             'kematian' => 'Surat Keterangan Kematian',
             'pindah' => 'Surat Keterangan Pindah'
@@ -178,7 +181,7 @@ class SuratPengajuanController extends Controller
         $suratPengajuan->load(['penduduk.kartuKeluarga']);
 
         // Get desa settings
-        $desaSettings = DesaSetting::getByGroup('desa_info');
+        $desaSettings = DesaSetting::getDesaInfo();
 
         // Prepare signer data
         $penandatangan = $suratPengajuan->penandatangan ?? 'kepala_desa';
@@ -191,6 +194,7 @@ class SuratPengajuanController extends Controller
             'penduduk' => $suratPengajuan->penduduk,
             'pengajuan' => $suratPengajuan,
             'desa_info' => $desaSettings,
+            'desa' => $desaSettings,
             'kepala_desa' => $signerData,
             'is_sekdes' => ($penandatangan === 'sekretaris_desa'),
             'tanggal_surat' => $suratPengajuan->tanggal_surat,
@@ -219,8 +223,15 @@ class SuratPengajuanController extends Controller
         }
 
         try {
-            $pdf = Pdf::loadView("surat.templates.{$this->getTemplateName($suratPengajuan->jenis_surat)}", $data);
-            $pdf->setPaper(array(0, 0, 609.4488, 935.433), 'landscape'); // F4 Landscape
+            $templateName = $this->getTemplateName($suratPengajuan->jenis_surat);
+            $pdf = Pdf::loadView("surat.templates.{$templateName}", $data);
+            
+            // Tentukan orientasi berdasarkan jenis surat
+            // Hanya Kematian dan Domisili yang Landscape, sisanya Portrait
+            $landscapeTemplates = ['kematian', 'keterangan-domisili'];
+            $orientation = in_array($templateName, $landscapeTemplates) ? 'landscape' : 'portrait';
+            
+            $pdf->setPaper(array(0, 0, 609.4488, 935.433), $orientation); // Ukuran F4
 
             // Replace invalid characters in filename
             $filename = str_replace(['/', '\\', ':', '*', '?', '"', '<', '>', '|'], '-', $suratPengajuan->nomor_surat) . '.pdf';
@@ -293,19 +304,18 @@ class SuratPengajuanController extends Controller
     /**
      * Map jenis surat to template name
      */
-    private function getTemplateName($jenisSurat)
+    private function getTemplateName($suratType)
     {
-        $mapping = [
-            'sku' => 'sku',
-            'sktm_dewasa' => 'tidak-mampu-dewasa',
-            'sktm_anak' => 'tidak-mampu-anak',
-            'domisili' => 'keterangan-domisili',
-            'kelahiran' => 'kelahiran',
-            'kematian' => 'kematian',
-            'pindah' => 'pindah'
-        ];
+        // Cari data di database berdasarkan ID jenis surat
+        $type = \App\Models\SuratType::find($suratType);
 
-        return $mapping[$jenisSurat] ?? $jenisSurat;
+        // Jika ada di database dan punya template_code, gunakan itu
+        if ($type && $type->template_code) {
+            return $type->template_code;
+        }
+
+        // Jika tidak ditemukan atau tidak punya template (Surat Lainnya/Manual)
+        return null;
     }
 
     /**
@@ -359,6 +369,7 @@ class SuratPengajuanController extends Controller
             'sktm_dewasa' => 'Surat Keterangan Tidak Mampu (Dewasa)',
             'sktm_anak' => 'Surat Keterangan Tidak Mampu (Anak)',
             'domisili' => 'Surat Keterangan Domisili',
+            'pengantar' => 'Surat Pengantar',
             'kelahiran' => 'Surat Keterangan Kelahiran',
             'kematian' => 'Surat Keterangan Kematian',
             'pindah' => 'Surat Keterangan Pindah'
@@ -410,6 +421,217 @@ class SuratPengajuanController extends Controller
             return redirect()->back()
                            ->with('error', 'Terjadi kesalahan: ' . $e->getMessage())
                            ->withInput();
+        }
+    }
+
+    /**
+     * Display unified history of letters (both from pengajuan and manual creation)
+     */
+    public function history(Request $request)
+    {
+        Gate::authorize('surat.view');
+
+        // Get surats from direct creation (legacy)
+        $suratQuery = Surat::with(['penduduk', 'creator']);
+
+        // Get approved surat pengajuans
+        $pengajuanQuery = SuratPengajuan::with(['penduduk', 'admin'])
+            ->whereIn('status', ['completed', 'approved']);
+
+        // Apply search filter to both queries
+        if ($request->filled('search')) {
+            $search = $request->search;
+
+            $suratQuery->where(function($q) use ($search) {
+                $q->where('nomor_surat', 'like', "%{$search}%")
+                  ->orWhereHas('penduduk', function($q) use ($search) {
+                      $q->where('nama', 'like', "%{$search}%")
+                        ->orWhere('nik', 'like', "%{$search}%");
+                  });
+            });
+
+            $pengajuanQuery->where(function($q) use ($search) {
+                $q->where('nomor_surat', 'like', "%{$search}%")
+                  ->orWhereHas('penduduk', function($q) use ($search) {
+                      $q->where('nama', 'like', "%{$search}%")
+                        ->orWhere('nik', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        // Apply filters
+        if ($request->filled('jenis_surat')) {
+            $suratQuery->where('jenis_surat', $request->jenis_surat);
+            $pengajuanQuery->where('jenis_surat', $request->jenis_surat);
+        }
+
+        if ($request->filled('tahun')) {
+            $suratQuery->whereYear('created_at', $request->tahun);
+            $pengajuanQuery->whereYear('created_at', $request->tahun);
+        }
+
+        if ($request->filled('date_from')) {
+            $suratQuery->whereDate('created_at', '>=', $request->date_from);
+            $pengajuanQuery->whereDate('created_at', '>=', $request->date_from);
+        }
+
+        // Get results from both queries
+        $surats = $suratQuery->get();
+        $pengajuans = $pengajuanQuery->get();
+
+        // Transform pengajuans to match surats structure for unified list
+        $transformedPengajuans = $pengajuans->map(function($pengajuan) {
+            return (object) [
+                'id' => 'pengajuan_' . $pengajuan->id,
+                'nomor_surat' => $pengajuan->nomor_surat,
+                'jenis_surat' => $pengajuan->jenis_surat,
+                'penduduk' => $pengajuan->penduduk,
+                'created_at' => $pengajuan->approved_at ?? $pengajuan->created_at,
+                'creator' => $pengajuan->admin,
+                'source' => 'pengajuan',
+                'pengajuan_id' => $pengajuan->id,
+                'keperluan' => $pengajuan->keperluan,
+                'tujuan' => $pengajuan->tujuan,
+                'tanggal_surat' => $pengajuan->tanggal_surat,
+                'keterangan_tambahan' => $pengajuan->keterangan_tambahan,
+                'data_tambahan' => $pengajuan->data_tambahan,
+                'status' => $pengajuan->status
+            ];
+        });
+
+        // Transform legacy surats
+        $transformedSurats = $surats->map(function($surat) {
+            return (object) [
+                'id' => 'surat_' . $surat->id,
+                'nomor_surat' => $surat->nomor_surat,
+                'jenis_surat' => $surat->jenis_surat,
+                'penduduk' => $surat->penduduk,
+                'created_at' => $surat->created_at,
+                'creator' => $surat->creator,
+                'source' => 'surat',
+                'surat_id' => $surat->id,
+                'keperluan' => $surat->keperluan,
+                'tujuan' => $surat->tujuan,
+                'tanggal_surat' => $surat->tanggal_surat,
+                'keterangan_tambahan' => $surat->keterangan_tambahan,
+                'data_tambahan' => $surat->data_tambahan,
+                'status' => 'completed'
+            ];
+        });
+
+        // Combine and sort
+        $allSurats = $transformedSurats->concat($transformedPengajuans)
+            ->sortByDesc('created_at');
+
+        // Manual pagination
+        $perPage = 20;
+        $currentPage = $request->get('page', 1);
+        $offset = ($currentPage - 1) * $perPage;
+        $items = $allSurats->slice($offset, $perPage)->values();
+
+        $paginatedSurats = new \Illuminate\Pagination\LengthAwarePaginator(
+            $items,
+            $allSurats->count(),
+            $perPage,
+            $currentPage,
+            [
+                'path' => $request->url(),
+                'query' => $request->query(),
+            ]
+        );
+
+        return view('admin.surat-pengajuan.history', compact('paginatedSurats'));
+    }
+
+    /**
+     * Download legacy surat (from old surats table)
+     */
+    public function downloadLegacy($id)
+    {
+        Gate::authorize('surat.view');
+
+        $surat = Surat::with(['penduduk', 'creator'])->findOrFail($id);
+        
+        $data = [
+            'penduduk' => $surat->penduduk,
+            'desa_info' => DesaSetting::getDesaInfo(),
+            'kepala_desa' => ($surat->penandatangan === 'sekretaris_desa') 
+                ? DesaSetting::getSekretarisInfo() 
+                : DesaSetting::getKepalaDesaInfo(),
+            'is_sekdes' => ($surat->penandatangan === 'sekretaris_desa'),
+            'tanggal_surat' => $surat->tanggal_surat,
+            'nomor_surat' => $surat->nomor_surat,
+            'keperluan' => $surat->keperluan,
+            'tujuan' => $surat->tujuan,
+            'keterangan_tambahan' => $surat->keterangan_tambahan,
+            'data_tambahan' => $surat->data_tambahan ?? []
+        ];
+
+        // Merge data tambahan
+        if ($surat->data_tambahan) {
+            $dataTambahan = $surat->data_tambahan;
+            if (is_string($dataTambahan)) $dataTambahan = json_decode($dataTambahan, true);
+            if (is_array($dataTambahan)) {
+                foreach ($dataTambahan as $key => $value) {
+                    $data[$key] = $value;
+                }
+            }
+        }
+
+        $pdf = Pdf::loadView("surat.templates.{$this->getTemplateName($surat->jenis_surat)}", $data);
+        
+        if ($surat->jenis_surat === 'kematian') {
+            $pdf->setPaper(array(0, 0, 609.4488, 935.433), 'landscape');
+        } else {
+            $pdf->setPaper('A4', 'portrait');
+        }
+
+        $filename = str_replace(['/', '\\'], '-', $surat->nomor_surat) . '.pdf';
+
+        if (request('preview') == '1' || request('print') == '1') {
+            return $pdf->stream($filename);
+        }
+
+        return $pdf->download($filename);
+    }
+
+    /**
+     * Delete legacy surat (from old surats table)
+     */
+    public function destroyLegacy($id)
+    {
+        Gate::authorize('surat.delete');
+
+        try {
+            $surat = Surat::findOrFail($id);
+            $surat->delete();
+
+            return redirect()->route('admin.surat-pengajuan.history')
+                           ->with('success', 'Surat berhasil dihapus');
+
+        } catch (\Exception $e) {
+            return redirect()->back()
+                           ->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Delete surat pengajuan
+     */
+    public function destroy($id)
+    {
+        Gate::authorize('surat.delete');
+
+        try {
+            $pengajuan = SuratPengajuan::findOrFail($id);
+            $pengajuan->delete();
+
+            return redirect()->route('admin.surat-pengajuan.index')
+                           ->with('success', 'Pengajuan surat berhasil dihapus');
+
+        } catch (\Exception $e) {
+            return redirect()->back()
+                           ->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
     }
 }

@@ -65,7 +65,7 @@
                         <td>{{ $row->nkk }}</td>
                         <td>{{ $row->nama }}</td>
                         <td>{{ $row->alamat }}</td>
-                        <td>{{ $row->rt }}/{{ $row->rw }}</td>
+                        <td>{{ $row->rt_label }}/{{ $row->rw_label }}</td>
                     @elseif($type === 'mutasi')
                         <td>{{ $row->penduduk->nama ?? 'Deleted' }}</td>
                         <td>{{ ucfirst($row->jenis_mutasi) }}</td>
@@ -92,3 +92,4 @@
     </div>
 </body>
 </html>
+

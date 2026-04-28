@@ -198,47 +198,36 @@
                    placeholder="Alamat lengkap" rows="3" required></textarea>
         </div>
         <div>
-            <label for="rt_pindah_masuk" class="block text-sm font-medium text-gray-700 mb-2">RT</label>
-            <select name="rt" id="rt_pindah_masuk"
-                    class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
-                <option value="">Pilih RT...</option>
-                <option value="001">001</option>
-                <option value="002">002</option>
-                <option value="003">003</option>
-                <option value="004">004</option>
-                <option value="005">005</option>
-                <option value="006">006</option>
-                <option value="007">007</option>
-                <option value="008">008</option>
-                <option value="009">009</option>
-                <option value="010">010</option>
-            </select>
-        </div>
-        <div>
-            <label for="rw_pindah_masuk" class="block text-sm font-medium text-gray-700 mb-2">RW</label>
-            <select name="rw" id="rw_pindah_masuk"
+            <label for="rw_id_pindah_masuk" class="block text-sm font-medium text-gray-700 mb-2">RW</label>
+            <select name="rw_id" id="rw_id_pindah_masuk" onchange="populateRtByRwMutasi(this.value, 'rt_id_pindah_masuk')"
                     class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
                 <option value="">Pilih RW...</option>
-                <option value="001">001</option>
-                <option value="002">002</option>
-                <option value="003">003</option>
-                <option value="004">004</option>
-                <option value="005">005</option>
+                @foreach(($masterRwOptions ?? []) as $rw)
+                    <option value="{{ $rw['id'] }}">RW {{ $rw['kode'] }} - {{ $rw['nama'] }}</option>
+                @endforeach
             </select>
         </div>
         <div>
-            <label for="dusun_pindah_masuk" class="block text-sm font-medium text-gray-700 mb-2">Dusun</label>
-            <input type="text" name="dusun" id="dusun_pindah_masuk"
-                   class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-gray-50"
-                   placeholder="Dusun" readonly>
+            <label for="rt_id_pindah_masuk" class="block text-sm font-medium text-gray-700 mb-2">RT</label>
+            <select name="rt_id" id="rt_id_pindah_masuk" onchange="syncDusunByRtMutasi(this.value, document.getElementById('rw_id_pindah_masuk').value, 'dusun_id_pindah_masuk')"
+                    class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
+                <option value="">Pilih RT...</option>
+            </select>
         </div>
         <div>
-            <label for="kategori_mutasi_pindah_masuk" class="block text-sm font-medium text-gray-700 mb-2">Kategori Mutasi</label>
+            <label for="dusun_id_pindah_masuk_label" class="block text-sm font-medium text-gray-700 mb-2">Dusun</label>
+            <input type="text" id="dusun_id_pindah_masuk_label"
+                   class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-gray-50"
+                   placeholder="Dusun" readonly>
+            <input type="hidden" name="dusun_id" id="dusun_id_pindah_masuk">
+        </div>
+        <div>
+            <label for="kategori_mutasi_pindah_masuk" class="block text-sm font-medium text-gray-700 mb-2">Kategori Asal (Pindah Dari)</label>
             <select name="kategori_mutasi" id="kategori_mutasi_pindah_masuk"
                     class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
                 <option value="">Pilih kategori...</option>
-                <option value="dalam_kota">Dalam Kota</option>
-                <option value="luar_kota">Luar Kota</option>
+                <option value="dalam_kota">Dalam Kabupaten / Kota</option>
+                <option value="luar_kota">Luar Kabupaten / Kota</option>
                 <option value="luar_negeri">Luar Negeri</option>
             </select>
         </div>
@@ -268,3 +257,4 @@
         </div>
     </div>
 </div>
+

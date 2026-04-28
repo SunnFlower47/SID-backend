@@ -38,16 +38,15 @@
 ## 🚀 FITUR UTAMA
 
 ### **👥 Manajemen Penduduk**
-- 📊 **Data Kependudukan Lengkap** - NIK, nama, alamat, status, agama, pendidikan
-- 🏠 **Kartu Keluarga Digital** - Manajemen KK dan anggota keluarga dengan Excel/PDF export
-- 📈 **Sistem Mutasi V3.0** - Kelahiran, kematian, pindah masuk/keluar, pisah KK dengan fitur lengkap
-  - ✅ Form Pisah KK dengan input NKK tujuan manual
-  - ✅ Data tracking lengkap untuk mutasi luar desa  
-  - ✅ Cancel/Undo dengan rollback data yang benar
-  - ✅ Detail mutasi menggunakan relasi penduduk
-- 🔍 **Pencarian & Filter** - Cari penduduk berdasarkan kriteria dengan validasi real-time
-- 📊 **Statistik Real-time** - Data statistik penduduk terkini dengan filter umur
-- 🎯 **Validasi Data** - RT 3 digit, NIK unik, jenis kelamin standar
+- 📊 **Data Kependudukan Lengkap** - NIK, nama, alamat, agama, pendidikan, pekerjaan.
+- 🏠 **Kartu Keluarga Terintegrasi** - Manajemen KK berbasis `nkk` (string) dengan fitur deteksi **KK Bermasalah**.
+- 📈 **Sistem Mutasi V3.0** - Kelahiran, kematian, pindah masuk/keluar, pisah KK dengan fitur:
+  - ✅ **Soft Delete Logic** - Penduduk yang mutasi tetap ada di DB (sejarah) namun tidak muncul di daftar aktif.
+  - ✅ **Automatic KK Sync** - Observer otomatis memperbarui ringkasan KK saat ada mutasi.
+  - ✅ **Kategori Wilayah** - Klasifikasi otomatis asal/tujuan (Dalam/Luar Kota, Luar Negeri).
+  - ✅ **Cancel/Undo** - Fitur pembatalan mutasi dengan rollback data yang presisi.
+- 🔍 **Pencarian & Filter** - Pencarian instan berdasarkan NIK/Nama/NKK dengan validasi real-time.
+- 📊 **Statistik Real-time** - Dashboard statistik demografi yang akurat dan responsif.
 
 ### **📄 Surat Online**
 - 📋 **Pengajuan Digital** - Warga ajukan surat via website
@@ -114,11 +113,11 @@
 ### **Database Schema**
 ```sql
 -- Core Tables
-📊 penduduks          # Data penduduk dengan soft delete
-📋 mutasis            # Log mutasi dengan detail_tambahan JSON
-🏠 kartu_keluargas    # Data KK
-📄 surat_pengajuans   # Pengajuan surat
-📰 beritas            # Berita desa
+📊 penduduks          # Data penduduk (Core) dengan logic Soft Delete
+📋 mutasis            # Log mutasi penduduk (Lahir, Mati, Pindah)
+🏠 kartu_keluargas    # Tabel summary/cache KK (Sync via Observer)
+📄 surat_pengajuans   # Sistem pengajuan surat online
+📰 beritas            # Berita dan informasi desa
 📰 berita_externals   # Berita eksternal
 💬 testimonis         # Testimoni warga
 📋 pengaduans         # Pengaduan warga
@@ -297,6 +296,6 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 ---
 
-**📅 Last Updated:** January 15, 2025  
-**👤 Maintained By:** System Administrator  
-**✅ Status:** Production Ready
+**📅 Last Updated:** April 25, 2026  
+**👤 Maintained By:** Antigravity (AI Assistant) & System Administrator  
+**✅ Status:** Production Ready (Optimized)

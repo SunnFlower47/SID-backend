@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Tambah Proyek Desa')
 
@@ -222,3 +222,4 @@ document.getElementById('tanggal_mulai').addEventListener('change', function(e) 
 });
 @endnoncescript
 @endpush
+

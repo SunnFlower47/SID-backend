@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Edit Profile')
 @section('subtitle', 'Ubah informasi profil Anda')
@@ -278,11 +278,11 @@ function confirmPasswordChange() {
             <div class="text-left">
                 <p class="mb-3">Apakah Anda yakin ingin mengganti password?</p>
                 <div class="bg-yellow-50 p-3 rounded-lg border border-yellow-200">
-                    <p class="text-sm text-yellow-800 font-medium mb-2">⚠️ Peringatan:</p>
+                    <p class="text-sm text-yellow-800 font-medium mb-2">?? Peringatan:</p>
                     <ul class="text-xs text-yellow-700 space-y-1">
-                        <li>• Pastikan Anda mengingat password baru</li>
-                        <li>• Anda akan logout otomatis setelah ganti password</li>
-                        <li>• Simpan password di tempat yang aman</li>
+                        <li>� Pastikan Anda mengingat password baru</li>
+                        <li>� Anda akan logout otomatis setelah ganti password</li>
+                        <li>� Simpan password di tempat yang aman</li>
                     </ul>
                 </div>
             </div>
@@ -344,7 +344,7 @@ function confirmPasswordChange() {
             <div class="text-center">
                 <p class="mb-3">Password Anda telah berhasil diganti.</p>
                 <div class="bg-green-50 p-3 rounded-lg border border-green-200">
-                    <p class="text-sm text-green-800">🔐 Anda akan logout otomatis untuk keamanan.</p>
+                    <p class="text-sm text-green-800">?? Anda akan logout otomatis untuk keamanan.</p>
                 </div>
             </div>
         `,
@@ -366,7 +366,7 @@ function confirmPasswordChange() {
                 <p class="mb-3">Terdapat kesalahan saat memperbarui data:</p>
                 <ul class="text-sm text-red-600 space-y-1">
                     @foreach($errors->all() as $error)
-                        <li>• {{ $error }}</li>
+                        <li>� {{ $error }}</li>
                     @endforeach
                 </ul>
             </div>
@@ -390,3 +390,4 @@ function confirmPasswordChange() {
 }
 </style>
 @endsection
+

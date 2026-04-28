@@ -60,20 +60,13 @@ class StorePendudukRequest extends FormRequest
             'nama_ayah' => 'nullable|string|max:255',
             'nama_ibu' => 'nullable|string|max:255',
             'alamat' => 'required|string|max:500',
-            'rt' => [
-                'required',
-                'string',
-                'size:3',
-                new RtValidation()
-            ],
-            'rw' => 'required|string|max:3|regex:/^[0-9]+$/',
-            'rw_id' => 'nullable|exists:rws,id|required_if:kk_option,manual',
-            'rt_id' => 'nullable|exists:rts,id|required_if:kk_option,manual',
-            'dusun' => 'nullable|string|max:100',
+            'rt_id' => 'required|exists:rts,id',
+            'rw_id' => 'required|exists:rws,id',
+            'dusun_id' => 'nullable|exists:dusuns,id',
             'keterangan' => 'nullable|string|max:500',
             'kk_option' => 'required|in:existing,manual',
-            'nkk_existing' => 'nullable|string|max:20|required_if:kk_option,existing',
-            'nkk' => 'nullable|string|max:20|required_if:kk_option,manual',
+            'nkk_existing' => 'nullable|string|size:16|required_if:kk_option,existing',
+            'nkk' => 'nullable|string|size:16|required_if:kk_option,manual',
             'family_members' => 'nullable|array',
             'family_members.*.nik' => 'required|string|size:16',
             'family_members.*.nama' => 'required|string|max:255|min:2',
@@ -88,14 +81,9 @@ class StorePendudukRequest extends FormRequest
             'family_members.*.nama_ayah' => 'nullable|string|max:255',
             'family_members.*.nama_ibu' => 'nullable|string|max:255',
             'family_members.*.alamat' => 'required|string|max:500',
-            'family_members.*.rt' => [
-                'required',
-                'string',
-                'size:3',
-                new RtValidation()
-            ],
-            'family_members.*.rw' => 'required|string|max:3|regex:/^[0-9]+$/',
-            'family_members.*.dusun' => 'nullable|string|max:100'
+            'family_members.*.rt_id' => 'required|exists:rts,id',
+            'family_members.*.rw_id' => 'required|exists:rws,id',
+            'family_members.*.dusun_id' => 'nullable|exists:dusuns,id'
         ];
     }
 
@@ -141,7 +129,7 @@ class StorePendudukRequest extends FormRequest
             'kk_option.required' => 'Pilihan KK wajib dipilih.',
             'kk_option.in' => 'Pilihan KK tidak valid.',
             'nkk_existing.required_if' => 'No KK wajib dipilih jika menggunakan KK yang sudah ada.',
-            'nkk.max' => 'Nomor KK maksimal 20 karakter.',
+            'nkk.size' => 'Nomor KK harus 16 digit.',
             'nkk.required_if' => 'Nomor KK wajib diisi jika input manual.',
             'rw_id.required_if' => 'RW master wajib dipilih untuk input manual.',
             'rt_id.required_if' => 'RT master wajib dipilih untuk input manual.',
@@ -235,19 +223,7 @@ class StorePendudukRequest extends FormRequest
             ]);
         }
 
-        // Auto-format RT/RW (hapus spasi dan karakter non-digit)
-        if ($this->has('rt')) {
-            $rt = preg_replace('/[^0-9]/', '', $this->rt);
-            // Pad with leading zeros to make it 3 digits
-            $rt = str_pad($rt, 3, '0', STR_PAD_LEFT);
-            $this->merge(['rt' => $rt]);
-        }
-
-        if ($this->has('rw')) {
-            $this->merge([
-                'rw' => preg_replace('/[^0-9]/', '', $this->rw)
-            ]);
-        }
+        // RT/RW processing handled via rt_id and rw_id
 
         // Auto-format nama (trim dan title case)
         if ($this->has('nama')) {
@@ -296,11 +272,7 @@ class StorePendudukRequest extends FormRequest
                     $formattedMember['nama_ayah'] = ucwords(strtolower(trim($member['nama_ayah'])));
                 }
 
-                // Auto-format RT (hapus spasi dan karakter non-digit, pad dengan leading zeros)
-                if (isset($member['rt'])) {
-                    $rt = preg_replace('/[^0-9]/', '', $member['rt']);
-                    $formattedMember['rt'] = str_pad($rt, 3, '0', STR_PAD_LEFT);
-                }
+                // RT/RW processing handled via rt_id and rw_id
 
                 $formattedMembers[$index] = $formattedMember;
             }

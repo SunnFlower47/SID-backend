@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Testimoni;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use App\Traits\WilayahResolver;
 class TestimoniController extends Controller
 {
+    use WilayahResolver;
         /**
      * Display a listing of the resource.
      */
@@ -56,7 +58,24 @@ class TestimoniController extends Controller
     public function create()
     {
         Gate::authorize('testimoni.create');
-        return view('testimoni.create');
+
+        $masterRwOptions = \App\Models\Rw::with('rts')->orderBy('kode')->get()->map(function($rw) {
+            return [
+                'id' => $rw->id,
+                'kode' => $rw->kode,
+                'nama' => $rw->nama,
+                'rts' => $rw->rts->map(function($rt) {
+                    return [
+                        'id' => $rt->id,
+                        'kode' => $rt->kode,
+                        'dusun_id' => $rt->dusun_id,
+                        'dusun' => optional($rt->dusun)->nama
+                    ];
+                })
+            ];
+        });
+
+        return view('testimoni.create', compact('masterRwOptions'));
     }
 
     /**
@@ -70,8 +89,9 @@ class TestimoniController extends Controller
             'nama' => 'required|string|max:255',
             'email' => 'nullable|email|max:255',
             'telepon' => 'nullable|string|max:20',
-            'rt' => 'nullable|string|max:10',
-            'rw' => 'nullable|string|max:10',
+            'rt_id' => 'required|exists:rts,id',
+            'rw_id' => 'required|exists:rws,id',
+            'dusun_id' => 'required|exists:dusuns,id',
             'testimoni' => 'required|string',
             'rating' => 'nullable|integer|min:1|max:5',
             'kategori' => 'nullable|string|max:100',
@@ -82,8 +102,9 @@ class TestimoniController extends Controller
             'nama' => $request->nama,
             'email' => $request->email,
             'telepon' => $request->telepon,
-            'rt' => $request->rt,
-            'rw' => $request->rw,
+            'rt_id' => $request->rt_id,
+            'rw_id' => $request->rw_id,
+            'dusun_id' => $request->dusun_id,
             'testimoni' => $request->testimoni,
             'rating' => $request->rating,
             'kategori' => $request->kategori,
@@ -113,7 +134,24 @@ class TestimoniController extends Controller
     public function edit(Testimoni $testimoni)
     {
         Gate::authorize('testimoni.update');
-        return view('testimoni.edit', compact('testimoni'));
+
+        $masterRwOptions = \App\Models\Rw::with('rts')->orderBy('kode')->get()->map(function($rw) {
+            return [
+                'id' => $rw->id,
+                'kode' => $rw->kode,
+                'nama' => $rw->nama,
+                'rts' => $rw->rts->map(function($rt) {
+                    return [
+                        'id' => $rt->id,
+                        'kode' => $rt->kode,
+                        'dusun_id' => $rt->dusun_id,
+                        'dusun' => optional($rt->dusun)->nama
+                    ];
+                })
+            ];
+        });
+
+        return view('testimoni.edit', compact('testimoni', 'masterRwOptions'));
     }
 
     /**
@@ -127,8 +165,9 @@ class TestimoniController extends Controller
             'nama' => 'required|string|max:255',
             'email' => 'nullable|email|max:255',
             'telepon' => 'nullable|string|max:20',
-            'rt' => 'nullable|string|max:10',
-            'rw' => 'nullable|string|max:10',
+            'rt_id' => 'required|exists:rts,id',
+            'rw_id' => 'required|exists:rws,id',
+            'dusun_id' => 'required|exists:dusuns,id',
             'testimoni' => 'required|string',
             'rating' => 'nullable|integer|min:1|max:5',
             'kategori' => 'nullable|string|max:100',
@@ -140,8 +179,9 @@ class TestimoniController extends Controller
             'nama' => $request->nama,
             'email' => $request->email,
             'telepon' => $request->telepon,
-            'rt' => $request->rt,
-            'rw' => $request->rw,
+            'rt_id' => $request->rt_id,
+            'rw_id' => $request->rw_id,
+            'dusun_id' => $request->dusun_id,
             'testimoni' => $request->testimoni,
             'rating' => $request->rating,
             'kategori' => $request->kategori,

@@ -4,3 +4,4 @@
     <text x="100" y="60" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#1F2937">SIDES</text>
     <text x="100" y="80" font-family="Arial, sans-serif" font-size="12" fill="#6B7280">Sistem Informasi Desa</text>
 </svg>
+

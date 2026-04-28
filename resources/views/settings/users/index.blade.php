@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Kelola Pengguna')
 @section('subtitle', 'Kelola pengguna dan role sistem')
@@ -421,3 +421,4 @@ function deleteRole(roleId) {
 // Session messages handled by global component
 @endnoncescript
 @endsection
+

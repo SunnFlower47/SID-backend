@@ -162,23 +162,23 @@
     <table class="data-table">
         <tr>
             <td class="label">Nama Bayi</td>
-            <td>{{ $data['nama_bayi'] ?? $penduduk->nama }}</td>
+            <td>{{ $nama_bayi ?? $penduduk->nama }}</td>
         </tr>
         <tr>
             <td class="label">Tempat, Tanggal Lahir</td>
-            <td>{{ $data['tempat_lahir'] ?? $penduduk->tempat_lahir }}, {{ \Carbon\Carbon::parse($data['tanggal_lahir'] ?? $penduduk->tanggal_lahir)->isoFormat('D MMMM Y') }}</td>
+            <td>{{ $tempat_lahir ?? $penduduk->tempat_lahir }}, {{ isset($tanggal_lahir) ? \Carbon\Carbon::parse($tanggal_lahir)->isoFormat('D MMMM Y') : \Carbon\Carbon::parse($penduduk->tanggal_lahir)->isoFormat('D MMMM Y') }}</td>
         </tr>
         <tr>
             <td class="label">Jenis Kelamin</td>
-            <td>{{ $data['jenis_kelamin'] ?? ($penduduk->jenis_kelamin == 'LAKI-LAKI' ? 'Laki-laki' : 'Perempuan') }}</td>
+            <td>{{ $jenis_kelamin ?? ($penduduk->jenis_kelamin == 'LAKI-LAKI' ? 'Laki-laki' : 'Perempuan') }}</td>
         </tr>
         <tr>
             <td class="label">Nama Ayah</td>
-            <td>{{ $data['nama_ayah'] ?? 'Tidak disebutkan' }}</td>
+            <td>{{ $nama_ayah ?? 'Tidak disebutkan' }}</td>
         </tr>
         <tr>
             <td class="label">Nama Ibu</td>
-            <td>{{ $data['nama_ibu'] ?? 'Tidak disebutkan' }}</td>
+            <td>{{ $nama_ibu ?? 'Tidak disebutkan' }}</td>
         </tr>
         <tr>
             <td class="label">Alamat</td>
@@ -186,17 +186,17 @@
         </tr>
         <tr>
             <td class="label">Berat Badan</td>
-            <td>{{ $data['berat_badan'] ?? 'Tidak disebutkan' }}</td>
+            <td>{{ $berat_badan ?? 'Tidak disebutkan' }} {{ isset($berat_badan) ? 'kg' : '' }}</td>
         </tr>
         <tr>
             <td class="label">Panjang Badan</td>
-            <td>{{ $data['panjang_badan'] ?? 'Tidak disebutkan' }}</td>
+            <td>{{ $panjang_badan ?? 'Tidak disebutkan' }} {{ isset($panjang_badan) ? 'cm' : '' }}</td>
         </tr>
     </table>
 
     <div class="content">
         <p>Adalah benar-benar telah lahir di Desa {{ $nama_desa }} dan tercatat dalam data kependudukan.</p>
-        <p>Surat keterangan ini dibuat untuk keperluan: <strong>{{ strtoupper($data['keperluan'] ?? $keperluan ?? 'ADMINISTRASI KEPENDUDUKAN') }}</strong></p>
+        <p>Surat keterangan ini dibuat untuk keperluan: <strong>{{ strtoupper($keperluan ?? 'ADMINISTRASI KEPENDUDUKAN') }}</strong></p>
         <p>Demikian surat keterangan ini dibuat dengan sebenarnya untuk dapat dipergunakan seperlunya.</p>
     </div>
 
@@ -205,14 +205,14 @@
             <p style="margin-bottom: 20px;">
                 @if($is_sekdes)
                     a.n. Kepala Desa {{ $nama_desa }}<br>
-                    Sekretaris Desa
                 @else
                     Kepala Desa {{ $nama_desa }}
                 @endif
             </p>
-            <div style="margin-top: 60px; font-weight: bold; text-decoration: underline;">{{ $nama_kepala }}</div>
+            <div style="margin-top: 60px; font-weight: bold; text-decoration: underline;">{{ strtoupper($nama_kepala) }}</div>
         </div>
     </div>
 </body>
 </html>
+
 

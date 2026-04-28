@@ -237,7 +237,7 @@
                 <td>Alamat</td><td>:</td>
                 <td>
                     {{ $penduduk->alamat }}
-                    RT. {{ $penduduk->rt }}/RW. {{ $penduduk->rw }},
+                    RT. {{ $penduduk->rt_label }}/RW. {{ $penduduk->rw_label }},
                     Desa {{ $nama_desa }}, Kec. {{ $nama_kecamatan }}, Kab. {{ $nama_kabupaten }}
                 </td>
             </tr>
@@ -314,10 +314,11 @@
             @endif
         </p>
 
-        <div class="signature">{{ $nama_kepala }}</div>
+        <div class="signature">{{ strtoupper($nama_kepala) }}</div>
     </div>
 </div>
 
 
 </body>
 </html>
+

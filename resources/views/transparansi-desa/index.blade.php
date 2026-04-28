@@ -1,4 +1,4 @@
-ï»¿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Transparansi Desa')
 @section('subtitle', 'Informasi keuangan dan proyek desa untuk transparansi publik')
@@ -192,10 +192,10 @@
                 </div>
                 <div class="ml-4">
                     <div class="text-sm text-gray-700">
-                        <p>â€¢ Semua data keuangan dan proyek desa dapat diakses secara transparan oleh masyarakat</p>
-                        <p>â€¢ Laporan keuangan diperbarui setiap bulan dan dapat diunduh dalam format PDF</p>
-                        <p>â€¢ Progress proyek pembangunan dapat dipantau secara real-time</p>
-                        <p>â€¢ Jika ada pertanyaan atau keluhan, silakan hubungi kantor desa</p>
+                        <p>• Semua data keuangan dan proyek desa dapat diakses secara transparan oleh masyarakat</p>
+                        <p>• Laporan keuangan diperbarui setiap bulan dan dapat diunduh dalam format PDF</p>
+                        <p>• Progress proyek pembangunan dapat dipantau secara real-time</p>
+                        <p>• Jika ada pertanyaan atau keluhan, silakan hubungi kantor desa</p>
                     </div>
                 </div>
             </div>
@@ -208,4 +208,5 @@
 // Session messages handled by global component
 @endnoncescript
 @endsection
+
 

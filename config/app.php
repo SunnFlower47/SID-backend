@@ -144,5 +144,7 @@ return [
     */
 
     'api_base_url' => env('API_BASE_URL', 'https://admin-dscibatu.pemdescibatu2001.online/api/v1'),
+    
+    'frontend_url' => env('FRONTEND_URL', 'http://localhost:3000'),
 
 ];

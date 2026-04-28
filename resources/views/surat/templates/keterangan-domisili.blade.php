@@ -235,11 +235,11 @@
         </div>
         <div class="data-row">
             <div class="data-label">RT/RW</div>
-            <div class="data-value">: {{ $penduduk->rt ?? '-' }}/{{ $penduduk->rw ?? '-' }}</div>
+            <div class="data-value">: {{ $penduduk->rt_label ?? '-' }}/{{ $penduduk->rw_label ?? '-' }}</div>
         </div>
         <div class="data-row">
             <div class="data-label">Dusun</div>
-            <div class="data-value">: {{ $penduduk->dusun ?? '-' }}</div>
+            <div class="data-value">: {{ $penduduk->dusun_label ?? '-' }}</div>
         </div>
     </div>
 
@@ -269,13 +269,12 @@
                 {{ $nama_desa }}, {{ \Carbon\Carbon::parse($tgl_surat)->isoFormat('D MMMM Y') }}<br>
                 @if($is_sekdes)
                     a.n. Kepala Desa {{ $nama_desa }}<br>
-                    Sekretaris Desa
                 @else
                     Kepala Desa {{ $nama_desa }}
                 @endif
             </p>
             <div class="signature-line" style="margin-top: 60px;">
-                <strong>{{ $nama_kepala }}</strong><br>
+                <strong>{{ strtoupper($nama_kepala) }}</strong><br>
                 @if($nip_kepala && $nip_kepala != '-')
                 NIP. {{ $nip_kepala }}
                 @endif
@@ -289,4 +288,5 @@
     </div>
 </body>
 </html>
+
 

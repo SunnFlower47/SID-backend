@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('content')
 <!-- SweetAlert2 CSS -->
@@ -69,7 +69,7 @@
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-purple-100 text-sm font-medium uppercase tracking-wide">Rating Rata-rata</p>
-                    <p class="text-3xl font-bold mt-2">{{ number_format($stats['avg_rating'], 1) }} ⭐</p>
+                    <p class="text-3xl font-bold mt-2">{{ number_format($stats['avg_rating'], 1) }} ?</p>
                 </div>
                 <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
                     <i class="fas fa-star text-2xl"></i>
@@ -104,11 +104,11 @@
                     <label for="rating" class="block text-sm font-medium text-gray-700 mb-2">Rating</label>
                     <select class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-300" id="rating" name="rating">
                         <option value="">Semua Rating</option>
-                        <option value="5" {{ request('rating') == '5' ? 'selected' : '' }}>5 ⭐</option>
-                        <option value="4" {{ request('rating') == '4' ? 'selected' : '' }}>4 ⭐</option>
-                        <option value="3" {{ request('rating') == '3' ? 'selected' : '' }}>3 ⭐</option>
-                        <option value="2" {{ request('rating') == '2' ? 'selected' : '' }}>2 ⭐</option>
-                        <option value="1" {{ request('rating') == '1' ? 'selected' : '' }}>1 ⭐</option>
+                        <option value="5" {{ request('rating') == '5' ? 'selected' : '' }}>5 ?</option>
+                        <option value="4" {{ request('rating') == '4' ? 'selected' : '' }}>4 ?</option>
+                        <option value="3" {{ request('rating') == '3' ? 'selected' : '' }}>3 ?</option>
+                        <option value="2" {{ request('rating') == '2' ? 'selected' : '' }}>2 ?</option>
+                        <option value="1" {{ request('rating') == '1' ? 'selected' : '' }}>1 ?</option>
                     </select>
                 </div>
                 <div class="flex items-end gap-2">
@@ -156,8 +156,8 @@
                                         <small class="text-gray-500">{{ $testimoni->ip_address }}</small>
                                     </td>
                                     <td class="py-4 px-4 text-gray-600">
-                                        @if($testimoni->rt || $testimoni->rw)
-                                            RT {{ $testimoni->rt ?? '-' }} / RW {{ $testimoni->rw ?? '-' }}
+                                        @if($testimoni->rt_label || $testimoni->rw_label)
+                                            RT {{ $testimoni->rt_label ?? '-' }} / RW {{ $testimoni->rw_label ?? '-' }}
                                         @else
                                             -
                                         @endif
@@ -253,4 +253,5 @@
 // Session messages handled by global component
 @endnoncescript
 @endsection
+
 

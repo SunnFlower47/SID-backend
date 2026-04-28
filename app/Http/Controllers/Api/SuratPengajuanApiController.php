@@ -19,16 +19,15 @@ class SuratPengajuanApiController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'nik_pengaju' => 'required|string|size:16',
-            'nama_pengaju' => 'required|string|max:255',
-            'email_pengaju' => 'nullable|email|max:255',
-            'no_hp_pengaju' => 'nullable|string|max:20',
-            'jenis_surat' => 'required|string|in:sku,sktm_dewasa,sktm_anak,domisili,kelahiran,kematian,pindah',
-            'keperluan' => 'required|string|max:500',
+            'penduduk_id' => 'required|exists:penduduks,id',
+            'surat_type' => 'required|string', // Bisa ID template (sku) atau ID master (angka)
+            'keperluan' => 'required|string|max:1000',
             'tujuan' => 'nullable|string|max:255',
             'tanggal_surat' => 'required|date',
+            'email_pengaju' => 'nullable|email|max:255',
             'keterangan_tambahan' => 'nullable|string|max:1000',
-            'data_tambahan' => 'nullable|array'
+            'data_tambahan' => 'nullable|string', // Frontend kirim JSON string
+            'file_lampiran' => 'nullable|file|mimes:pdf|max:2048'
         ]);
 
         if ($validator->fails()) {
@@ -39,30 +38,33 @@ class SuratPengajuanApiController extends Controller
             ], 422);
         }
 
-        // Cari penduduk berdasarkan NIK
-        $penduduk = Penduduk::where('nik', $request->nik_pengaju)->first();
-        if (!$penduduk) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Data penduduk dengan NIK tersebut tidak ditemukan'
-            ], 404);
-        }
-
+        // Ambil data penduduk
+        $penduduk = Penduduk::find($request->penduduk_id);
+        
         try {
+            // Handle upload file
+            $filePath = null;
+            if ($request->hasFile('file_lampiran')) {
+                $file = $request->file('file_lampiran');
+                $filename = time() . '_' . $request->surat_type . '_' . $penduduk->nik . '.pdf';
+                $filePath = $file->storeAs('surat-pengajuan', $filename, 'public');
+            }
+
             $suratPengajuan = SuratPengajuan::create([
-                'jenis_surat' => $request->jenis_surat,
+                'jenis_surat' => $request->surat_type,
                 'penduduk_id' => $penduduk->id,
-                'nomor_surat' => $this->generateNomorSurat($request->jenis_surat),
+                'nomor_surat' => $this->generateNomorSurat($request->surat_type),
                 'keperluan' => $request->keperluan,
                 'tujuan' => $request->tujuan,
                 'tanggal_surat' => $request->tanggal_surat,
                 'keterangan_tambahan' => $request->keterangan_tambahan,
-                'data_tambahan' => json_encode($request->data_tambahan ?? []),
+                'data_tambahan' => $request->data_tambahan,
+                'file_lampiran' => $filePath,
                 'status' => 'pending',
-                'nik_pengaju' => $request->nik_pengaju,
-                'nama_pengaju' => $request->nama_pengaju,
+                'nik_pengaju' => $penduduk->nik,
+                'nama_pengaju' => $penduduk->nama,
                 'email_pengaju' => $request->email_pengaju,
-                'no_hp_pengaju' => $request->no_hp_pengaju
+                'no_hp_pengaju' => $penduduk->telepon ?? null
             ]);
 
             return response()->json([
@@ -125,9 +127,9 @@ class SuratPengajuanApiController extends Controller
                 'nik' => DataSanitizer::hashSensitiveData($penduduk->nik),
                 'nama' => $penduduk->nama,
                 'alamat' => $penduduk->alamat,
-                'rt' => $penduduk->rt,
-                'rw' => $penduduk->rw,
-                'dusun' => $penduduk->dusun
+                'rt' => $penduduk->rt_label,
+                'rw' => $penduduk->rw_label,
+                'dusun' => $penduduk->dusun_label
             ]
         ]);
     }
@@ -156,7 +158,9 @@ class SuratPengajuanApiController extends Controller
                 'tanggal_pengajuan' => $suratPengajuan->created_at->format('d/m/Y H:i'),
                 'tanggal_approve' => $suratPengajuan->updated_at->format('d/m/Y H:i'),
                 'nomor_surat' => $suratPengajuan->nomor_surat,
-                'keterangan_admin' => $suratPengajuan->keterangan_admin
+                'keterangan_admin' => $suratPengajuan->keterangan_admin,
+                'keperluan' => $suratPengajuan->keperluan,
+                'keterangan_tambahan' => $suratPengajuan->keterangan_tambahan
             ]
         ]);
     }

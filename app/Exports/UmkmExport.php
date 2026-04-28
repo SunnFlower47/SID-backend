@@ -21,7 +21,7 @@ class UmkmExport implements FromCollection, WithHeadings, WithMapping, WithStyle
 
     public function collection()
     {
-        $query = Umkm::query();
+        $query = Umkm::withWilayah();
 
         if (isset($this->filters['jenis_usaha']) && $this->filters['jenis_usaha']) {
             $query->where('jenis_usaha', $this->filters['jenis_usaha']);
@@ -78,8 +78,8 @@ class UmkmExport implements FromCollection, WithHeadings, WithMapping, WithStyle
             $umkm->nama_pemilik,
             $umkm->nik_pemilik,
             $umkm->alamat_usaha,
-            'RT ' . $umkm->rt . ' / RW ' . $umkm->rw,
-            $umkm->dusun,
+            'RT ' . $umkm->rt_label . ' / RW ' . $umkm->rw_label,
+            $umkm->dusun_label,
             $umkm->no_telepon ?? '-',
             $umkm->email ?? '-',
             $umkm->jenis_usaha_label,

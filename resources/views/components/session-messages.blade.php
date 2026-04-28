@@ -1,4 +1,4 @@
-﻿@if(session('success'))
+@if(session('success'))
 @noncescript
 document.addEventListener('DOMContentLoaded', function() {
     Swal.fire({
@@ -85,3 +85,4 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 @endnoncescript
 @endif
+

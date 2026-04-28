@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Edit Data Transparansi Desa')
 @section('subtitle', 'Edit informasi transparansi desa')
@@ -232,3 +232,4 @@ document.getElementById('file_dokumen').addEventListener('change', function(e) {
 });
 @endnoncescript
 @endsection
+

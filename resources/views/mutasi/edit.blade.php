@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Edit Mutasi')
 @section('subtitle', 'Ubah data mutasi penduduk')
@@ -125,7 +125,7 @@
                                             <p class="mb-1"><strong>Jenis Kelamin:</strong> {{ $mutasi->penduduk->jenis_kelamin }}</p>
                                             <p class="mb-1"><strong>Umur:</strong> {{ \Carbon\Carbon::parse($mutasi->penduduk->tanggal_lahir)->age }} Tahun</p>
                                             <p class="mb-1"><strong>Agama:</strong> {{ $mutasi->penduduk->agama ?? '-' }}</p>
-                                            <p class="mb-0"><strong>Alamat:</strong> {{ $mutasi->penduduk->alamat }}, RT {{ $mutasi->penduduk->rt }}/RW {{ $mutasi->penduduk->rw }}</p>
+                                            <p class="mb-0"><strong>Alamat:</strong> {{ $mutasi->penduduk->alamat }}, RT {{ $mutasi->penduduk->rt_label }}/RW {{ $mutasi->penduduk->rw_label }}</p>
                                         @else
                                             <p class="text-red-600">Data penduduk tidak ditemukan</p>
                                         @endif
@@ -437,4 +437,5 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 @endnoncescript
 @endpush
+
 

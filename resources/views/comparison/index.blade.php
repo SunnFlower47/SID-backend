@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Perbandingan Data')
 @section('subtitle', 'Bulan ini vs Bulan lalu')
@@ -357,4 +357,5 @@
 @endif
 @endnoncescript
 @endsection
+
 

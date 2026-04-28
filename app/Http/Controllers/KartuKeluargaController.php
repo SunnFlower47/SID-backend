@@ -28,8 +28,8 @@ class KartuKeluargaController extends Controller
         $search = $request->get('search');
         $status = $request->get('status', 'all'); // all, aktif, kosong, bermasalah
 
-        // Use the new Summary Table for high performance
-        $query = KartuKeluarga::query();
+        // Use the new Summary Table with Eager Loading
+        $query = KartuKeluarga::withWilayah();
 
         // Filter by Search
         if ($search) {
@@ -68,7 +68,23 @@ class KartuKeluargaController extends Controller
      */
     public function create()
     {
-        return view('kartu-keluarga.create');
+        $masterRwOptions = \App\Models\Rw::with('rts')->orderBy('kode')->get()->map(function($rw) {
+            return [
+                'id' => $rw->id,
+                'kode' => $rw->kode,
+                'nama' => $rw->nama,
+                'rts' => $rw->rts->map(function($rt) {
+                    return [
+                        'id' => $rt->id,
+                        'kode' => $rt->kode,
+                        'dusun_id' => $rt->dusun_id,
+                        'dusun' => optional($rt->dusun)->nama
+                    ];
+                })
+            ];
+        });
+
+        return view('kartu-keluarga.create', compact('masterRwOptions'));
     }
 
     /**
@@ -80,10 +96,11 @@ class KartuKeluargaController extends Controller
             'nkk' => 'required|string|size:16|unique:penduduks,nkk',
             'nama_kepala_keluarga' => 'required|string|max:255',
             'alamat' => 'required|string|max:500',
-            'rt' => 'required|string|max:3',
-            'rw' => 'required|string|max:3',
-            'dusun' => 'required|string|max:100',
+            'rt_id' => 'required|exists:rts,id',
+            'rw_id' => 'required|exists:rws,id',
         ]);
+
+        $rtModel = \App\Models\Rt::find($request->rt_id);
 
         // Create Kepala Keluarga in Penduduk table
         // Observer will automatically create entry in KartuKeluarga table
@@ -98,8 +115,9 @@ class KartuKeluargaController extends Controller
             'pekerjaan' => $request->pekerjaan,
             'pendidikan' => $request->pendidikan,
             'alamat' => $request->alamat,
-            'rt' => $request->rt,
-            'rw' => $request->rw,
+            'rt_id' => $request->rt_id,
+            'rw_id' => $request->rw_id,
+            'dusun_id' => optional($rtModel)->dusun_id,
             'nkk' => $request->nkk,
             'kedudukan_keluarga' => 'Kepala Keluarga',
         ]);
@@ -107,6 +125,7 @@ class KartuKeluargaController extends Controller
         return redirect()->route('kartu-keluarga.index')
             ->with('success', 'Kartu Keluarga berhasil dibuat');
     }
+
 
     /**
      * Display the specified resource.
@@ -134,12 +153,28 @@ class KartuKeluargaController extends Controller
     public function edit($nkk)
     {
         $kartuKeluarga = Penduduk::where('nkk', $nkk)->get();
-
+        
         if ($kartuKeluarga->isEmpty()) {
             abort(404, 'Kartu Keluarga tidak ditemukan');
         }
 
-        return view('kartu-keluarga.edit', compact('kartuKeluarga', 'nkk'));
+        $masterRwOptions = \App\Models\Rw::with('rts')->orderBy('kode')->get()->map(function($rw) {
+            return [
+                'id' => $rw->id,
+                'kode' => $rw->kode,
+                'nama' => $rw->nama,
+                'rts' => $rw->rts->map(function($rt) {
+                    return [
+                        'id' => $rt->id,
+                        'kode' => $rt->kode,
+                        'dusun_id' => $rt->dusun_id,
+                        'dusun' => optional($rt->dusun)->nama
+                    ];
+                })
+            ];
+        });
+
+        return view('kartu-keluarga.edit', compact('kartuKeluarga', 'nkk', 'masterRwOptions'));
     }
 
     /**
@@ -150,10 +185,11 @@ class KartuKeluargaController extends Controller
         $request->validate([
             'nama_kepala_keluarga' => 'required|string|max:255',
             'alamat' => 'required|string|max:500',
-            'rt' => 'required|string|max:3',
-            'rw' => 'required|string|max:3',
-            'dusun' => 'required|string|max:100',
+            'rt_id' => 'required|exists:rts,id',
+            'rw_id' => 'required|exists:rws,id',
         ]);
+
+        $rtModel = \App\Models\Rt::find($request->rt_id);
 
         // Update kepala keluarga
         $kepalaKeluarga = Penduduk::where('nkk', $nkk)
@@ -165,9 +201,9 @@ class KartuKeluargaController extends Controller
             $kepalaKeluarga->update([
                 'nama' => $request->nama_kepala_keluarga,
                 'alamat' => $request->alamat,
-                'rt' => $request->rt,
-                'rw' => $request->rw,
-                'dusun' => $request->dusun,
+                'rt_id' => $request->rt_id,
+                'rw_id' => $request->rw_id,
+                'dusun_id' => optional($rtModel)->dusun_id,
             ]);
         }
 
@@ -175,17 +211,54 @@ class KartuKeluargaController extends Controller
             ->with('success', 'Kartu Keluarga berhasil diperbarui');
     }
 
+
     /**
      * Remove the specified resource from storage.
      */
     public function destroy($nkk)
     {
-        // Hapus semua anggota keluarga
-        // Observer will handle deletion from Summary Table
-        Penduduk::where('nkk', $nkk)->delete();
+        Gate::authorize('kartu-keluarga.delete');
 
-        return redirect()->route('kartu-keluarga.index')
-            ->with('success', 'Kartu Keluarga berhasil dihapus');
+        try {
+            DB::beginTransaction();
+
+            // 1. Ambil data KK summary dulu
+            $kk = KartuKeluarga::where('nkk', $nkk)->first();
+            
+            // 2. Hapus semua anggota keluarga (soft delete)
+            // Ini akan memicu Observer untuk update summary (atau hapus summary jika anggota benar-benar 0)
+            Penduduk::where('nkk', $nkk)->delete();
+
+            // 3. Jika ini KK kosong (summary ada tapi anggota 0), pastikan summary juga terhapus
+            if ($kk) {
+                $kk->delete();
+            }
+
+            DB::commit();
+
+            if (request()->wantsJson() || request()->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Kartu Keluarga dan semua anggotanya berhasil dihapus'
+                ]);
+            }
+
+            return redirect()->route('kartu-keluarga.index')
+                ->with('success', 'Kartu Keluarga berhasil dihapus');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error("Gagal menghapus KK {$nkk}: " . $e->getMessage());
+
+            if (request()->wantsJson() || request()->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal menghapus data: ' . $e->getMessage()
+                ], 500);
+            }
+
+            return redirect()->back()->with('error', 'Gagal menghapus data: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -498,12 +571,13 @@ class KartuKeluargaController extends Controller
                     'nama_kepala_keluarga' => $kkRecord->kkSementara?->nama ?? $kkRecord->nama_kepala_keluarga,
                     'nik_kepala_keluarga'  => $kkRecord->kkSementara?->nik  ?? $kkRecord->nik_kepala_keluarga,
                     'alamat'               => $kkRecord->alamat,
-                    'rt'                   => $kkRecord->rt,
-                    'rw'                   => $kkRecord->rw,
-                    'dusun'                => $kkRecord->dusun,
+                    'rt_id'                => $kkRecord->rt_id,
+                    'rw_id'                => $kkRecord->rw_id,
+                    'dusun_id'             => $kkRecord->dusun_id,
                     'status_kk'            => 'normal',
                 ]
             );
+
 
             // Arsip KK lama — tetap ada untuk audit, tapi tidak aktif
             $kkRecord->update([
