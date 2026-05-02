@@ -17,7 +17,7 @@
                     </div>
                 </div>
                 <div class="flex flex-wrap gap-3">
-                    @can('berita.create')
+                    @can('pelayanan_informasi')
                     <a href="{{ route('berita.create') }}" class="group flex items-center px-4 py-2.5 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
                         <i class="fas fa-plus mr-2"></i>
                         Tambah Berita
@@ -130,7 +130,7 @@
 
                     <div class="flex items-center justify-between pt-4 border-t border-gray-100">
                         <div class="flex space-x-2">
-                            @can('berita.edit')
+                            @can('pelayanan_informasi')
                             <a href="{{ route('berita.edit', $item) }}" class="inline-flex items-center px-3 py-1.5 text-xs font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-md transition-colors">
                                 <i class="fas fa-edit mr-1"></i>
                                 Edit
@@ -141,7 +141,7 @@
                                 Lihat
                             </a>
                         </div>
-                        @can('berita.delete')
+                        @can('pelayanan_informasi')
                         <form id="delete-form-{{ $item->id }}" action="{{ route('berita.destroy', $item) }}" method="POST" class="inline">
                             @csrf
                             @method('DELETE')
@@ -162,7 +162,7 @@
                     </div>
                     <h3 class="text-lg font-medium text-gray-900 mb-2">Belum ada berita</h3>
                     <p class="text-gray-500 mb-6">Mulai buat berita pertama untuk desa Anda</p>
-                    @can('berita.create')
+                    @can('pelayanan_informasi')
                     <a href="{{ route('berita.create') }}" class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-700 text-white text-sm font-medium rounded-lg hover:from-green-700 hover:to-emerald-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200">
                         <i class="fas fa-plus mr-2"></i>
                         Tambah Berita Pertama

@@ -67,45 +67,47 @@ class PrivateApiMiddleware
             ]);
         }
 
-        // Auto-add API key untuk request yang valid (origin + User-Agent benar)
-        // Frontend tidak perlu mengirim API key untuk keamanan
-        $expectedApiKey = config('app.api_key');
-        $apiKey = $request->header('X-API-Key');
+        $secretKey = config('app.api_key'); // Kita gunakan API_KEY sebagai Secret
+        $signature = $request->header('X-Signature');
+        $timestamp = $request->header('X-Timestamp');
 
-        Log::info('PrivateApiMiddleware Debug', [
-            'has_api_key' => !empty($apiKey),
-            'api_key_length' => $apiKey ? strlen($apiKey) : 0,
-            'expected_key_length' => strlen($expectedApiKey),
-            'origin' => $origin,
-            'user_agent' => $userAgent,
-        ]);
+        // 1. Cek apakah header lengkap
+        if (!$signature || !$timestamp) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Security Headers Missing',
+                'error' => 'SIGNATURE_REQUIRED'
+            ], 403);
+        }
 
-        if (!$apiKey) {
-            // Jika tidak ada API key, otomatis tambahkan untuk request yang valid
-            $request->headers->set('X-API-Key', $expectedApiKey);
+        // 2. Cek Kadaluwarsa (Toleransi 300 detik / 5 Menit)
+        $currentTime = time();
+        if (abs($currentTime - $timestamp) > 300) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Request Expired (Time Sync Error)',
+                'error' => 'REQUEST_TIMEOUT'
+            ], 403);
+        }
 
-            Log::info('Auto-added API key for valid request', [
-                'origin' => $origin,
-                'user_agent' => $userAgent,
+        // 3. Validasi Tanda Tangan (HMAC)
+        // Rumus: hash_hmac('sha256', timestamp + method + path, secret)
+        $path = $request->path();
+        $message = $timestamp . strtoupper($request->method()) . $path;
+        $expectedSignature = hash_hmac('sha256', $message, $secretKey);
+
+        if (!hash_equals($expectedSignature, $signature)) {
+            Log::warning('Digital Signature Mismatch', [
                 'ip' => $request->ip(),
-                'endpoint' => $request->path(),
+                'provided' => $signature,
+                // Zero Trust: Jangan pernah catat 'expected signature' di log!
             ]);
-        } else {
-            // Jika ada API key, validasi apakah benar
-            if ($apiKey !== $expectedApiKey) {
-                Log::warning('Invalid API key provided', [
-                    'provided_key' => $apiKey,
-                    'expected_key' => $expectedApiKey,
-                    'origin' => $origin,
-                    'user_agent' => $userAgent,
-                    'ip' => $request->ip(),
-                ]);
 
-                return response()->json([
-                    'success' => false,
-                    'message' => 'API Key tidak valid'
-                ], 401);
-            }
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid Digital Signature',
+                'error' => 'INVALID_SIGNATURE'
+            ], 403);
         }
 
         // User-Agent WAJIB ada dan harus dari browser

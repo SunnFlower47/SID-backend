@@ -60,7 +60,7 @@ class MutasiObserver
         // Ambil penduduk yang dimutasi (termasuk yang sudah di-soft delete)
         $penduduk = Penduduk::withTrashed()->find($mutasi->penduduk_id);
 
-        if (!$penduduk) {
+        if (!$penduduk || !$penduduk->kartu_keluarga_id) {
             return;
         }
 
@@ -69,28 +69,29 @@ class MutasiObserver
             return;
         }
 
-        // Tentukan NKK yang bermasalah:
-        // - Untuk pisah_kk: NKK penduduk sudah berubah ke NKK baru, NKK lama
-        //   tersimpan di detail_tambahan['snapshot_asal']['nkk_asal']
-        // - Untuk kematian/pindah_keluar: NKK tidak berubah, ambil langsung
-        $nkkBermasalah = ($mutasi->jenis_mutasi === 'pisah_kk')
-            ? ($mutasi->detail_tambahan['snapshot_asal']['nkk_asal'] ?? $penduduk->nkk)
-            : $penduduk->nkk;
+        // Dapatkan record KK (Source of Truth)
+        // Untuk pisah_kk, kita ambil NKK asal dari snapshot jika KK penduduk sudah berubah
+        $kk = null;
+        if ($mutasi->jenis_mutasi === 'pisah_kk' && isset($mutasi->detail_tambahan['snapshot_asal']['nkk_asal'])) {
+            $kk = KartuKeluarga::where('nkk', $mutasi->detail_tambahan['snapshot_asal']['nkk_asal'])->first();
+        } else {
+            $kk = $penduduk->kartuKeluarga;
+        }
 
-        if (empty($nkkBermasalah)) {
+        if (!$kk) {
             return;
         }
 
-        // Cek apakah masih ada anggota aktif yang tersisa di NKK tersebut
-        // (Jika KK sudah kosong, tidak perlu flag — bukan "bermasalah", tapi "kosong")
-        $sisaAktif = Penduduk::where('nkk', $nkkBermasalah)->count();
+        // Cek apakah masih ada anggota aktif yang tersisa di KK tersebut
+        // Gunakan relational ID untuk keakuratan
+        $sisaAktif = Penduduk::where('kartu_keluarga_id', $kk->id)->count();
 
         if ($sisaAktif <= 0) {
             return;
         }
 
-        // Flag KK sebagai bermasalah — simpan ID mutasi penyebab langsung (tanpa query)
-        KartuKeluarga::where('nkk', $nkkBermasalah)->update([
+        // Flag KK sebagai bermasalah
+        $kk->update([
             'status_kk'           => 'bermasalah',
             'mutasi_penyebab_id'  => $mutasi->id,
             'kk_bermasalah_sejak' => now(),
@@ -105,8 +106,8 @@ class MutasiObserver
     private function updateFromPenduduk($pendudukId)
     {
         $penduduk = Penduduk::withTrashed()->find($pendudukId);
-        if ($penduduk) {
-            app(\App\Services\KartuKeluargaService::class)->recalculate($penduduk->nkk);
+        if ($penduduk && $penduduk->kartu_keluarga_id) {
+            app(\App\Services\KartuKeluargaService::class)->recalculate($penduduk->kartu_keluarga_id);
         }
     }
 }

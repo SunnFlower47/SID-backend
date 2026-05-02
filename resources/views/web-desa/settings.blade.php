@@ -201,7 +201,7 @@
                     <div class="flex items-start space-x-6">
                         <!-- Current Logo -->
                         <div class="flex-shrink-0">
-                            <img src="{{ asset('logo desa cibatu.png') }}"
+                            <img src="{{ asset('assets/images/logo-desa-cibatu.png') }}"
                                  alt="Logo Desa Cibatu"
                                  class="w-24 h-24 object-contain border border-gray-200 rounded-lg">
                             <p class="text-xs text-gray-500 mt-2 text-center">Logo saat ini</p>

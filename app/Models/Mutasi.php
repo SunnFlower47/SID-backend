@@ -7,10 +7,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Mutasi extends Model
 {
-    use SoftDeletes, LogsActivity;
+    use SoftDeletes, LogsActivity, HasFactory;
 
     protected $appends = [
         'data_kematian',
@@ -18,6 +19,9 @@ class Mutasi extends Model
         'data_pelapor',
         'data_snapshot',
         'jenis_mutasi_label',
+        'is_soft_delete_type',
+        'is_pembaruan_kk',
+        'is_undo_blocked',
     ];
 
     protected $fillable = [
@@ -133,11 +137,19 @@ class Mutasi extends Model
 
     /**
      * Cek apakah mutasi ini memerlukan soft-delete (undo) vs cancel.
-     * Digunakan di blade views untuk menentukan tombol Undo vs Cancel.
+     * Undo = restore penduduk yang di-soft-delete (kematian, pindah keluar, pisah KK luar desa)
+     * Undo juga untuk pindah_rt_rw (revert alamat)
+     * Cancel = hapus penduduk yang baru dibuat (kelahiran, pindah masuk)
+     * Pembaruan KK = handler khusus (rollback kedudukan)
      */
     public function isSoftDeleteType(): bool
     {
-        if (in_array($this->jenis_mutasi, ['kematian', 'pindah_keluar'])) {
+        // Pembaruan KK punya handler sendiri, bukan soft-delete dan bukan cancel biasa
+        if ($this->jenis_mutasi === 'pembaruan_kk') {
+            return true; // Tampilkan tombol Undo (bukan Cancel)
+        }
+
+        if (in_array($this->jenis_mutasi, ['kematian', 'pindah_keluar', 'pindah_rt_rw'])) {
             return true;
         }
 
@@ -146,6 +158,31 @@ class Mutasi extends Model
         }
 
         return false;
+    }
+
+    /**
+     * Accessor: Expose isSoftDeleteType ke frontend via JSON.
+     */
+    public function getIsSoftDeleteTypeAttribute(): bool
+    {
+        return $this->isSoftDeleteType();
+    }
+
+    /**
+     * Accessor: Cek apakah ini mutasi pembaruan KK (resolusi KK bermasalah).
+     */
+    public function getIsPembaruanKkAttribute(): bool
+    {
+        return $this->jenis_mutasi === 'pembaruan_kk';
+    }
+
+    /**
+     * Accessor: Cek apakah undo/cancel diblokir untuk mutasi ini.
+     * True jika KK sudah diselesaikan secara permanen.
+     */
+    public function getIsUndoBlockedAttribute(): bool
+    {
+        return (bool) ($this->detail_tambahan['kk_sudah_diselesaikan'] ?? false);
     }
 
     /**

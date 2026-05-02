@@ -10,7 +10,7 @@
     <meta name="keywords" content="login admin, desa cibatu, purwakarta, sistem informasi desa">
 
     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="{{ asset('logo-desa-cibatu.png') }}">
+    <link rel="icon" type="image/png" href="{{ asset('assets/images/logo-desa-cibatu.png') }}">
 
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -65,7 +65,7 @@
             <!-- Header -->
             <div class="text-center fade-in">
                 <div class="flex items-center justify-center space-x-2 sm:space-x-3 mb-4 sm:mb-6">
-                    <img src="{{ asset('logo-desa-cibatu.png') }}" alt="Logo Desa Cibatu" class="h-10 w-10 sm:h-12 sm:w-12 rounded-lg" loading="lazy" decoding="async">
+                    <img src="{{ asset('assets/images/logo-desa-cibatu.png') }}" alt="Logo Desa Cibatu" class="h-10 w-10 sm:h-12 sm:w-12 rounded-lg" loading="lazy" decoding="async">
                     <div class="text-left">
                         <h1 class="text-xl sm:text-2xl font-bold text-gray-900">Admin Panel</h1>
                         <p class="text-xs sm:text-sm text-gray-600">Desa Cibatu, Purwakarta</p>

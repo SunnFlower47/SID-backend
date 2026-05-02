@@ -23,8 +23,8 @@
 
     <!-- Action Buttons -->
     <div class="flex flex-col sm:flex-row gap-3 mb-6">
-        @can('kartu-keluarga.create')
-        <a href="{{ route('kartu-keluarga.create') }}" class="group flex items-center justify-center px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
+        @can('kependudukan')
+        <a href="{{ route('kk.create') }}" class="group flex items-center justify-center px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
             <div class="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center mr-3 group-hover:scale-110 transition-transform">
                 <i class="fas fa-plus text-white text-sm"></i>
             </div>
@@ -35,7 +35,7 @@
         </a>
         @endcan
 
-        @can('kartu_keluarga.export')
+        @can('kependudukan')
         <button onclick="exportData()" class="group flex items-center justify-center px-4 py-3 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
             <div class="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center mr-3 group-hover:scale-110 transition-transform">
                 <i class="fas fa-file-excel text-white text-sm"></i>
@@ -47,16 +47,16 @@
         </button>
         @endcan
 
-        @can('kartu-keluarga.edit')
-        <form method="POST" action="{{ route('kartu-keluarga.sync-summary') }}" onsubmit="return confirm('Proses ini akan mensinkronkan data KK sekaligus memindai KK historis yang tidak memiliki Kepala Keluarga aktif. Lanjutkan?')">
+        @can('kependudukan')
+        <form method="POST" action="{{ route('kk.sync-summary') }}" onsubmit="return confirm('Proses ini akan menghitung ulang jumlah anggota dan memperbarui data kepala keluarga untuk semua KK. Lanjutkan?')">
             @csrf
             <button type="submit" class="group flex items-center justify-center px-4 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
                 <div class="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center mr-3 group-hover:scale-110 transition-transform group-hover:rotate-180 duration-500">
-                    <i class="fas fa-rotate text-white text-sm"></i>
+                    <i class="fas fa-sync text-white text-sm"></i>
                 </div>
                 <div class="text-left">
-                    <p class="font-semibold text-sm sm:text-base">Sinkronkan KK</p>
-                    <p class="text-indigo-100 text-sm">Perbarui & Cek KK Bermasalah</p>
+                    <p class="font-semibold text-sm sm:text-base">Refresh Statistik KK</p>
+                    <p class="text-indigo-100 text-sm">Hitung Ulang Anggota & Kepala Keluarga</p>
                 </div>
             </button>
         </form>
@@ -179,7 +179,7 @@
                         <i class="fas fa-search mr-2"></i>
                         Cari
                     </button>
-                    <a href="{{ route('kartu-keluarga.index') }}"
+                    <a href="{{ route('kk.index') }}"
                        class="group flex items-center px-4 py-2.5 bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105">
                         <i class="fas fa-sync mr-2"></i>
                         Reset
@@ -267,15 +267,15 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <div class="flex space-x-2">
-                                @can('kartu-keluarga.view')
-                                <a href="{{ route('kartu-keluarga.show', $kk->nkk) }}"
+                                @can('kependudukan')
+                                <a href="{{ route('kk.show', $kk->nkk) }}"
                                    class="text-blue-600 hover:text-blue-900"
                                    title="Lihat Detail">
                                     <i class="fas fa-eye"></i>
                                 </a>
                                 @endcan
                                 @if(in_array($kk->status_kk ?? 'normal', ['bermasalah','bermasalah_sementara']))
-                                @can('kartu-keluarga.edit')
+                                @can('kependudukan')
                                 <a href="{{ route('kk.bermasalah', $kk->nkk) }}"
                                    class="text-orange-600 hover:text-orange-900"
                                    title="Selesaikan KK Bermasalah">
@@ -283,21 +283,21 @@
                                 </a>
                                 @endcan
                                 @endif
-                                @can('kartu-keluarga.view')
-                                <a href="{{ route('kartu-keluarga.download-pdf', $kk->nkk) }}"
+                                @can('kependudukan')
+                                <a href="{{ route('kk.download-pdf', $kk->nkk) }}"
                                    class="text-green-600 hover:text-green-900"
                                    title="Download PDF">
                                     <i class="fas fa-file-pdf"></i>
                                 </a>
                                 @endcan
-                                @can('kartu-keluarga.edit')
-                                <a href="{{ route('kartu-keluarga.edit', $kk->nkk) }}"
+                                @can('kependudukan')
+                                <a href="{{ route('kk.edit', $kk->nkk) }}"
                                    class="text-gray-600 hover:text-gray-900"
                                    title="Edit">
                                     <i class="fas fa-edit"></i>
                                 </a>
                                 @endcan
-                                @can('kartu-keluarga.delete')
+                                @can('kependudukan')
                                 <button onclick="deleteKK('{{ $kk->nkk }}')"
                                         class="text-red-600 hover:text-red-900"
                                         title="Hapus">
@@ -426,22 +426,22 @@
                 <div class="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-2">
                     <!-- Detail & Download Row -->
                     <div class="flex gap-2">
-                        @can('kartu-keluarga.view')
-                        <a href="{{ route('kartu-keluarga.show', $kk->nkk) }}" class="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-3 py-2.5 rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-105 shadow-md">
+                        @can('kependudukan')
+                        <a href="{{ route('kk.show', $kk->nkk) }}" class="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-3 py-2.5 rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-105 shadow-md">
                             <i class="fas fa-eye mr-2 text-sm"></i>
                             <span class="text-sm font-medium">Detail</span>
                         </a>
                         @endcan
                         @if(in_array($kk->status_kk ?? 'normal', ['bermasalah','bermasalah_sementara']))
-                        @can('kartu-keluarga.edit')
+                        @can('kependudukan')
                         <a href="{{ route('kk.bermasalah', $kk->nkk) }}" class="flex-1 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-3 py-2.5 rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-105 shadow-md">
                             <i class="fas fa-tools mr-2 text-sm"></i>
                             <span class="text-sm font-medium">Selesaikan</span>
                         </a>
                         @endcan
                         @else
-                        @can('kartu-keluarga.view')
-                        <a href="{{ route('kartu-keluarga.download-pdf', $kk->nkk) }}" class="flex-1 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-3 py-2.5 rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-105 shadow-md">
+                        @can('kependudukan')
+                        <a href="{{ route('kk.download-pdf', $kk->nkk) }}" class="flex-1 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-3 py-2.5 rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-105 shadow-md">
                             <i class="fas fa-file-pdf mr-2 text-sm"></i>
                             <span class="text-sm font-medium">PDF</span>
                         </a>
@@ -451,13 +451,13 @@
 
                     <!-- Edit & Hapus Row -->
                     <div class="flex gap-2">
-                        @can('kartu-keluarga.edit')
-                        <a href="{{ route('kartu-keluarga.edit', $kk->nkk) }}" class="flex-1 bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white px-3 py-2.5 rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-105 shadow-md">
+                        @can('kependudukan')
+                        <a href="{{ route('kk.edit', $kk->nkk) }}" class="flex-1 bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white px-3 py-2.5 rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-105 shadow-md">
                             <i class="fas fa-edit mr-2 text-sm"></i>
                             <span class="text-sm font-medium">Edit</span>
                         </a>
                         @endcan
-                        @can('kartu-keluarga.delete')
+                        @can('kependudukan')
                         <button onclick="deleteKK('{{ $kk->nkk }}')" class="flex-1 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-3 py-2.5 rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-105 shadow-md">
                             <i class="fas fa-trash mr-2 text-sm"></i>
                             <span class="text-sm font-medium">Hapus</span>
@@ -605,7 +605,7 @@ function exportData() {
 
     // Build URL with current filters
     const urlParams = new URLSearchParams(window.location.search);
-    const exportUrl = '{{ route("kartu-keluarga.export.excel") }}?' + urlParams.toString();
+    const exportUrl = '{{ route("kk.export.excel") }}?' + urlParams.toString();
 
     // Fetch the file as blob
     fetch(exportUrl, {

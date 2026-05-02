@@ -13,7 +13,7 @@ class MutasiPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->hasPermissionTo('mutasi.view');
+        return $user->hasPermissionTo('kependudukan');
     }
 
     /**
@@ -21,7 +21,7 @@ class MutasiPolicy
      */
     public function view(User $user, Mutasi $mutasi): bool
     {
-        return $user->hasPermissionTo('mutasi.view');
+        return $user->hasPermissionTo('kependudukan');
     }
 
     /**
@@ -29,7 +29,7 @@ class MutasiPolicy
      */
     public function create(User $user): bool
     {
-        return $user->hasPermissionTo('mutasi.create');
+        return $user->hasPermissionTo('kependudukan');
     }
 
     /**
@@ -37,7 +37,7 @@ class MutasiPolicy
      */
     public function update(User $user, Mutasi $mutasi): bool
     {
-        return $user->hasPermissionTo('mutasi.edit');
+        return $user->hasPermissionTo('kependudukan');
     }
 
     /**
@@ -45,7 +45,7 @@ class MutasiPolicy
      */
     public function delete(User $user, Mutasi $mutasi): bool
     {
-        return $user->hasPermissionTo('mutasi.delete');
+        return $user->hasPermissionTo('kependudukan');
     }
 
     /**

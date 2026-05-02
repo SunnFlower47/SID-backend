@@ -18,12 +18,12 @@
                 </div>
             </div>
             <div class="flex flex-wrap gap-3">
-                <a href="{{ route('kartu-keluarga.index') }}" class="group flex items-center px-6 py-3 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+                <a href="{{ route('kk.index') }}" class="group flex items-center px-6 py-3 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
                     <i class="fas fa-arrow-left mr-2"></i>
                     Kembali
                 </a>
-                @can('kartu-keluarga.edit')
-                <a href="{{ route('kartu-keluarga.edit', $nkk) }}" class="group flex items-center px-6 py-3 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+                @can('kependudukan')
+                <a href="{{ route('kk.edit', $nkk) }}" class="group flex items-center px-6 py-3 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
                     <i class="fas fa-edit mr-2"></i>
                     Edit KK
                 </a>
@@ -45,7 +45,7 @@
                     <i class="fas fa-crown text-yellow-500 mr-2"></i>
                     Kepala Keluarga
                 </h3>
-                @can('penduduk.view')
+                @can('kependudukan')
                 <a href="{{ route('penduduk.show', $kepalaKeluarga->id) }}" class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 transition-colors shadow-sm">
                     <i class="fas fa-user-circle mr-2"></i>
                     Detail Penduduk
@@ -159,7 +159,7 @@
                                 @endif
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                @can('penduduk.view')
+                                @can('kependudukan')
                                 <a href="{{ route('penduduk.show', $anggota->id) }}" class="text-blue-600 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors">
                                     <i class="fas fa-eye mr-1"></i>
                                     Detail

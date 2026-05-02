@@ -20,10 +20,10 @@
                 </div>
             </div>
             <div class="flex flex-wrap gap-3">
-                @can('umkm.create')
-                <a href="{{ route('umkm.create') }}" class="group flex items-center px-4 py-2.5 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
+                @can('pelayanan_informasi')
+                <a href="{{ route('umkm.create') }}" class="flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105">
                     <i class="fas fa-plus mr-2"></i>
-                    Tambah UMKM
+                    Tambah Produk
                 </a>
                 @endcan
             </div>
@@ -142,11 +142,11 @@
         @if($umkms->count() > 0)
         <!-- Mobile Card View -->
         <div class="block lg:hidden p-4 space-y-4">
-            @foreach($umkms as $umkm)
+            @foreach($umkms as $item)
             <div class="bg-gray-50 rounded-xl p-4 border border-gray-200">
                 <div class="flex items-start space-x-3">
-                    @if($umkm->foto_usaha && is_array($umkm->foto_usaha) && count($umkm->foto_usaha) > 0)
-                    <img src="{{ Storage::url($umkm->foto_usaha[0]) }}" alt="{{ $umkm->nama_usaha }}"
+                    @if($item->foto_usaha && is_array($item->foto_usaha) && count($item->foto_usaha) > 0)
+                    <img src="{{ Storage::url($item->foto_usaha[0]) }}" alt="{{ $item->nama_usaha }}"
                          class="w-12 h-12 rounded-lg object-cover">
                     @else
                     <div class="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
@@ -154,19 +154,19 @@
                     </div>
                     @endif
                     <div class="flex-1 min-w-0">
-                        <h4 class="text-sm font-semibold text-gray-900 truncate">{{ $umkm->nama_usaha }}</h4>
-                        <p class="text-xs text-gray-500 mt-1">{{ $umkm->nama_pemilik }}</p>
-                        <p class="text-xs text-gray-600 mt-1">{{ Str::limit($umkm->alamat_usaha, 50) }}</p>
+                        <h4 class="text-sm font-semibold text-gray-900 truncate">{{ $item->nama_usaha }}</h4>
+                        <p class="text-xs text-gray-500 mt-1">{{ $item->nama_pemilik }}</p>
+                        <p class="text-xs text-gray-600 mt-1">{{ Str::limit($item->alamat_usaha, 50) }}</p>
                         <div class="flex items-center justify-between mt-2">
                             <div class="flex space-x-2">
                                 <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                    {{ ucfirst($umkm->jenis_usaha) }}
+                                    {{ ucfirst($item->jenis_usaha) }}
                                 </span>
-                                @if($umkm->status_usaha == 'aktif')
+                                @if($item->status_usaha == 'aktif')
                                 <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                     Aktif
                                 </span>
-                                @elseif($umkm->status_usaha == 'tutup')
+                                @elseif($item->status_usaha == 'tutup')
                                 <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
                                     Tutup
                                 </span>
@@ -175,26 +175,26 @@
                                     Pindah
                                 </span>
                                 @endif
-                                @if($umkm->is_unggulan)
+                                @if($item->is_unggulan)
                                 <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                                     <i class="fas fa-star text-xs mr-1"></i> Unggulan
                                 </span>
                                 @endif
                             </div>
                             <div class="flex space-x-2">
-                                @can('umkm.view')
-                                <a href="{{ route('umkm.show', $umkm) }}" class="text-blue-600 hover:text-blue-800 p-1" title="Lihat">
-                                    <i class="fas fa-eye text-xs"></i>
+                                @can('pelayanan_informasi')
+                                <a href="{{ route('umkm.show', $item) }}" class="p-2 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors" title="Lihat Detail">
+                                    <i class="fas fa-eye"></i>
                                 </a>
                                 @endcan
-                                @can('umkm.edit')
-                                <a href="{{ route('umkm.edit', $umkm) }}" class="text-yellow-600 hover:text-yellow-800 p-1" title="Edit">
-                                    <i class="fas fa-edit text-xs"></i>
+                                @can('pelayanan_informasi')
+                                <a href="{{ route('umkm.edit', $item) }}" class="p-2 bg-gray-50 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors" title="Edit">
+                                    <i class="fas fa-edit"></i>
                                 </a>
                                 @endcan
-                                @can('umkm.delete')
-                                <button type="button" class="text-red-600 hover:text-red-800 p-1" title="Hapus" onclick="confirmDelete({{ $umkm->id }}, '{{ $umkm->nama_usaha }}')">
-                                    <i class="fas fa-trash text-xs"></i>
+                                @can('pelayanan_informasi')
+                                <button onclick="deleteUMKM('{{ $item->id }}', '{{ $item->nama_produk }}')" class="p-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-colors" title="Hapus">
+                                    <i class="fas fa-trash"></i>
                                 </button>
                                 @endcan
                             </div>
@@ -280,17 +280,17 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <div class="flex space-x-2">
-                                @can('umkm.view')
+                                @can('pelayanan_informasi')
                                 <a href="{{ route('umkm.show', $umkm) }}" class="inline-flex items-center px-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg transition-colors text-sm font-medium" title="Lihat">
                                     <i class="fas fa-eye mr-1"></i> Lihat
                                 </a>
                                 @endcan
-                                @can('umkm.edit')
+                                @can('pelayanan_informasi')
                                 <a href="{{ route('umkm.edit', $umkm) }}" class="inline-flex items-center px-3 py-2 bg-yellow-50 hover:bg-yellow-100 text-yellow-700 rounded-lg transition-colors text-sm font-medium" title="Edit">
                                     <i class="fas fa-edit mr-1"></i> Edit
                                 </a>
                                 @endcan
-                                @can('umkm.delete')
+                                @can('pelayanan_informasi')
                                 <form id="delete-form-{{ $umkm->id }}" action="{{ route('umkm.destroy', $umkm) }}" method="POST" class="inline">
                                     @csrf
                                     @method('DELETE')
@@ -313,10 +313,10 @@
             </div>
             <h3 class="text-lg font-medium text-gray-900 mb-2">Tidak ada data UMKM</h3>
             <p class="text-gray-500 mb-6">Mulai tambah data UMKM pertama</p>
-            @can('umkm.create')
-            <a href="{{ route('umkm.create') }}" class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 text-white text-sm font-medium rounded-lg hover:from-green-700 hover:to-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200">
+            @can('pelayanan_informasi')
+            <a href="{{ route('umkm.create') }}" class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-sm font-medium rounded-lg hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200">
                 <i class="fas fa-plus mr-2"></i>
-                Tambah UMKM Pertama
+                Tambah Produk Pertama
             </a>
             @endcan
         </div>

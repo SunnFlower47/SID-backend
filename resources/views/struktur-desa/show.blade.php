@@ -190,13 +190,13 @@
                     <span>Terakhir diupdate {{ $strukturDesa->updated_at->diffForHumans() }}</span>
                 </div>
                 <div class="flex flex-col sm:flex-row gap-3">
-                    @can('struktur-desa.edit')
+                    @can('pelayanan_informasi')
                     <a href="{{ route('struktur-desa.edit', $strukturDesa) }}" class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center">
                         <i class="fas fa-edit mr-2"></i>
                         Edit Data
                     </a>
                     @endcan
-                    @can('struktur-desa.delete')
+                    @can('pelayanan_informasi')
                     <button onclick="confirmDelete({{ $strukturDesa->id }}, '{{ addslashes($strukturDesa->nama) }}')" class="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center">
                         <i class="fas fa-trash mr-2"></i>
                         Hapus Data

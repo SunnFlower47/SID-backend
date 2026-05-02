@@ -176,8 +176,7 @@ class DesaSetting extends Model
             'kode_surat_sku' => static::getValue('kode_surat_sku', 'SKU'),
             'kode_surat_sktm_dewasa' => static::getValue('kode_surat_sktm_dewasa', 'SKTM'),
             'kode_surat_sktm_anak' => static::getValue('kode_surat_sktm_anak', 'SKTM'),
-            'kode_surat_domisili' => static::getValue('kode_surat_domisili', 'SKD'),
-            'kode_desa_fixed' => '2001'
+            'kode_surat_domisili' => static::getValue('kode_surat_domisili', 'SKD')
         ];
     }
 
@@ -187,11 +186,15 @@ class DesaSetting extends Model
     public static function generateNomorSurat($kodeSurat = null)
     {
         $nomorUrut = static::getNextNomorUrut();
+        $kodeDesa = static::getValue('kode_desa', '2001');
         $bulanRomawi = static::intToRoman(date('n'));
         $tahun = date('Y');
-        $kodeDesa = '2001';
 
-        // Format: [Nomor Urut]/2001/[Bulan Romawi]/[Tahun]
+        // Format: [Kode Surat]/[Nomor Urut]/[Kode Desa]/[Bulan Romawi]/[Tahun]
+        if ($kodeSurat) {
+            return "{$kodeSurat}/{$nomorUrut}/{$kodeDesa}/{$bulanRomawi}/{$tahun}";
+        }
+        
         return "{$nomorUrut}/{$kodeDesa}/{$bulanRomawi}/{$tahun}";
     }
 

@@ -13,7 +13,7 @@ class BackupController extends Controller
 {
     public function index(): JsonResponse
     {
-        Gate::authorize('backup.manage');
+        Gate::authorize('admin_sistem');
 
         $backupFiles = collect();
         $backupDir = storage_path('app/private/admin-panel-desa-cibatu');
@@ -42,7 +42,7 @@ class BackupController extends Controller
 
     public function create(Request $request): JsonResponse
     {
-        Gate::authorize('backup.manage');
+        Gate::authorize('admin_sistem');
         $request->validate(['type' => 'required|in:database,files,full']);
 
         try {
@@ -62,7 +62,7 @@ class BackupController extends Controller
 
     public function download($filename)
     {
-        Gate::authorize('backup.manage');
+        Gate::authorize('admin_sistem');
         $path = storage_path('app/private/admin-panel-desa-cibatu/' . $filename);
         if (!file_exists($path)) return response()->json(['status' => 'error', 'message' => 'File tidak ditemukan'], 404);
         return response()->download($path);
@@ -70,7 +70,7 @@ class BackupController extends Controller
 
     public function destroy($filename): JsonResponse
     {
-        Gate::authorize('backup.manage');
+        Gate::authorize('admin_sistem');
         $path = storage_path('app/private/admin-panel-desa-cibatu/' . $filename);
         if (file_exists($path)) {
             unlink($path);

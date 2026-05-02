@@ -1,5 +1,5 @@
 @php
-    $logoPath = public_path('logo desa cibatu.png');
+    $logoPath = public_path('assets/images/logo-desa-cibatu.png');
     $logoBase64 = '';
     if (file_exists($logoPath)) {
         $logoData = file_get_contents($logoPath);

@@ -8,46 +8,102 @@ use App\Models\Penduduk;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
-use App\Helpers\DataSanitizer;
+use App\Models\SuratType;
 use Exception;
 
 class SuratPengajuanApiController extends Controller
 {
     /**
-     * Submit pengajuan surat dari web-desa
+     * Helper untuk format response publik yang SANGAT MINIMAL (Tanpa PII)
+     */
+    private function formatPublicResponse($surat)
+    {
+        return [
+            'id' => $surat->id,
+            'nomor_surat' => $surat->nomor_surat,
+            'jenis_surat_nama' => $surat->suratType ? $surat->suratType->nama : $surat->jenis_surat,
+            'status' => $surat->status,
+            'keperluan' => $surat->keperluan,
+            'keterangan_admin' => $surat->keterangan_admin,
+            'tanggal_pengajuan' => $surat->created_at->toIso8601String(),
+            'created_at' => $surat->created_at->toIso8601String(),
+            'updated_at' => $surat->updated_at->toIso8601String(),
+        ];
+    }
+
+    /**
+     * Get list of available letter types
+     */
+    public function index()
+    {
+        $types = SuratType::where('is_active', true)
+            ->orderBy('has_template', 'desc')
+            ->orderBy('nama')
+            ->get()
+            ->map(function ($type) {
+                return [
+                    'id' => (string)$type->id,
+                    'name' => $type->nama,
+                    'description' => $type->deskripsi,
+                    'persyaratan' => $type->persyaratan,
+                    'has_template' => (bool)$type->has_template,
+                    'template_code' => $type->template_code,
+                    'icon' => $type->icon ?? 'fas fa-file-alt',
+                    'color' => $type->color ?? 'blue',
+                    'category' => $type->has_template ? 'Template' : 'Lainnya',
+                    'form_json' => $type->form_json,
+                ];
+            });
+
+        return response()->json(['success' => true, 'data' => $types]);
+    }
+
+    /**
+     * Submit pengajuan surat
      */
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'penduduk_id' => 'required|exists:penduduks,id',
-            'surat_type' => 'required|string', // Bisa ID template (sku) atau ID master (angka)
+            'nik' => 'required|string|size:16',
+            'tanggal_lahir' => 'required|date',
+            'surat_type' => 'required|string',
             'keperluan' => 'required|string|max:1000',
             'tujuan' => 'nullable|string|max:255',
             'tanggal_surat' => 'required|date',
             'email_pengaju' => 'nullable|email|max:255',
-            'keterangan_tambahan' => 'nullable|string|max:1000',
-            'data_tambahan' => 'nullable|string', // Frontend kirim JSON string
             'file_lampiran' => 'nullable|file|mimes:pdf|max:2048'
         ]);
 
         if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validasi gagal',
-                'errors' => $validator->errors()
-            ], 422);
+            return response()->json(['success' => false, 'message' => 'Validasi gagal', 'errors' => $validator->errors()], 422);
         }
 
-        // Ambil data penduduk
-        $penduduk = Penduduk::find($request->penduduk_id);
+        // Verifikasi Ganda: Pastikan ID, NIK, dan Tanggal Lahir MATCH
+        $penduduk = Penduduk::where('id', $request->penduduk_id)
+            ->where('nik', $request->nik)
+            ->where('tanggal_lahir', $request->tanggal_lahir)
+            ->first();
+
+        if (!$penduduk) {
+            return response()->json([
+                'success' => false, 
+                'message' => 'Verifikasi identitas gagal. Data NIK atau Tanggal Lahir tidak sesuai dengan database kami.'
+            ], 403);
+        }
         
         try {
-            // Handle upload file
             $filePath = null;
             if ($request->hasFile('file_lampiran')) {
                 $file = $request->file('file_lampiran');
                 $filename = time() . '_' . $request->surat_type . '_' . $penduduk->nik . '.pdf';
                 $filePath = $file->storeAs('surat-pengajuan', $filename, 'public');
+            }
+
+            $dataTambahan = $request->data_tambahan;
+            if (is_string($dataTambahan)) {
+                $decoded = json_decode($dataTambahan, true);
+                if (json_last_error() === JSON_ERROR_NONE) $dataTambahan = $decoded;
             }
 
             $suratPengajuan = SuratPengajuan::create([
@@ -58,258 +114,119 @@ class SuratPengajuanApiController extends Controller
                 'tujuan' => $request->tujuan,
                 'tanggal_surat' => $request->tanggal_surat,
                 'keterangan_tambahan' => $request->keterangan_tambahan,
-                'data_tambahan' => $request->data_tambahan,
+                'data_tambahan' => $dataTambahan,
                 'file_lampiran' => $filePath,
                 'status' => 'pending',
                 'nik_pengaju' => $penduduk->nik,
                 'nama_pengaju' => $penduduk->nama,
                 'email_pengaju' => $request->email_pengaju,
-                'no_hp_pengaju' => $penduduk->telepon ?? null
             ]);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Pengajuan surat berhasil dikirim',
-                'data' => [
-                    'id' => $suratPengajuan->id,
-                    'nomor_surat' => $suratPengajuan->nomor_surat ?? 'SP-' . str_pad($suratPengajuan->id, 6, '0', STR_PAD_LEFT),
-                    'status' => $suratPengajuan->status,
-                    'tanggal_pengajuan' => $suratPengajuan->created_at->format('d/m/Y H:i')
-                ]
+                'data' => $this->formatPublicResponse($suratPengajuan)
             ], 201);
 
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Terjadi kesalahan saat menyimpan pengajuan',
-                'error' => $e->getMessage()
-            ], 500);
+            return response()->json(['success' => false, 'message' => 'Gagal mengirim pengajuan', 'error' => $e->getMessage()], 500);
         }
     }
 
     /**
-     * Generate nomor surat
+     * VERIFIKASI NIK + TANGGAL LAHIR (Hanya menjawab True/False)
+     * Tidak mengeluarkan data penduduk sama sekali!
      */
-    private function generateNomorSurat($suratType)
+    public function checkNik(Request $request)
     {
-        $suratSettings = \App\Models\DesaSetting::getSuratSettings();
-        $kodeSurat = $suratSettings["kode_surat_{$suratType}"] ?? 'SK';
+        $validator = Validator::make($request->all(), [
+            'nik' => 'required|string|size:16',
+            'tanggal_lahir' => 'required|date',
+        ]);
 
-        return \App\Models\DesaSetting::generateNomorSurat($kodeSurat);
-    }
-
-    /**
-     * Cek validitas NIK penduduk
-     */
-    public function checkNik($nik)
-    {
-        if (strlen($nik) !== 16) {
-            return response()->json([
-                'valid' => false,
-                'message' => 'NIK harus 16 digit'
-            ], 422);
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'message' => 'Data tidak lengkap'], 400);
         }
 
-        $penduduk = Penduduk::where('nik', $nik)->first();
+        $exists = Penduduk::where('nik', $request->nik)
+            ->where('tanggal_lahir', $request->tanggal_lahir)
+            ->exists();
 
-        if (!$penduduk) {
-            return response()->json([
-                'valid' => false,
-                'message' => 'NIK tidak ditemukan dalam database penduduk'
-            ], 404);
+        if (!$exists) {
+            return response()->json(['success' => false, 'message' => 'Data tidak ditemukan atau tidak sesuai'], 404);
         }
 
+        // KEMBALIKAN TRUE SAJA. 
+        // Identitas warga tetap aman di server.
         return response()->json([
-            'valid' => true,
-            'message' => 'NIK valid',
+            'success' => true,
+            'message' => 'Verifikasi berhasil',
             'data' => [
-                'id' => $penduduk->id,
-                'nik' => DataSanitizer::hashSensitiveData($penduduk->nik),
-                'nama' => $penduduk->nama,
-                'alamat' => $penduduk->alamat,
-                'rt' => $penduduk->rt_label,
-                'rw' => $penduduk->rw_label,
-                'dusun' => $penduduk->dusun_label
+                'id' => Penduduk::where('nik', $request->nik)->first()->id // Tetap kirim ID untuk proses form
             ]
         ]);
     }
 
     /**
-     * Cek status pengajuan surat
+     * Cek Status Berdasarkan Nomor Surat (Public)
      */
-    public function checkStatus($id)
+    public function checkStatus(Request $request)
     {
-        $suratPengajuan = SuratPengajuan::find($id);
+        $nomorSurat = $request->query('nomor') ?? $request->input('nomor_surat');
 
-        if (!$suratPengajuan) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Pengajuan surat tidak ditemukan'
-            ], 404);
+        if (!$nomorSurat) {
+            return response()->json(['success' => false, 'message' => 'Nomor surat wajib diisi'], 400);
+        }
+
+        $pengajuan = SuratPengajuan::where('nomor_surat', $nomorSurat)->first();
+
+        if (!$pengajuan) {
+            return response()->json(['success' => false, 'message' => 'Surat tidak ditemukan'], 404);
         }
 
         return response()->json([
             'success' => true,
-            'data' => [
-                'id' => $suratPengajuan->id,
-                'nomor_pengajuan' => 'SP-' . str_pad($suratPengajuan->id, 6, '0', STR_PAD_LEFT),
-                'jenis_surat' => $suratPengajuan->jenis_surat,
-                'status' => $suratPengajuan->status,
-                'tanggal_pengajuan' => $suratPengajuan->created_at->format('d/m/Y H:i'),
-                'tanggal_approve' => $suratPengajuan->updated_at->format('d/m/Y H:i'),
-                'nomor_surat' => $suratPengajuan->nomor_surat,
-                'keterangan_admin' => $suratPengajuan->keterangan_admin,
-                'keperluan' => $suratPengajuan->keperluan,
-                'keterangan_tambahan' => $suratPengajuan->keterangan_tambahan
-            ]
+            'data' => [$this->formatPublicResponse($pengajuan)]
         ]);
     }
 
     /**
-     * Daftar pengajuan surat berdasarkan NIK
+     * VERIFIKASI KEAMANAN TINGGI: Cek Riwayat Surat (POST)
+     * Wajib NIK + Tanggal Lahir
      */
-    public function getByNik(Request $request, $nik)
+    public function getHistory(Request $request)
     {
-        // Validasi NIK format
-        if (!preg_match('/^[0-9]{16}$/', $nik)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Format NIK tidak valid'
-            ], 400);
+        $validator = Validator::make($request->all(), [
+            'nik' => 'required|string|size:16',
+            'tanggal_lahir' => 'required|date',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'message' => 'Format data tidak valid'], 422);
         }
 
-        // Validasi CAPTCHA jika ada
-        if ($request->has('captcha_answer') && $request->has('captcha_question')) {
-            $captchaAnswer = $request->captcha_answer;
-            $captchaQuestion = $request->captcha_question;
+        $penduduk = Penduduk::where('nik', $request->nik)
+            ->where('tanggal_lahir', $request->tanggal_lahir)
+            ->first();
 
-            if (!is_numeric($captchaAnswer)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'CAPTCHA tidak valid'
-                ], 400);
-            }
-
-            $expectedAnswer = $this->safeMathEval($captchaQuestion);
-            if ($captchaAnswer != $expectedAnswer) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'CAPTCHA salah'
-                ], 400);
-            }
+        if (!$penduduk) {
+            return response()->json(['success' => false, 'message' => 'Verifikasi gagal'], 403);
         }
 
-        $suratPengajuans = SuratPengajuan::where('nik_pengaju', $nik)
-            ->with('penduduk')
+        $pengajuans = SuratPengajuan::where('nik_pengaju', $request->nik)
             ->orderBy('created_at', 'desc')
             ->get();
 
         return response()->json([
             'success' => true,
-            'data' => $suratPengajuans->map(function ($item) {
-                return [
-                    'id' => $item->id,
-                    'nomor_surat' => $item->nomor_surat,
-                    'jenis_surat' => $item->jenis_surat,
-                    'status' => $item->status,
-                    'tanggal_pengajuan' => $item->created_at->format('Y-m-d'),
-                    'tanggal_surat' => $item->tanggal_surat,
-                    'keperluan' => $item->keperluan,
-                    'tujuan' => $item->tujuan,
-                    'keterangan_tambahan' => $item->keterangan_tambahan,
-                    'penduduk' => [
-                        'nama' => $item->penduduk->nama ?? $item->nama_pengaju,
-                        'nik' => $item->penduduk->nik ?? $item->nik_pengaju, // Tidak perlu hash karena user sudah input NIK
-                        'alamat' => $item->penduduk->alamat ?? 'Alamat tidak tersedia'
-                    ],
-                    'created_at' => $item->created_at->toISOString(),
-                    'updated_at' => $item->updated_at->toISOString()
-                ];
-            })
+            'data' => $pengajuans->map(fn($p) => $this->formatPublicResponse($p))
         ]);
     }
 
-    /**
-     * Mask NIK untuk keamanan data
-     */
-    private function maskNik($nik)
+    private function generateNomorSurat($suratType)
     {
-        if (strlen($nik) !== 16) {
-            return $nik;
-        }
-
-        // Tampilkan 4 digit pertama dan 4 digit terakhir, sisanya di-sensor
-        return substr($nik, 0, 4) . '****' . substr($nik, -4);
-    }
-
-    /**
-     * Cari surat berdasarkan nomor surat
-     */
-    public function getByNomorSurat(Request $request)
-    {
-        $nomorSurat = $request->query('nomor');
-
-        if (!$nomorSurat) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Parameter nomor surat diperlukan'
-            ], 400);
-        }
-
-        $suratPengajuan = SuratPengajuan::where('nomor_surat', $nomorSurat)
-            ->with('penduduk')
-            ->first();
-
-        if (!$suratPengajuan) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Surat dengan nomor tersebut tidak ditemukan'
-            ], 404);
-        }
-
-        return response()->json([
-            'success' => true,
-            'data' => [
-                [
-                    'id' => $suratPengajuan->id,
-                    'nomor_surat' => $suratPengajuan->nomor_surat,
-                    'jenis_surat' => $suratPengajuan->jenis_surat,
-                    'status' => $suratPengajuan->status,
-                    'tanggal_pengajuan' => $suratPengajuan->created_at->format('Y-m-d'),
-                    'tanggal_surat' => $suratPengajuan->tanggal_surat,
-                    'keperluan' => $suratPengajuan->keperluan,
-                    'tujuan' => $suratPengajuan->tujuan,
-                    'keterangan_tambahan' => $suratPengajuan->keterangan_tambahan,
-                    'penduduk' => [
-                        'nama' => $suratPengajuan->penduduk->nama ?? $suratPengajuan->nama_pengaju,
-                        'nik' => $suratPengajuan->penduduk->nik ?? $suratPengajuan->nik_pengaju, // Tidak perlu hash karena user sudah input NIK
-                        'alamat' => $suratPengajuan->penduduk->alamat ?? 'Alamat tidak tersedia'
-                    ],
-                    'created_at' => $suratPengajuan->created_at->toISOString(),
-                    'updated_at' => $suratPengajuan->updated_at->toISOString()
-                ]
-            ]
-        ]);
-    }
-
-    /**
-     * Safe math evaluation for CAPTCHA
-     */
-    private function safeMathEval($expression)
-    {
-        // Remove all non-numeric and non-operator characters
-        $expression = preg_replace('/[^0-9+\-*\/\(\)\s]/', '', $expression);
-
-        // Only allow basic math operations
-        if (!preg_match('/^[0-9+\-*\/\(\)\s]+$/', $expression)) {
-            return 0;
-        }
-
-        // Use eval only for safe math expressions
-        try {
-            return eval('return ' . $expression . ';');
-        } catch (Exception $e) {
-            return 0;
-        }
+        $type = \App\Models\SuratType::find($suratType);
+        $kodeSurat = $type ? $type->kode : 'SK';
+        return \App\Models\DesaSetting::generateNomorSurat($kodeSurat);
     }
 }

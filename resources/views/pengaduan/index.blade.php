@@ -19,7 +19,7 @@
                 </div>
             </div>
             <div class="flex flex-wrap gap-3">
-                @can('pengaduan.create')
+                @can('pelayanan_informasi')
                 <a href="{{ route('pengaduan.create') }}" class="group flex items-center px-4 py-2.5 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
                     <i class="fas fa-plus mr-2"></i>
                     Tambah Pengaduan
@@ -174,7 +174,7 @@
                                     <i class="fas fa-eye mr-1"></i>
                                     Detail
                                 </button>
-                                @can('pengaduan.edit')
+                                @can('pelayanan_informasi')
                                 <a href="{{ route('pengaduan.edit', $pengaduan) }}"
                                    class="flex items-center px-3 py-2 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg transition-colors text-sm font-medium"
                                    onclick="event.stopPropagation()"
@@ -183,7 +183,7 @@
                                     Edit
                                 </a>
                                 @endcan
-                                @can('pengaduan.delete')
+                                @can('pelayanan_informasi')
                                 <button onclick="event.stopPropagation(); confirmDelete('{{ $pengaduan->id }}', '{{ $pengaduan->judul }}')"
                                         class="flex items-center px-3 py-2 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg transition-colors text-sm font-medium"
                                         title="Hapus Data">
@@ -363,7 +363,7 @@
                                                 <i class="fas fa-eye mr-1"></i>
                                                 Detail
                                 </a>
-                                @can('pengaduan.edit')
+                                @can('pelayanan_informasi')
                                 <a href="{{ route('pengaduan.edit', $pengaduan) }}"
                                                class="inline-flex items-center px-3 py-2 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg transition-colors text-sm font-medium"
                                                title="Edit Data">
@@ -371,7 +371,7 @@
                                                 Edit
                                 </a>
                                 @endcan
-                                @can('pengaduan.delete')
+                                @can('pelayanan_informasi')
                                             <button onclick="confirmDelete('{{ $pengaduan->id }}', '{{ $pengaduan->judul }}')"
                                                     class="inline-flex items-center px-3 py-2 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg transition-colors text-sm font-medium"
                                                     title="Hapus Data">
@@ -392,7 +392,7 @@
                     <i class="fas fa-exclamation-triangle text-6xl text-gray-400 mb-6"></i>
                     <h3 class="text-lg font-semibold text-gray-900 mb-2">Belum Ada Pengaduan</h3>
                     <p class="text-gray-500 mb-6">Mulai dengan menambahkan pengaduan baru</p>
-                    @can('pengaduan.create')
+                    @can('pelayanan_informasi')
                     <a href="{{ route('pengaduan.create') }}" class="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 inline-flex items-center">
                         <i class="fas fa-plus mr-2"></i> Tambah Pengaduan Pertama
                     </a>

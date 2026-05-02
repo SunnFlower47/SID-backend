@@ -229,24 +229,24 @@ class MutasiController extends Controller
                 'jenis_kelamin' => $validated['jenis_kelamin_bayi'],
                 'tempat_lahir' => $validated['tempat_lahir'],
                 'tanggal_lahir' => $validated['tanggal_lahir'],
-                'nkk' => $validated['nkk'],
                 'nama_ayah' => $validated['nama_ayah'] ?? $mutasi->penduduk->nama_ayah,
                 'nama_ibu' => $validated['nama_ibu'] ?? $mutasi->penduduk->nama_ibu,
-                'alamat' => $validated['alamat_bayi'] ?? $mutasi->penduduk->alamat,
-                'rt_id' => $validated['rt_id_bayi'] ?? $mutasi->penduduk->rt_id,
-                'rw_id' => $validated['rw_id_bayi'] ?? $mutasi->penduduk->rw_id,
-                'dusun_id' => $validated['dusun_id_bayi'] ?? $mutasi->penduduk->dusun_id,
             ]);
+
+            // Update Kartu Keluarga info
+            if ($mutasi->penduduk->kartuKeluarga) {
+                $mutasi->penduduk->kartuKeluarga->update(['nkk' => $validated['nkk']]);
+            }
         }
 
         if ($mutasi->jenis_mutasi === 'pindah_masuk' && $mutasi->penduduk) {
             $mutasi->penduduk->update([
                 'nik' => $validated['nik'],
                 'nama' => $validated['nama'],
-                'nkk' => $validated['nkk'] ?: ($validated['nkk_new'] ?: $mutasi->penduduk->nkk),
             ]);
             
-            if ($validated['nkk_new']) {
+            if ($validated['nkk_new'] && $mutasi->penduduk->kartuKeluarga) {
+                $mutasi->penduduk->kartuKeluarga->update(['nkk' => $validated['nkk_new']]);
                 $detailTambahan['nkk_new'] = $validated['nkk_new'];
             }
         }
@@ -352,18 +352,14 @@ class MutasiController extends Controller
             // 3. Revert Data wilayah (Pindah RT/RW)
             if ($mutasi->jenis_mutasi == 'pindah_rt_rw') {
                 $snapshot = $mutasi->detail_tambahan['snapshot_asal'] ?? null;
-                if ($snapshot && !empty($snapshot['anggota'])) {
-                    foreach ($snapshot['anggota'] as $anggotaData) {
-                        $penduduk = Penduduk::find($anggotaData['id']);
-                        if ($penduduk) {
-                            $penduduk->update([
-                                'rt_id' => $anggotaData['rt_id_asal'] ?? $penduduk->rt_id,
-                                'rw_id' => $anggotaData['rw_id_asal'] ?? $penduduk->rw_id,
-                                'dusun_id' => $anggotaData['dusun_id_asal'] ?? $penduduk->dusun_id,
-                                'alamat' => $anggotaData['alamat_asal'] ?? $penduduk->alamat,
-                            ]);
-                        }
-                    }
+                $penduduk = Penduduk::find($mutasi->penduduk_id);
+                if ($penduduk && $penduduk->kartuKeluarga && $snapshot) {
+                    $penduduk->kartuKeluarga->update([
+                        'rt_id' => $snapshot['rt_id_asal'] ?? $penduduk->rt_id,
+                        'rw_id' => $snapshot['rw_id_asal'] ?? $penduduk->rw_id,
+                        'dusun_id' => $snapshot['dusun_id_asal'] ?? $penduduk->dusun_id,
+                        'alamat' => $snapshot['alamat_asal'] ?? $penduduk->alamat,
+                    ]);
                 }
             }
 
@@ -373,14 +369,14 @@ class MutasiController extends Controller
                 if ($snapshot) {
                     $penduduk = Penduduk::find($mutasi->penduduk_id);
                     if ($penduduk && !empty($snapshot['nkk_asal'])) {
-                        $penduduk->update([
-                            'nkk' => $snapshot['nkk_asal'],
-                            'rt_id' => $snapshot['rt_id_asal'] ?? $penduduk->rt_id,
-                            'rw_id' => $snapshot['rw_id_asal'] ?? $penduduk->rw_id,
-                            'dusun_id' => $snapshot['dusun_id_asal'] ?? $penduduk->dusun_id,
-                            'alamat' => $snapshot['alamat_asal'] ?? $penduduk->alamat,
-                            'kedudukan_keluarga' => $snapshot['kedudukan_asal'] ?? $penduduk->kedudukan_keluarga,
-                        ]);
+                        // Find the original KK record or restore based on NKK
+                        $kkAsal = \App\Models\KartuKeluarga::where('nkk', $snapshot['nkk_asal'])->first();
+                        if ($kkAsal) {
+                            $penduduk->update([
+                                'kartu_keluarga_id' => $kkAsal->id,
+                                'kedudukan_keluarga' => $snapshot['kedudukan_asal'] ?? $penduduk->kedudukan_keluarga,
+                            ]);
+                        }
                     }
                 }
             }
@@ -410,25 +406,24 @@ class MutasiController extends Controller
     public function searchKK(Request $request): JsonResponse
     {
         $search = $request->get('query');
-        $kks = Penduduk::withWilayah()
-                ->where('kedudukan_keluarga', 'Kepala Keluarga')
+        $kks = \App\Models\KartuKeluarga::withWilayah()
                 ->where(function($q) use ($search) {
                     $q->where('nkk', 'like', "%{$search}%")
-                      ->orWhere('nama', 'like', "%{$search}%");
+                      ->orWhere('nama_kepala_keluarga', 'like', "%{$search}%");
                 })
                 ->limit(10)->get()
                 ->map(function($kk) {
                     return [
                         'nkk' => $kk->nkk,
-                        'nama' => $kk->nama,
+                        'nama' => $kk->nama_kepala_keluarga,
                         'alamat' => $kk->alamat,
-                        'rt_label' => optional($kk->rtMaster)->kode,
-                        'rw_label' => optional($kk->rwMaster)->kode,
-                        'dusun_label' => optional($kk->dusunMaster)->nama,
+                        'rt_label' => $kk->rt_label,
+                        'rw_label' => $kk->rw_label,
+                        'dusun_label' => $kk->dusun_label,
                         'rt_id' => $kk->rt_id,
                         'rw_id' => $kk->rw_id,
                         'dusun_id' => $kk->dusun_id,
-                        'jumlah_anggota' => Penduduk::where('nkk', $kk->nkk)->count(),
+                        'jumlah_anggota' => $kk->anggota_aktif,
                     ];
                 });
 
@@ -451,9 +446,10 @@ class MutasiController extends Controller
                 })
                 ->limit(10)->get()
                 ->map(function($p) {
-                    $p->rt_label = optional($p->rtMaster)->kode;
-                    $p->rw_label = optional($p->rwMaster)->kode;
-                    $p->dusun_label = optional($p->dusunMaster)->nama;
+                    // Gunakan accessors yang sudah kita buat di model Penduduk
+                    $p->rt_label = $p->rt_label;
+                    $p->rw_label = $p->rw_label;
+                    $p->dusun_label = $p->dusun_label;
                     return $p;
                 });
 
@@ -473,11 +469,14 @@ class MutasiController extends Controller
 
         if (!$nkk) return response()->json(['status' => 'error', 'message' => 'NKK required'], 400);
 
-        $anggota = Penduduk::where('nkk', $nkk)
+        $kk = \App\Models\KartuKeluarga::where('nkk', $nkk)->first();
+        if (!$kk) return response()->json(['status' => 'error', 'message' => 'KK not found'], 404);
+
+        $anggota = Penduduk::where('kartu_keluarga_id', $kk->id)
             ->when($excludeId, function ($query, $excludeId) {
                 return $query->where('id', '!=', $excludeId);
             })
-            ->select('id', 'nik', 'nama', 'kedudukan_keluarga', 'nkk')
+            ->select('id', 'nik', 'nama', 'kedudukan_keluarga')
             ->get();
 
         return response()->json([

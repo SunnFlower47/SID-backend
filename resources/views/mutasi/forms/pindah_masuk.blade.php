@@ -255,6 +255,30 @@
                    class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
                    placeholder="Keterangan tambahan" rows="3"></textarea>
         </div>
+
+        <!-- Section: Family Members (Batch Input) -->
+        <div class="md:col-span-2 border-t border-gray-200 pt-6 mt-4">
+            <div class="flex items-center justify-between mb-4">
+                <h4 class="text-md font-semibold text-gray-900 flex items-center">
+                    <i class="fas fa-users-cog text-blue-600 mr-2"></i>
+                    Anggota Keluarga yang Ikut Pindah (Opsional)
+                </h4>
+                <button type="button" id="btnAddMemberPindah"
+                        class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-full shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all">
+                    <i class="fas fa-plus mr-1"></i> Tambah Anggota
+                </button>
+            </div>
+            
+            <div id="familyMembersContainerPindah" class="space-y-4">
+                <!-- Dynamic rows will be added here -->
+            </div>
+            
+            <div id="noFamilyMemberMsg" class="text-center py-8 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
+                <p class="text-sm text-gray-500 italic">Belum ada anggota keluarga tambahan.</p>
+                <p class="text-xs text-gray-400 mt-1">Klik tombol "+ Tambah Anggota" jika ada keluarga lain yang ikut pindah masuk.</p>
+            </div>
+        </div>
     </div>
 </div>
+
 

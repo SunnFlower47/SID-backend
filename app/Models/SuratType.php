@@ -18,6 +18,7 @@ class SuratType extends Model
     protected $fillable = [
         'id',
         'nama',
+        'kode',
         'deskripsi',
         'persyaratan',
         'has_template',

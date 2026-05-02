@@ -32,21 +32,7 @@ class AuthServiceProvider extends ServiceProvider
             return $user->hasRole('Super Admin') ? true : null;
         });
 
-        // Testimoni permissions
-        Gate::define('testimoni.view', function ($user) {
-            return $user->hasPermissionTo('testimoni.view') || $user->hasRole(['Super Admin', 'Admin', 'Sekretaris']);
-        });
+        // Testimoni permissions are now handled via Spatie 'pelayanan_informasi' permission
 
-        Gate::define('testimoni.create', function ($user) {
-            return $user->hasPermissionTo('testimoni.create') || $user->hasRole(['Super Admin', 'Admin', 'Sekretaris']);
-        });
-
-        Gate::define('testimoni.update', function ($user) {
-            return $user->hasPermissionTo('testimoni.update') || $user->hasRole(['Super Admin', 'Admin', 'Sekretaris']);
-        });
-
-        Gate::define('testimoni.delete', function ($user) {
-            return $user->hasPermissionTo('testimoni.delete') || $user->hasRole(['Super Admin', 'Admin']);
-        });
     }
 }

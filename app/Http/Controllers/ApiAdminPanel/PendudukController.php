@@ -28,7 +28,7 @@ class PendudukController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        Gate::authorize('penduduk.view');
+        Gate::authorize('kependudukan');
 
         $query = Penduduk::withWilayah()
             ->filter($request->all())
@@ -48,11 +48,7 @@ class PendudukController extends Controller
                     'perempuan' => Penduduk::whereNull('deleted_at')
                         ->where('jenis_kelamin', 'PEREMPUAN')
                         ->count(),
-                    'total_kk' => Penduduk::whereNull('deleted_at')
-                        ->whereNotNull('nkk')
-                        ->where('nkk', '!=', '')
-                        ->distinct('nkk')
-                        ->count('nkk'),
+                    'total_kk' => \App\Models\KartuKeluarga::count(),
                 ],
                 'filters' => [
                     'rt' => \App\Models\Rt::orderBy('kode')->get(['id', 'kode']),
@@ -68,7 +64,7 @@ class PendudukController extends Controller
      */
     public function store(StorePendudukRequest $request): JsonResponse
     {
-        Gate::authorize('penduduk.create');
+        Gate::authorize('kependudukan');
 
         try {
             $validated = $request->validated();
@@ -98,10 +94,10 @@ class PendudukController extends Controller
      */
     public function show($id): JsonResponse
     {
-        Gate::authorize('penduduk.view');
+        Gate::authorize('kependudukan');
         
         $penduduk = Penduduk::withWilayah()->withTrashed()->findOrFail($id);
-        $penduduk->load(['mutasi', 'kartuKeluarga']);
+        $penduduk->load(['mutasis', 'kartuKeluarga.penduduks']);
         
         return response()->json([
             'status' => 'success',
@@ -114,7 +110,7 @@ class PendudukController extends Controller
      */
     public function update(UpdatePendudukRequest $request, $id): JsonResponse
     {
-        Gate::authorize('penduduk.edit');
+        Gate::authorize('kependudukan');
 
         try {
             $penduduk = Penduduk::withTrashed()->findOrFail($id);
@@ -142,7 +138,7 @@ class PendudukController extends Controller
      */
     public function destroy($id): JsonResponse
     {
-        Gate::authorize('penduduk.delete');
+        Gate::authorize('kependudukan');
 
         try {
             $penduduk = Penduduk::withTrashed()->findOrFail($id);
@@ -176,11 +172,12 @@ class PendudukController extends Controller
                           ->orWhere('nik', 'like', "%{$query}%");
                     })
                     ->limit(10)
-                    ->get(['id', 'nama', 'nik', 'alamat', 'pekerjaan', 'deleted_at', 'rt_id', 'rw_id', 'dusun_id'])
+                    ->get(['id', 'nama', 'nik', 'alamat', 'pekerjaan', 'deleted_at'])
                     ->map(function($p) {
-                        $p->rt_label = optional($p->rtMaster)->kode;
-                        $p->rw_label = optional($p->rwMaster)->kode;
-                        $p->dusun_label = optional($p->dusunMaster)->nama;
+                        // Gunakan accessors yang sudah sinkron dengan KartuKeluarga
+                        $p->rt_label = $p->rt_label;
+                        $p->rw_label = $p->rw_label;
+                        $p->dusun_label = $p->dusun_label;
                         return $p;
                     });
                     
@@ -216,16 +213,8 @@ class PendudukController extends Controller
         $nkk = $request->get('nkk');
         if (strlen($nkk) !== 16) return response()->json(['exists' => false]);
         
-        $kk = Penduduk::withWilayah()->withTrashed()
-            ->where('nkk', $nkk)
-            ->where('kedudukan_keluarga', 'Kepala Keluarga')
-            ->first();
+        $kk = \App\Models\KartuKeluarga::withWilayah()->where('nkk', $nkk)->first();
         
-        if (!$kk && class_exists('\App\Models\KartuKeluarga')) {
-            $kk = \App\Models\KartuKeluarga::where('nkk', $nkk)->first();
-            if ($kk) $kk->load('rtMaster', 'rwMaster', 'dusunMaster');
-        }
-
         return response()->json([
             'exists' => !!$kk,
             'data' => $kk
@@ -237,7 +226,7 @@ class PendudukController extends Controller
      */
     public function exportExcel(Request $request)
     {
-        Gate::authorize('penduduk.export');
+        Gate::authorize('kependudukan');
         set_time_limit(300);
         ini_set('memory_limit', '512M');
         

@@ -20,7 +20,7 @@
                 </div>
             </div>
             <div class="flex flex-wrap gap-3">
-                @can('pengaduan.edit')
+                @can('pelayanan_informasi')
                 <a href="{{ route('pengaduan.edit', $pengaduan) }}" class="group flex items-center px-6 py-3 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
                     <i class="fas fa-edit mr-2"></i>
                     Edit

@@ -17,7 +17,7 @@
                 <p class="text-green-100 text-sm sm:text-base">Kelola program bantuan sosial desa</p>
             </div>
             <div class="flex flex-wrap gap-3">
-                @can('bantuan_sosial.create')
+                @can('pelayanan_informasi')
                 <a href="{{ route('bantuan-sosial.create') }}" class="group flex items-center px-4 py-2.5 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
                     <i class="fas fa-plus mr-2"></i>
                     Tambah Program
@@ -169,7 +169,7 @@
                                     <i class="fas fa-eye mr-1"></i>
                                     Detail
                                 </button>
-                                @can('bantuan_sosial.edit')
+                                @can('pelayanan_informasi')
                                 <a href="{{ route('bantuan-sosial.edit', $bantuan) }}"
                                    class="flex items-center px-3 py-2 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg transition-colors text-sm font-medium"
                                    onclick="event.stopPropagation()"
@@ -178,7 +178,7 @@
                                     Edit
                                 </a>
                                 @endcan
-                                @can('bantuan_sosial.delete')
+                                @can('pelayanan_informasi')
                                 <button onclick="event.stopPropagation(); confirmDelete('{{ $bantuan->id }}', '{{ $bantuan->nama_program }}')"
                                         class="flex items-center px-3 py-2 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg transition-colors text-sm font-medium"
                                         title="Hapus Data">
@@ -308,7 +308,7 @@
                                             <i class="fas fa-eye mr-1"></i>
                                             Detail
                                         </button>
-                                        @can('bantuan_sosial.edit')
+                                        @can('pelayanan_informasi')
                                         <a href="{{ route('bantuan-sosial.edit', $bantuan) }}"
                                            class="flex items-center px-2 py-1 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-md transition-colors text-xs font-medium"
                                            onclick="event.stopPropagation()"
@@ -317,7 +317,7 @@
                                             Edit
                                         </a>
                                         @endcan
-                                        @can('bantuan_sosial.delete')
+                                        @can('pelayanan_informasi')
                                         <button onclick="event.stopPropagation(); confirmDelete('{{ $bantuan->id }}', '{{ $bantuan->nama_program }}')"
                                                 class="flex items-center px-2 py-1 bg-red-50 hover:bg-red-100 text-red-700 rounded-md transition-colors text-xs font-medium"
                                                 title="Hapus Data">
@@ -337,7 +337,7 @@
                     <i class="fas fa-hands-helping text-6xl text-gray-400 mb-6"></i>
                     <h3 class="text-lg font-semibold text-gray-900 mb-2">Belum Ada Program Bantuan Sosial</h3>
                     <p class="text-gray-500 mb-6">Mulai dengan menambahkan program bantuan sosial baru</p>
-                    @can('bantuan_sosial.create')
+                    @can('pelayanan_informasi')
                     <a href="{{ route('bantuan-sosial.create') }}" class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 inline-flex items-center">
                         <i class="fas fa-plus mr-2"></i> Tambah Program Pertama
                     </a>

@@ -27,7 +27,7 @@
                     @endif
                 </div>
             </div>
-            <a href="{{ route('kartu-keluarga.index') }}"
+            <a href="{{ route('kk.index') }}"
                class="flex items-center px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white rounded-xl transition-all duration-200 self-start sm:self-auto">
                 <i class="fas fa-arrow-left mr-2"></i> Kembali ke Menu KK
             </a>
@@ -221,7 +221,7 @@
                         <td class="px-5 py-4 text-sm text-gray-700">{{ $kk->nama_kepala_keluarga ?: '-' }}</td>
                         <td class="px-5 py-4">
                             @if($nkkBaru)
-                            <a href="{{ route('kartu-keluarga.show', $nkkBaru) }}"
+                            <a href="{{ route('kk.show', $nkkBaru) }}"
                                class="font-mono text-sm font-semibold text-green-700 hover:underline">
                                 {{ $nkkBaru }}
                             </a>

@@ -10,13 +10,13 @@ use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 
 use App\Traits\HasWilayahLabels;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Penduduk extends Model
 {
-    use SoftDeletes, LogsActivity, HasWilayahLabels;
+    use SoftDeletes, LogsActivity, HasWilayahLabels, HasFactory;
 
     protected $fillable = [
-        'nkk',
         'nik',
         'nama',
         'jenis_kelamin',
@@ -29,12 +29,24 @@ class Penduduk extends Model
         'pekerjaan',
         'nama_ayah',
         'nama_ibu',
+        // 'rt_id',
+        // 'rw_id',
+        // 'dusun_id',
+        'keterangan',
+        'kartu_keluarga_id',
+    ];
+
+    protected $appends = [
+        'nkk',
         'alamat',
         'rt_id',
         'rw_id',
         'dusun_id',
-        'keterangan',
-        'kartu_keluarga_id',
+        'rt_label',
+        'rw_label',
+        'dusun_label',
+        'alamat_lengkap',
+        'usia'
     ];
 
     protected $casts = [
@@ -44,7 +56,6 @@ class Penduduk extends Model
         'dusun_id' => 'integer',
     ];
     
-    protected $appends = ['rt_label', 'rw_label', 'dusun_label'];
 
     /**
      * Get the activity log options for the model.
@@ -52,28 +63,47 @@ class Penduduk extends Model
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['nama', 'nik', 'nkk', 'jenis_kelamin', 'tempat_lahir', 'tanggal_lahir', 'agama', 'status_perkawinan', 'kedudukan_keluarga', 'pendidikan', 'pekerjaan', 'alamat', 'rt_id', 'rw_id', 'dusun_id'])
+            ->logOnly(['nama', 'nik', 'nkk', 'jenis_kelamin', 'tempat_lahir', 'tanggal_lahir', 'agama', 'status_perkawinan', 'kedudukan_keluarga', 'pendidikan', 'pekerjaan', 'alamat', 'rt_id', 'rw_id', 'dusun_id', 'kartu_keluarga_id'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
     }
 
     // =========================================================
-    // RELATIONS - WILAYAH MASTER
+    // RELATIONS - WILAYAH MASTER (Now through KartuKeluarga)
     // =========================================================
 
-    public function rtMaster(): BelongsTo
+    /**
+     * Get RT through Kartu Keluarga
+     */
+    public function rtMaster()
     {
-        return $this->belongsTo(Rt::class, 'rt_id');
+        // Since we dropped rt_id from penduduks, we can't use standard belongsTo here.
+        // We'll use the kartuKeluarga relationship instead.
+        return $this->kartuKeluarga ? $this->kartuKeluarga->rtMaster() : null;
     }
 
-    public function rwMaster(): BelongsTo
+    /**
+     * Accessor for RT Label (Safe for Export & Blade)
+     */
+    public function getRtLabelAttribute()
     {
-        return $this->belongsTo(Rw::class, 'rw_id');
+        return $this->kartuKeluarga && $this->kartuKeluarga->rtMaster ? $this->kartuKeluarga->rtMaster->kode : '000';
     }
 
-    public function dusunMaster(): BelongsTo
+    /**
+     * Accessor for RW Label
+     */
+    public function getRwLabelAttribute()
     {
-        return $this->belongsTo(Dusun::class, 'dusun_id');
+        return $this->kartuKeluarga && $this->kartuKeluarga->rwMaster ? $this->kartuKeluarga->rwMaster->kode : '000';
+    }
+
+    /**
+     * Accessor for Dusun Label
+     */
+    public function getDusunLabelAttribute()
+    {
+        return $this->kartuKeluarga && $this->kartuKeluarga->dusunMaster ? $this->kartuKeluarga->dusunMaster->nama : '-';
     }
 
     /**
@@ -81,7 +111,24 @@ class Penduduk extends Model
      */
     public function scopeWithWilayah($query)
     {
-        return $query->with(['rtMaster', 'rwMaster', 'dusunMaster']);
+        return $query->with(['kartuKeluarga.rtMaster', 'kartuKeluarga.rwMaster', 'kartuKeluarga.dusunMaster']);
+    }
+
+    /**
+     * Relasi ke Kartu Keluarga (Source of Truth)
+     */
+    public function kartuKeluarga(): BelongsTo
+    {
+        return $this->belongsTo(KartuKeluarga::class, 'kartu_keluarga_id');
+    }
+
+    /**
+     * Get kepala keluarga dari KK yang sama (Using Relationship)
+     */
+    public function kepalaKeluarga()
+    {
+        return $this->hasOne(Penduduk::class, 'kartu_keluarga_id', 'kartu_keluarga_id')
+                    ->where('kedudukan_keluarga', 'Kepala Keluarga');
     }
 
     /**
@@ -101,49 +148,19 @@ class Penduduk extends Model
     }
 
     /**
-     * Scope untuk penduduk berdasarkan NKK
+     * Scope untuk penduduk aktif
      */
-    public function scopeByNKK($query, $nkk)
+    public function scopeAktif($query)
     {
-        return $query->where('nkk', $nkk);
+        return $query->whereNull('deleted_at');
     }
 
     /**
-     * Relasi ke Mutasi (jamak)
+     * Relasi ke Mutasi
      */
     public function mutasis(): HasMany
     {
         return $this->hasMany(Mutasi::class);
-    }
-
-    /**
-     * Relasi ke Mutasi (tunggal - untuk backward compatibility)
-     */
-    public function mutasi(): HasMany
-    {
-        return $this->hasMany(Mutasi::class);
-    }
-
-    // Note: created_by dan updated_by tidak ada di database
-    // Relasi ini dinonaktifkan sampai kolom ditambahkan ke database
-
-    /**
-     * Relasi ke Kartu Keluarga berdasarkan NKK (virtual relationship)
-     * Karena tabel kartu_keluargas sudah di-drop, kita buat relasi virtual
-     */
-    public function kartuKeluarga()
-    {
-        // Return collection of penduduks with same NKK
-        return $this->hasMany(Penduduk::class, 'nkk', 'nkk');
-    }
-
-    /**
-     * Get kepala keluarga dari KK yang sama
-     */
-    public function kepalaKeluarga()
-    {
-        return $this->hasOne(Penduduk::class, 'nkk', 'nkk')
-                    ->where('kedudukan_keluarga', 'Kepala Keluarga');
     }
 
     /**
@@ -154,13 +171,7 @@ class Penduduk extends Model
         return $this->hasMany(SuratPengajuan::class);
     }
 
-    /**
-     * Scope untuk penduduk aktif
-     */
-    public function scopeAktif($query)
-    {
-        return $query->whereNull('deleted_at');
-    }
+
 
     /**
      * Scope untuk penduduk berdasarkan jenis kelamin
@@ -169,6 +180,48 @@ class Penduduk extends Model
     {
         return $query->where('jenis_kelamin', $jenis);
     }
+
+    /**
+     * Accessor untuk NKK (Source of Truth dari Kartu Keluarga)
+     */
+    public function getNkkAttribute()
+    {
+        return $this->kartuKeluarga ? $this->kartuKeluarga->nkk : null;
+    }
+
+    /**
+     * Accessor untuk alamat (Source of Truth)
+     */
+    public function getAlamatAttribute()
+    {
+        return $this->kartuKeluarga ? $this->kartuKeluarga->alamat : null;
+    }
+
+    /**
+     * Accessor untuk RT ID (Source of Truth)
+     */
+    public function getRtIdAttribute()
+    {
+        return $this->kartuKeluarga ? $this->kartuKeluarga->rt_id : null;
+    }
+
+    /**
+     * Accessor untuk RW ID (Source of Truth)
+     */
+    public function getRwIdAttribute()
+    {
+        return $this->kartuKeluarga ? $this->kartuKeluarga->rw_id : null;
+    }
+
+    /**
+     * Accessor untuk Dusun ID (Source of Truth)
+     */
+    public function getDusunIdAttribute()
+    {
+        return $this->kartuKeluarga ? $this->kartuKeluarga->dusun_id : null;
+    }
+
+
 
     /**
      * Accessor untuk usia
@@ -216,8 +269,10 @@ class Penduduk extends Model
             $q->where(function($subq) use ($search) {
                 $subq->where('nama', 'like', "%{$search}%")
                   ->orWhere('nik', 'like', "%{$search}%")
-                  ->orWhere('nkk', 'like', "%{$search}%")
-                  ->orWhere('alamat', 'like', "%{$search}%");
+                  ->orWhereHas('kartuKeluarga', function($kkq) use ($search) {
+                      $kkq->where('nkk', 'like', "%{$search}%")
+                          ->orWhere('alamat', 'like', "%{$search}%");
+                  });
             });
         });
 
@@ -234,15 +289,21 @@ class Penduduk extends Model
         });
 
 
-        // Filter by RT_ID, RW_ID, Dusun_ID (Support both legacy and new keys)
+        // Filter by RT_ID, RW_ID, Dusun_ID (Must go through KartuKeluarga relation)
         $query->when($filters['rt_id'] ?? $filters['rt'] ?? null, function ($q, $id) {
-            if (is_numeric($id)) $q->where('rt_id', $id);
+            if (is_numeric($id)) {
+                $q->whereHas('kartuKeluarga', fn($kk) => $kk->where('rt_id', $id));
+            }
         });
         $query->when($filters['rw_id'] ?? $filters['rw'] ?? null, function ($q, $id) {
-            if (is_numeric($id)) $q->where('rw_id', $id);
+            if (is_numeric($id)) {
+                $q->whereHas('kartuKeluarga', fn($kk) => $kk->where('rw_id', $id));
+            }
         });
         $query->when($filters['dusun_id'] ?? $filters['dusun'] ?? null, function ($q, $id) {
-            if (is_numeric($id)) $q->where('dusun_id', $id);
+            if (is_numeric($id)) {
+                $q->whereHas('kartuKeluarga', fn($kk) => $kk->where('dusun_id', $id));
+            }
         });
 
         // Filter by age range
@@ -273,7 +334,7 @@ class Penduduk extends Model
      */
     public function scopeOrderByFamilyRole($query)
     {
-        return $query->orderBy('nkk')
+        return $query->orderBy('kartu_keluarga_id')
             ->orderByRaw("CASE
                 WHEN kedudukan_keluarga = 'Kepala Keluarga' THEN 1
                 WHEN kedudukan_keluarga = 'Istri' THEN 2

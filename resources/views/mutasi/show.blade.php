@@ -18,13 +18,13 @@
                 </div>
             </div>
             <div class="flex flex-wrap gap-3">
-                @can('mutasi.edit')
+                @can('kependudukan')
                 <a href="{{ route('mutasi.data.edit', $mutasi) }}" class="group flex items-center px-6 py-3 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
                     <i class="fas fa-edit mr-2"></i>
                     Edit Data
                 </a>
                 @endcan
-                @can('mutasi.delete')
+                @can('kependudukan')
                 <button type="button" id="mutasiActionBtn" class="group flex items-center px-6 py-3 {{ $mutasi->isSoftDeleteType() ? 'bg-amber-500/80 backdrop-blur-sm hover:bg-amber-500' : 'bg-red-500/80 backdrop-blur-sm hover:bg-red-500' }} text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
                     <i class="fas {{ $mutasi->isSoftDeleteType() ? 'fa-undo' : 'fa-times' }} mr-2"></i>
                     {{ $mutasi->isSoftDeleteType() ? 'Undo Data' : 'Cancel Mutasi' }}

@@ -33,6 +33,7 @@ return [
         'Content-Type',
         'X-API-Key',
         'X-Recaptcha-Token',
+        'X-Recaptcha-V3-Token',
         'X-Timestamp',
         'X-Signature',
         'Accept',

@@ -14,7 +14,7 @@
             <p class="text-gray-600 mt-1">Kelola role dan permission sistem</p>
         </div>
         <div class="flex flex-wrap gap-3">
-            @can('settings.roles.manage')
+            @can('admin_sistem')
             <a href="{{ route('settings.roles.create') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg flex items-center transition-colors shadow-md">
                 <i class="fas fa-plus mr-2"></i>
                 Tambah Role
@@ -93,7 +93,7 @@
                                             title="Lihat Detail">
                                         <i class="fas fa-eye text-xs"></i>
                                     </button>
-                                    @can('settings.roles.manage')
+                                    @can('admin_sistem')
                                     <a href="{{ route('settings.roles.edit', $role) }}"
                                        class="text-gray-600 hover:text-gray-900 p-1 rounded hover:bg-gray-50 transition-colors"
                                        onclick="event.stopPropagation()"
@@ -101,7 +101,7 @@
                                         <i class="fas fa-edit text-xs"></i>
                                     </a>
                                     @endcan
-                                    @can('settings.roles.manage')
+                                    @can('admin_sistem')
                                     @if($role->name !== 'Super Admin')
                                     <button onclick="event.stopPropagation(); confirmDelete('{{ $role->id }}', '{{ $role->name }}')"
                                             class="text-red-600 hover:text-red-900 p-1 rounded hover:bg-red-50 transition-colors"
@@ -127,7 +127,7 @@
                 <i class="fas fa-user-tag text-6xl text-gray-300 mb-4"></i>
                 <h3 class="text-lg font-medium text-gray-900 mb-2">Tidak ada role</h3>
                 <p class="text-gray-500 mb-6">Mulai dengan menambahkan role baru</p>
-                @can('settings.roles.manage')
+                @can('admin_sistem')
                 <a href="{{ route('settings.roles.create') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg inline-flex items-center transition-colors">
                     <i class="fas fa-plus mr-2"></i>
                     Tambah Role

@@ -25,14 +25,14 @@
             </div>
             <div class="flex flex-wrap gap-3">
                 @if(!$penduduk->trashed())
-                @can('penduduk.edit')
+                @can('kependudukan')
                 <a href="{{ route('penduduk.edit', $penduduk) }}"
                    class="group flex items-center px-6 py-3 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
                         <i class="fas fa-edit mr-2"></i>
                         <span class="hidden sm:inline">Edit</span>
                     </a>
                     @endcan
-                @can('penduduk.delete')
+                @can('kependudukan')
                 <button type="button" onclick="confirmDeletePenduduk()"
                         class="group flex items-center px-6 py-3 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
                     <i class="fas fa-trash mr-2"></i>
@@ -61,7 +61,7 @@
                 <p class="text-sm text-red-700 mt-1">
                     Penduduk ini telah dihapus melalui mutasi
                     @php
-                        $mutasiTerkait = $penduduk->mutasi->whereIn('jenis_mutasi', ['kematian', 'pindah_keluar', 'pisah_kk'])->first();
+                        $mutasiTerkait = $penduduk->mutasis->whereIn('jenis_mutasi', ['kematian', 'pindah_keluar', 'pisah_kk'])->first();
                     @endphp
                     @if($mutasiTerkait)
                         (<strong>{{ ucfirst(str_replace('_', ' ', $mutasiTerkait->jenis_mutasi)) }}</strong>
@@ -97,7 +97,7 @@
     </div>
 
     <!-- Status & Mutation Info -->
-    @if($penduduk->mutasi->count() > 0)
+    @if($penduduk->mutasis->count() > 0)
     <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r-lg">
         <div class="flex">
             <div class="flex-shrink-0">
@@ -106,9 +106,9 @@
             <div class="ml-3">
                 <h3 class="text-sm font-medium text-yellow-800">Informasi Mutasi</h3>
                 <div class="mt-2 text-sm text-yellow-700">
-                    <p>Penduduk ini memiliki {{ $penduduk->mutasi->count() }} mutasi:</p>
+                    <p>Penduduk ini memiliki {{ $penduduk->mutasis->count() }} mutasi:</p>
                     <ul class="list-disc list-inside mt-1">
-                        @foreach($penduduk->mutasi as $mutasi)
+                        @foreach($penduduk->mutasis as $mutasi)
                         <li>
                             <strong>{{ ucfirst(str_replace('_', ' ', $mutasi->jenis_mutasi)) }}</strong> -
                             {{ $mutasi->kategori_mutasi }}
@@ -269,7 +269,7 @@
                 </div>
 
                 <!-- Mutation History -->
-                @if($penduduk->mutasi->count() > 0)
+                @if($penduduk->mutasis->count() > 0)
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                         <div class="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center mr-3">
@@ -278,7 +278,7 @@
                         Riwayat Mutasi
                     </h3>
                     <div class="space-y-3">
-                        @foreach($penduduk->mutasi as $mutasi)
+                        @foreach($penduduk->mutasis as $mutasi)
                         <div class="border border-gray-200 rounded-lg p-3 sm:p-4">
                             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2">
                                 <span class="text-sm font-medium text-gray-900">{{ ucfirst(str_replace('_', ' ', $mutasi->jenis_mutasi)) }}</span>
@@ -297,7 +297,7 @@
         </div>
 
         <!-- Family Structure -->
-        @if($penduduk->nkk)
+        @if($penduduk->kartu_keluarga_id)
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 mt-6">
             <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                 <div class="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center mr-3">
@@ -307,7 +307,7 @@
             </h3>
 
             <!-- Family Operations Buttons -->
-            @can('penduduk.edit')
+            @can('kependudukan')
             <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 sm:p-6 mb-6 border border-blue-200">
                 <h4 class="text-md font-semibold text-blue-900 mb-4 flex items-center">
                     <div class="w-6 h-6 bg-blue-200 rounded-lg flex items-center justify-center mr-2">
@@ -321,7 +321,7 @@
                         <h5 class="text-sm font-semibold text-blue-900 mb-3 flex items-center">
                             <i class="fas fa-edit mr-2"></i>Edit Cepat
                         </h5>
-                        <a href="{{ route('penduduk.family.address.form', $penduduk->nkk) }}"
+                        <a href="{{ route('penduduk.family.address.form', $penduduk->kartu_keluarga_id) }}"
                            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-105 shadow-md text-sm w-full">
                             <i class="fas fa-map-marker-alt mr-2"></i>
                             Update Alamat Keluarga
@@ -334,7 +334,7 @@
                         <h5 class="text-sm font-semibold text-orange-900 mb-3 flex items-center">
                             <i class="fas fa-file-alt mr-2"></i>Proses Resmi
                         </h5>
-                        <a href="{{ route('mutasi.data.create') }}?jenis_mutasi=pindah_rt_rw&nkk={{ $penduduk->nkk }}"
+                        <a href="{{ route('mutasi.data.create') }}?jenis_mutasi=pindah_rt_rw&kartu_keluarga_id={{ $penduduk->kartu_keluarga_id }}"
                            class="bg-orange-600 hover:bg-orange-700 text-white px-4 py-3 rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-105 shadow-md text-sm w-full">
                             <i class="fas fa-exchange-alt mr-2"></i>
                             Pindah RT/RW
@@ -369,13 +369,7 @@
                         <p class="text-gray-900 font-mono text-sm">{{ $penduduk->nkk }}</p>
                     </div>
                     <div class="bg-white rounded-lg p-3">
-                        <label class="block text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">Kepala Keluarga</label>
-                        @php
-                            $kepalaKeluarga = \App\Models\Penduduk::where('nkk', $penduduk->nkk)
-                                ->where('kedudukan_keluarga', 'KEPALA KELUARGA')
-                                ->first();
-                        @endphp
-                        <p class="text-gray-900 text-sm">{{ $kepalaKeluarga ? $kepalaKeluarga->nama : 'Tidak ada kepala keluarga' }}</p>
+                        <p class="text-gray-900 text-sm">{{ optional($penduduk->kartuKeluarga)->nama_kepala_keluarga ?? 'Tidak ada kepala keluarga' }}</p>
                     </div>
                     <div class="sm:col-span-2 bg-white rounded-lg p-3">
                         <label class="block text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">Alamat KK</label>
@@ -396,7 +390,7 @@
             <!-- Family Members -->
             <div>
                 @php
-                    $anggotaKeluarga = \App\Models\Penduduk::where('nkk', $penduduk->nkk)->get();
+                    $anggotaKeluarga = optional($penduduk->kartuKeluarga)->penduduks ?? collect();
                 @endphp
                 <h4 class="text-md font-semibold text-gray-800 mb-4 flex items-center">
                     <div class="w-6 h-6 bg-indigo-200 rounded-lg flex items-center justify-center mr-2">

@@ -17,7 +17,7 @@
                 </div>
             </div>
             <div class="flex flex-wrap gap-3">
-                @can('testimoni.create')
+                @can('pelayanan_informasi')
                 <a href="{{ route('testimoni.create') }}" class="group flex items-center px-4 py-2.5 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
                     <i class="fas fa-plus mr-2"></i>
                     Tambah Testimoni
@@ -193,13 +193,18 @@
                                     <td class="py-4 px-4 text-gray-600">{{ $testimoni->created_at->format('d/m/Y H:i') }}</td>
                                     <td class="py-4 px-4">
                                         <div class="flex items-center space-x-2">
+                                            @can('pelayanan_informasi')
                                             <a href="{{ route('testimoni.show', $testimoni) }}" class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors" title="Lihat">
                                                 <i class="fas fa-eye"></i>
                                             </a>
+                                            @endcan
+                                            @can('pelayanan_informasi')
                                             <a href="{{ route('testimoni.edit', $testimoni) }}" class="p-2 text-yellow-600 hover:bg-yellow-100 rounded-lg transition-colors" title="Edit">
                                                 <i class="fas fa-edit"></i>
                                             </a>
+                                            @endcan
                                             @if($testimoni->status == 'pending')
+                                                @can('pelayanan_informasi')
                                                 <form action="{{ route('testimoni.approve', $testimoni) }}" method="POST" class="inline">
                                                     @csrf
                                                     @method('PATCH')
@@ -207,6 +212,8 @@
                                                         <i class="fas fa-check"></i>
                                                     </button>
                                                 </form>
+                                                @endcan
+                                                @can('pelayanan_informasi')
                                                 <form action="{{ route('testimoni.reject', $testimoni) }}" method="POST" class="inline">
                                                     @csrf
                                                     @method('PATCH')
@@ -214,7 +221,9 @@
                                                         <i class="fas fa-times"></i>
                                                     </button>
                                                 </form>
+                                                @endcan
                                             @endif
+                                            @can('pelayanan_informasi')
                                             <form action="{{ route('testimoni.destroy', $testimoni) }}" method="POST" class="inline">
                                                 @csrf
                                                 @method('DELETE')
@@ -222,6 +231,7 @@
                                                     <i class="fas fa-trash"></i>
                                                 </button>
                                             </form>
+                                            @endcan
                                         </div>
                                     </td>
                                 </tr>

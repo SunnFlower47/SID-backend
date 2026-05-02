@@ -19,7 +19,7 @@
                     <p class="text-red-200 text-sm">KK kehilangan Kepala Keluarga — perlu diselesaikan</p>
                 </div>
             </div>
-            <a href="{{ route('kartu-keluarga.show', $nkk) }}"
+            <a href="{{ route('kk.show', $nkk) }}"
                class="flex items-center px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white rounded-xl transition-all duration-200 self-start sm:self-auto">
                 <i class="fas fa-arrow-left mr-2"></i> Kembali ke Detail KK
             </a>
@@ -241,7 +241,7 @@
         </div>
         <h2 class="text-xl font-bold text-green-800 mb-2">KK Berhasil Diselesaikan</h2>
         <p class="text-green-700 text-sm">NKK ini telah diarsipkan. Anggota keluarga sudah berpindah ke NKK baru.</p>
-        <a href="{{ route('kartu-keluarga.index', ['status' => 'bermasalah']) }}"
+        <a href="{{ route('kk.index', ['status' => 'bermasalah']) }}"
            class="mt-4 inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors">
             <i class="fas fa-list mr-2"></i> Lihat KK Bermasalah Lainnya
         </a>

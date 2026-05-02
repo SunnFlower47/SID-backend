@@ -23,7 +23,7 @@
 
     <!-- Action Buttons -->
     <div class="flex flex-col sm:flex-row gap-3 mb-6">
-        @can('mutasi.create')
+        @can('kependudukan')
         <a href="{{ route('mutasi.data.create') }}" class="group flex items-center justify-center px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
             <div class="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center mr-3 group-hover:scale-110 transition-transform">
                 <i class="fas fa-plus text-white text-sm"></i>
@@ -252,7 +252,7 @@
                             <i class="fas fa-eye mr-2 text-sm"></i>
                             <span class="text-sm font-medium">Detail</span>
                         </a>
-                        @can('mutasi.edit')
+                        @can('kependudukan')
                         <a href="{{ route('mutasi.data.edit', $mutasi) }}" class="flex-1 bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white px-3 py-2.5 rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-105 shadow-md">
                             <i class="fas fa-edit mr-2 text-sm"></i>
                             <span class="text-sm font-medium">Edit</span>
@@ -261,7 +261,7 @@
                     </div>
 
                     <!-- Action Button Row -->
-                    @can('mutasi.delete')
+                    @can('kependudukan')
                         @if($mutasi->isSoftDeleteType())
                             <button type="button" data-id="{{ $mutasi->id }}" data-name="{{ $mutasi->penduduk->nama ?? 'Data' }}" class="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-3 py-2.5 rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-105 shadow-md js-confirm-undo">
                                 <i class="fas fa-undo mr-2 text-sm"></i>
@@ -288,7 +288,7 @@
                 </div>
                 <h3 class="text-lg font-medium text-gray-900 mb-2">Tidak ada data Mutasi</h3>
                 <p class="text-gray-500 mb-6">Mulai tambah data mutasi pertama</p>
-                @can('mutasi.create')
+                @can('kependudukan')
                 <a href="{{ route('mutasi.data.create') }}" class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-sm font-medium rounded-lg hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200">
                     <i class="fas fa-plus mr-2"></i>
                     Tambah Mutasi Pertama
@@ -768,7 +768,7 @@
                                         <i class="fas fa-eye mr-1"></i>
                                         Detail
                                     </a>
-                                    @can('mutasi.edit')
+                                    @can('kependudukan')
                                     <a href="{{ route('mutasi.data.edit', $mutasi) }}"
                                        class="flex items-center px-2 py-1 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-md transition-colors text-xs font-medium js-stop-row"
                                        title="Edit Data">
@@ -776,7 +776,7 @@
                                         Edit
                                     </a>
                                     @endcan
-                                    @can('mutasi.delete')
+                                    @can('kependudukan')
                                         @if($mutasi->isSoftDeleteType())
                                             <button type="button" data-id="{{ $mutasi->id }}" data-name="{{ $mutasi->penduduk->nama ?? 'Data' }}"
                                                     class="flex items-center px-2 py-1 bg-green-50 hover:bg-green-100 text-green-700 rounded-md transition-colors text-xs font-medium js-confirm-undo js-stop-row"

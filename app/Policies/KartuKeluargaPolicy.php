@@ -13,7 +13,7 @@ class KartuKeluargaPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('kartu-keluarga.view');
+        return $user->can('kependudukan');
     }
 
     /**
@@ -21,7 +21,7 @@ class KartuKeluargaPolicy
      */
     public function view(User $user, KartuKeluarga $kartuKeluarga = null): bool
     {
-        return $user->can('kartu-keluarga.view');
+        return $user->can('kependudukan');
     }
 
     /**
@@ -29,7 +29,7 @@ class KartuKeluargaPolicy
      */
     public function create(User $user): bool
     {
-        return $user->can('kartu-keluarga.create');
+        return $user->can('kependudukan');
     }
 
     /**
@@ -37,7 +37,7 @@ class KartuKeluargaPolicy
      */
     public function update(User $user, KartuKeluarga $kartuKeluarga = null): bool
     {
-        return $user->can('kartu-keluarga.edit');
+        return $user->can('kependudukan');
     }
 
     /**
@@ -45,6 +45,6 @@ class KartuKeluargaPolicy
      */
     public function delete(User $user, KartuKeluarga $kartuKeluarga = null): bool
     {
-        return $user->can('kartu-keluarga.delete');
+        return $user->can('kependudukan');
     }
 }

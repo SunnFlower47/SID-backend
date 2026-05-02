@@ -19,7 +19,7 @@
                 </div>
             </div>
             <div class="flex flex-wrap gap-3">
-                @can('bantuan_sosial.edit')
+                @can('pelayanan_informasi')
                 <a href="{{ route('bantuan-sosial.edit', $bantuanSosial) }}" class="group flex items-center px-6 py-3 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
                     <i class="fas fa-edit mr-2"></i>
                     Edit
@@ -219,13 +219,13 @@
                 </div>
                 <div class="p-4 lg:p-6">
                     <div class="space-y-3">
-                        @can('bantuan_sosial.manage_penerima')
+                        @can('pelayanan_informasi')
                         <a href="{{ route('bantuan-sosial.penerima.index', $bantuanSosial) }}" class="w-full bg-orange-500 hover:bg-orange-600 text-white px-4 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center">
                             <i class="fas fa-users mr-2"></i> Kelola Penerima
                         </a>
                         @endcan
 
-                        @can('bantuan_sosial.delete')
+                        @can('pelayanan_informasi')
                         <button onclick="confirmDelete('{{ $bantuanSosial->id }}', '{{ $bantuanSosial->nama_program }}')"
                                 class="w-full bg-red-500 hover:bg-red-600 text-white px-4 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center">
                             <i class="fas fa-trash mr-2"></i> Hapus Program

@@ -19,16 +19,18 @@ class WilayahController extends Controller
      */
     public function index(): JsonResponse
     {
-        Gate::authorize('wilayah.view');
+        Gate::authorize('admin_sistem');
 
         $dusuns = Dusun::orderBy('nama')->get();
         $rws = Rw::orderBy('kode')->get();
         $rts = Rt::with(['rw', 'dusun'])->orderBy('kode')->get();
 
         $pendudukCounts = Penduduk::query()
-            ->selectRaw('rw_id, rt_id, COUNT(*) as total')
-            ->whereNotNull('rt_id')
-            ->groupBy('rw_id', 'rt_id')
+            ->join('kartu_keluargas', 'penduduks.kartu_keluarga_id', '=', 'kartu_keluargas.id')
+            ->selectRaw('kartu_keluargas.rw_id, kartu_keluargas.rt_id, COUNT(*) as total')
+            ->whereNotNull('kartu_keluargas.rt_id')
+            ->whereNull('penduduks.deleted_at')
+            ->groupBy('kartu_keluargas.rw_id', 'kartu_keluargas.rt_id')
             ->get()
             ->keyBy(fn ($row) => (string) $row->rw_id . '|' . (string) $row->rt_id);
 
@@ -58,7 +60,7 @@ class WilayahController extends Controller
      */
     public function getTree(): JsonResponse
     {
-        Gate::authorize('wilayah.view');
+        Gate::authorize('admin_sistem');
 
         $dusuns = Dusun::orderBy('nama')->get()->map(function($dusun) {
             $rts = Rt::with('rw')->where('dusun_id', $dusun->id)->get();
@@ -95,7 +97,7 @@ class WilayahController extends Controller
 
     public function storeDusun(Request $request): JsonResponse
     {
-        Gate::authorize('wilayah.view');
+        Gate::authorize('admin_sistem');
 
         $data = $request->validate([
             'nama' => 'required|string|max:100|unique:dusuns,nama',
@@ -113,7 +115,7 @@ class WilayahController extends Controller
 
     public function storeRw(Request $request): JsonResponse
     {
-        Gate::authorize('wilayah.view');
+        Gate::authorize('admin_sistem');
 
         $data = $request->validate([
             'kode' => 'required|string|max:3|unique:rws,kode',
@@ -137,7 +139,7 @@ class WilayahController extends Controller
 
     public function storeRt(Request $request): JsonResponse
     {
-        Gate::authorize('wilayah.view');
+        Gate::authorize('admin_sistem');
 
         $data = $request->validate([
             'kode' => 'required|string|max:3',
@@ -166,12 +168,14 @@ class WilayahController extends Controller
 
     public function destroyRt(Rt $rt): JsonResponse
     {
-        Gate::authorize('wilayah.view');
+        Gate::authorize('admin_sistem');
 
         $rtKode = $rt->kode;
         $rwKode = optional($rt->rw)->kode;
 
-        $usedCount = Penduduk::where('rt_id', $rt->id)->count();
+        $usedCount = Penduduk::whereHas('kartuKeluarga', function($q) use ($rt) {
+            $q->where('rt_id', $rt->id);
+        })->count();
 
         if ($usedCount > 0) {
             return response()->json([

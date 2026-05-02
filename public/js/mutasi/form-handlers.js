@@ -379,6 +379,146 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Setup events for Pindah Masuk form
     function setupPindahMasukEvents() {
+        // --- LOGIC TAMBAH ANGGOTA KELUARGA (BATCH) ---
+        let familyMemberCountPindah = 0;
+        const btnAddMember = document.getElementById('btnAddMemberPindah');
+        const container = document.getElementById('familyMembersContainerPindah');
+        const noMsg = document.getElementById('noFamilyMemberMsg');
+
+        if (btnAddMember && container) {
+            // Remove old listeners to avoid duplication
+            const newBtn = btnAddMember.cloneNode(true);
+            btnAddMember.parentNode.replaceChild(newBtn, btnAddMember);
+
+            newBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                familyMemberCountPindah++;
+                
+                if (noMsg) noMsg.style.display = 'none';
+
+                const memberDiv = document.createElement('div');
+                memberDiv.className = 'bg-white rounded-xl p-4 border border-gray-200 shadow-sm transition-all hover:border-blue-300 mb-4 family-member-row';
+                memberDiv.id = `familyMemberRow_${familyMemberCountPindah}`;
+
+                memberDiv.innerHTML = `
+                    <div class="flex items-center justify-between mb-4 pb-2 border-b border-gray-100">
+                        <span class="text-xs font-bold text-blue-600 uppercase tracking-wider">Anggota Keluarga #${familyMemberCountPindah}</span>
+                        <button type="button" class="btn-remove-member-pindah text-red-400 hover:text-red-600 p-1 transition-colors" data-id="${familyMemberCountPindah}">
+                            <i class="fas fa-times-circle"></i>
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-500 mb-1">NIK</label>
+                            <input type="text" name="family_members[${familyMemberCountPindah}][nik]"
+                                   class="block w-full text-sm border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                                   placeholder="16 digit NIK" maxlength="16" required>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-500 mb-1">Nama Lengkap</label>
+                            <input type="text" name="family_members[${familyMemberCountPindah}][nama]"
+                                   class="block w-full text-sm border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                                   placeholder="Nama sesuai KTP" required>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-500 mb-1">Hubungan</label>
+                            <select name="family_members[${familyMemberCountPindah}][kedudukan_keluarga]"
+                                    class="block w-full text-sm border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" required>
+                                <option value="Istri">Istri</option>
+                                <option value="Anak" selected>Anak</option>
+                                <option value="Menantu">Menantu</option>
+                                <option value="Cucu">Cucu</option>
+                                <option value="Orang Tua">Orang Tua</option>
+                                <option value="Mertua">Mertua</option>
+                                <option value="Famili Lain">Famili Lain</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-500 mb-1">Jenis Kelamin</label>
+                            <select name="family_members[${familyMemberCountPindah}][jenis_kelamin]"
+                                    class="block w-full text-sm border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" required>
+                                <option value="LAKI-LAKI">Laki-laki</option>
+                                <option value="PEREMPUAN">Perempuan</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-500 mb-1">Tempat Lahir</label>
+                            <input type="text" name="family_members[${familyMemberCountPindah}][tempat_lahir]"
+                                   class="block w-full text-sm border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                                   placeholder="Tempat lahir" required>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal Lahir</label>
+                            <input type="date" name="family_members[${familyMemberCountPindah}][tanggal_lahir]"
+                                   class="block w-full text-sm border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" required>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-500 mb-1">Agama</label>
+                            <select name="family_members[${familyMemberCountPindah}][agama]"
+                                    class="block w-full text-sm border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" required>
+                                <option value="Islam">Islam</option>
+                                <option value="Kristen">Kristen</option>
+                                <option value="Katolik">Katolik</option>
+                                <option value="Hindu">Hindu</option>
+                                <option value="Buddha">Buddha</option>
+                                <option value="Konghucu">Konghucu</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-500 mb-1">Pendidikan</label>
+                            <input type="text" name="family_members[${familyMemberCountPindah}][pendidikan]"
+                                   class="block w-full text-sm border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                                   placeholder="Contoh: SMA / S1" required>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-500 mb-1">Pekerjaan</label>
+                            <input type="text" name="family_members[${familyMemberCountPindah}][pekerjaan]"
+                                   class="block w-full text-sm border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                                   placeholder="Pekerjaan" required>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-500 mb-1">Status Perkawinan</label>
+                            <select name="family_members[${familyMemberCountPindah}][status_perkawinan]"
+                                    class="block w-full text-sm border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" required>
+                                <option value="Belum Kawin">Belum Kawin</option>
+                                <option value="Kawin">Kawin</option>
+                                <option value="Cerai Hidup">Cerai Hidup</option>
+                                <option value="Cerai Mati">Cerai Mati</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-500 mb-1">Nama Ayah</label>
+                            <input type="text" name="family_members[${familyMemberCountPindah}][nama_ayah]"
+                                   class="block w-full text-sm border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                                   placeholder="Nama ayah">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-500 mb-1">Nama Ibu</label>
+                            <input type="text" name="family_members[${familyMemberCountPindah}][nama_ibu]"
+                                   class="block w-full text-sm border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                                   placeholder="Nama ibu">
+                        </div>
+                    </div>
+                `;
+
+                container.appendChild(memberDiv);
+
+                // Listener for remove button
+                memberDiv.querySelector('.btn-remove-member-pindah').addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    const row = document.getElementById(`familyMemberRow_${id}`);
+                    if (row) {
+                        row.remove();
+                        if (container.children.length === 0 && noMsg) {
+                            noMsg.style.display = 'block';
+                        }
+                    }
+                });
+            });
+        }
+        // --- END LOGIC TAMBAH ANGGOTA ---
+
         // KK Options toggle
         const kkExistingRadio = document.getElementById('kk_existing_pindah_masuk');
         const kkNewRadio = document.getElementById('kk_new_pindah_masuk');
@@ -390,6 +530,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (this.checked) {
                     existingKKContainer.style.display = 'block';
                     newKKContainer.style.display = 'none';
+                    
+                    // Lock address fields when joining existing KK
+                    const addressFields = ['alamat_pindah_masuk', 'rw_id_pindah_masuk', 'rt_id_pindah_masuk'];
+                    addressFields.forEach(id => {
+                        const el = document.getElementById(id);
+                        if (el) {
+                            el.setAttribute('disabled', 'disabled');
+                            el.classList.add('bg-gray-100', 'cursor-not-allowed');
+                            el.removeAttribute('required');
+                        }
+                    });
+
                     // Clear new KK input
                     const newKKInput = document.getElementById('nkk_new_pindah_masuk');
                     if (newKKInput) newKKInput.value = '';
@@ -401,6 +553,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (this.checked) {
                     existingKKContainer.style.display = 'none';
                     newKKContainer.style.display = 'block';
+                    
+                    // Unlock address fields when creating new KK
+                    const addressFields = ['alamat_pindah_masuk', 'rw_id_pindah_masuk', 'rt_id_pindah_masuk'];
+                    addressFields.forEach(id => {
+                        const el = document.getElementById(id);
+                        if (el) {
+                            el.removeAttribute('disabled');
+                            el.classList.remove('bg-gray-100', 'cursor-not-allowed');
+                            el.setAttribute('required', 'required');
+                        }
+                    });
+
                     // Clear existing KK selection
                     clearNKKSelection('pindah_masuk');
                 }
@@ -462,17 +626,15 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // Auto-fill dusun based on RT
-        const rtSelect = document.getElementById('rt_pindah_masuk');
-        const dusunField = document.getElementById('dusun_pindah_masuk');
+        const rtSelect = document.getElementById('rt_id_pindah_masuk');
+        const dusunField = document.getElementById('dusun_id_pindah_masuk');
 
         if (rtSelect && dusunField) {
             rtSelect.addEventListener('change', function() {
                 const rtValue = this.value;
-                if (rtValue) {
-                    const dusunSatu = ['001', '002', '003', '004', '007', '008'];
-                    const dusunValue = dusunSatu.includes(rtValue) ? 'Dusun Satu' : 'Dusun Dua';
-                    dusunField.value = dusunValue;
-                }
+                // Since this is now a select with ID values, we might not be able to 
+                // do hardcoded '001' checks here easily without knowing the RT code.
+                // However, syncDusunByRtMutasi in blade already handles this.
             });
         }
     }
@@ -519,26 +681,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // Auto-fill dusun based on RT selection
-        const rtSelect = document.getElementById('rt_tujuan');
-        const dusunSelect = document.getElementById('dusun_tujuan');
+        const rtSelect = document.getElementById('rt_id_tujuan');
+        const dusunSelect = document.getElementById('dusun_id_tujuan');
 
         if (rtSelect && dusunSelect) {
             rtSelect.addEventListener('change', function() {
-                const rtValue = this.value;
-                if (rtValue) {
-                    // RT 001, 002, 003, 004, 007, 008 = Dusun 1
-                    // RT 005, 006, 009, 010 = Dusun 2
-                    const dusunSatu = ['001', '002', '003', '004', '007', '008'];
-                    const dusunValue = dusunSatu.includes(rtValue) ? 'Dusun 1' : 'Dusun 2';
-
-                    // Set the dusun select value
-                    for (let option of dusunSelect.options) {
-                        if (option.value === dusunValue) {
-                            option.selected = true;
-                            break;
-                        }
-                    }
-                }
+                // Handled by syncDusunByRtMutasi in blade
             });
         }
     }
@@ -578,8 +726,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (existingKKContainer) existingKKContainer.style.display = 'none';
 
                     // Set required untuk field KK baru
-                    const rtField = document.getElementById('rt_baru_pisah');
-                    const rwField = document.getElementById('rw_baru_pisah');
+                    const rtField = document.getElementById('rt_id_pisah');
+                    const rwField = document.getElementById('rw_id_pisah');
                     const alamatField = document.getElementById('alamat_baru_pisah');
                     if (rtField) rtField.required = true;
                     if (rwField) rwField.required = true;
@@ -590,8 +738,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (existingKKContainer) existingKKContainer.style.display = 'block';
 
                     // Remove required untuk field KK baru
-                    const rtField = document.getElementById('rt_baru_pisah');
-                    const rwField = document.getElementById('rw_baru_pisah');
+                    const rtField = document.getElementById('rt_id_pisah');
+                    const rwField = document.getElementById('rw_id_pisah');
                     const alamatField = document.getElementById('alamat_baru_pisah');
                     if (rtField) rtField.required = false;
                     if (rwField) rwField.required = false;
@@ -671,7 +819,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // Auto-format RT input
-        if (e.target.id.includes('rt') || e.target.name === 'rt' || e.target.name === 'rt_bayi' || e.target.name === 'rt_pindah_masuk' || e.target.name === 'rt_pisah') {
+        if (e.target.id.includes('rt_id') || e.target.name === 'rt_id' || e.target.name === 'rt_bayi' || e.target.name === 'rt_pindah_masuk' || e.target.name === 'rt_pisah') {
             // Skip NKK search inputs
             if (e.target.id.includes('nkk_search') || e.target.id.includes('nkk_')) {
                 return;
@@ -1121,35 +1269,19 @@ function selectKKKelahiran(kk) {
         nkkInput.value = kk.nkk;
     }
 
-    // Auto-fill alamat bayi berdasarkan data KK
-    if (kk.alamat) {
-        const alamatBayi = document.getElementById('alamat_bayi');
-        if (alamatBayi) {
-            alamatBayi.value = kk.alamat;
-        }
+    // Auto-fill hidden wilayah fields for birth validation
+    const fieldMapping = {
+        'alamat_bayi': kk.alamat,
+        'rt_id_bayi': kk.rt_id,
+        'rw_id_bayi': kk.rw_id,
+        'dusun_id_bayi': kk.dusun_id
+    };
+
+    for (const [id, value] of Object.entries(fieldMapping)) {
+        const el = document.getElementById(id);
+        if (el) el.value = value || '';
     }
 
-    // Auto-fill RT/RW/Dusun bayi berdasarkan data KK
-    if (kk.rt) {
-        const rtBayi = document.getElementById('rt_bayi');
-        if (rtBayi) {
-            rtBayi.value = kk.rt;
-        }
-    }
-
-    if (kk.rw) {
-        const rwBayi = document.getElementById('rw_bayi');
-        if (rwBayi) {
-            rwBayi.value = kk.rw;
-        }
-    }
-
-    if (kk.dusun) {
-        const dusunBayi = document.getElementById('dusun_bayi');
-        if (dusunBayi) {
-            dusunBayi.value = kk.dusun;
-        }
-    }
     if (selectedDiv) {
         const nameSpan = document.getElementById('selected_nkk_name_kelahiran');
         const infoSpan = document.getElementById('selected_nkk_info_kelahiran');
@@ -1157,8 +1289,45 @@ function selectKKKelahiran(kk) {
         if (infoSpan) infoSpan.textContent = kk.kepala_keluarga;
         selectedDiv.classList.remove('hidden');
     }
+    
     if (searchInput) searchInput.value = '';
     if (results) results.classList.add('hidden');
+
+    // Auto-fill Nama Ayah & Nama Ibu
+    if (kk.nkk) {
+        autoFillParents(kk.nkk);
+    }
+}
+
+async function autoFillParents(nkk) {
+    try {
+        const response = await fetch(`/mutasi/get-anggota-keluarga?nkk=${encodeURIComponent(nkk)}`, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+
+        if (!response.ok) return;
+
+        const anggota = await response.json();
+        if (Array.isArray(anggota)) {
+            const ayah = anggota.find(p => p.kedudukan_keluarga && p.kedudukan_keluarga.toUpperCase() === 'KEPALA KELUARGA');
+            const ibu = anggota.find(p => p.kedudukan_keluarga && p.kedudukan_keluarga.toUpperCase() === 'ISTRI');
+
+            if (ayah) {
+                const ayahInput = document.getElementById('nama_ayah');
+                if (ayahInput) ayahInput.value = ayah.nama;
+            }
+            if (ibu) {
+                const ibuInput = document.getElementById('nama_ibu');
+                if (ibuInput) ibuInput.value = ibu.nama;
+            }
+        }
+    } catch (err) {
+        console.error('Error auto-filling parents:', err);
+    }
 }
 
 function hideKKSearchResultsKelahiran() {
@@ -1316,30 +1485,29 @@ function selectKKPindahMasuk(kk) {
 
     // Auto-fill alamat fields based on selected KK
     const alamatField = document.getElementById('alamat_pindah_masuk');
-    const rtField = document.getElementById('rt_pindah_masuk');
-    const rwField = document.getElementById('rw_pindah_masuk');
-    const dusunField = document.getElementById('dusun_pindah_masuk');
+    const rwField = document.getElementById('rw_id_pindah_masuk');
+    const rtField = document.getElementById('rt_id_pindah_masuk');
+    const dusunField = document.getElementById('dusun_id_pindah_masuk');
+    const dusunLabel = document.getElementById('dusun_id_pindah_masuk_label');
 
     if (alamatField && kk.alamat) alamatField.value = kk.alamat;
-    if (rtField && kk.rt) {
-        // Set RT select value
-        for (let option of rtField.options) {
-            if (option.value === kk.rt) {
-                option.selected = true;
-                break;
+    
+    // Set RW first to trigger RT population if needed
+    if (rwField && kk.rw_id) {
+        rwField.value = kk.rw_id;
+        // Manually trigger onchange to populate RTs
+        const event = new Event('change');
+        rwField.dispatchEvent(event);
+        
+        // Wait a bit for RTs to populate then set RT
+        setTimeout(() => {
+            if (rtField && kk.rt_id) {
+                rtField.value = kk.rt_id;
+                if (dusunField && kk.dusun_id) dusunField.value = kk.dusun_id;
+                if (dusunLabel && kk.dusun) dusunLabel.value = kk.dusun;
             }
-        }
+        }, 100);
     }
-    if (rwField && kk.rw) {
-        // Set RW select value
-        for (let option of rwField.options) {
-            if (option.value === kk.rw) {
-                option.selected = true;
-                break;
-            }
-        }
-    }
-    if (dusunField && kk.dusun) dusunField.value = kk.dusun;
 }
 
 function hideKKSearchResultsPindahMasuk() {

@@ -8,7 +8,7 @@
     <meta name="keywords" content="admin panel, desa cibatu, purwakarta, sistem informasi desa, dashboard">
 
     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="{{ asset('logo-desa-cibatu.png') }}">
+    <link rel="icon" type="image/png" href="{{ asset('assets/images/logo-desa-cibatu.png') }}">
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -91,7 +91,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
                 <div class="flex items-center space-x-2 sm:space-x-3">
-                    <img src="{{ asset('logo-desa-cibatu.png') }}" alt="Logo Desa Cibatu" class="h-8 w-8 sm:h-10 sm:w-10 rounded-lg" loading="lazy" decoding="async">
+                    <img src="{{ asset('assets/images/logo-desa-cibatu.png') }}" alt="Logo Desa Cibatu" class="h-8 w-8 sm:h-10 sm:w-10 rounded-lg" loading="lazy" decoding="async">
                     <div>
                         <h1 class="text-lg sm:text-xl font-bold text-gray-900">Desa Cibatu</h1>
                         <p class="text-xs sm:text-sm text-gray-600 hidden sm:block">Purwakarta, Jawa Barat</p>
@@ -124,7 +124,7 @@
     <section class="relative h-screen overflow-hidden">
         <!-- Background Image with Filter -->
         <div class="absolute inset-0">
-            <img src="{{ asset('foto-sawah-1.webp') }}"
+            <img src="{{ asset('assets/images/foto-sawah-1.webp') }}"
                  alt="Pemandangan Desa Cibatu"
                  class="w-full h-full object-cover"
                  loading="lazy"
@@ -321,7 +321,7 @@
             <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
                 <div class="md:col-span-2">
                     <div class="flex items-center space-x-3 mb-4">
-                        <img src="{{ asset('logo-desa-cibatu.png') }}" alt="Logo Desa Cibatu" class="h-12 w-12 rounded-lg" loading="lazy" decoding="async">
+                        <img src="{{ asset('assets/images/logo-desa-cibatu.png') }}" alt="Logo Desa Cibatu" class="h-12 w-12 rounded-lg" loading="lazy" decoding="async">
                         <div>
                         <h3 class="text-xl font-bold">Admin Panel</h3>
                         <p class="text-gray-400">Sistem Administrasi Desa Cibatu</p>

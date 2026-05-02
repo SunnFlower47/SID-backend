@@ -113,7 +113,7 @@
     </div>
 
     <!-- Opsi KK untuk Dalam Desa -->
-    <div id="kkOptionContainer" class="mb-6" style="display: none;">
+    <div id="kkOptionsContainerPisah" class="mb-6" style="display: none;">
         <label class="block text-sm font-medium text-gray-700 mb-3">Pilih Opsi KK</label>
         <div class="space-y-3">
             <label class="flex items-center">

@@ -38,7 +38,7 @@ class ScanKkBermasalahHistoris extends Command
               AND kk.anggota_aktif > 0
               AND NOT EXISTS (
                   SELECT 1 FROM penduduks p
-                  WHERE p.nkk = kk.nkk
+                  WHERE p.kartu_keluarga_id = kk.id
                     AND p.kedudukan_keluarga = 'Kepala Keluarga'
                     AND p.deleted_at IS NULL
               )
@@ -96,7 +96,8 @@ class ScanKkBermasalahHistoris extends Command
                 $mutasiPenyebab = DB::selectOne("
                     SELECT m.id FROM mutasis m
                     JOIN penduduks p ON p.id = m.penduduk_id
-                    WHERE p.nkk = ?
+                    JOIN kartu_keluargas kk ON kk.id = p.kartu_keluarga_id
+                    WHERE kk.nkk = ?
                       AND m.jenis_mutasi IN ('kematian', 'pindah_keluar', 'pisah_kk')
                       AND p.kedudukan_keluarga = 'Kepala Keluarga'
                       AND m.deleted_at IS NULL

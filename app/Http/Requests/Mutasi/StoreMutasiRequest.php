@@ -102,6 +102,18 @@ class StoreMutasiRequest extends FormRequest
                     'tanggal_mutasi' => 'required|date',
                     'alasan' => 'nullable|string|max:500',
                     'keterangan' => 'nullable|string|max:1000',
+                    'family_members' => 'nullable|array',
+                    'family_members.*.nik' => [
+                        'required',
+                        'string',
+                        'size:16',
+                        Rule::unique('penduduks', 'nik')->whereNull('deleted_at'),
+                    ],
+                    'family_members.*.nama' => 'required|string|max:255',
+                    'family_members.*.jenis_kelamin' => 'required|in:LAKI-LAKI,PEREMPUAN',
+                    'family_members.*.kedudukan_keluarga' => 'required|string|max:50',
+                    'family_members.*.tempat_lahir' => 'nullable|string|max:255',
+                    'family_members.*.tanggal_lahir' => 'nullable|date',
                 ];
                 break;
 
@@ -150,6 +162,9 @@ class StoreMutasiRequest extends FormRequest
                     'move_members.*' => 'integer|exists:penduduks,id',
                     'anggota_pisah_ids' => 'nullable|array',
                     'anggota_pisah_ids.*' => 'integer|exists:penduduks,id',
+                    'anggota_pisah_data' => 'nullable|array',
+                    'anggota_pisah_data.*.id' => 'required|integer|exists:penduduks,id',
+                    'anggota_pisah_data.*.kedudukan_keluarga' => 'required|string|max:50',
                 ];
                 break;
         }
@@ -208,6 +223,51 @@ class StoreMutasiRequest extends FormRequest
                 }
             }
         });
+    }
+
+    /**
+     * Prepare the data for validation.
+     */
+    protected function prepareForValidation()
+    {
+        $mergeData = [];
+
+        // Normalize tanggal_lahir if present
+        if ($this->has('tanggal_lahir') && !empty($this->tanggal_lahir)) {
+            if (strpos($this->tanggal_lahir, '/') !== false) {
+                try {
+                    $mergeData['tanggal_lahir'] = \Carbon\Carbon::createFromFormat('d/m/Y', $this->tanggal_lahir)->format('Y-m-d');
+                } catch (\Exception $e) {
+                    // Let validation handle incorrect formats
+                }
+            }
+        }
+
+        // Normalize tanggal_mutasi if present
+        if ($this->has('tanggal_mutasi') && !empty($this->tanggal_mutasi)) {
+            if (strpos($this->tanggal_mutasi, '/') !== false) {
+                try {
+                    $mergeData['tanggal_mutasi'] = \Carbon\Carbon::createFromFormat('d/m/Y', $this->tanggal_mutasi)->format('Y-m-d');
+                } catch (\Exception $e) {
+                    // Let validation handle incorrect formats
+                }
+            }
+        }
+
+        // Normalize tanggal_pemakaman if present
+        if ($this->has('tanggal_pemakaman') && !empty($this->tanggal_pemakaman)) {
+            if (strpos($this->tanggal_pemakaman, '/') !== false) {
+                try {
+                    $mergeData['tanggal_pemakaman'] = \Carbon\Carbon::createFromFormat('d/m/Y', $this->tanggal_pemakaman)->format('Y-m-d');
+                } catch (\Exception $e) {
+                    // Let validation handle incorrect formats
+                }
+            }
+        }
+
+        if (!empty($mergeData)) {
+            $this->merge($mergeData);
+        }
     }
 }
 

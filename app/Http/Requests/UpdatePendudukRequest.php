@@ -62,9 +62,9 @@ class UpdatePendudukRequest extends FormRequest
             'pekerjaan' => 'nullable|string|max:100',
             'nama_ayah' => 'nullable|string|max:255',
             'nama_ibu' => 'nullable|string|max:255',
-            'alamat' => 'required|string|max:500',
-            'rt_id' => 'required|exists:rts,id',
-            'rw_id' => 'required|exists:rws,id',
+            'alamat' => 'nullable|string|max:500',
+            'rt_id' => 'nullable|exists:rts,id',
+            'rw_id' => 'nullable|exists:rws,id',
             'dusun_id' => 'nullable|exists:dusuns,id',
             'keterangan' => 'nullable|string|max:500',
             'nkk' => 'nullable|string|size:16'
@@ -191,6 +191,25 @@ class UpdatePendudukRequest extends FormRequest
             $this->merge([
                 'alamat' => ucwords(strtolower(trim($this->alamat)))
             ]);
+        }
+
+        // Auto-format tanggal_lahir
+        if ($this->has('tanggal_lahir') && !empty($this->tanggal_lahir)) {
+            try {
+                // Jika input mengandung '/', asumsikan format Indonesia d/m/Y
+                if (strpos($this->tanggal_lahir, '/') !== false) {
+                    $this->merge([
+                        'tanggal_lahir' => \Carbon\Carbon::createFromFormat('d/m/Y', $this->tanggal_lahir)->format('Y-m-d')
+                    ]);
+                } else {
+                    // Coba parse otomatis (biasanya Y-m-d dari browser)
+                    $this->merge([
+                        'tanggal_lahir' => \Carbon\Carbon::parse($this->tanggal_lahir)->format('Y-m-d')
+                    ]);
+                }
+            } catch (\Exception $e) {
+                // Biarkan validator menangkap error format
+            }
         }
     }
 }

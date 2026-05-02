@@ -132,7 +132,7 @@
             allMenus: [
                 // Data Kependudukan
                 { id: 1, name: 'Data Penduduk', description: 'Kelola data penduduk desa', url: '{{ route("penduduk.index") }}', icon: 'fas fa-users', iconBg: 'bg-blue-100', iconColor: 'text-blue-600' },
-                { id: 2, name: 'Kartu Keluarga', description: 'Kelola data kartu keluarga', url: '{{ route("kartu-keluarga.index") }}', icon: 'fas fa-id-card', iconBg: 'bg-indigo-100', iconColor: 'text-indigo-600' },
+                { id: 2, name: 'Kartu Keluarga', description: 'Kelola data kartu keluarga', url: '{{ route("kk.index") }}', icon: 'fas fa-id-card', iconBg: 'bg-indigo-100', iconColor: 'text-indigo-600' },
 
                 // Layanan Administrasi
                 { id: 3, name: 'Surat Pengajuan', description: 'Kelola surat pengajuan warga', url: '{{ route("admin.surat-pengajuan.index") }}', icon: 'fas fa-file-alt', iconBg: 'bg-green-100', iconColor: 'text-green-600' },

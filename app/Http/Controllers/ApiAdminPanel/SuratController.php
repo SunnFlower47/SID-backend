@@ -20,17 +20,23 @@ class SuratController extends Controller
      */
     public function index(): JsonResponse
     {
-        Gate::authorize('surat.view');
+        Gate::authorize('pelayanan_informasi');
 
-        $suratTypes = [
-            ['id' => 'keterangan-domisili', 'name' => 'Surat Keterangan Domisili', 'description' => 'Surat keterangan tempat tinggal penduduk', 'icon' => 'fas fa-home', 'color' => 'blue'],
-            ['id' => 'pengantar', 'name' => 'Surat Pengantar', 'description' => 'Surat pengantar untuk keperluan administrasi', 'icon' => 'fas fa-file-alt', 'color' => 'green'],
-            ['id' => 'pindah', 'name' => 'Surat Keterangan Pindah', 'description' => 'Surat keterangan pindah penduduk', 'icon' => 'fas fa-walking', 'color' => 'yellow'],
-            ['id' => 'kematian', 'name' => 'Surat Keterangan Kematian', 'description' => 'Surat keterangan kematian penduduk', 'icon' => 'fas fa-skull', 'color' => 'red'],
-            ['id' => 'kelahiran', 'name' => 'Surat Keterangan Kelahiran', 'description' => 'Surat keterangan kelahiran penduduk', 'icon' => 'fas fa-baby', 'color' => 'purple'],
-            ['id' => 'tidak-mampu-dewasa', 'name' => 'Surat Keterangan Tidak Mampu (Dewasa)', 'description' => 'Surat keterangan tidak mampu untuk orang dewasa', 'icon' => 'fas fa-hand-holding-heart', 'color' => 'indigo'],
-            ['id' => 'tidak-mampu-anak', 'name' => 'Surat Keterangan Tidak Mampu (Anak)', 'description' => 'Surat keterangan tidak mampu untuk anak/pelajar', 'icon' => 'fas fa-child', 'color' => 'pink']
-        ];
+        // Fetch from database for consistency with frontend
+        $suratTypes = \App\Models\SuratType::where('is_active', true)
+            ->orderBy('has_template', 'desc')
+            ->orderBy('nama')
+            ->get()
+            ->map(function ($type) {
+                return [
+                    'id' => $type->template_code ?? $type->id,
+                    'name' => $type->nama,
+                    'description' => $type->deskripsi,
+                    'icon' => $type->icon ?? 'fas fa-file-alt',
+                    'color' => $type->color ?? 'blue',
+                    'has_template' => (bool)$type->has_template,
+                ];
+            });
 
         return response()->json([
             'status' => 'success',
@@ -46,7 +52,7 @@ class SuratController extends Controller
      */
     public function store(Request $request, $type): JsonResponse
     {
-        Gate::authorize('surat.create');
+        Gate::authorize('pelayanan_informasi');
 
         $validated = $request->validate([
             'penduduk_id' => 'required|exists:penduduks,id',
@@ -86,7 +92,7 @@ class SuratController extends Controller
      */
     public function history(Request $request): JsonResponse
     {
-        Gate::authorize('surat.view');
+        Gate::authorize('pelayanan_informasi');
 
         $query = Surat::with(['penduduk', 'creator']);
 
@@ -115,7 +121,7 @@ class SuratController extends Controller
      */
     public function download(Surat $surat)
     {
-        Gate::authorize('surat.view');
+        Gate::authorize('pelayanan_informasi');
 
         $data = $this->prepareSuratData($surat->penduduk, [
             'keperluan' => $surat->keperluan,

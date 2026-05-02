@@ -26,59 +26,67 @@ class KartuKeluargaExport implements FromCollection, WithHeadings, WithMapping, 
 
     public function collection()
     {
-        $query = DB::table('penduduks as p')
+        $query = DB::table('kartu_keluargas as kk')
+            ->leftJoin('rts', 'kk.rt_id', '=', 'rts.id')
+            ->leftJoin('rws', 'kk.rw_id', '=', 'rws.id')
+            ->leftJoin('dusuns', 'kk.dusun_id', '=', 'dusuns.id')
+            ->leftJoin('penduduks as p', 'p.kartu_keluarga_id', '=', 'kk.id')
             ->leftJoin('mutasis as m', function($join) {
                 $join->on('m.penduduk_id', '=', 'p.id')
                      ->whereIn('m.jenis_mutasi', ['kematian', 'pindah_keluar', 'pisah_kk']);
             })
-            ->leftJoin('rts', 'p.rt_id', '=', 'rts.id')
-            ->leftJoin('rws', 'p.rw_id', '=', 'rws.id')
-            ->leftJoin('dusuns', 'p.dusun_id', '=', 'dusuns.id')
             ->select([
-                'p.nkk',
-                DB::raw('MAX(CASE WHEN p.kedudukan_keluarga = "Kepala Keluarga" THEN p.nama ELSE NULL END) as nama_kepala_keluarga'),
-                DB::raw('MAX(CASE WHEN p.kedudukan_keluarga = "Kepala Keluarga" THEN rts.kode ELSE NULL END) as rt'),
-                DB::raw('MAX(CASE WHEN p.kedudukan_keluarga = "Kepala Keluarga" THEN rws.kode ELSE NULL END) as rw'),
-                DB::raw('MAX(CASE WHEN p.kedudukan_keluarga = "Kepala Keluarga" THEN dusuns.nama ELSE NULL END) as dusun'),
-                DB::raw('MAX(CASE WHEN p.kedudukan_keluarga = "Kepala Keluarga" THEN p.alamat ELSE NULL END) as alamat'),
-                DB::raw('COUNT(DISTINCT p.id) as jumlah_anggota'),
-                DB::raw('SUM(CASE WHEN m.id IS NULL THEN 1 ELSE 0 END) as anggota_aktif'),
-                DB::raw('SUM(CASE WHEN m.jenis_mutasi = "kematian" THEN 1 ELSE 0 END) as anggota_meninggal'),
-                DB::raw('SUM(CASE WHEN m.jenis_mutasi = "pindah_keluar" THEN 1 ELSE 0 END) as anggota_pindah'),
-                DB::raw('SUM(CASE WHEN m.jenis_mutasi = "pisah_kk" THEN 1 ELSE 0 END) as anggota_pisah_kk'),
-                DB::raw('SUM(CASE WHEN m.id IS NOT NULL THEN 1 ELSE 0 END) as anggota_mutasi'),
-                DB::raw('MIN(p.created_at) as tanggal_dibuat'),
-                DB::raw('MAX(p.updated_at) as tanggal_update')
+                'kk.nkk',
+                'kk.nama_kepala_keluarga',
+                'rts.kode as rt',
+                'rws.kode as rw',
+                'dusuns.nama as dusun',
+                'kk.alamat',
+                'kk.jumlah_anggota',
+                'kk.anggota_aktif',
+                'kk.anggota_meninggal',
+                'kk.anggota_pindah',
+                'kk.anggota_pisah_kk',
+                'kk.status_kk',
+                'kk.created_at as tanggal_dibuat',
+                'kk.updated_at as tanggal_update'
             ])
-            ->whereNotNull('p.nkk')
-            ->where('p.nkk', '!=', '')
-            ->groupBy('p.nkk');
+            ->groupBy('kk.id', 'kk.nkk', 'kk.nama_kepala_keluarga', 'rts.kode', 'rws.kode', 'dusuns.nama', 'kk.alamat', 'kk.jumlah_anggota', 'kk.anggota_aktif', 'kk.anggota_meninggal', 'kk.anggota_pindah', 'kk.anggota_pisah_kk', 'kk.status_kk', 'kk.created_at', 'kk.updated_at');
 
         // Apply filters from request
         if ($this->request) {
             // Search filter
-            if ($this->request->filled('search')) {
-                $search = $this->request->search;
+            if (!empty($this->request['search'])) {
+                $search = $this->request['search'];
                 $query->where(function($q) use ($search) {
-                    $q->where('p.nkk', 'like', "%{$search}%")
-                      ->orWhere('p.nama', 'like', "%{$search}%");
+                    $q->where('kk.nkk', 'like', "%{$search}%")
+                      ->orWhere('kk.nama_kepala_keluarga', 'like', "%{$search}%");
                 });
             }
 
+            // Wilayah filters
+            if (!empty($this->request['dusun'])) {
+                $query->where('kk.dusun_id', $this->request['dusun']);
+            }
+            if (!empty($this->request['rw'])) {
+                $query->where('kk.rw_id', $this->request['rw']);
+            }
+            if (!empty($this->request['rt'])) {
+                $query->where('kk.rt_id', $this->request['rt']);
+            }
+
             // Status filter
-            $status = $this->request->get('status', 'all');
+            $status = $this->request['status'] ?? 'all';
             if ($status === 'aktif') {
-                $query->having('anggota_aktif', '>', 0)
-                      ->having('anggota_mutasi', '=', 0);
+                $query->where('kk.status_kk', 'normal');
             } elseif ($status === 'bermasalah') {
-                $query->having('anggota_aktif', '>', 0)
-                      ->having('anggota_mutasi', '>', 0);
+                $query->whereIn('kk.status_kk', ['bermasalah', 'bermasalah_sementara']);
             } elseif ($status === 'kosong') {
-                $query->having('anggota_aktif', '=', 0);
+                $query->where('kk.anggota_aktif', 0);
             }
         }
 
-        return $query->orderBy('tanggal_update', 'desc')->get();
+        return $query->orderBy('kk.updated_at', 'desc')->get();
     }
 
     public function headings(): array

@@ -148,27 +148,25 @@ function validatePindahMasuk() {
     }
 
     // Basic required fields
-    const required = ['nama', 'nik', 'jenis_kelamin', 'tempat_lahir', 'tanggal_lahir', 'kedudukan_keluarga', 'alamat', 'rt', 'rw', 'kategori_mutasi', 'asal_tujuan', 'tanggal_mutasi'];
+    const required = ['nama', 'nik', 'jenis_kelamin', 'tempat_lahir', 'tanggal_lahir', 'kedudukan_keluarga', 'alamat', 'rt_id', 'rw_id', 'dusun_id', 'kategori_mutasi', 'asal_tujuan', 'tanggal_mutasi'];
 
     for (let field of required) {
         const element = document.getElementById(field + '_pindah_masuk') || document.getElementById(field);
         if (!element || !element.value.trim()) {
-            showError(`Field ${field.replace('_', ' ')} harus diisi!`);
+            showError(`Field ${field.replace('_id', '').replace('_', ' ')} harus diisi!`);
             if (element) element.focus();
             return false;
         }
     }
 
-    // Validate RT format
-    const rtField = document.getElementById('rt_pindah_masuk') || document.getElementById('rt');
-    if (rtField && rtField.value.trim()) {
-        const rtValidation = validateRTFormat(rtField.value.trim());
-        if (!rtValidation.valid) {
-            showError(rtValidation.message);
-            rtField.focus();
-            return false;
-        }
-    }
+    // Validate RT format - Disabled for ID-based dropdowns
+    // const rtField = document.getElementById('rt_id_pindah_masuk') || document.getElementById('rt_id');
+    // if (rtField && rtField.value.trim()) {
+    //     const rtValidation = validateRTFormat(rtField.value.trim());
+    //     if (!rtValidation.valid) {
+    //         // Skip format check for RT/RW dropdown IDs
+    //     }
+    // }
 
     // Check NKK based on option
     if (kkOption.value === 'existing') {
@@ -225,17 +223,14 @@ function validatePindahKeluar() {
 
 function validatePindahRTRW() {
     const nkk = document.getElementById('nkk_pindah_rt_rw');
-    const rtTujuan = document.getElementById('rt_tujuan');
-    const rwTujuan = document.getElementById('rw_tujuan');
-    const tanggalMutasi = document.querySelector('input[name="tanggal_mutasi"]');
+    const rtTujuan = document.getElementById('rt_id_tujuan');
+    const rwTujuan = document.getElementById('rw_id_tujuan');
+    const dusunTujuan = document.getElementById('dusun_id_tujuan');
+    const alamatTujuan = document.getElementById('alamat_tujuan');
+    const tanggalMutasi = document.getElementById('tanggal_mutasi_pindah_rt_rw');
 
     if (!nkk || !nkk.value) {
         showError('No KK harus dipilih!');
-        return false;
-    }
-
-    if (!rtTujuan || !rtTujuan.value) {
-        showError('RT tujuan harus dipilih!');
         return false;
     }
 
@@ -244,20 +239,35 @@ function validatePindahRTRW() {
         return false;
     }
 
+    if (!rtTujuan || !rtTujuan.value) {
+        showError('RT tujuan harus dipilih!');
+        return false;
+    }
+
+    if (!dusunTujuan || !dusunTujuan.value) {
+        showError('Dusun tujuan tidak valid!');
+        return false;
+    }
+
+    if (!alamatTujuan || !alamatTujuan.value.trim()) {
+        showError('Alamat tujuan harus diisi!');
+        return false;
+    }
+
     if (!tanggalMutasi || !tanggalMutasi.value) {
         showError('Tanggal pindah harus diisi!');
         return false;
     }
 
-    // Validate RT format
-    if (rtTujuan && rtTujuan.value.trim()) {
-        const rtValidation = validateRTFormat(rtTujuan.value.trim());
-        if (!rtValidation.valid) {
-            showError(rtValidation.message);
-            rtTujuan.focus();
-            return false;
-        }
-    }
+    // Validate RT format - Disabled for ID-based dropdowns
+    // if (rtTujuan && rtTujuan.value.trim()) {
+    //     const rtValidation = validateRTFormat(rtTujuan.value.trim());
+    //     if (!rtValidation.valid) {
+    //         showError(rtValidation.message);
+    //         rtTujuan.focus();
+    //         return false;
+    //     }
+    // }
 
     return true;
 }
@@ -301,8 +311,8 @@ function validatePisahKK() {
 
         if (kkOption.value === 'new') {
             // Validasi untuk KK baru
-            const rtField = document.getElementById('rt_baru_pisah');
-            const rwField = document.getElementById('rw_baru_pisah');
+            const rtField = document.getElementById('rt_id_pisah');
+            const rwField = document.getElementById('rw_id_pisah');
             const alamatField = document.getElementById('alamat_baru_pisah');
 
             if (!rtField || !rtField.value) {

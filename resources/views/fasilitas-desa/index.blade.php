@@ -19,7 +19,7 @@
                     <p class="text-green-100 mt-1">Kelola data fasilitas dan infrastruktur desa</p>
                 </div>
             </div>
-            @can('fasilitas-desa.create')
+            @can('pelayanan_informasi')
             <div class="flex space-x-3">
                 <a href="{{ route('fasilitas-desa.create') }}" class="inline-flex items-center px-4 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white text-sm font-medium rounded-xl transition-all duration-200 shadow-lg backdrop-blur-sm">
                     <i class="fas fa-plus mr-2"></i>
@@ -155,17 +155,17 @@
                                 {{ $item->status_aktif ? 'Aktif' : 'Tidak Aktif' }}
                             </span>
                             <div class="flex space-x-2">
-                                @can('fasilitas-desa.view')
+                                @can('pelayanan_informasi')
                                 <a href="{{ route('fasilitas-desa.show', $item) }}" class="text-blue-600 hover:text-blue-800 p-1" title="Lihat">
                                     <i class="fas fa-eye text-xs"></i>
                                 </a>
                                 @endcan
-                                @can('fasilitas-desa.edit')
+                                @can('pelayanan_informasi')
                                 <a href="{{ route('fasilitas-desa.edit', $item) }}" class="text-yellow-600 hover:text-yellow-800 p-1" title="Edit">
                                     <i class="fas fa-edit text-xs"></i>
                                 </a>
                                 @endcan
-                                @can('fasilitas-desa.delete')
+                                @can('pelayanan_informasi')
                                 <button type="button" class="text-red-600 hover:text-red-800 p-1" title="Hapus" onclick="confirmDelete({{ $item->id }}, '{{ $item->nama }}')">
                                     <i class="fas fa-trash text-xs"></i>
                                 </button>
@@ -247,17 +247,17 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <div class="flex space-x-2">
-                                @can('fasilitas-desa.view')
+                                @can('pelayanan_informasi')
                                 <a href="{{ route('fasilitas-desa.show', $item) }}" class="inline-flex items-center px-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg transition-colors text-sm font-medium" title="Lihat">
                                     <i class="fas fa-eye mr-1"></i> Lihat
                                 </a>
                                 @endcan
-                                @can('fasilitas-desa.edit')
+                                @can('pelayanan_informasi')
                                 <a href="{{ route('fasilitas-desa.edit', $item) }}" class="inline-flex items-center px-3 py-2 bg-yellow-50 hover:bg-yellow-100 text-yellow-700 rounded-lg transition-colors text-sm font-medium" title="Edit">
                                     <i class="fas fa-edit mr-1"></i> Edit
                                 </a>
                                 @endcan
-                                @can('fasilitas-desa.delete')
+                                @can('pelayanan_informasi')
                                 <form id="delete-form-{{ $item->id }}" action="{{ route('fasilitas-desa.destroy', $item) }}" method="POST" class="inline">
                                     @csrf
                                     @method('DELETE')
@@ -280,7 +280,7 @@
             </div>
             <h3 class="text-lg font-medium text-gray-900 mb-2">Tidak ada data fasilitas desa</h3>
             <p class="text-gray-500 mb-6">Mulai tambah data fasilitas pertama</p>
-            @can('fasilitas-desa.create')
+            @can('pelayanan_informasi')
             <a href="{{ route('fasilitas-desa.create') }}" class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 text-white text-sm font-medium rounded-lg hover:from-green-700 hover:to-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200">
                 <i class="fas fa-plus mr-2"></i>
                 Tambah Fasilitas Pertama

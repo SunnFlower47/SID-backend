@@ -18,7 +18,7 @@
                         <p class="text-green-100 text-sm sm:text-base">Kelola data struktur organisasi dan kepemimpinan desa</p>
                     </div>
                 </div>
-                @can('struktur-desa.create')
+                @can('pelayanan_informasi')
                 <a href="{{ route('struktur-desa.create') }}" class="bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center">
                     <i class="fas fa-plus mr-2"></i>
                     Tambah Data
@@ -117,12 +117,12 @@
                                                 @endif
                                             </div>
                                             <div class="flex space-x-2">
-                                                @can('struktur-desa.view')
+                                                @can('pelayanan_informasi')
                                                 <a href="{{ route('struktur-desa.show', $item) }}" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Lihat">
                                                     <i class="fas fa-eye"></i>
                                                 </a>
                                                 @endcan
-                                                @can('struktur-desa.edit')
+                                                @can('pelayanan_informasi')
                                                 <a href="{{ route('struktur-desa.edit', $item) }}" class="p-2 text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors" title="Edit">
                                                     <i class="fas fa-edit"></i>
                                                 </a>
@@ -170,12 +170,12 @@
                                         @endif
                                     </div>
                                     <div class="flex space-x-2">
-                                        @can('struktur-desa.view')
+                                        @can('pelayanan_informasi')
                                         <a href="{{ route('struktur-desa.show', $item) }}" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Lihat">
                                             <i class="fas fa-eye"></i>
                                         </a>
                                         @endcan
-                                        @can('struktur-desa.edit')
+                                        @can('pelayanan_informasi')
                                         <a href="{{ route('struktur-desa.edit', $item) }}" class="p-2 text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors" title="Edit">
                                             <i class="fas fa-edit"></i>
                                         </a>
@@ -226,12 +226,12 @@
                                         @endif
                                     </div>
                                     <div class="flex space-x-2">
-                                        @can('struktur-desa.view')
+                                        @can('pelayanan_informasi')
                                         <a href="{{ route('struktur-desa.show', $item) }}" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Lihat">
                                             <i class="fas fa-eye"></i>
                                         </a>
                                         @endcan
-                                        @can('struktur-desa.edit')
+                                        @can('pelayanan_informasi')
                                         <a href="{{ route('struktur-desa.edit', $item) }}" class="p-2 text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors" title="Edit">
                                             <i class="fas fa-edit"></i>
                                         </a>
@@ -285,12 +285,12 @@
                                             @endif
                                         </div>
                                         <div class="flex space-x-2">
-                                            @can('struktur-desa.view')
+                                            @can('pelayanan_informasi')
                                             <a href="{{ route('struktur-desa.show', $item) }}" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Lihat">
                                                 <i class="fas fa-eye"></i>
                                             </a>
                                             @endcan
-                                            @can('struktur-desa.edit')
+                                            @can('pelayanan_informasi')
                                             <a href="{{ route('struktur-desa.edit', $item) }}" class="p-2 text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors" title="Edit">
                                                 <i class="fas fa-edit"></i>
                                             </a>
@@ -330,12 +330,12 @@
                                             @endif
                                         </div>
                                         <div class="flex space-x-2">
-                                            @can('struktur-desa.view')
+                                            @can('pelayanan_informasi')
                                             <a href="{{ route('struktur-desa.show', $item) }}" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Lihat">
                                                 <i class="fas fa-eye"></i>
                                             </a>
                                             @endcan
-                                            @can('struktur-desa.edit')
+                                            @can('pelayanan_informasi')
                                             <a href="{{ route('struktur-desa.edit', $item) }}" class="p-2 text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors" title="Edit">
                                                 <i class="fas fa-edit"></i>
                                             </a>
@@ -356,7 +356,7 @@
                         </div>
                         <h3 class="text-lg font-medium text-gray-900 mb-2">Belum ada data struktur desa</h3>
                         <p class="text-gray-500 mb-6">Mulai tambah data struktur organisasi desa</p>
-                        @can('struktur-desa.create')
+                        @can('pelayanan_informasi')
                         <a href="{{ route('struktur-desa.create') }}" class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 text-white text-sm font-medium rounded-lg hover:from-green-700 hover:to-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200">
                             <i class="fas fa-plus mr-2"></i>
                             Tambah Data Pertama
@@ -405,7 +405,7 @@
                                         title="Lihat Detail">
                                     <i class="fas fa-eye"></i>
                                 </button>
-                                @can('struktur-desa.edit')
+                                @can('pelayanan_informasi')
                                 <a href="{{ route('struktur-desa.edit', $item) }}"
                                    class="flex items-center px-2 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg transition-colors text-xs font-medium"
                                    onclick="event.stopPropagation()"
@@ -413,7 +413,7 @@
                                     <i class="fas fa-edit"></i>
                                 </a>
                                 @endcan
-                                @can('struktur-desa.delete')
+                                @can('pelayanan_informasi')
                                 <button onclick="event.stopPropagation(); confirmDelete({{ $item->id }}, '{{ addslashes($item->nama) }}')"
                                         class="flex items-center px-2 py-1.5 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg transition-colors text-xs font-medium"
                                         title="Hapus Data">
@@ -534,19 +534,19 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                 <div class="flex items-center justify-end space-x-2">
-                                    @can('struktur-desa.view')
+                                    @can('pelayanan_informasi')
                                     <a href="{{ route('struktur-desa.show', $item) }}" class="inline-flex items-center px-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg transition-colors text-sm font-medium" title="Lihat Detail">
                                         <i class="fas fa-eye mr-1"></i>
                                         Detail
                                     </a>
                                     @endcan
-                                    @can('struktur-desa.edit')
+                                    @can('pelayanan_informasi')
                                     <a href="{{ route('struktur-desa.edit', $item) }}" class="inline-flex items-center px-3 py-2 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg transition-colors text-sm font-medium" title="Edit Data">
                                         <i class="fas fa-edit mr-1"></i>
                                         Edit
                                     </a>
                                     @endcan
-                                    @can('struktur-desa.delete')
+                                    @can('pelayanan_informasi')
                                     <button type="button" class="inline-flex items-center px-3 py-2 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg transition-colors text-sm font-medium" title="Hapus Data" onclick="confirmDelete({{ $item->id }}, '{{ $item->nama }}')">
                                         <i class="fas fa-trash mr-1"></i>
                                         Hapus

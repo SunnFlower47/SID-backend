@@ -16,7 +16,7 @@ class UserController extends Controller
      */
     public function index(): JsonResponse
     {
-        Gate::authorize('settings.users.manage');
+        Gate::authorize('admin_sistem');
 
         $users = User::with('roles')->paginate(20);
         
@@ -31,7 +31,7 @@ class UserController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
-        Gate::authorize('settings.users.manage');
+        Gate::authorize('admin_sistem');
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -61,7 +61,7 @@ class UserController extends Controller
      */
     public function show(User $user): JsonResponse
     {
-        Gate::authorize('settings.users.manage');
+        Gate::authorize('admin_sistem');
         $user->load('roles');
         
         return response()->json([
@@ -75,7 +75,7 @@ class UserController extends Controller
      */
     public function update(Request $request, User $user): JsonResponse
     {
-        Gate::authorize('settings.users.manage');
+        Gate::authorize('admin_sistem');
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -108,7 +108,7 @@ class UserController extends Controller
      */
     public function destroy(User $user): JsonResponse
     {
-        Gate::authorize('settings.users.manage');
+        Gate::authorize('admin_sistem');
 
         if ($user->id === auth()->id()) {
             return response()->json([

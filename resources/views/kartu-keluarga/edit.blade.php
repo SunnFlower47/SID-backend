@@ -18,11 +18,11 @@
                 </div>
             </div>
             <div class="flex flex-wrap gap-3">
-                <a href="{{ route('kartu-keluarga.show', $nkk) }}" class="group flex items-center px-6 py-3 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+                <a href="{{ route('kk.show', $nkk) }}" class="group flex items-center px-6 py-3 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
                     <i class="fas fa-eye mr-2"></i>
                     Lihat Detail
                 </a>
-                <a href="{{ route('kartu-keluarga.index') }}" class="group flex items-center px-6 py-3 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+                <a href="{{ route('kk.index') }}" class="group flex items-center px-6 py-3 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
                     <i class="fas fa-arrow-left mr-2"></i>
                     Kembali
                 </a>
@@ -42,7 +42,7 @@
             </div>
         </div>
 
-        <form action="{{ route('kartu-keluarga.update', $nkk) }}" method="POST" class="space-y-8">
+        <form action="{{ route('kk.update', $nkk) }}" method="POST" class="space-y-8">
                 @csrf
                 @method('PUT')
 
@@ -132,7 +132,7 @@
 
                 <!-- Submit Button -->
                 <div class="flex justify-end space-x-4 pt-6 border-t">
-                    <a href="{{ route('kartu-keluarga.show', $nkk) }}"
+                    <a href="{{ route('kk.show', $nkk) }}"
                        class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
                         Batal
                     </a>

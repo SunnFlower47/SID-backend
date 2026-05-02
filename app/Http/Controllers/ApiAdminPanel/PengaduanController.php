@@ -13,7 +13,7 @@ class PengaduanController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        Gate::authorize('pengaduan.view');
+        Gate::authorize('pelayanan_informasi');
 
         $query = Pengaduan::with('user');
         if ($request->filled('status')) $query->where('status', $request->status);
@@ -43,7 +43,7 @@ class PengaduanController extends Controller
 
     public function store(Request $request): JsonResponse
     {
-        Gate::authorize('pengaduan.create');
+        Gate::authorize('pelayanan_informasi');
 
         $validated = $request->validate([
             'nama_pelapor' => 'required|string|max:255',
@@ -82,7 +82,7 @@ class PengaduanController extends Controller
 
     public function update(Request $request, Pengaduan $pengaduan): JsonResponse
     {
-        Gate::authorize('pengaduan.edit');
+        Gate::authorize('pelayanan_informasi');
 
         $validated = $request->validate([
             'status' => 'required|in:baru,diproses,selesai,ditolak',
@@ -108,7 +108,7 @@ class PengaduanController extends Controller
 
     public function destroy(Pengaduan $pengaduan): JsonResponse
     {
-        Gate::authorize('pengaduan.delete');
+        Gate::authorize('pelayanan_informasi');
         if ($pengaduan->foto) {
             foreach ($pengaduan->foto as $photo) Storage::disk('public')->delete($photo);
         }

@@ -17,7 +17,7 @@ class SettingsController extends Controller
 {
     public function index()
     {
-        Gate::authorize('settings.view');
+        Gate::authorize('admin_sistem');
 
         // Real-time data without cache
         $stats = [
@@ -73,7 +73,7 @@ class SettingsController extends Controller
 
     public function users()
     {
-        Gate::authorize('settings.view');
+        Gate::authorize('admin_sistem');
 
         // Get users with their roles
         $users = User::with('roles')->get();
@@ -89,7 +89,7 @@ class SettingsController extends Controller
         try {
             Log::info('Update user request:', $request->all()); // Debug log
 
-            Gate::authorize('settings.users.edit');
+            Gate::authorize('admin_sistem');
 
             $request->validate([
                 'name' => 'required|string|max:255',
@@ -145,7 +145,7 @@ class SettingsController extends Controller
     public function createUser(Request $request)
     {
         try {
-            Gate::authorize('settings.users.create');
+            Gate::authorize('admin_sistem');
 
             $request->validate([
                 'name' => 'required|string|max:255',
@@ -195,7 +195,7 @@ class SettingsController extends Controller
 
     public function deleteUser(User $user)
     {
-        Gate::authorize('settings.users.delete');
+        Gate::authorize('admin_sistem');
 
         if ($user->id === Auth::id()) {
             return response()->json([
@@ -214,7 +214,7 @@ class SettingsController extends Controller
 
     public function updateRole(Request $request, Role $role)
     {
-        Gate::authorize('settings.roles.edit');
+        Gate::authorize('admin_sistem');
 
         Log::info('Update role request:', $request->all()); // Debug log
 
@@ -247,7 +247,7 @@ class SettingsController extends Controller
 
     public function createRole(Request $request)
     {
-        Gate::authorize('settings.roles.create');
+        Gate::authorize('admin_sistem');
 
         $request->validate([
             'name' => 'required|string|max:255|unique:roles',
@@ -271,7 +271,7 @@ class SettingsController extends Controller
 
     public function deleteRole(Role $role)
     {
-        Gate::authorize('settings.roles.delete');
+        Gate::authorize('admin_sistem');
 
         if ($role->users()->count() > 0) {
             return response()->json([

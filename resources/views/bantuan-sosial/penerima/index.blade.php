@@ -15,7 +15,7 @@
                 <p class="text-green-100 text-sm sm:text-base">{{ $bantuanSosial->nama_program }}</p>
             </div>
             <div class="flex flex-wrap gap-3">
-                @can('bantuan_sosial.manage_penerima')
+                @can('pelayanan_informasi')
                 <a href="{{ route('bantuan-sosial.penerima.create', $bantuanSosial) }}" class="group flex items-center px-4 py-2.5 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
                     <i class="fas fa-plus mr-2"></i>
                     Tambah Penerima
@@ -100,7 +100,7 @@
                                     <i class="fas fa-eye mr-1"></i>
                                     Detail
                                 </button>
-                                @can('bantuan_sosial.manage_penerima')
+                                @can('pelayanan_informasi')
                                 <a href="{{ route('bantuan-sosial.penerima.edit', [$bantuanSosial, $item]) }}"
                                    class="flex items-center px-3 py-2 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg transition-colors text-sm font-medium"
                                    onclick="event.stopPropagation()"
@@ -213,7 +213,7 @@
                                             <i class="fas fa-eye mr-1"></i>
                                             Detail
                                         </button>
-                                        @can('bantuan_sosial.manage_penerima')
+                                        @can('pelayanan_informasi')
                                         <a href="{{ route('bantuan-sosial.penerima.edit', [$bantuanSosial, $item]) }}"
                                            class="flex items-center px-2 py-1 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-md transition-colors text-xs font-medium"
                                            onclick="event.stopPropagation()"
@@ -245,7 +245,7 @@
                     <i class="fas fa-users text-6xl text-gray-400 mb-6"></i>
                     <h3 class="text-lg font-semibold text-gray-900 mb-2">Belum Ada Penerima Bantuan</h3>
                     <p class="text-gray-500 mb-6">Belum ada penerima bantuan untuk program ini</p>
-                    @can('bantuan_sosial.manage_penerima')
+                    @can('pelayanan_informasi')
                     <a href="{{ route('bantuan-sosial.penerima.create', $bantuanSosial) }}" class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 inline-flex items-center">
                         <i class="fas fa-plus mr-2"></i> Tambah Penerima Pertama
                     </a>

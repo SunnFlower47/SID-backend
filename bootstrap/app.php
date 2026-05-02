@@ -22,12 +22,16 @@
             health: '/up',
         )
         ->withMiddleware(function (Middleware $middleware): void {
+            // Trust all proxies (Required for local Proxy and Cloudflare/Nginx)
+            $middleware->trustProxies(at: '*');
+            
             // Register custom middleware
             $middleware->alias([
                 'private.api' => PrivateApiMiddleware::class,
                 'api.key' => ApiKeyMiddleware::class,
                 'signature.validation' => SignatureValidationMiddleware::class,
-                'recaptcha' => RecaptchaMiddleware::class,
+                'captcha' => \App\Http\Middleware\VerifyRecaptcha::class,
+                'recaptcha' => \App\Http\Middleware\VerifyRecaptcha::class,
                 'recaptcha.forgot' => RecaptchaForgotPasswordMiddleware::class,
                 'recaptcha.reset' => RecaptchaResetPasswordMiddleware::class,
                 'capture.activity' => CaptureActivityLogData::class,
@@ -40,6 +44,7 @@
             $middleware->web(append: [
                 CaptureActivityLogData::class,
                 CspNonceMiddleware::class,
+                \App\Http\Middleware\HandleInertiaRequests::class,
             ]);
 
 

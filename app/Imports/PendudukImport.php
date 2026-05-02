@@ -22,33 +22,47 @@ class PendudukImport implements ToCollection, WithHeadingRow, WithValidation, Wi
      */
     public function collection(Collection $collection)
     {
+        $affectedKkIds = [];
+
         foreach ($collection as $row) {
             try {
                 // 1. Basic Cleaning
                 $nik = trim($row['nik'] ?? '');
                 $nama = trim($row['nama'] ?? '');
+                $nkk = trim($row['nkk'] ?? $row['no_kk'] ?? '');
 
-                if (empty($nik) || empty($nama)) {
+                if (empty($nik) || empty($nama) || empty($nkk)) {
                     continue;
                 }
 
-                // 2. Resolve Wilayah (Using Standardized Regex & Sanity Check from Trait)
+                // 2. Resolve Wilayah
                 $wilayah = $this->resolveWilayah(
                     $row['rt'] ?? '001',
                     $row['rw'] ?? '001',
                     $row['dusun'] ?? null
                 );
 
-                // Generate NKK if not provided
-                $nkk = $row['nkk'] ?? $row['no_kk'] ?? $this->generateNKK();
-
-                // Create Penduduk
-                Penduduk::updateOrCreate(
-                    ['nik' => $row['nik']],
+                // 3. Find or Create Kartu Keluarga
+                $kk = \App\Models\KartuKeluarga::withTrashed()->firstOrCreate(
+                    ['nkk' => $nkk],
                     [
-                        'nkk' => $nkk,
-                        'nik' => $row['nik'],
-                        'nama' => $row['nama'],
+                        'nama_kepala_keluarga' => $this->mapKedudukanKeluarga($row['kedudukan_keluarga'] ?? '') === 'Kepala Keluarga' ? $nama : 'Belum Ditentukan',
+                        'nik_kepala_keluarga' => $this->mapKedudukanKeluarga($row['kedudukan_keluarga'] ?? '') === 'Kepala Keluarga' ? $nik : null,
+                        'alamat' => $row['alamat'] ?? 'Alamat Desa Cibatu',
+                        'rt_id' => $wilayah['rt_id'],
+                        'rw_id' => $wilayah['rw_id'],
+                        'dusun_id' => $wilayah['dusun_id'],
+                    ]
+                );
+
+                $affectedKkIds[] = $kk->id;
+
+                // 4. Create or Update Penduduk (ID-based)
+                Penduduk::withTrashed()->updateOrCreate(
+                    ['nik' => $nik],
+                    [
+                        'kartu_keluarga_id' => $kk->id,
+                        'nama' => $nama,
                         'jenis_kelamin' => $this->mapJenisKelamin($row['jenis_kelamin'] ?? ''),
                         'tempat_lahir' => $row['tempat_lahir'] ?? '',
                         'tanggal_lahir' => $this->parseDate($row['tanggal_lahir'] ?? ''),
@@ -59,30 +73,24 @@ class PendudukImport implements ToCollection, WithHeadingRow, WithValidation, Wi
                         'pekerjaan' => $row['pekerjaan'] ?? '',
                         'nama_ayah' => $row['nama_ayah'] ?? null,
                         'nama_ibu' => $row['nama_ibu'] ?? null,
-                        'alamat' => $row['alamat'] ?? 'Alamat tidak diketahui',
-                        'rt_id' => $wilayah['rt_id'],
-                        'rw_id' => $wilayah['rw_id'],
-                        'dusun_id' => $wilayah['dusun_id'],
-                        'keterangan' => $row['keterangan'] ?? null,
+                        'deleted_at' => null,
                     ]
                 );
 
             } catch (\Exception $e) {
-                Log::error('Error importing row: ' . $e->getMessage(), [
-                    'row' => is_array($row) ? $row : (method_exists($row, 'toArray') ? $row->toArray() : $row)
-                ]);
+                Log::error('Error importing row: ' . $e->getMessage());
                 continue;
             }
         }
-    }
 
-
-    /**
-     * Generate NKK if not provided
-     */
-    private function generateNKK()
-    {
-        return date('Ymd') . str_pad(rand(1, 99999999), 8, '0', STR_PAD_LEFT);
+        // 5. Batch Recalculate Statistics (The Magic Performance Fix) ⚡
+        $uniqueKkIds = array_unique($affectedKkIds);
+        if (!empty($uniqueKkIds)) {
+            $kkService = app(\App\Services\KartuKeluargaService::class);
+            foreach ($uniqueKkIds as $kkId) {
+                $kkService->recalculate($kkId);
+            }
+        }
     }
 
     /**

@@ -15,7 +15,7 @@
                         </div>
                         <div>
                             <h1 class="text-2xl sm:text-3xl font-bold">Pengaturan Desa</h1>
-                            <p class="text-green-100 text-sm sm:text-base mt-1">Kelola informasi desa, logo, dan template surat</p>
+                            <p class="text-green-100 text-sm sm:text-base mt-1">Kelola informasi desa dan logo branding desa</p>
                         </div>
                     </div>
                     <div class="flex flex-wrap gap-3">
@@ -57,10 +57,6 @@
                                         <i class="fas fa-user-cog text-purple-600 mr-2"></i>
                                     @elseif($groupKey === 'logo')
                                         <i class="fas fa-image text-yellow-600 mr-2"></i>
-                                    @elseif($groupKey === 'surat')
-                                        <i class="fas fa-file-alt text-red-600 mr-2"></i>
-                                    @elseif($groupKey === 'template')
-                                        <i class="fas fa-edit text-indigo-600 mr-2"></i>
                                     @endif
                                     {{ $groupName }}
                                 </h3>

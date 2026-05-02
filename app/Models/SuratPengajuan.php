@@ -100,6 +100,10 @@ class SuratPengajuan extends Model
     {
         $colors = [
             'pending' => 'yellow',
+            'diproses' => 'blue',
+            'selesai' => 'green',
+            'ditolak' => 'red',
+            // legacy fallback
             'approved' => 'green',
             'rejected' => 'red',
             'completed' => 'blue'
@@ -121,7 +125,7 @@ class SuratPengajuan extends Model
      */
     public function scopeApproved($query)
     {
-        return $query->where('status', 'approved');
+        return $query->whereIn('status', ['approved', 'diproses']);
     }
 
     /**
@@ -129,7 +133,7 @@ class SuratPengajuan extends Model
      */
     public function scopeCompleted($query)
     {
-        return $query->where('status', 'completed');
+        return $query->whereIn('status', ['completed', 'selesai']);
     }
 
     /**

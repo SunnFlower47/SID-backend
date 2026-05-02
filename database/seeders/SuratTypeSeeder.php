@@ -15,6 +15,7 @@ class SuratTypeSeeder extends Seeder
         $types = [
             [
                 'id' => 'sku',
+                'kode' => 'SKU',
                 'nama' => 'Surat Keterangan Usaha (SKU)',
                 'deskripsi' => 'Surat keterangan untuk usaha yang dijalankan',
                 'template_code' => 'sku',
@@ -30,6 +31,7 @@ class SuratTypeSeeder extends Seeder
             ],
             [
                 'id' => 'keterangan-domisili',
+                'kode' => 'SKD',
                 'nama' => 'Surat Keterangan Domisili',
                 'deskripsi' => 'Surat keterangan tempat tinggal',
                 'template_code' => 'keterangan-domisili',
@@ -41,6 +43,7 @@ class SuratTypeSeeder extends Seeder
             ],
             [
                 'id' => 'pengantar',
+                'kode' => 'SP',
                 'nama' => 'Surat Pengantar',
                 'deskripsi' => 'Surat pengantar untuk berbagai keperluan',
                 'template_code' => 'pengantar',
@@ -52,6 +55,7 @@ class SuratTypeSeeder extends Seeder
             ],
             [
                 'id' => 'pindah',
+                'kode' => 'SKP',
                 'nama' => 'Surat Keterangan Pindah',
                 'deskripsi' => 'Surat keterangan pindah domisili',
                 'template_code' => 'pindah',
@@ -69,6 +73,7 @@ class SuratTypeSeeder extends Seeder
             ],
             [
                 'id' => 'kematian',
+                'kode' => 'SKK',
                 'nama' => 'Surat Keterangan Kematian',
                 'deskripsi' => 'Surat keterangan kematian',
                 'template_code' => 'kematian',
@@ -84,6 +89,7 @@ class SuratTypeSeeder extends Seeder
             ],
             [
                 'id' => 'kelahiran',
+                'kode' => 'SKKL',
                 'nama' => 'Surat Keterangan Kelahiran',
                 'deskripsi' => 'Surat keterangan kelahiran',
                 'template_code' => 'kelahiran',
@@ -102,6 +108,7 @@ class SuratTypeSeeder extends Seeder
             ],
             [
                 'id' => 'sktm_dewasa',
+                'kode' => 'SKTM',
                 'nama' => 'Surat Keterangan Tidak Mampu (SKTM) - Dewasa',
                 'deskripsi' => 'Surat keterangan tidak mampu untuk dewasa',
                 'template_code' => 'tidak-mampu-dewasa',
@@ -118,6 +125,7 @@ class SuratTypeSeeder extends Seeder
             ],
             [
                 'id' => 'sktm_anak',
+                'kode' => 'SKTM',
                 'nama' => 'Surat Keterangan Tidak Mampu (SKTM) - Anak',
                 'deskripsi' => 'Surat keterangan tidak mampu untuk anak',
                 'template_code' => 'tidak-mampu-anak',

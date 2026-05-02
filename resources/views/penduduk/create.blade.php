@@ -221,9 +221,9 @@
                     <!-- Form KK Manual -->
                     <div id="kkManualOption" class="grid grid-cols-1 lg:grid-cols-2 gap-6 p-4 bg-yellow-50 rounded-lg border border-yellow-200" style="display: none;">
                         <div>
-                            <label for="nkk" class="block text-sm font-medium text-gray-700 mb-2">No. KK *</label>
+                            <label for="nkk_manual_input" class="block text-sm font-medium text-gray-700 mb-2">No. KK *</label>
                             <div class="relative">
-                                <input type="text" id="nkk" name="nkk" value="{{ old('nkk') }}"
+                                <input type="text" id="nkk_manual_input" name="nkk" value="{{ old('nkk') }}"
                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('nkk') border-red-300 @enderror"
                                        placeholder="Masukkan No. KK 16 digit" maxlength="16">
                                 <div id="nkk_check_loading_manual" class="absolute right-3 top-3 hidden">
@@ -490,8 +490,6 @@ function syncMasterWilayahFromSelection() {
     if (rwInput) rwInput.value = rwObj?.kode || '';
     if (rtInput) rtInput.value = rtObj?.kode || '';
     if (dusunInput) dusunInput.value = rtObj?.dusun || '';
-
-    updateAllFamilyMembersAddress();
 }
 
 function populateRtByRw() {
@@ -534,19 +532,17 @@ function toggleKKOption(option) {
         }
 
         // Enable/disable fields
-        if (kartuKeluargaSelect) {
-            kartuKeluargaSelect.required = true;
-            kartuKeluargaSelect.disabled = false;
+        const nkkManual = document.getElementById('nkk_manual_input');
+        if (nkkManual) {
+            nkkManual.required = false;
+            nkkManual.disabled = true;
+            nkkManual.value = '';
         }
-        if (nkkInput) {
-            nkkInput.required = false;
-            nkkInput.disabled = true;
-            nkkInput.value = '';
-        }
+        
         const rwMaster = document.getElementById('rw_id');
         const rtMaster = document.getElementById('rt_id');
-        if (rwMaster) { rwMaster.required = false; rwMaster.disabled = true; rwMaster.value = ''; }
-        if (rtMaster) { rtMaster.required = false; rtMaster.disabled = true; rtMaster.value = ''; }
+        if (rwMaster) { rwMaster.required = false; rwMaster.disabled = true; }
+        if (rtMaster) { rtMaster.required = false; rtMaster.disabled = true; }
 
         // Clear KK info display
         const kkInfoDisplay = document.getElementById('kkInfoDisplay');
@@ -579,16 +575,12 @@ function toggleKKOption(option) {
         }
 
         // Enable/disable fields
-        if (kartuKeluargaSelect) {
-            kartuKeluargaSelect.required = false;
-            kartuKeluargaSelect.disabled = true;
-            kartuKeluargaSelect.value = '';
-        }
-        if (nkkInput) {
-            nkkInput.required = true;
-            nkkInput.disabled = false;
+        const nkkManual = document.getElementById('nkk_manual_input');
+        if (nkkManual) {
+            nkkManual.required = true;
+            nkkManual.disabled = false;
             setTimeout(() => {
-                nkkInput.focus(); // Focus on the input with delay
+                nkkManual.focus(); 
             }, 100);
         }
 
@@ -718,7 +710,7 @@ function displayKKInfoPenduduk(response, infoDiv) {
 
 // Auto-format NIK, NKK, and RT
 document.addEventListener('input', function(e) {
-    if (e.target.id === 'nkk' || e.target.id === 'nik') {
+    if (e.target.id === 'nkk' || e.target.id === 'nik' || e.target.id === 'nkk_manual_input') {
         let value = e.target.value.replace(/\D/g, ''); // Remove non-digits
         if (value.length > 16) value = value.substring(0, 16);
         e.target.value = value;
@@ -794,6 +786,8 @@ function displayNKKSearchResultsPenduduk(results) {
         const jumlah = family.jumlah_anggota ?? '-';
         const dusun = family.dusun ?? '';
         const alamat = family.alamat ?? '';
+        const rtId = family.rt_id ?? '';
+        const rwId = family.rw_id ?? '';
 
         html += `
             <div class="p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
@@ -801,6 +795,8 @@ function displayNKKSearchResultsPenduduk(results) {
                  data-kepala="${kepala}"
                  data-rt="${rt}"
                  data-rw="${rw}"
+                 data-rt-id="${rtId}"
+                 data-rw-id="${rwId}"
                  data-dusun="${dusun}"
                  data-alamat="${alamat}"
                  data-jumlah="${jumlah}">
@@ -822,16 +818,18 @@ function displayNKKSearchResultsPenduduk(results) {
             const kepalaKeluarga = this.getAttribute('data-kepala');
             const rt = this.getAttribute('data-rt');
             const rw = this.getAttribute('data-rw');
+            const rtId = this.getAttribute('data-rt-id');
+            const rwId = this.getAttribute('data-rw-id');
             const dusun = this.getAttribute('data-dusun');
             const alamat = this.getAttribute('data-alamat');
             const jumlahAnggota = this.getAttribute('data-jumlah');
 
-            selectNKKPenduduk(nkk, kepalaKeluarga, rt, rw, dusun, alamat, jumlahAnggota);
+            selectNKKPenduduk(nkk, kepalaKeluarga, rt, rw, dusun, alamat, jumlahAnggota, rtId, rwId);
         });
     });
 }
 
-function selectNKKPenduduk(nkk, kepalaKeluarga, rt, rw, dusun, alamat, jumlahAnggota) {
+function selectNKKPenduduk(nkk, kepalaKeluarga, rt, rw, dusun, alamat, jumlahAnggota, rtId = '', rwId = '') {
     const nkkInput = document.getElementById('nkk_existing');
     const selectedNKKDiv = document.getElementById('selected_nkk_penduduk');
     const selectedNKKName = document.getElementById('selected_nkk_name_penduduk');
@@ -853,32 +851,36 @@ function selectNKKPenduduk(nkk, kepalaKeluarga, rt, rw, dusun, alamat, jumlahAng
 
     // Auto-fill address fields from selected KK
     const alamatTextarea = document.getElementById('alamat');
-    const rtSelect = document.getElementById('rt');
-    const rwSelect = document.getElementById('rw');
-    const dusunSelect = document.getElementById('dusun');
-
     if (alamatTextarea) {
         alamatTextarea.value = alamat;
-        alamatTextarea.readOnly = true; // Make read-only since it's from existing KK
+        alamatTextarea.readOnly = true;
         alamatTextarea.classList.add('bg-gray-100');
     }
 
-    if (rtSelect) {
-        rtSelect.value = rt;
-        rtSelect.readOnly = true;
-        rtSelect.classList.add('bg-gray-100');
-    }
-
-    if (rwSelect) {
-        rwSelect.value = rw;
-        rwSelect.readOnly = true;
-        rwSelect.classList.add('bg-gray-100');
-    }
-
-    if (dusunSelect) {
-        dusunSelect.value = dusun;
-        dusunSelect.readOnly = true;
-        dusunSelect.classList.add('bg-gray-100');
+    // Auto-fill Master Wilayah from selected KK (Source of Truth)
+    if (rwId) {
+        const rwMaster = document.getElementById('rw_id');
+        if (rwMaster) {
+            rwMaster.value = rwId;
+            populateRtByRw();
+            
+            if (rtId) {
+                const rtMaster = document.getElementById('rt_id');
+                if (rtMaster) {
+                    rtMaster.value = rtId;
+                    syncMasterWilayahFromSelection();
+                }
+            }
+        }
+    } else {
+        // Fallback for older data without IDs
+        const rtSelect = document.getElementById('rt');
+        const rwSelect = document.getElementById('rw');
+        const dusunSelect = document.getElementById('dusun');
+        
+        if (rtSelect) { rtSelect.value = rt; rtSelect.readOnly = true; rtSelect.classList.add('bg-gray-100'); }
+        if (rwSelect) { rwSelect.value = rw; rwSelect.readOnly = true; rwSelect.classList.add('bg-gray-100'); }
+        if (dusunSelect) { dusunSelect.value = dusun; dusunSelect.readOnly = true; dusunSelect.classList.add('bg-gray-100'); }
     }
 
     // Show selected div, hide search results
@@ -1000,6 +1002,30 @@ function showExistingNKKInfoManual(data) {
     if (existingDetails) {
         existingDetails.textContent = `${data.kepala_keluarga} - No KK: ${data.nkk} - RT ${data.rt}/RW ${data.rw}`;
     }
+
+    // AUTO-FILL Alamat (Source of Truth)
+    if (data.alamat) {
+        const alamatInput = document.getElementById('alamat');
+        if (alamatInput) alamatInput.value = data.alamat;
+    }
+
+    // AUTO-FILL Master Wilayah
+    if (data.rw_id) {
+        const rwMaster = document.getElementById('rw_id');
+        if (rwMaster) {
+            rwMaster.value = data.rw_id;
+            // Trigger change to populate RTs
+            populateRtByRw();
+            
+            if (data.rt_id) {
+                const rtMaster = document.getElementById('rt_id');
+                if (rtMaster) {
+                    rtMaster.value = data.rt_id;
+                    syncMasterWilayahFromSelection();
+                }
+            }
+        }
+    }
 }
 
 function hideNKKStatusInfoManual() {
@@ -1067,13 +1093,7 @@ function addFamilyMember() {
                 </div>
             </div>
 
-            <div class="md:col-span-2">
-                <label class="block text-sm font-medium text-gray-700 mb-2">Alamat Lengkap</label>
-                <textarea name="family_members[${familyMemberCount}][alamat]"
-                          class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed resize-none"
-                          placeholder="Alamat lengkap otomatis dari KK" readonly rows="2"></textarea>
-                <p class="text-xs text-gray-500 mt-1">Alamat lengkap otomatis mengikuti Kepala Keluarga</p>
-            </div>
+            <!-- Alamat disembunyikan karena otomatis mengikuti Kepala Keluarga (Source of Truth) -->
 
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Nama Lengkap</label>
@@ -1317,34 +1337,6 @@ function showNIKExistsAlertForFamilyMember(nik, data, memberId) {
     }
 }
 
-function updateFamilyMemberAddress(memberId) {
-    const memberDiv = document.getElementById(`familyMember_${memberId}`);
-    if (!memberDiv) return;
-
-    // Get values from main form
-    const alamat = document.getElementById('alamat')?.value || '';
-    const rt = document.getElementById('rt')?.value || '';
-    const rw = document.getElementById('rw')?.value || '';
-    const dusun = document.getElementById('dusun')?.value || '';
-
-    // Update family member address fields
-    const alamatInput = memberDiv.querySelector('textarea[name*="[alamat]"]');
-    const rtInput = memberDiv.querySelector('input[name*="[rt]"]');
-    const rwInput = memberDiv.querySelector('input[name*="[rw]"]');
-    const dusunInput = memberDiv.querySelector('input[name*="[dusun]"]');
-
-    if (alamatInput) alamatInput.value = alamat;
-    if (rtInput) rtInput.value = rt;
-    if (rwInput) rwInput.value = rw;
-    if (dusunInput) dusunInput.value = dusun;
-}
-
-function updateAllFamilyMembersAddress() {
-    // Update all existing family members
-    for (let i = 1; i <= familyMemberCount; i++) {
-        updateFamilyMemberAddress(i);
-    }
-}
 
 function validateRTFormat(rtInput) {
     const value = rtInput.value.trim();
@@ -1488,7 +1480,7 @@ function showExistingNIKInfo(data) {
     if (newInfo) newInfo.style.display = 'none';
     if (existingInfo) existingInfo.style.display = 'block';
     if (existingDetails) {
-        existingDetails.textContent = `${data.nama} - No KK: ${data.nkk} - RT ${data.rt}/RW ${data.rw}`;
+        existingDetails.textContent = `${data.nama} - No KK: ${data.nkk} - RT ${data.rt_label}/RW ${data.rw_label}`;
     }
 }
 
@@ -1623,19 +1615,9 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error('Error setting up NKK manual event listener:', error);
     }
 
-    // Add event listeners for address changes
-    const alamatInput = document.getElementById('alamat');
-    const rtInput = document.getElementById('rt');
-    const rwInput = document.getElementById('rw');
-    const dusunInput = document.getElementById('dusun');
-
-    if (alamatInput) {
-        alamatInput.addEventListener('input', updateAllFamilyMembersAddress);
-    }
     if (rtInput) {
         rtInput.addEventListener('input', function() {
             validateRTFormat(this);
-            updateAllFamilyMembersAddress();
         });
     }
 
@@ -1643,12 +1625,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const rtMaster = document.getElementById('rt_id');
     if (rwMaster) rwMaster.addEventListener('change', populateRtByRw);
     if (rtMaster) rtMaster.addEventListener('change', syncMasterWilayahFromSelection);
-    if (rwInput) {
-        rwInput.addEventListener('input', updateAllFamilyMembersAddress);
-    }
-    if (dusunInput) {
-        dusunInput.addEventListener('input', updateAllFamilyMembersAddress);
-    }
 
     // Form submission handler
     const form = document.querySelector('form');

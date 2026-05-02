@@ -48,8 +48,6 @@ class BantuanSosialController extends Controller
         $validator = Validator::make($request->all(), [
             'nik' => 'required|string|size:16|regex:/^[0-9]+$/',
             'tanggal_lahir' => 'required|date',
-            'captcha_answer' => 'required|string|numeric',
-            'captcha_question' => 'required|string'
         ]);
 
         if ($validator->fails()) {
@@ -57,34 +55,6 @@ class BantuanSosialController extends Controller
                 'success' => false,
                 'message' => 'Validasi gagal',
                 'errors' => $validator->errors()
-            ], 400);
-        }
-
-        // Validasi CAPTCHA - WAJIB!
-        if (!$request->has('captcha_answer') || !$request->has('captcha_question')) {
-            return response()->json([
-                'success' => false,
-                'message' => 'CAPTCHA wajib diisi'
-            ], 400);
-        }
-
-        $captchaAnswer = $request->captcha_answer;
-        $captchaQuestion = $request->captcha_question;
-
-        // Simple math CAPTCHA validation
-        if (!is_numeric($captchaAnswer)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'CAPTCHA tidak valid'
-            ], 400);
-        }
-
-        // Parse math expression safely (only basic operations)
-        $expectedAnswer = $this->safeMathEval($captchaQuestion);
-        if ($captchaAnswer != $expectedAnswer) {
-            return response()->json([
-                'success' => false,
-                'message' => 'CAPTCHA salah'
             ], 400);
         }
 
@@ -130,11 +100,13 @@ class BantuanSosialController extends Controller
             'data' => [
                 'penduduk' => [
                     'nama' => $penduduk->nama,
-                    'nik' => $penduduk->nik, // Tidak perlu hash karena user sudah input NIK
-                    'alamat' => $penduduk->alamat,
-                    'rt' => $penduduk->rt_label,
-                    'rw' => $penduduk->rw_label,
-                    'dusun' => $penduduk->dusun_label
+                    // Zero Trust: Sensor NIK langsung dari Server
+                    'nik' => substr($penduduk->nik, 0, 4) . '****' . substr($penduduk->nik, -4),
+                    // Zero Trust: Sembunyikan detail alamat jalan, hanya tampilkan RT/RW/Dusun
+                    'alamat' => 'Alamat Tersensor (Verifikasi NIK & Tgl Lahir Berhasil)',
+                    'rt' => $penduduk->rt_id,
+                    'rw' => $penduduk->rw_id,
+                    'dusun' => $penduduk->dusun->nama ?? 'N/A',
                 ],
                 'bantuan_sosials' => $bantuanSosials->map(function($item) {
                     return [
@@ -153,53 +125,7 @@ class BantuanSosialController extends Controller
     /**
      * Generate simple CAPTCHA question
      */
-    public function generateCaptcha()
-    {
-        $operations = ['+', '-'];
-        $operation = $operations[array_rand($operations)];
-
-        switch ($operation) {
-            case '+':
-                $a = rand(1, 9);
-                $b = rand(1, 9);
-                return response()->json([
-                    'success' => true,
-                    'data' => [
-                        'question' => "$a + $b",
-                        'answer' => $a + $b
-                    ]
-                ]);
-            case '-':
-                $a = rand(5, 13);
-                $b = rand(1, 4);
-                return response()->json([
-                    'success' => true,
-                    'data' => [
-                        'question' => "$a - $b",
-                        'answer' => $a - $b
-                    ]
-                ]);
-        }
-    }
-
     /**
-     * Safe math evaluation for CAPTCHA
+     * Parse math expression safely (only basic operations) - REMOVED (using reCAPTCHA)
      */
-    private function safeMathEval($expression)
-    {
-        // Remove all non-numeric and non-operator characters
-        $expression = preg_replace('/[^0-9+\-*\/\(\)\s]/', '', $expression);
-
-        // Only allow basic math operations
-        if (!preg_match('/^[0-9+\-*\/\(\)\s]+$/', $expression)) {
-            return 0;
-        }
-
-        // Use eval only for safe math expressions
-        try {
-            return eval('return ' . $expression . ';');
-        } catch (Exception $e) {
-            return 0;
-        }
-    }
 }

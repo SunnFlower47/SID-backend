@@ -237,7 +237,7 @@
     <!-- Header -->
     <div class="header">
         <div class="logo-section">
-            <img src="{{ public_path('logo-garuda.png') }}" alt="Garuda Pancasila" class="logo">
+            <img src="{{ public_path('assets/images/logo-garuda.png') }}" alt="Garuda Pancasila" class="logo">
             <div>
                 <div style="font-size: 8px; font-weight: bold;">REPUBLIK INDONESIA</div>
             </div>

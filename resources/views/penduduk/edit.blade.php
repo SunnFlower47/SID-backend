@@ -307,45 +307,24 @@
                         </div>
                     </div>
                 @endif
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 opacity-75">
                     <div class="md:col-span-2">
-                        <label for="alamat" class="block text-sm font-medium text-gray-700 mb-2">Alamat Lengkap *</label>
-                        <textarea name="alamat" id="alamat" rows="3"
-                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('alamat') border-red-500 @enderror"
-                                  required>{{ old('alamat', $penduduk->alamat) }}</textarea>
-                        @error('alamat')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                        @if($errors->has('alamat'))
-                            <p class="mt-1 text-sm text-red-600">{{ $errors->first('alamat') }}</p>
-                        @endif
+                        <label for="alamat" class="block text-sm font-medium text-gray-500 mb-2">Alamat Lengkap (Terkunci)</label>
+                        <textarea id="alamat" rows="3" readonly
+                                  class="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 cursor-not-allowed text-gray-500">{{ $penduduk->alamat }}</textarea>
+                        <p class="mt-1 text-xs text-blue-600 italic"><i class="fas fa-info-circle mr-1"></i>Gunakan tombol "Update Alamat Keluarga" di bagian atas untuk mengubah alamat.</p>
                     </div>
 
                     <div>
-                        <label for="rw_id" class="block text-sm font-medium text-gray-700 mb-2">RW Master *</label>
-                        <select id="rw_id" name="rw_id" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('rw_id') border-red-500 @enderror">
-                            <option value="">Pilih RW</option>
-                            @foreach(($rws ?? collect()) as $rw)
-                                <option value="{{ $rw->id }}" {{ (string)old('rw_id', optional($penduduk)->rw_id) === (string)$rw->id ? 'selected' : '' }}>RW {{ $rw->kode }} - {{ $rw->nama }}</option>
-                            @endforeach
-                        </select>
-                        @error('rw_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                        <label for="rw_id_display" class="block text-sm font-medium text-gray-500 mb-2">RW Master</label>
+                        <input type="text" id="rw_id_display" value="RW {{ $penduduk->rw_label }}" readonly
+                               class="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 cursor-not-allowed text-gray-500">
                     </div>
 
                     <div>
-                        <label for="rt_id" class="block text-sm font-medium text-gray-700 mb-2">
-                            RT Master *
-                            @if(!$penduduk->rt_id)
-                                <span class="text-red-600 text-xs font-bold animate-pulse">(DATA TIDAK VALID)</span>
-                            @endif
-                        </label>
-                        <select id="rt_id" name="rt_id" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @if(!$penduduk->rt_id) border-red-500 bg-red-50 @else border-gray-300 @endif @error('rt_id') border-red-500 @enderror">
-                            <option value="">Pilih RT</option>
-                        </select>
-                        @error('rt_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
-                        @if(!$penduduk->rt_id)
-                            <p class="mt-1 text-xs text-red-500"><i class="fas fa-exclamation-triangle mr-1"></i>RT Master belum terpetakan. Silakan pilih RT kembali untuk memperbaiki data.</p>
-                        @endif
+                        <label for="rt_id_display" class="block text-sm font-medium text-gray-500 mb-2">RT Master</label>
+                        <input type="text" id="rt_id_display" value="RT {{ $penduduk->rt_label }}" readonly
+                               class="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 cursor-not-allowed text-gray-500">
                     </div>
 
                     <div>
@@ -497,7 +476,7 @@ function showExistingNIKInfo(data) {
     if (newInfo) newInfo.style.display = 'none';
     if (existingInfo) existingInfo.style.display = 'block';
     if (existingDetails) {
-        existingDetails.textContent = `${data.nama} - No KK: ${data.nkk} - RT ${data.rt}/RW ${data.rw}`;
+        existingDetails.textContent = `${data.nama} - No KK: ${data.nkk} - RT ${data.rt_label}/RW ${data.rw_label}`;
     }
 }
 
@@ -546,7 +525,8 @@ document.addEventListener('DOMContentLoaded', function() {
         if (oldRwId) {
             rwMaster.value = String(oldRwId);
         } else {
-            const currentRwCode = String(@json($penduduk->rw_label ?? '')).padStart(3, '0');
+            const currentRwLabel = @json($penduduk->rw_label ?? '');
+            const currentRwCode = currentRwLabel !== '-' ? String(currentRwLabel).padStart(3, '0') : '';
             const matchedRw = masterRwOptions.find(r => String(r.kode).padStart(3, '0') === currentRwCode);
             if (matchedRw) rwMaster.value = String(matchedRw.id);
         }
@@ -558,7 +538,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 rtMaster.value = String(oldRtId);
             } else {
                 const rwObj = masterRwOptions.find(r => String(r.id) === String(rwMaster.value));
-                const currentRtCode = String(@json($penduduk->rt_label ?? '')).padStart(3, '0');
+                const currentRtLabel = @json($penduduk->rt_label ?? '');
+                const currentRtCode = currentRtLabel !== '-' ? String(currentRtLabel).padStart(3, '0') : '';
                 const matchedRt = (rwObj?.rts || []).find(rt => String(rt.kode).padStart(3, '0') === currentRtCode);
                 if (matchedRt) rtMaster.value = String(matchedRt.id);
             }

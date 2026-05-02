@@ -15,7 +15,7 @@ class DesaSettingsController extends Controller
      */
     public function index(): JsonResponse
     {
-        Gate::authorize('settings.view');
+        Gate::authorize('admin_sistem');
 
         $groups = [
             'general' => 'Informasi Umum Desa',
@@ -43,7 +43,7 @@ class DesaSettingsController extends Controller
      */
     public function update(Request $request): JsonResponse
     {
-        Gate::authorize('settings.edit');
+        Gate::authorize('admin_sistem');
 
         $validated = $request->validate([
             'settings' => 'required|array',
@@ -83,7 +83,7 @@ class DesaSettingsController extends Controller
      */
     public function updateSetting(Request $request, $key): JsonResponse
     {
-        Gate::authorize('settings.edit');
+        Gate::authorize('admin_sistem');
 
         $setting = DesaSetting::where('key', $key)->firstOrFail();
 

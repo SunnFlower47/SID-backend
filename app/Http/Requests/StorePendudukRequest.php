@@ -59,9 +59,9 @@ class StorePendudukRequest extends FormRequest
             'pekerjaan' => 'nullable|string|max:100',
             'nama_ayah' => 'nullable|string|max:255',
             'nama_ibu' => 'nullable|string|max:255',
-            'alamat' => 'required|string|max:500',
-            'rt_id' => 'required|exists:rts,id',
-            'rw_id' => 'required|exists:rws,id',
+            'alamat' => 'required_if:kk_option,manual|nullable|string|max:500',
+            'rt_id' => 'required_if:kk_option,manual|nullable|exists:rts,id',
+            'rw_id' => 'required_if:kk_option,manual|nullable|exists:rws,id',
             'dusun_id' => 'nullable|exists:dusuns,id',
             'keterangan' => 'nullable|string|max:500',
             'kk_option' => 'required|in:existing,manual',
@@ -80,9 +80,9 @@ class StorePendudukRequest extends FormRequest
             'family_members.*.pekerjaan' => 'required|string|max:100',
             'family_members.*.nama_ayah' => 'nullable|string|max:255',
             'family_members.*.nama_ibu' => 'nullable|string|max:255',
-            'family_members.*.alamat' => 'required|string|max:500',
-            'family_members.*.rt_id' => 'required|exists:rts,id',
-            'family_members.*.rw_id' => 'required|exists:rws,id',
+            'family_members.*.alamat' => 'nullable|string|max:500',
+            'family_members.*.rt_id' => 'nullable|exists:rts,id',
+            'family_members.*.rw_id' => 'nullable|exists:rws,id',
             'family_members.*.dusun_id' => 'nullable|exists:dusuns,id'
         ];
     }
@@ -116,14 +116,10 @@ class StorePendudukRequest extends FormRequest
             'pekerjaan.max' => 'Pekerjaan maksimal 100 karakter.',
             'nama_ayah.max' => 'Nama ayah maksimal 255 karakter.',
             'nama_ibu.max' => 'Nama ibu maksimal 255 karakter.',
-            'alamat.required' => 'Alamat wajib diisi.',
+            'alamat.required_if' => 'Alamat wajib diisi untuk keluarga baru.',
             'alamat.max' => 'Alamat maksimal 500 karakter.',
-            'rt.required' => 'RT wajib diisi.',
-            'rt.size' => 'RT harus terdiri dari 3 digit angka.',
-            'rt.regex' => 'RT harus berupa angka.',
-            'rw.required' => 'RW wajib diisi.',
-            'rw.regex' => 'RW harus berupa angka.',
-            'rw.max' => 'RW maksimal 3 digit.',
+            'rt_id.required_if' => 'RT wajib dipilih untuk keluarga baru.',
+            'rw_id.required_if' => 'RW wajib dipilih untuk keluarga baru.',
             'dusun.max' => 'Dusun maksimal 100 karakter.',
             'keterangan.max' => 'Keterangan maksimal 500 karakter.',
             'kk_option.required' => 'Pilihan KK wajib dipilih.',
@@ -131,8 +127,6 @@ class StorePendudukRequest extends FormRequest
             'nkk_existing.required_if' => 'No KK wajib dipilih jika menggunakan KK yang sudah ada.',
             'nkk.size' => 'Nomor KK harus 16 digit.',
             'nkk.required_if' => 'Nomor KK wajib diisi jika input manual.',
-            'rw_id.required_if' => 'RW master wajib dipilih untuk input manual.',
-            'rt_id.required_if' => 'RT master wajib dipilih untuk input manual.',
             'family_members.array' => 'Data anggota keluarga harus berupa array.',
             'family_members.*.nik.required' => 'NIK anggota keluarga harus diisi.',
             'family_members.*.nik.size' => 'NIK anggota keluarga harus 16 digit.',
@@ -154,16 +148,7 @@ class StorePendudukRequest extends FormRequest
             'family_members.*.pekerjaan.required' => 'Pekerjaan anggota keluarga harus diisi.',
             'family_members.*.pekerjaan.max' => 'Pekerjaan anggota keluarga maksimal 100 karakter.',
             'family_members.*.nama_ayah.max' => 'Nama ayah anggota keluarga maksimal 255 karakter.',
-            'family_members.*.nama_ibu.max' => 'Nama ibu anggota keluarga maksimal 255 karakter.',
-            'family_members.*.alamat.required' => 'Alamat anggota keluarga harus diisi.',
-            'family_members.*.alamat.max' => 'Alamat anggota keluarga maksimal 500 karakter.',
-            'family_members.*.rt.required' => 'RT anggota keluarga harus diisi.',
-            'family_members.*.rt.size' => 'RT anggota keluarga harus 3 digit angka.',
-            'family_members.*.rt.regex' => 'RT anggota keluarga harus berupa angka.',
-            'family_members.*.rw.required' => 'RW anggota keluarga harus diisi.',
-            'family_members.*.rw.regex' => 'RW anggota keluarga harus berupa angka.',
-            'family_members.*.rw.max' => 'RW anggota keluarga maksimal 3 digit.',
-            'family_members.*.dusun.max' => 'Dusun anggota keluarga maksimal 100 karakter.'
+            'family_members.*.nama_ibu.max' => 'Nama ibu anggota keluarga maksimal 255 karakter.'
         ];
     }
 
@@ -186,8 +171,8 @@ class StorePendudukRequest extends FormRequest
             'nama_ayah' => 'Nama Ayah',
             'nama_ibu' => 'Nama Ibu',
             'alamat' => 'Alamat',
-            'rt' => 'RT',
-            'rw' => 'RW',
+            'rt_id' => 'RT',
+            'rw_id' => 'RW',
             'dusun' => 'Dusun',
             'keterangan' => 'Keterangan',
             'kk_option' => 'Pilihan KK',
@@ -205,7 +190,7 @@ class StorePendudukRequest extends FormRequest
             $rtId = $this->input('rt_id');
             $rwId = $this->input('rw_id');
 
-            if ($rtId && $rwId) {
+            if ($this->input('kk_option') === 'manual' && $rtId && $rwId) {
                 $rt = Rt::find($rtId);
                 if (!$rt || (int)$rt->rw_id !== (int)$rwId) {
                     $validator->errors()->add('rt_id', 'RT tidak sesuai dengan RW yang dipilih.');
@@ -216,16 +201,14 @@ class StorePendudukRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        // Auto-format NIK (hapus spasi dan karakter non-digit)
+        // Auto-format NIK
         if ($this->has('nik')) {
             $this->merge([
                 'nik' => preg_replace('/[^0-9]/', '', $this->nik)
             ]);
         }
 
-        // RT/RW processing handled via rt_id and rw_id
-
-        // Auto-format nama (trim dan title case)
+        // Auto-format nama
         if ($this->has('nama')) {
             $this->merge([
                 'nama' => ucwords(strtolower(trim($this->nama)))
@@ -246,40 +229,34 @@ class StorePendudukRequest extends FormRequest
             ]);
         }
 
-        // Auto-format family members data
+        // Auto-format tanggal_lahir
+        if ($this->has('tanggal_lahir') && !empty($this->tanggal_lahir)) {
+            try {
+                if (strpos($this->tanggal_lahir, '/') !== false) {
+                    $this->merge([
+                        'tanggal_lahir' => \Carbon\Carbon::createFromFormat('d/m/Y', $this->tanggal_lahir)->format('Y-m-d')
+                    ]);
+                } else {
+                    $this->merge([
+                        'tanggal_lahir' => \Carbon\Carbon::parse($this->tanggal_lahir)->format('Y-m-d')
+                    ]);
+                }
+            } catch (\Exception $e) {
+                // Ignore
+            }
+        }
+
+        // Auto-format family members
         if ($this->has('family_members') && is_array($this->family_members)) {
             $formattedMembers = [];
             foreach ($this->family_members as $index => $member) {
                 $formattedMember = $member;
-
-                // Auto-format NIK (hapus spasi dan karakter non-digit)
-                if (isset($member['nik'])) {
-                    $formattedMember['nik'] = preg_replace('/[^0-9]/', '', $member['nik']);
-                }
-
-                // Auto-format nama (trim dan title case)
-                if (isset($member['nama'])) {
-                    $formattedMember['nama'] = ucwords(strtolower(trim($member['nama'])));
-                }
-
-                // Auto-format tempat lahir
-                if (isset($member['tempat_lahir'])) {
-                    $formattedMember['tempat_lahir'] = ucwords(strtolower(trim($member['tempat_lahir'])));
-                }
-
-                // Auto-format nama ayah
-                if (isset($member['nama_ayah'])) {
-                    $formattedMember['nama_ayah'] = ucwords(strtolower(trim($member['nama_ayah'])));
-                }
-
-                // RT/RW processing handled via rt_id and rw_id
-
+                if (isset($member['nik'])) $formattedMember['nik'] = preg_replace('/[^0-9]/', '', $member['nik']);
+                if (isset($member['nama'])) $formattedMember['nama'] = ucwords(strtolower(trim($member['nama'])));
+                if (isset($member['tempat_lahir'])) $formattedMember['tempat_lahir'] = ucwords(strtolower(trim($member['tempat_lahir'])));
                 $formattedMembers[$index] = $formattedMember;
             }
-
-            $this->merge([
-                'family_members' => $formattedMembers
-            ]);
+            $this->merge(['family_members' => $formattedMembers]);
         }
     }
 }

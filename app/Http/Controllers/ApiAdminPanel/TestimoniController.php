@@ -11,7 +11,7 @@ class TestimoniController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        Gate::authorize('testimoni.view');
+        Gate::authorize('pelayanan_informasi');
 
         $query = Testimoni::query();
         if ($request->filled('status')) $query->where('status', $request->status);
@@ -40,7 +40,7 @@ class TestimoniController extends Controller
 
     public function store(Request $request): JsonResponse
     {
-        Gate::authorize('testimoni.create');
+        Gate::authorize('pelayanan_informasi');
 
         $validated = $request->validate([
             'nama' => 'required|string|max:255',
@@ -64,7 +64,7 @@ class TestimoniController extends Controller
 
     public function updateStatus(Request $request, Testimoni $testimoni): JsonResponse
     {
-        Gate::authorize('testimoni.update');
+        Gate::authorize('pelayanan_informasi');
         $request->validate(['status' => 'required|in:pending,approved,rejected']);
         $testimoni->update(['status' => $request->status]);
         return response()->json(['status' => 'success', 'message' => 'Status testimoni diperbarui', 'data' => $testimoni]);
@@ -72,7 +72,7 @@ class TestimoniController extends Controller
 
     public function destroy(Testimoni $testimoni): JsonResponse
     {
-        Gate::authorize('testimoni.delete');
+        Gate::authorize('pelayanan_informasi');
         $testimoni->delete();
         return response()->json(['status' => 'success', 'message' => 'Testimoni dihapus']);
     }

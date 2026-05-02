@@ -14,7 +14,7 @@ class SettingsPolicy
      */
     public function view(User $user)
     {
-        return $user->hasPermissionTo('settings.view');
+        return $user->hasPermissionTo('admin_sistem');
     }
 
     /**
@@ -22,7 +22,7 @@ class SettingsPolicy
      */
     public function usersManage(User $user)
     {
-        return $user->hasPermissionTo('settings.users.manage');
+        return $user->hasPermissionTo('admin_sistem');
     }
 
     /**
@@ -30,7 +30,7 @@ class SettingsPolicy
      */
     public function usersCreate(User $user)
     {
-        return $user->hasPermissionTo('settings.users.create');
+        return $user->hasPermissionTo('admin_sistem');
     }
 
     /**
@@ -38,7 +38,7 @@ class SettingsPolicy
      */
     public function usersEdit(User $user)
     {
-        return $user->hasPermissionTo('settings.users.edit');
+        return $user->hasPermissionTo('admin_sistem');
     }
 
     /**
@@ -46,7 +46,7 @@ class SettingsPolicy
      */
     public function usersDelete(User $user)
     {
-        return $user->hasPermissionTo('settings.users.delete');
+        return $user->hasPermissionTo('admin_sistem');
     }
 
     /**
@@ -54,7 +54,7 @@ class SettingsPolicy
      */
     public function rolesManage(User $user)
     {
-        return $user->hasPermissionTo('settings.roles.manage');
+        return $user->hasPermissionTo('admin_sistem');
     }
 
     /**
@@ -62,7 +62,7 @@ class SettingsPolicy
      */
     public function rolesCreate(User $user)
     {
-        return $user->hasPermissionTo('settings.roles.create');
+        return $user->hasPermissionTo('admin_sistem');
     }
 
     /**
@@ -70,7 +70,7 @@ class SettingsPolicy
      */
     public function rolesEdit(User $user)
     {
-        return $user->hasPermissionTo('settings.roles.edit');
+        return $user->hasPermissionTo('admin_sistem');
     }
 
     /**
@@ -78,7 +78,7 @@ class SettingsPolicy
      */
     public function rolesDelete(User $user)
     {
-        return $user->hasPermissionTo('settings.roles.delete');
+        return $user->hasPermissionTo('admin_sistem');
     }
 }
 

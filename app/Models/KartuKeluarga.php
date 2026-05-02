@@ -7,10 +7,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Traits\HasWilayahLabels;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class KartuKeluarga extends Model
 {
-    use HasWilayahLabels, SoftDeletes;
+    use HasWilayahLabels, SoftDeletes, HasFactory;
     protected $fillable = [
         'nkk',
         'nama_kepala_keluarga',
@@ -31,6 +32,7 @@ class KartuKeluarga extends Model
         'kk_sementara_id',
         'kk_bermasalah_sejak',
         'catatan_bermasalah',
+        'history_nkk',
     ];
 
     protected $casts = [
@@ -40,6 +42,7 @@ class KartuKeluarga extends Model
         'dusun_id' => 'integer',
         'kk_sementara_id' => 'integer',
         'mutasi_penyebab_id' => 'integer',
+        'history_nkk' => 'array',
     ];
 
     protected $appends = ['rt_label', 'rw_label', 'dusun_label'];
@@ -81,17 +84,15 @@ class KartuKeluarga extends Model
      */
     public function penduduks(): HasMany
     {
-        return $this->hasMany(Penduduk::class, 'nkk', 'nkk');
+        return $this->hasMany(Penduduk::class, 'kartu_keluarga_id');
     }
 
     /**
-     * Get the active penduduks (not dead/moved).
+     * Get the active penduduks (not soft-deleted).
      */
     public function anggotaAktif(): HasMany
     {
-        return $this->penduduks()->whereDoesntHave('mutasis', function ($q) {
-            $q->whereIn('jenis_mutasi', ['kematian', 'pindah_keluar', 'pisah_kk']);
-        });
+        return $this->penduduks()->whereNull('deleted_at');
     }
 
     // =========================================================

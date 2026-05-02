@@ -33,7 +33,7 @@ class LaporanExport implements FromCollection, WithHeadings, WithMapping, WithSt
     {
         switch ($this->type) {
             case 'penduduk':
-                return ['NIK', 'Nama', 'Jenis Kelamin', 'Tempat Lahir', 'Tanggal Lahir', 'Agama', 'Pekerjaan', 'Alamat', 'Tanggal Terdaftar'];
+                return ['NIK', 'Nama', 'Jenis Kelamin', 'Tempat Lahir', 'Tanggal Lahir', 'Agama', 'Pekerjaan', 'Alamat Lengkap', 'Tanggal Terdaftar'];
             case 'kk':
                 return ['No. KK', 'Kepala Keluarga', 'Alamat', 'RT', 'RW', 'Dusun', 'Tanggal Terdaftar'];
             case 'mutasi':
@@ -56,20 +56,20 @@ class LaporanExport implements FromCollection, WithHeadings, WithMapping, WithSt
                     $row->nama,
                     $row->jenis_kelamin,
                     $row->tempat_lahir,
-                    $row->tanggal_lahir,
+                    $row->tanggal_lahir ? $row->tanggal_lahir->format('d/m/Y') : '-',
                     $row->agama,
                     $row->pekerjaan,
-                    $row->alamat,
+                    $row->alamat_lengkap,
                     $row->created_at->format('Y-m-d'),
                 ];
             case 'kk':
                 return [
                     "'" . $row->nkk,
-                    $row->nama, // Nama Kepala Keluarga
+                    $row->nama_kepala_keluarga,
                     $row->alamat,
-                    $row->rt,
-                    $row->rw,
-                    $row->dusun,
+                    $row->rt_label,
+                    $row->rw_label,
+                    $row->dusun_label,
                     $row->created_at->format('Y-m-d'),
                 ];
             case 'mutasi':

@@ -10,7 +10,7 @@
     <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px; margin:40px auto; background:#ffffff; border-radius:8px; overflow:hidden;">
         <tr>
             <td style="text-align:center; padding:30px 0; background-color:#006d77;">
-                <img src="https://admin-dscibatu.sunnflower.site/logo-desa-cibatu.png" alt="Logo Desa Cibatu" style="height:70px; margin-bottom:10px;">
+                <img src="https://admin-dscibatu.sunnflower.site/assets/images/logo-desa-cibatu.png" alt="Logo Desa Cibatu" style="height:70px; margin-bottom:10px;">
                 <h2 style="color:#ffffff; margin:0; font-weight:normal;">Desa Cibatu</h2>
             </td>
         </tr>

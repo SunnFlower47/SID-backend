@@ -39,16 +39,16 @@ class PendudukExport implements FromCollection, WithHeadings, WithMapping, WithS
             $query->where(function ($q) use ($search) {
                 $q->where('nama', 'like', "%{$search}%")
                   ->orWhere('nik', 'like', "%{$search}%")
-                  ->orWhere('nkk', 'like', "%{$search}%");
+                  ->orWhereHas('kartuKeluarga', fn($sq) => $sq->where('nkk', 'like', "%{$search}%"));
             });
         }
 
         if ($this->request->filled('rt_id') && $this->request->rt_id !== 'all') {
-            $query->where('rt_id', $this->request->rt_id);
+            $query->whereHas('kartuKeluarga', fn($q) => $q->where('rt_id', $this->request->rt_id));
         }
 
         if ($this->request->filled('rw_id') && $this->request->rw_id !== 'all') {
-            $query->where('rw_id', $this->request->rw_id);
+            $query->whereHas('kartuKeluarga', fn($q) => $q->where('rw_id', $this->request->rw_id));
         }
 
         if ($this->request->filled('jenis_kelamin') && $this->request->jenis_kelamin !== 'all') {
@@ -56,7 +56,7 @@ class PendudukExport implements FromCollection, WithHeadings, WithMapping, WithS
         }
 
         if ($this->request->filled('dusun_id') && $this->request->dusun_id !== 'all') {
-            $query->where('dusun_id', $this->request->dusun_id);
+            $query->whereHas('kartuKeluarga', fn($q) => $q->where('dusun_id', $this->request->dusun_id));
         }
 
         // Filter by age range
@@ -94,9 +94,7 @@ class PendudukExport implements FromCollection, WithHeadings, WithMapping, WithS
             }
         }
 
-        return $query->orderBy('rt_id')
-                     ->orderBy('rw_id')
-                     ->orderBy('nkk')
+        return $query->orderBy('kartu_keluarga_id')
                      ->orderByRaw("CASE
                          WHEN kedudukan_keluarga = 'Kepala Keluarga' THEN 1
                          WHEN kedudukan_keluarga = 'Istri' THEN 2
@@ -160,9 +158,9 @@ class PendudukExport implements FromCollection, WithHeadings, WithMapping, WithS
             $penduduk->nama_ayah,
             $penduduk->nama_ibu,
             $penduduk->alamat,
-            optional($penduduk->rtMaster)->kode,
-            optional($penduduk->rwMaster)->kode,
-            optional($penduduk->dusunMaster)->nama,
+            $penduduk->rt_label,
+            $penduduk->rw_label,
+            $penduduk->dusun_label,
             $penduduk->keterangan,
         ];
     }

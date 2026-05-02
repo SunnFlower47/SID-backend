@@ -216,7 +216,7 @@ class ImportDataFromExcel extends Command
                     $this->importReport['wilayah_auto_created']++;
                 }
 
-                $existingKK = Penduduk::where('nkk', $nkk)->first();
+                $existingKK = \App\Models\KartuKeluarga::where('nkk', $nkk)->first();
                 $existingNik = Penduduk::where('nik', $nik)->first();
                 if ($existingNik && trim((string)$existingNik->nkk) !== trim((string)$nkk)) {
                     $this->importReport['rows_skipped_conflict']++;
@@ -237,11 +237,24 @@ class ImportDataFromExcel extends Command
                     continue;
                 }
 
-                // Create Penduduk
+                // 1. Find or Create Kartu Keluarga (Source of Truth)
+                $kk = \App\Models\KartuKeluarga::updateOrCreate(
+                    ['nkk' => $nkk],
+                    [
+                        'alamat' => $this->getCellValue($rowData, $headers, ['alamat', 'Alamat', 'ALAMAT', 'P']) ?? ($existingKK->alamat ?? 'Alamat tidak diketahui'),
+                        'rt_id' => \App\Models\Rt::where('kode', $wilayah['rt_kode'])->whereHas('rwMaster', fn($q) => $q->where('kode', $wilayah['rw_kode']))->value('id'),
+                        'rw_id' => \App\Models\Rw::where('kode', $wilayah['rw_kode'])->value('id'),
+                        'dusun_id' => \App\Models\Dusun::where('nama', $wilayah['dusun_nama'])->value('id'),
+                        'nama_kepala_keluarga' => ($row['kedudukan_keluarga'] ?? '') === 'Kepala Keluarga' ? $nama : ($existingKK->nama_kepala_keluarga ?? 'Belum Ditentukan'),
+                        'nik_kepala_keluarga' => ($row['kedudukan_keluarga'] ?? '') === 'Kepala Keluarga' ? $nik : ($existingKK->nik_kepala_keluarga ?? null),
+                    ]
+                );
+
+                // 2. Create Penduduk linked to KK
                 Penduduk::updateOrCreate(
                     ['nik' => $nik],
                     [
-                        'nkk' => $nkk,
+                        'kartu_keluarga_id' => $kk->id,
                         'nik' => $nik,
                         'nama' => $nama,
                         'jenis_kelamin' => $this->mapJenisKelamin($this->getCellValue($rowData, $headers, ['jenis_kelamin', 'Jenis Kelamin', 'JENIS KELAMIN', 'E']) ?? ''),
@@ -254,10 +267,6 @@ class ImportDataFromExcel extends Command
                         'pekerjaan' => $this->getCellValue($rowData, $headers, ['pekerjaan', 'Pekerjaan', 'PEKERJAAN', 'M']) ?? '',
                         'nama_ayah' => $this->getCellValue($rowData, $headers, ['nama_ayah', 'Nama Ayah', 'NAMA AYAH', 'N']) ?? null,
                         'nama_ibu' => $this->getCellValue($rowData, $headers, ['nama_ibu', 'Nama Ibu', 'NAMA IBU', 'O']) ?? null,
-                        'alamat' => $this->getCellValue($rowData, $headers, ['alamat', 'Alamat', 'ALAMAT', 'P']) ?? ($existingKK->alamat ?? 'Alamat tidak diketahui'),
-                        'rt' => $wilayah['rt_kode'],
-                        'rw' => $wilayah['rw_kode'],
-                        'dusun' => $wilayah['dusun_nama'],
                         'keterangan' => $this->getCellValue($rowData, $headers, ['keterangan', 'Keterangan', 'KETERANGAN', 'S']) ?? null,
                     ]
                 );

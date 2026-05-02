@@ -15,7 +15,7 @@ class PendudukObserver
      */
     public function created(Penduduk $penduduk): void
     {
-        $this->updateKartuKeluarga($penduduk->nkk);
+        $this->recalculateKK($penduduk->kartu_keluarga_id);
         $this->clearCache();
     }
 
@@ -24,12 +24,12 @@ class PendudukObserver
      */
     public function updated(Penduduk $penduduk): void
     {
-        // If NKK changed, update both old and new KK
-        if ($penduduk->isDirty('nkk')) {
-            $this->updateKartuKeluarga($penduduk->getOriginal('nkk'));
-            $this->updateKartuKeluarga($penduduk->nkk);
+        // If KK ID changed, update both old and new KK
+        if ($penduduk->isDirty('kartu_keluarga_id')) {
+            $this->recalculateKK($penduduk->getOriginal('kartu_keluarga_id'));
+            $this->recalculateKK($penduduk->kartu_keluarga_id);
         } else {
-            $this->updateKartuKeluarga($penduduk->nkk);
+            $this->recalculateKK($penduduk->kartu_keluarga_id);
         }
         $this->clearCache();
     }
@@ -39,23 +39,20 @@ class PendudukObserver
      */
     public function deleted(Penduduk $penduduk): void
     {
-        $this->updateKartuKeluarga($penduduk->nkk);
+        $this->recalculateKK($penduduk->kartu_keluarga_id);
         $this->clearCache();
     }
 
     /**
      * Handle the Penduduk "restored" event.
-     * FASE 3: Reset flag KK bermasalah saat Kepala Keluarga lama di-restore via Undo.
      */
     public function restored(Penduduk $penduduk): void
     {
-        $this->updateKartuKeluarga($penduduk->nkk); // EXISTING — tetap dijalankan
+        $this->recalculateKK($penduduk->kartu_keluarga_id);
 
-        // BARU (Fase 3): Reset flag status KK jika yang di-restore adalah Kepala Keluarga
-        // Saat ini dipanggil SETELAH undo() di MutasiController sudah rollback KK sementara,
-        // sehingga reset di sini aman (tidak ada konflik 2 Kepala Keluarga).
-        if ($penduduk->kedudukan_keluarga === 'Kepala Keluarga') {
-            KartuKeluarga::where('nkk', $penduduk->nkk)->update([
+        // Reset flag status KK jika yang di-restore adalah Kepala Keluarga
+        if ($penduduk->kedudukan_keluarga === 'Kepala Keluarga' && $penduduk->kartu_keluarga_id) {
+            KartuKeluarga::where('id', $penduduk->kartu_keluarga_id)->update([
                 'status_kk'           => 'normal',
                 'mutasi_penyebab_id'  => null,
                 'kk_sementara_id'     => null,
@@ -67,13 +64,12 @@ class PendudukObserver
     }
 
     /**
-     * Update/Recalculate KK stats for a given NKK
-     * This essentially runs a mini-sync for one KK
+     * Update/Recalculate KK stats for a given KK ID
      */
-    private function updateKartuKeluarga($nkk)
+    private function recalculateKK($kkId)
     {
-        if (empty($nkk)) return;
-        app(\App\Services\KartuKeluargaService::class)->recalculate($nkk);
+        if (empty($kkId)) return;
+        app(\App\Services\KartuKeluargaService::class)->recalculate($kkId);
     }
 
     /**
@@ -81,12 +77,7 @@ class PendudukObserver
      */
     private function clearCache()
     {
-        // Clear API statistics cache
         Cache::forget('api_penduduk_age_statistics');
         Cache::forget('api_penduduk_filter_options_v2');
-        
-        // Note: api_penduduk_ (dynamic search results) are left for TTL 
-        // as they are many and short-lived (120s), but we could clear them if needed.
-        // For Enterprise, we prioritize consistency for stats.
     }
 }

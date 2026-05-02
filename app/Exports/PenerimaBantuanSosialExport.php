@@ -34,8 +34,8 @@ class PenerimaBantuanSosialExport implements FromCollection, WithHeadings, WithM
         }
 
         if (isset($this->filters['dusun']) && $this->filters['dusun']) {
-            $query->whereHas('penduduk', function($q) {
-                $q->where('dusun', $this->filters['dusun']);
+            $query->whereHas('penduduk.kartuKeluarga', function($q) {
+                $q->where('dusun_id', $this->filters['dusun']);
             });
         }
 
@@ -70,8 +70,8 @@ class PenerimaBantuanSosialExport implements FromCollection, WithHeadings, WithM
             $penerima->penduduk->nik ?? '-',
             $penerima->penduduk->nama ?? '-',
             $penerima->penduduk->alamat ?? '-',
-            'RT ' . ($penerima->penduduk->rt ?? '-') . ' / RW ' . ($penerima->penduduk->rw ?? '-'),
-            $penerima->penduduk->dusun ?? '-',
+            'RT ' . ($penerima->penduduk->rt_label ?? '-') . ' / RW ' . ($penerima->penduduk->rw_label ?? '-'),
+            $penerima->penduduk->dusun_label ?? '-',
             $penerima->bantuanSosial->nama_program ?? '-',
             $penerima->bantuanSosial->jenis_bantuan ?? '-',
             $penerima->nomor_kartu ?? '-',

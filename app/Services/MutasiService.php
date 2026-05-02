@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Mutasi;
 use App\Models\Penduduk;
+use App\Models\KartuKeluarga;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -15,15 +16,15 @@ class MutasiService
      */
     public function handleKelahiran(array $validated)
     {
-        // Ambil data keluarga berdasarkan NKK
-        $kartuKeluarga = Penduduk::where('nkk', $validated['nkk'])->first();
-        if (!$kartuKeluarga) {
-            throw new \Exception('Tidak ditemukan keluarga dengan NKK: ' . $validated['nkk']);
+        // Ambil data keluarga (Source of Truth)
+        $kk = KartuKeluarga::where('nkk', $validated['nkk'])->first();
+        if (!$kk) {
+            throw new \Exception('Tidak ditemukan data Kartu Keluarga dengan NKK: ' . $validated['nkk']);
         }
 
-        // Buat penduduk baru
+        // Buat penduduk baru (Hanya field unik, alamat & wilayah ikut KK)
         $penduduk = Penduduk::create([
-            'nkk' => $validated['nkk'],
+            'kartu_keluarga_id' => $kk->id,
             'nik' => $validated['nik_bayi'],
             'nama' => $validated['nama_bayi'],
             'jenis_kelamin' => $validated['jenis_kelamin_bayi'],
@@ -36,10 +37,6 @@ class MutasiService
             'pekerjaan' => $validated['pekerjaan_bayi'],
             'nama_ayah' => $validated['nama_ayah'],
             'nama_ibu' => $validated['nama_ibu'],
-            'alamat' => $validated['alamat_bayi'],
-            'rt_id' => $validated['rt_id_bayi'],
-            'rw_id' => $validated['rw_id_bayi'],
-            'dusun_id' => $validated['dusun_id_bayi'] ?? $kartuKeluarga->dusun_id,
             'keterangan' => $validated['keterangan_bayi'],
         ]);
 
@@ -53,6 +50,9 @@ class MutasiService
             'alasan' => 'Kelahiran bayi baru',
             'dokumen_pendukung' => null,
         ]);
+
+        // Trigger recalculation for the family
+        app(\App\Services\KartuKeluargaService::class)->recalculate($kk->id);
 
         return $penduduk;
     }
@@ -75,13 +75,13 @@ class MutasiService
             'dokumen_pendukung' => null,
             'detail_tambahan' => [
                 'snapshot_asal' => [
-                    'nkk' => $penduduk->nkk,
-                    'alamat' => $penduduk->alamat,
-                    'rt_id' => $penduduk->rt_id,
+                    'nkk' => $penduduk->kartuKeluarga->nkk ?? $penduduk->nkk,
+                    'alamat' => $penduduk->kartuKeluarga->alamat ?? $penduduk->alamat,
+                    'rt_id' => $penduduk->kartuKeluarga->rt_id ?? $penduduk->rt_id,
                     'rt_kode' => $penduduk->rt_label,
-                    'rw_id' => $penduduk->rw_id,
+                    'rw_id' => $penduduk->kartuKeluarga->rw_id ?? $penduduk->rw_id,
                     'rw_kode' => $penduduk->rw_label,
-                    'dusun_id' => $penduduk->dusun_id,
+                    'dusun_id' => $penduduk->kartuKeluarga->dusun_id ?? $penduduk->dusun_id,
                     'dusun_nama' => $penduduk->dusun_label,
                     'kedudukan' => $penduduk->kedudukan_keluarga,
                 ],
@@ -115,43 +115,87 @@ class MutasiService
      */
     public function handlePindahMasuk(array $validated)
     {
-        // Determine which NKK to use
-        $nkkToUse = !empty($validated['nkk']) ? $validated['nkk'] : $validated['nkk_new'];
+        return DB::transaction(function () use ($validated) {
+            // 1. Determine which NKK to use and handle KK Source of Truth
+            $nkkToUse = !empty($validated['nkk']) ? $validated['nkk'] : ($validated['nkk_new'] ?? null);
+            
+            $kk = KartuKeluarga::firstOrCreate(
+                ['nkk' => $nkkToUse],
+                [
+                    'alamat' => $validated['alamat'] ?? 'Belum Diisi',
+                    'rt_id' => $validated['rt_id'] ?? null,
+                    'rw_id' => $validated['rw_id'] ?? null,
+                    'dusun_id' => $validated['dusun_id'] ?? null,
+                    'nama_kepala_keluarga' => $validated['kedudukan_keluarga'] === 'Kepala Keluarga' ? $validated['nama'] : 'Belum Ditentukan',
+                    'nik_kepala_keluarga' => $validated['kedudukan_keluarga'] === 'Kepala Keluarga' ? $validated['nik'] : null,
+                ]
+            );
 
-        // Create new penduduk
-        $penduduk = Penduduk::create([
-            'nkk' => $nkkToUse,
-            'nik' => $validated['nik'],
-            'nama' => $validated['nama'],
-            'jenis_kelamin' => $validated['jenis_kelamin'],
-            'tempat_lahir' => $validated['tempat_lahir'],
-            'tanggal_lahir' => $validated['tanggal_lahir'],
-            'agama' => $validated['agama'],
-            'status_perkawinan' => $validated['status_perkawinan'],
-            'kedudukan_keluarga' => $validated['kedudukan_keluarga'],
-            'pendidikan' => $validated['pendidikan'],
-            'pekerjaan' => $validated['pekerjaan'] ?? 'Belum Bekerja',
-            'nama_ayah' => $validated['nama_ayah'] ?? 'Tidak Diketahui',
-            'nama_ibu' => $validated['nama_ibu'] ?? 'Tidak Diketahui',
-            'alamat' => $validated['alamat'],
-            'rt_id' => $validated['rt_id'],
-            'rw_id' => $validated['rw_id'],
-            'dusun_id' => $validated['dusun_id'] ?? null,
-            'keterangan' => $validated['keterangan'] ?? null,
-        ]);
+            // 2. Create main person (Resident)
+            $penduduk = Penduduk::create([
+                'kartu_keluarga_id' => $kk->id,
+                'nik' => $validated['nik'],
+                'nama' => $validated['nama'],
+                'jenis_kelamin' => $validated['jenis_kelamin'],
+                'tempat_lahir' => $validated['tempat_lahir'],
+                'tanggal_lahir' => $validated['tanggal_lahir'],
+                'agama' => $validated['agama'],
+                'status_perkawinan' => $validated['status_perkawinan'],
+                'kedudukan_keluarga' => $validated['kedudukan_keluarga'],
+                'pendidikan' => $validated['pendidikan'],
+                'pekerjaan' => $validated['pekerjaan'] ?? 'Belum Bekerja',
+                'nama_ayah' => $validated['nama_ayah'] ?? 'Tidak Diketahui',
+                'nama_ibu' => $validated['nama_ibu'] ?? 'Tidak Diketahui',
+                'keterangan' => $validated['alasan'] ?? null,
+            ]);
 
-        // Create mutasi log
-        Mutasi::create([
-            'penduduk_id' => $penduduk->id,
-            'jenis_mutasi' => 'pindah_masuk',
-            'kategori_mutasi' => $validated['kategori_mutasi'],
-            'asal_tujuan' => $validated['asal_tujuan'],
-            'tanggal_mutasi' => $validated['tanggal_mutasi'],
-            'alasan' => $validated['alasan'] ?? 'Pindah masuk ke Desa Cibatu',
-            'dokumen_pendukung' => null,
-        ]);
+            // 3. Create main person's mutation log
+            Mutasi::create([
+                'penduduk_id' => $penduduk->id,
+                'jenis_mutasi' => 'pindah_masuk',
+                'kategori_mutasi' => $validated['kategori_mutasi'],
+                'asal_tujuan' => $validated['asal_tujuan'],
+                'tanggal_mutasi' => $validated['tanggal_mutasi'],
+                'alasan' => $validated['alasan'] ?? 'Pindah masuk ke Desa Cibatu',
+            ]);
 
-        return $penduduk;
+            // 4. Handle additional family members (BATCH)
+            if (isset($validated['family_members']) && is_array($validated['family_members'])) {
+                foreach ($validated['family_members'] as $member) {
+                    if (empty($member['nik']) || empty($member['nama'])) continue;
+
+                    $newMember = Penduduk::create([
+                        'kartu_keluarga_id' => $kk->id,
+                        'nik' => $member['nik'],
+                        'nama' => $member['nama'],
+                        'jenis_kelamin' => $member['jenis_kelamin'],
+                        'tempat_lahir' => $member['tempat_lahir'] ?? $penduduk->tempat_lahir,
+                        'tanggal_lahir' => $member['tanggal_lahir'] ?? null,
+                        'agama' => $member['agama'] ?? $penduduk->agama,
+                        'status_perkawinan' => $member['status_perkawinan'] ?? 'Belum Kawin',
+                        'kedudukan_keluarga' => $member['kedudukan_keluarga'] ?? 'Anggota Keluarga',
+                        'pendidikan' => $member['pendidikan'] ?? 'Tidak/Belum Sekolah',
+                        'pekerjaan' => $member['pekerjaan'] ?? 'Belum Bekerja',
+                        'nama_ayah' => $member['nama_ayah'] ?? null,
+                        'nama_ibu' => $member['nama_ibu'] ?? null,
+                    ]);
+
+                    Mutasi::create([
+                        'penduduk_id' => $newMember->id,
+                        'jenis_mutasi' => 'pindah_masuk',
+                        'kategori_mutasi' => $validated['kategori_mutasi'],
+                        'asal_tujuan' => $validated['asal_tujuan'],
+                        'tanggal_mutasi' => $validated['tanggal_mutasi'],
+                        'alasan' => "Pindah masuk bersama keluarga ({$penduduk->nama})",
+                    ]);
+                }
+            }
+
+            // Trigger recalculation
+            app(\App\Services\KartuKeluargaService::class)->recalculate($kk->id);
+
+            return $penduduk;
+        });
     }
 
     public function handlePindahKeluar(array $validated)
@@ -159,13 +203,13 @@ class MutasiService
         $penduduk = Penduduk::findOrFail($validated['penduduk_id']);
         
         $snapshotAsal = [
-            'nkk' => $penduduk->nkk,
-            'alamat' => $penduduk->alamat,
-            'rt_id' => $penduduk->rt_id,
+            'nkk' => $penduduk->kartuKeluarga->nkk ?? $penduduk->nkk,
+            'alamat' => $penduduk->kartuKeluarga->alamat ?? $penduduk->alamat,
+            'rt_id' => $penduduk->kartuKeluarga->rt_id ?? $penduduk->rt_id,
             'rt_kode' => $penduduk->rt_label,
-            'rw_id' => $penduduk->rw_id,
+            'rw_id' => $penduduk->kartuKeluarga->rw_id ?? $penduduk->rw_id,
             'rw_kode' => $penduduk->rw_label,
-            'dusun_id' => $penduduk->dusun_id,
+            'dusun_id' => $penduduk->kartuKeluarga->dusun_id ?? $penduduk->dusun_id,
             'dusun_nama' => $penduduk->dusun_label,
             'kedudukan' => $penduduk->kedudukan_keluarga,
         ];
@@ -192,7 +236,7 @@ class MutasiService
             }
         }
 
-        // Buat log mutasi
+        // Buat log mutasi UTAMA
         $snapshotAsal['anggota_pindah'] = $snapshotAnggota;
 
         Mutasi::create([
@@ -210,7 +254,25 @@ class MutasiService
             ],
         ]);
 
-        // Soft delete main resident
+        // Buat log mutasi untuk SETIAP ANGGOTA yang ikut pindah
+        if (!empty($anggotaPindahIds)) {
+            foreach ($anggotaPindah as $member) {
+                Mutasi::create([
+                    'penduduk_id' => $member->id,
+                    'jenis_mutasi' => 'pindah_keluar',
+                    'kategori_mutasi' => $validated['kategori_mutasi'],
+                    'asal_tujuan' => $validated['asal_tujuan'],
+                    'tanggal_mutasi' => $validated['tanggal_mutasi'],
+                    'alasan' => "Pindah keluar bersama keluarga ({$penduduk->nama})",
+                    'detail_tambahan' => [
+                        'pindah_bersama' => $penduduk->nama,
+                        'penduduk_utama_id' => $penduduk->id,
+                    ],
+                ]);
+            }
+        }
+
+        // Soft delete penduduk utama
         $penduduk->delete();
     }
 
@@ -224,11 +286,14 @@ class MutasiService
             $validated['nkk'] = Penduduk::findOrFail($validated['penduduk_id'])->nkk;
         }
 
-        // Ambil semua anggota keluarga berdasarkan NKK
-        $anggotaKeluarga = Penduduk::where('nkk', $validated['nkk'])->get();
+        // Ambil record KK (Source of Truth)
+        $kk = KartuKeluarga::where('nkk', $validated['nkk'])->firstOrFail();
+
+        // Ambil semua anggota keluarga berdasarkan ID relasi (Bukan teks NKK)
+        $anggotaKeluarga = Penduduk::where('kartu_keluarga_id', $kk->id)->get();
 
         if ($anggotaKeluarga->isEmpty()) {
-            throw new \Exception('Tidak ada anggota keluarga dengan No KK: ' . $validated['nkk']);
+            throw new \Exception('Tidak ada anggota keluarga yang terhubung dengan Kartu Keluarga ID: ' . $kk->id);
         }
 
         $rtIdTujuan = $validated['rt_id_tujuan'];
@@ -238,11 +303,11 @@ class MutasiService
         // Ambil alamat dari anggota keluarga pertama jika alamat_tujuan kosong
         $alamatTujuan = $validated['alamat_tujuan'] ?? $anggotaKeluarga->first()->alamat;
 
-        // Simpan informasi asal untuk log dan revert
-        $anggotaPertama = $anggotaKeluarga->first();
-        $rtIdAsal = $anggotaPertama->rt_id;
-        $rwIdAsal = $anggotaPertama->rw_id;
-        $dusunIdAsal = $anggotaPertama->dusun_id;
+        // Simpan informasi asal untuk log dan revert (Ambil langsung dari KK sebelum diupdate)
+        $rtIdAsal = $kk->rt_id;
+        $rwIdAsal = $kk->rw_id;
+        $dusunIdAsal = $kk->dusun_id;
+        $alamatAsal = $kk->alamat;
 
         // SIMPAN SNAPSHOT SEMUA ANGGOTA SEBELUM UPDATE (untuk cancel/revert)
         $snapshotAnggota = $anggotaKeluarga->map(function ($anggota) {
@@ -250,25 +315,29 @@ class MutasiService
                 'id' => $anggota->id,
                 'nama' => $anggota->nama,
                 'rt_id_asal' => $anggota->rt_id,
-                'rt_kode_asal' => optional($anggota->rtMaster)->kode,
+                'rt_kode_asal' => $anggota->rt_label,
                 'rw_id_asal' => $anggota->rw_id,
-                'rw_kode_asal' => optional($anggota->rwMaster)->kode,
+                'rw_kode_asal' => $anggota->rw_label,
                 'dusun_id_asal' => $anggota->dusun_id,
-                'dusun_nama_asal' => optional($anggota->dusunMaster)->nama,
+                'dusun_nama_asal' => $anggota->dusun_label,
                 'alamat_asal' => $anggota->alamat,
             ];
         })->toArray();
 
-        // UPDATE SEMUA ANGGOTA KELUARGA DENGAN NKK YANG SAMA
-        // Use each() to ensure observers (recalculateKK) are triggered for each member
-        $anggotaKeluarga->each(function ($anggota) use ($rtIdTujuan, $rwIdTujuan, $dusunIdTujuan, $alamatTujuan) {
-            $anggota->update([
+        // UPDATE KARTU KELUARGA (Source of Truth)
+        // Semua anggota otomatis ikut karena Accessor di model Penduduk
+        $kk = KartuKeluarga::where('nkk', $validated['nkk'])->first();
+        if ($kk) {
+            $kk->update([
                 'rt_id' => $rtIdTujuan,
                 'rw_id' => $rwIdTujuan,
                 'dusun_id' => $dusunIdTujuan,
                 'alamat' => $alamatTujuan,
             ]);
-        });
+            
+            // Trigger recalculation untuk statistik terbaru
+            app(\App\Services\KartuKeluargaService::class)->recalculate($kk->id);
+        }
 
         // Ambil kepala keluarga untuk log mutasi
         $kepalaKeluarga = $anggotaKeluarga->where('kedudukan_keluarga', 'Kepala Keluarga')->first();
@@ -303,6 +372,7 @@ class MutasiService
                     'rw_kode_asal' => $rwAsal,
                     'dusun_id_asal' => $dusunIdAsal,
                     'dusun_nama_asal' => $dusunAsal,
+                    'alamat_asal' => $alamatAsal,
                     'rt_id_tujuan' => $rtIdTujuan,
                     'rt_kode_tujuan' => $rtTujuan,
                     'rw_id_tujuan' => $rwIdTujuan,
@@ -324,74 +394,57 @@ class MutasiService
         $penduduk = Penduduk::findOrFail($validated['penduduk_id']);
         $oldNKK = $penduduk->nkk;
 
-        // Determine new NKK and address based on option
+        // Determine new KK ID and NKK based on option
+        $newKK = null;
         $newNKK = null;
-        $alamat = null;
-        $rtId = null;
-        $rwId = null;
-        $dusunId = null;
         $isNewFamily = false;
 
         if ($validated['kategori_mutasi'] === 'dalam_desa' && ($validated['kk_option'] ?? '') === 'existing' && !empty($validated['nkk_existing_id'])) {
-            // Join existing KK - get address from existing KK
+            // Join existing KK (Input nkk_existing_id usually is NKK string, let's find the ID)
             $newNKK = $validated['nkk_existing_id'];
-            $existingFamily = Penduduk::where('nkk', $newNKK)->first();
-            if ($existingFamily) {
-                $alamat = $existingFamily->alamat;
-                $rtId = $existingFamily->rt_id;
-                $rwId = $existingFamily->rw_id;
-                $dusunId = $existingFamily->dusun_id;
-            }
+            $newKK = KartuKeluarga::where('nkk', $newNKK)->first();
             $isNewFamily = false;
         } elseif ($validated['kategori_mutasi'] === 'dalam_desa' && ($validated['kk_option'] ?? '') === 'new' && !empty($validated['nkk_baru'])) {
-            // Check if NKK already exists
-            $existingFamily = Penduduk::where('nkk', $validated['nkk_baru'])->first();
-            if ($existingFamily) {
-                // NKK already exists - join existing family (use their address)
-                $newNKK = $validated['nkk_baru'];
-                $alamat = $existingFamily->alamat;
-                $rtId = $existingFamily->rt_id;
-                $rwId = $existingFamily->rw_id;
-                $dusunId = $existingFamily->dusun_id;
-                $isNewFamily = false;
-            } else {
-                // NKK is new - create new family (use input address)
-                $newNKK = $validated['nkk_baru'];
-                $alamat = $validated['alamat'] ?? $penduduk->alamat; // Gunakan alamat dari form atau alamat lama
-                // Untuk KK baru dalam desa, gunakan RT/RW dari form
-                $rtId = $validated['rt_id'] ?? $penduduk->rt_id;
-                $rwId = $validated['rw_id'] ?? $penduduk->rw_id;
-                $dusunId = $validated['dusun_id'] ?? $penduduk->dusun_id;
-                $isNewFamily = true;
-            }
+            // Create or Find New KK record
+            $newNKK = $validated['nkk_baru'];
+            $newKK = KartuKeluarga::firstOrCreate(
+                ['nkk' => $newNKK],
+                [
+                    'alamat' => $validated['alamat'] ?? $penduduk->alamat,
+                    'rt_id' => $validated['rt_id'] ?? $penduduk->rt_id,
+                    'rw_id' => $validated['rw_id'] ?? $penduduk->rw_id,
+                    'dusun_id' => $validated['dusun_id'] ?? $penduduk->dusun_id,
+                    'nama_kepala_keluarga' => $validated['kedudukan_keluarga_pisah'] === 'Kepala Keluarga' ? $penduduk->nama : 'Belum Ditentukan',
+                    'nik_kepala_keluarga' => $validated['kedudukan_keluarga_pisah'] === 'Kepala Keluarga' ? $penduduk->nik : null,
+                ]
+            );
+            $isNewFamily = $newKK->wasRecentlyCreated;
         } else {
-            // Gunakan NKK tujuan dari input user (for keluar desa)
+            // For OUTSIDE VILLAGE mutation, we don't need a real KK record in our table
             $newNKK = $validated['nkk_tujuan'];
-            $alamat = $validated['alamat'];
-            // Untuk kategori luar desa/kota/negeri, tidak perlu RT/RW (soft delete)
-            $rtId = null;
-            $rwId = null;
-            $dusunId = null;
+            $newKK = null;
             $isNewFamily = true;
         }
 
         // Ambil snapshot sebelum perubahan untuk kebutuhan rollback/undo
         $snapshotAsal = [
-            'nkk_asal' => $penduduk->nkk,
-            'alamat_asal' => $penduduk->alamat,
+            'nkk_asal' => $penduduk->kartuKeluarga->nkk ?? $penduduk->nkk,
+            'alamat_asal' => $penduduk->kartuKeluarga->alamat ?? $penduduk->alamat,
             'rt_id_asal' => $penduduk->rt_id,
-            'rt_kode_asal' => optional($penduduk->rtMaster)->kode,
+            'rt_kode_asal' => $penduduk->rt_label,
             'rw_id_asal' => $penduduk->rw_id,
-            'rw_kode_asal' => optional($penduduk->rwMaster)->kode,
+            'rw_kode_asal' => $penduduk->rw_label,
             'dusun_id_asal' => $penduduk->dusun_id,
-            'dusun_nama_asal' => optional($penduduk->dusunMaster)->nama,
+            'dusun_nama_asal' => $penduduk->dusun_label,
             'kedudukan_asal' => $penduduk->kedudukan_keluarga,
             'status_perkawinan_asal' => $penduduk->status_perkawinan,
         ];
 
         // Simpan juga data anggota yang ikut pindah (snapshot sebelum berubah)
         $anggotaPindahSnapshot = [];
-        $anggotaIds = $validated['anggota_pisah_ids'] ?? ($validated['move_members'] ?? []);
+        $anggotaDataInput = $validated['anggota_pisah_data'] ?? []; // Expecting [{id, kedudukan_keluarga}, ...]
+        $anggotaIds = collect($anggotaDataInput)->pluck('id')->toArray();
+
         if (!empty($anggotaIds)) {
             $anggotaPindah = Penduduk::whereIn('id', $anggotaIds)->get();
             $anggotaPindahSnapshot = $anggotaPindah->map(function ($anggota) {
@@ -400,12 +453,13 @@ class MutasiService
                     'nama' => $anggota->nama,
                     'nkk_asal' => $anggota->nkk,
                     'rt_id_asal' => $anggota->rt_id,
-                    'rt_kode_asal' => optional($anggota->rtMaster)->kode,
+                    'rt_kode_asal' => $anggota->rt_label,
                     'rw_id_asal' => $anggota->rw_id,
-                    'rw_kode_asal' => optional($anggota->rwMaster)->kode,
+                    'rw_kode_asal' => $anggota->rw_label,
                     'dusun_id_asal' => $anggota->dusun_id,
-                    'dusun_nama_asal' => optional($anggota->dusunMaster)->nama,
+                    'dusun_nama_asal' => $anggota->dusun_label,
                     'alamat_asal' => $anggota->alamat,
+                    'kedudukan_asal' => $anggota->kedudukan_keluarga,
                 ];
             })->toArray();
         }
@@ -413,15 +467,11 @@ class MutasiService
 
         // Update the main person to new KK
         if ($validated['kategori_mutasi'] === 'dalam_desa') {
-            // Untuk dalam desa, update semua field termasuk RT/RW/Dusun
+            // Untuk dalam desa, update semua field termasuk kartu_keluarga_id
             $penduduk->update([
-                'nkk' => $newNKK,
+                'kartu_keluarga_id' => $newKK ? $newKK->id : null,
                 'kedudukan_keluarga' => $validated['kedudukan_keluarga_pisah'],
                 'status_perkawinan' => $validated['status_perkawinan_pisah'] ?? $penduduk->status_perkawinan,
-                'alamat' => $alamat,
-                'rt_id' => $rtId,
-                'rw_id' => $rwId,
-                'dusun_id' => $dusunId,
             ]);
         }
         // Untuk luar desa/kota/negeri, TIDAK update data penduduk sama sekali
@@ -429,23 +479,35 @@ class MutasiService
 
         // Move selected family members if any
         $movedCount = 1;
-        if (!empty($anggotaIds)) {
+        if (!empty($anggotaDataInput)) {
             if ($validated['kategori_mutasi'] === 'dalam_desa') {
-                // Untuk dalam desa, update semua field termasuk RT/RW/Dusun
-                // Use models instead of query builder to trigger observers
-                Penduduk::whereIn('id', $anggotaIds)->get()->each(function ($anggota) use ($newNKK, $alamat, $rtId, $rwId, $dusunId) {
-                    $anggota->update([
-                        'nkk' => $newNKK,
-                        'alamat' => $alamat,
-                        'rt_id' => $rtId,
-                        'rw_id' => $rwId,
-                        'dusun_id' => $dusunId,
-                    ]);
-                });
+                foreach ($anggotaDataInput as $memberData) {
+                    $mId = $memberData['id'] ?? null;
+                    $mRole = $memberData['kedudukan_keluarga'] ?? 'ANGGOTA KELUARGA';
+                    
+                    if ($mId) {
+                        Penduduk::where('id', $mId)->update([
+                            'kartu_keluarga_id' => $newKK ? $newKK->id : null,
+                            'kedudukan_keluarga' => $mRole
+                        ]);
+                    }
+                }
             }
-            // Untuk luar desa/kota/negeri, TIDAK anggota keluarga sama sekali
-            // Mereka akan di-soft delete tanpa perubahan
-            $movedCount += count($anggotaIds);
+            $movedCount += count($anggotaDataInput);
+        }
+
+        // Trigger recalculation for both KKs
+        $kkService = app(\App\Services\KartuKeluargaService::class);
+        
+        // 1. Recalculate Old KK (Source of Truth)
+        $oldKKRecord = KartuKeluarga::where('nkk', $oldNKK)->first();
+        if ($oldKKRecord) {
+            $kkService->recalculate($oldKKRecord->id);
+        }
+
+        // 2. Recalculate New KK (if within village)
+        if ($newKK) {
+            $kkService->recalculate($newKK->id);
         }
 
         // Create mutation log
@@ -493,6 +555,25 @@ class MutasiService
                 'snapshot_asal' => $snapshotAsal, // Simpan dalam key 'snapshot_asal' konsisten
             ],
         ]);
+
+        // Buat log mutasi untuk SETIAP ANGGOTA yang ikut Pisah KK
+        if (!empty($anggotaIds)) {
+            $anggotaPindah = Penduduk::whereIn('id', $anggotaIds)->get();
+            foreach ($anggotaPindah as $member) {
+                Mutasi::create([
+                    'penduduk_id' => $member->id,
+                    'jenis_mutasi' => 'pisah_kk',
+                    'kategori_mutasi' => $validated['kategori_mutasi'],
+                    'asal_tujuan' => $asalTujuan,
+                    'tanggal_mutasi' => $validated['tanggal_mutasi'],
+                    'alasan' => "Ikut Pisah KK bersama ({$penduduk->nama})",
+                    'detail_tambahan' => [
+                        'pisah_bersama' => $penduduk->nama,
+                        'penduduk_utama_id' => $penduduk->id,
+                    ],
+                ]);
+            }
+        }
 
         // Soft delete penduduk jika pindah keluar desa/kota
         if (in_array($validated['kategori_mutasi'], ['dalam_kota', 'luar_kota', 'luar_negeri'])) {

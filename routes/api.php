@@ -33,118 +33,111 @@ Route::prefix('v1')->group(function () {
     // ========================================
 
     // Statistics & Data - Frontend routes (dengan API key untuk keamanan)
-    Route::get('/statistics', [WebDesaController::class, 'getStatistics'])->middleware(['throttle:500,1', 'private.api', 'api.key']);
-    Route::get('/statistics/penduduk', [WebDesaController::class, 'getPendudukStats'])->middleware(['throttle:500,1', 'private.api', 'api.key']);
-    Route::get('/statistics/kk', [WebDesaController::class, 'getKKStats'])->middleware(['throttle:500,1', 'private.api', 'api.key']);
-    Route::get('/statistics/mutasi', [WebDesaController::class, 'getMutasiStats'])->middleware(['throttle:500,1', 'private.api', 'api.key']);
+    Route::get('/statistics', [WebDesaController::class, 'getStatistics'])->middleware(['throttle:100,1', 'private.api']);
+    Route::get('/statistics/penduduk', [WebDesaController::class, 'getPendudukStats'])->middleware(['throttle:100,1', 'private.api']);
+    Route::get('/statistics/kk', [WebDesaController::class, 'getKKStats'])->middleware(['throttle:100,1', 'private.api']);
+    Route::get('/statistics/mutasi', [WebDesaController::class, 'getMutasiStats'])->middleware(['throttle:100,1', 'private.api']);
 
-    // Penduduk Data - Frontend routes (dengan API key untuk keamanan)
-    // Route::get('/penduduk', [PendudukApiController::class, 'index'])->middleware(['throttle:300,1', 'private.api', 'api.key']);
-    // Route::get('/penduduk/age-statistics', [PendudukApiController::class, 'ageStatistics'])->middleware(['throttle:400,1', 'private.api', 'api.key']);
-    // Route::get('/penduduk/filter-options', [PendudukApiController::class, 'filterOptions'])->middleware(['throttle:400,1', 'private.api', 'api.key']);
 
     // Testimoni Data - Frontend routes (dengan API key untuk keamanan)
-    Route::get('/testimoni', [TestimoniController::class, 'index'])->middleware(['throttle:300,1', 'private.api', 'api.key']);
-    Route::get('/testimoni/stats', [TestimoniController::class, 'stats'])->middleware(['throttle:400,1', 'private.api', 'api.key']);
-    Route::get('/testimoni/categories', [TestimoniController::class, 'categories'])->middleware(['throttle:400,1', 'private.api', 'api.key']);
+    Route::get('/testimoni', [TestimoniController::class, 'index'])->middleware(['throttle:100,1', 'private.api']);
+    Route::get('/testimoni/stats', [TestimoniController::class, 'stats'])->middleware(['throttle:100,1', 'private.api']);
+    Route::get('/testimoni/categories', [TestimoniController::class, 'categories'])->middleware(['throttle:100,1', 'private.api']);
 
     // Struktur Desa Data - Frontend routes (dengan API key untuk keamanan)
-    Route::get('/struktur-desa', [\App\Http\Controllers\Api\StrukturDesaController::class, 'index'])->middleware(['throttle:300,1', 'private.api', 'api.key']);
-    Route::get('/perangkat-desa', [\App\Http\Controllers\Api\StrukturDesaController::class, 'perangkatDesa'])->middleware(['throttle:400,1', 'private.api', 'api.key']);
-    Route::get('/rt-rw', [\App\Http\Controllers\Api\StrukturDesaController::class, 'rtRw'])->middleware(['throttle:400,1', 'private.api', 'api.key']);
-    Route::get('/bumdes', [\App\Http\Controllers\Api\StrukturDesaController::class, 'bumdes'])->middleware(['throttle:400,1', 'private.api', 'api.key']);
-    Route::get('/struktur-desa/category/{category}', [\App\Http\Controllers\Api\StrukturDesaController::class, 'byCategory'])->middleware(['throttle:400,1', 'private.api', 'api.key']);
+    Route::get('/struktur-desa', [\App\Http\Controllers\Api\StrukturDesaController::class, 'index'])->middleware(['throttle:100,1', 'private.api']);
+    Route::get('/perangkat-desa', [\App\Http\Controllers\Api\StrukturDesaController::class, 'perangkatDesa'])->middleware(['throttle:100,1', 'private.api']);
+    Route::get('/rt-rw', [\App\Http\Controllers\Api\StrukturDesaController::class, 'rtRw'])->middleware(['throttle:100,1', 'private.api']);
+    Route::get('/bumdes', [\App\Http\Controllers\Api\StrukturDesaController::class, 'bumdes'])->middleware(['throttle:100,1', 'private.api']);
+    Route::get('/struktur-desa/category/{category}', [\App\Http\Controllers\Api\StrukturDesaController::class, 'byCategory'])->middleware(['throttle:100,1', 'private.api']);
 
     // Berita & Content - Frontend routes (dengan API key untuk keamanan)
-    Route::get('/berita', [BeritaController::class, 'index'])->middleware(['throttle:300,1', 'private.api', 'api.key']);
-    Route::get('/berita/{slug}', [BeritaController::class, 'show'])->middleware(['throttle:300,1', 'private.api', 'api.key']);
-    Route::get('/berita-featured', [BeritaController::class, 'featured'])->middleware(['throttle:300,1', 'private.api', 'api.key']);
-    Route::get('/berita-categories', [BeritaController::class, 'categories'])->middleware(['throttle:300,1', 'private.api', 'api.key']);
-    Route::get('/berita-latest', [BeritaController::class, 'latest'])->middleware(['throttle:300,1', 'private.api', 'api.key']);
-    Route::get('/berita-search', [BeritaController::class, 'search'])->middleware(['throttle:200,1', 'private.api', 'api.key']);
-    Route::get('/berita-by-category/{category}', [BeritaController::class, 'getByCategory'])->middleware(['throttle:300,1', 'private.api', 'api.key']);
-    Route::get('/berita-eksternal', [\App\Http\Controllers\Api\BeritaEksternalController::class, 'index'])->middleware(['throttle:300,1', 'private.api', 'api.key']);
-    Route::get('/berita-combined', [\App\Http\Controllers\Api\BeritaEksternalController::class, 'internalExternalCombined'])->middleware(['throttle:300,1', 'private.api', 'api.key']);
+    Route::get('/berita', [BeritaController::class, 'index'])->middleware(['throttle:100,1', 'private.api']);
+    Route::get('/berita/{slug}', [BeritaController::class, 'show'])->middleware(['throttle:100,1', 'private.api']);
+    Route::get('/berita-featured', [BeritaController::class, 'featured'])->middleware(['throttle:100,1', 'private.api']);
+    Route::get('/berita-categories', [BeritaController::class, 'categories'])->middleware(['throttle:100,1', 'private.api']);
+    Route::get('/berita-latest', [BeritaController::class, 'latest'])->middleware(['throttle:100,1', 'private.api']);
+    Route::get('/berita-search', [BeritaController::class, 'search'])->middleware(['throttle:50,1', 'private.api']);
+    Route::get('/berita-by-category/{category}', [BeritaController::class, 'getByCategory'])->middleware(['throttle:300,1', 'private.api']);
+    Route::get('/berita-eksternal', [\App\Http\Controllers\Api\BeritaEksternalController::class, 'index'])->middleware(['throttle:300,1', 'private.api']);
+    Route::get('/berita-combined', [\App\Http\Controllers\Api\BeritaEksternalController::class, 'internalExternalCombined'])->middleware(['throttle:300,1', 'private.api']);
 
     // Desa Info & Services - Frontend routes (dengan API key untuk keamanan)
-    Route::get('/desa-info', [\App\Http\Controllers\Api\WebDesaController::class, 'desaInfo'])->middleware(['throttle:300,1', 'private.api', 'api.key']);
-    Route::get('/contact-info', [\App\Http\Controllers\Api\WebDesaController::class, 'contactInfo'])->middleware(['throttle:300,1', 'private.api', 'api.key']);
-    Route::get('/contact/info', [ContactController::class, 'info'])->middleware(['throttle:300,1', 'private.api', 'api.key']);
-    Route::get('/kontak-desa', [\App\Http\Controllers\Api\KontakDesaController::class, 'index'])->middleware(['throttle:300,1', 'private.api', 'api.key']);
+    Route::get('/desa-info', [\App\Http\Controllers\Api\WebDesaController::class, 'desaInfo'])->middleware(['throttle:100,1', 'private.api']);
+    Route::get('/contact-info', [\App\Http\Controllers\Api\WebDesaController::class, 'contactInfo'])->middleware(['throttle:100,1', 'private.api']);
+    Route::get('/contact/info', [ContactController::class, 'info'])->middleware(['throttle:100,1', 'private.api']);
+    Route::get('/kontak-desa', [\App\Http\Controllers\Api\KontakDesaController::class, 'index'])->middleware(['throttle:100,1', 'private.api']);
 
     // Proyek & Development - Frontend routes (dengan API key untuk keamanan)
-    Route::get('/proyek-desa', [\App\Http\Controllers\Api\ProyekDesaController::class, 'index'])->middleware(['throttle:300,1', 'private.api', 'api.key']);
-    Route::get('/proyek-desa/{id}', [\App\Http\Controllers\Api\ProyekDesaController::class, 'show'])->middleware(['throttle:300,1', 'private.api', 'api.key']);
-    Route::get('/proyek-desa/tahun/{year}', [\App\Http\Controllers\Api\ProyekDesaController::class, 'byYear'])->middleware(['throttle:300,1', 'private.api', 'api.key']);
+    Route::get('/proyek-desa', [\App\Http\Controllers\Api\ProyekDesaController::class, 'index'])->middleware(['throttle:100,1', 'private.api']);
+    Route::get('/proyek-desa/{id}', [\App\Http\Controllers\Api\ProyekDesaController::class, 'show'])->middleware(['throttle:100,1', 'private.api']);
+    Route::get('/proyek-desa/tahun/{year}', [\App\Http\Controllers\Api\ProyekDesaController::class, 'byYear'])->middleware(['throttle:100,1', 'private.api']);
 
     // Announcements - Frontend routes (dengan API key untuk keamanan)
-    Route::get('/announcements', [WebDesaController::class, 'getAnnouncements'])->middleware(['throttle:300,1', 'private.api', 'api.key']);
-    Route::get('/announcements/{id}', [WebDesaController::class, 'getAnnouncement'])->middleware(['throttle:300,1', 'private.api', 'api.key']);
+    Route::get('/announcements', [WebDesaController::class, 'getAnnouncements'])->middleware(['throttle:100,1', 'private.api']);
+    Route::get('/announcements/{id}', [WebDesaController::class, 'getAnnouncement'])->middleware(['throttle:100,1', 'private.api']);
 
     // Bantuan Sosial
-    Route::get('/bantuan-sosial', [BantuanSosialController::class, 'index'])->middleware(['throttle:300,1', 'private.api']);
+    Route::get('/bantuan-sosial', [BantuanSosialController::class, 'index'])->middleware(['throttle:100,1', 'private.api']);
 
     // UMKM
-    Route::get('/umkm', [\App\Http\Controllers\Api\UmkmController::class, 'index'])->middleware(['throttle:300,1', 'private.api']);
-    Route::get('/umkm/{id}', [\App\Http\Controllers\Api\UmkmController::class, 'show'])->middleware(['throttle:300,1', 'private.api']);
-    Route::get('/umkm-unggulan', [\App\Http\Controllers\Api\UmkmController::class, 'unggulan'])->middleware(['throttle:300,1', 'private.api']);
-    Route::get('/umkm-jenis/{jenis}', [\App\Http\Controllers\Api\UmkmController::class, 'byJenisUsaha'])->middleware(['throttle:300,1', 'private.api']);
-    Route::get('/umkm-statistics', [\App\Http\Controllers\Api\UmkmController::class, 'statistics'])->middleware(['throttle:300,1', 'private.api']);
+    Route::get('/umkm', [\App\Http\Controllers\Api\UmkmController::class, 'index'])->middleware(['throttle:100,1', 'private.api']);
+    Route::get('/umkm/{id}', [\App\Http\Controllers\Api\UmkmController::class, 'show'])->middleware(['throttle:100,1', 'private.api']);
+    Route::get('/umkm-unggulan', [\App\Http\Controllers\Api\UmkmController::class, 'unggulan'])->middleware(['throttle:100,1', 'private.api']);
+    Route::get('/umkm-jenis/{jenis}', [\App\Http\Controllers\Api\UmkmController::class, 'byJenisUsaha'])->middleware(['throttle:100,1', 'private.api']);
+    Route::get('/umkm-statistics', [\App\Http\Controllers\Api\UmkmController::class, 'statistics'])->middleware(['throttle:100,1', 'private.api']);
 
     // Agenda Desa
-    Route::get('/agenda-desa', [\App\Http\Controllers\Api\AgendaDesaController::class, 'index'])->middleware(['throttle:300,1', 'private.api']);
-    Route::get('/agenda-categories', [\App\Http\Controllers\Api\AgendaDesaController::class, 'categories'])->middleware(['throttle:300,1', 'private.api']);
+    Route::get('/agenda-desa', [\App\Http\Controllers\Api\AgendaDesaController::class, 'index'])->middleware(['throttle:100,1', 'private.api']);
+    Route::get('/agenda-categories', [\App\Http\Controllers\Api\AgendaDesaController::class, 'categories'])->middleware(['throttle:100,1', 'private.api']);
 
     // Transparansi
-    Route::get('/transparansi', [\App\Http\Controllers\Api\TransparansiController::class, 'index'])->middleware(['throttle:300,1', 'private.api']);
-    Route::get('/apbdes', [\App\Http\Controllers\Api\TransparansiController::class, 'apbdes'])->middleware(['throttle:300,1', 'private.api']);
-    Route::get('/proyek-pembangunan', [\App\Http\Controllers\Api\TransparansiController::class, 'proyekPembangunan'])->middleware(['throttle:300,1', 'private.api']);
-    Route::get('/bantuan-sosial-transparansi', [\App\Http\Controllers\Api\TransparansiController::class, 'bantuanSosialTransparansi'])->middleware(['throttle:300,1', 'private.api']);
+    Route::get('/transparansi', [\App\Http\Controllers\Api\TransparansiController::class, 'index'])->middleware(['throttle:100,1', 'private.api']);
+    Route::get('/apbdes', [\App\Http\Controllers\Api\TransparansiController::class, 'apbdes'])->middleware(['throttle:100,1', 'private.api']);
+    Route::get('/proyek-pembangunan', [\App\Http\Controllers\Api\TransparansiController::class, 'proyekPembangunan'])->middleware(['throttle:100,1', 'private.api']);
+    Route::get('/bantuan-sosial-transparansi', [\App\Http\Controllers\Api\TransparansiController::class, 'bantuanSosialTransparansi'])->middleware(['throttle:100,1', 'private.api']);
 
     // Fasilitas Desa
-    Route::get('/fasilitas-desa', [\App\Http\Controllers\Api\FasilitasDesaController::class, 'index'])->middleware(['throttle:300,1', 'private.api']);
-    Route::get('/fasilitas-desa/jenis/{jenis}', [\App\Http\Controllers\Api\FasilitasDesaController::class, 'byJenis'])->middleware(['throttle:300,1', 'private.api']);
+    Route::get('/fasilitas-desa', [\App\Http\Controllers\Api\FasilitasDesaController::class, 'index'])->middleware(['throttle:100,1', 'private.api']);
+    Route::get('/fasilitas-desa/jenis/{jenis}', [\App\Http\Controllers\Api\FasilitasDesaController::class, 'byJenis'])->middleware(['throttle:100,1', 'private.api']);
 
-    // Surat Types
-    Route::get('/surat-types', [WebDesaController::class, 'getSuratTypes'])->middleware(['throttle:300,1', 'private.api']);
+    Route::get('/surat-types', [SuratPengajuanApiController::class, 'index'])->middleware(['throttle:100,1', 'private.api']);
 
-    // Search Penduduk (Verifikasi NIK untuk pengajuan surat)
-    Route::get('/search-penduduk', [WebDesaController::class, 'searchPenduduk'])->middleware(['throttle:50,1', 'private.api', 'api.key']);
+    // Search Penduduk (Verifikasi NIK - Gunakan V3 agar otomatis/invisible)
+    Route::post('/search-penduduk', [SuratPengajuanApiController::class, 'checkNik'])->middleware(['throttle:10,1', 'private.api', 'captcha:v3']);
 
     // Admin Notifications (for header)
-    Route::get('/contact-messages/notifications', [\App\Http\Controllers\Admin\ContactMessageController::class, 'notifications'])->middleware(['throttle:200,1', 'private.api']);
+    Route::get('/contact-messages/notifications', [\App\Http\Controllers\Tenant\ContactMessageController::class, 'notifications'])->middleware(['throttle:50,1', 'private.api']);
 
     // ========================================
     // FORM SUBMISSIONS (Private API)
     // ========================================
 
     // Contact Form
-    Route::post('/contact/submit', [ContactController::class, 'submit'])->middleware(['throttle:30,1', 'private.api']);
+    Route::post('/contact/submit', [ContactController::class, 'submit'])->middleware(['throttle:5,1', 'private.api']);
 
     // Testimoni Form
-    Route::post('/testimoni', [TestimoniController::class, 'store'])->middleware(['throttle:50,1', 'private.api']);
+    Route::post('/testimoni', [TestimoniController::class, 'store'])->middleware(['throttle:10,1', 'private.api']);
 
     // Pengaduan Form
-    Route::get('/pengaduan', [PengaduanController::class, 'index'])->middleware(['throttle:300,1', 'private.api']);
-    Route::post('/pengaduan/submit', [PengaduanController::class, 'submit'])->middleware(['throttle:30,1', 'private.api']);
+    Route::get('/pengaduan', [PengaduanController::class, 'index'])->middleware(['throttle:100,1', 'private.api']);
+    Route::post('/pengaduan/submit', [PengaduanController::class, 'submit'])->middleware(['throttle:5,1', 'private.api']);
 
-    // Surat Pengajuan Forms
-    Route::post('/surat-pengajuan', [SuratPengajuanApiController::class, 'store'])->middleware(['throttle:30,1', 'private.api']);
-    Route::get('/check-nik/{nik}', [SuratPengajuanApiController::class, 'checkNik'])->middleware(['throttle:400,1', 'private.api']);
-    Route::get('/surat-pengajuan/{id}/status', [SuratPengajuanApiController::class, 'checkStatus'])->middleware(['throttle:500,1', 'private.api']);
-    Route::match(['GET', 'POST'], '/surat-pengajuan/nik/{nik}', [SuratPengajuanApiController::class, 'getByNik'])->middleware(['throttle:400,1', 'private.api']);
-    Route::get('/surat-pengajuan/search', [SuratPengajuanApiController::class, 'getByNomorSurat'])->middleware(['throttle:400,1', 'private.api']);
+    // Surat Pengajuan Forms (Keamanan Tinggi)
+    Route::post('/surat-pengajuan', [SuratPengajuanApiController::class, 'store'])->middleware(['throttle:5,1', 'private.api', 'captcha']);
+    Route::get('/surat-pengajuan/status', [SuratPengajuanApiController::class, 'checkStatus'])->middleware(['throttle:50,1', 'private.api', 'captcha']);
+    Route::post('/surat-pengajuan/history', [SuratPengajuanApiController::class, 'getHistory'])->middleware(['throttle:10,1', 'private.api', 'captcha']);
 
     // Bantuan Sosial Check
-    Route::post('/bantuan-sosial/check', [BantuanSosialController::class, 'checkByNik'])->middleware(['throttle:50,1', 'private.api']);
+    Route::post('/bantuan-sosial/check', [BantuanSosialController::class, 'checkByNik'])->middleware(['throttle:10,1', 'private.api', 'captcha:v2']);
 
-    // CSRF Token (Untuk frontend yang butuh)
+    // CSRF Token (Hanya untuk Web Desa Resmi)
     Route::get('/csrf-token', function() {
         return response()->json([
             'csrf_token' => csrf_token(),
             'expires_at' => now()->addMinutes(config('session.lifetime'))->toIso8601String()
         ]);
-    })->middleware(['throttle:300,1']);
+    })->middleware(['throttle:300,1', 'private.api']);
 
     // CAPTCHA & Rate Limiting
     Route::get('/captcha', [\App\Http\Controllers\Api\SecureSearchController::class, 'generateCaptcha'])->middleware(['throttle:300,5', 'private.api']);

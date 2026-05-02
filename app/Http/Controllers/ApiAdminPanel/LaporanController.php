@@ -15,7 +15,7 @@ class LaporanController extends Controller
 {
     public function index(): JsonResponse
     {
-        Gate::authorize('laporan.view');
+        Gate::authorize('laporan_statistik');
 
         $genderDist = Penduduk::select('jenis_kelamin', DB::raw('count(*) as total'))->groupBy('jenis_kelamin')->get();
         
@@ -46,8 +46,8 @@ class LaporanController extends Controller
     public function penduduk(Request $request): JsonResponse
     {
         $query = Penduduk::query();
-        if ($request->filled('dusun_id')) $query->where('dusun_id', $request->dusun_id);
-        if ($request->filled('rt_id')) $query->where('rt_id', $request->rt_id);
+        if ($request->filled('dusun_id')) $query->whereHas('kartuKeluarga', fn($q) => $q->where('dusun_id', $request->dusun_id));
+        if ($request->filled('rt_id')) $query->whereHas('kartuKeluarga', fn($q) => $q->where('rt_id', $request->rt_id));
         if ($request->filled('jenis_kelamin')) $query->where('jenis_kelamin', $request->jenis_kelamin);
 
         $data = $query->orderBy('nama')->paginate($request->get('per_page', 50));

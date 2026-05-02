@@ -14,13 +14,13 @@
             <p class="text-gray-600 mt-1">Informasi lengkap mengenai role dan permission</p>
         </div>
         <div class="flex flex-wrap gap-3">
-            @can('settings.roles.manage')
+            @can('admin_sistem')
             <a href="{{ route('settings.roles.edit', $role) }}" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg flex items-center transition-colors shadow-md">
                 <i class="fas fa-edit mr-2"></i>
                 Edit Role
             </a>
             @endcan
-            @can('settings.roles.manage')
+            @can('admin_sistem')
             @if($role->name !== 'Super Admin')
             <form method="POST" action="{{ route('settings.roles.destroy', $role) }}" onsubmit="return confirm('Apakah Anda yakin ingin menghapus role ini?')" class="inline">
                 @csrf

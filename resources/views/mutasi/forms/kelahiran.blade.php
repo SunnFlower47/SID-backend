@@ -124,6 +124,13 @@
                        placeholder="Cari No KK (NKK atau nama kepala keluarga)..."
                        autocomplete="off">
                 <input type="hidden" name="nkk" id="nkk_kelahiran">
+                
+                <!-- Hidden inputs for Wilayah (following KK) -->
+                <input type="hidden" name="alamat_bayi" id="alamat_bayi">
+                <input type="hidden" name="rt_id_bayi" id="rt_id_bayi">
+                <input type="hidden" name="rw_id_bayi" id="rw_id_bayi">
+                <input type="hidden" name="dusun_id_bayi" id="dusun_id_bayi">
+
                 <div id="nkk_search_results_kelahiran" class="absolute z-10 w-full bg-white border border-gray-300 rounded-lg shadow-lg mt-1 hidden max-h-60 overflow-y-auto"></div>
                 <div id="nkk_search_loading_kelahiran" class="absolute right-3 top-3 hidden">
                     <i class="fas fa-spinner fa-spin text-gray-400"></i>
@@ -142,40 +149,13 @@
                     </div>
                 </div>
             </div>
-        </div>
-        <div>
-            <label for="alamat_bayi" class="block text-sm font-medium text-gray-700 mb-2">Alamat</label>
-            <textarea name="alamat_bayi" id="alamat_bayi" rows="3"
-                      class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm transition-colors"
-                      placeholder="Alamat lengkap bayi" required></textarea>
-        </div>
-        <div>
-            <label for="rw_id_bayi" class="block text-sm font-medium text-gray-700 mb-2">RW</label>
-            <select name="rw_id_bayi" id="rw_id_bayi" onchange="populateRtByRwMutasi(this.value, 'rt_id_bayi')"
-                    class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm transition-colors" required>
-                <option value="">Pilih RW...</option>
-                @foreach(($masterRwOptions ?? []) as $rw)
-                    <option value="{{ $rw['id'] }}">RW {{ $rw['kode'] }} - {{ $rw['nama'] }}</option>
-                @endforeach
-            </select>
-        </div>
-        <div>
-            <label for="rt_id_bayi" class="block text-sm font-medium text-gray-700 mb-2">RT</label>
-            <select name="rt_id_bayi" id="rt_id_bayi" onchange="syncDusunByRtMutasi(this.value, document.getElementById('rw_id_bayi').value, 'dusun_id_bayi')"
-                    class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm transition-colors" required>
-                <option value="">Pilih RT...</option>
-            </select>
-        </div>
-        <div>
-            <label for="dusun_id_bayi_label" class="block text-sm font-medium text-gray-700 mb-2">Dusun</label>
-            <input type="text" id="dusun_id_bayi_label"
-                   class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm transition-colors bg-gray-50"
-                   placeholder="Dusun" readonly>
-            <input type="hidden" name="dusun_id_bayi" id="dusun_id_bayi">
+            <p class="mt-2 text-xs text-green-600 italic">
+                <i class="fas fa-info-circle mr-1"></i> Alamat dan Wilayah otomatis mengikuti data Kartu Keluarga di atas.
+            </p>
         </div>
         <div>
             <label for="keterangan_bayi" class="block text-sm font-medium text-gray-700 mb-2">Keterangan</label>
-            <textarea name="keterangan_bayi" id="keterangan_bayi" rows="2"
+            <textarea name="keterangan_bayi" id="keterangan_bayi" rows="3"
                       class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm transition-colors"
                       placeholder="Keterangan tambahan (opsional)"></textarea>
         </div>

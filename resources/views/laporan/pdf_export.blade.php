@@ -59,8 +59,8 @@
                         <td>{{ $row->nik }}</td>
                         <td>{{ $row->nama }}</td>
                         <td>{{ $row->jenis_kelamin == 'LAKI-LAKI' ? 'L' : 'P' }}</td>
-                        <td>{{ $row->tanggal_lahir }}</td>
-                        <td>{{ $row->alamat }}</td>
+                        <td>{{ $row->tanggal_lahir ? $row->tanggal_lahir->format('d/m/Y') : '-' }}</td>
+                        <td>{{ Str::limit($row->alamat, 30) }}</td>
                     @elseif($type === 'kk')
                         <td>{{ $row->nkk }}</td>
                         <td>{{ $row->nama }}</td>
@@ -69,7 +69,7 @@
                     @elseif($type === 'mutasi')
                         <td>{{ $row->penduduk->nama ?? 'Deleted' }}</td>
                         <td>{{ ucfirst($row->jenis_mutasi) }}</td>
-                        <td>{{ $row->tanggal_mutasi }}</td>
+                        <td>{{ $row->tanggal_mutasi ? $row->tanggal_mutasi->format('d/m/Y') : '-' }}</td>
                         <td>{{ $row->alasan }}</td>
                     @elseif($type === 'berita')
                         <td>{{ $row->judul }}</td>

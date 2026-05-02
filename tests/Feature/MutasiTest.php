@@ -39,11 +39,17 @@ class MutasiTest extends TestCase
 
     public function test_mutasi_kematian_soft_deletes_penduduk()
     {
-        // 1. Create a resident
+        // 1. Create a Kartu Keluarga first (Source of Truth)
+        $kk = KartuKeluarga::factory()->create([
+            'nkk' => '1234567890123456',
+            'alamat' => 'Jl. Test',
+        ]);
+
+        // 2. Create a resident linked to the KK
         $penduduk = Penduduk::create([
             'nik' => '1234567890123456',
+            'kartu_keluarga_id' => $kk->id,
             'nama' => 'John Doe',
-            'nkk' => '1234567890123456',
             'jenis_kelamin' => 'LAKI-LAKI',
             'tempat_lahir' => 'Cibatu',
             'tanggal_lahir' => '1990-01-01',
@@ -51,15 +57,10 @@ class MutasiTest extends TestCase
             'status_perkawinan' => 'Belum Kawin',
             'pekerjaan' => 'Buruh',
             'pendidikan' => 'SMA',
-            'status' => 'aktif',
-            'alamat' => 'Jl. Test',
-            'rt' => '001',
-            'rw' => '001',
-            'dusun' => 'Dusun 1',
             'kedudukan_keluarga' => 'Kepala Keluarga',
         ]);
 
-        // 2. Perform Mutation (Kematian)
+        // 3. Perform Mutation (Kematian)
         $response = $this->post(route('mutasi.data.store'), [
             'jenis_mutasi' => 'kematian',
             'penduduk_id' => $penduduk->id,
@@ -74,7 +75,7 @@ class MutasiTest extends TestCase
             'alasan' => 'Sakit Tua'
         ]);
 
-        // 3. Assertions
+        // 4. Assertions
         $response->assertRedirect(route('mutasi.data.index'));
         $response->assertSessionHas('success');
 
@@ -89,19 +90,24 @@ class MutasiTest extends TestCase
             'id' => $penduduk->id
         ]);
         
-        // Check Kartu Keluarga Summary Updated (If Observer works)
+        // Check Kartu Keluarga Summary Updated (If Observer/Service works)
         $this->assertDatabaseHas('kartu_keluargas', [
-            'nkk' => $penduduk->nkk,
+            'id' => $kk->id,
             'anggota_meninggal' => 1
         ]);
     }
 
     public function test_mutasi_pindah_keluar_soft_deletes_penduduk()
     {
+        $kk = KartuKeluarga::factory()->create([
+            'nkk' => '9876543210987654',
+            'alamat' => 'Jl. Test 2',
+        ]);
+
         $penduduk = Penduduk::create([
             'nik' => '9876543210987654',
+            'kartu_keluarga_id' => $kk->id,
             'nama' => 'Jane Doe',
-            'nkk' => '9876543210987654',
             'jenis_kelamin' => 'PEREMPUAN',
             'tempat_lahir' => 'Cibatu',
             'tanggal_lahir' => '1995-01-01',
@@ -109,11 +115,6 @@ class MutasiTest extends TestCase
             'status_perkawinan' => 'Kawin',
             'pekerjaan' => 'IRT',
             'pendidikan' => 'D3',
-            'status' => 'aktif',
-            'alamat' => 'Jl. Test 2',
-            'rt' => '002',
-            'rw' => '002',
-            'dusun' => 'Dusun 2',
             'kedudukan_keluarga' => 'Istri',
         ]);
 
@@ -138,7 +139,7 @@ class MutasiTest extends TestCase
         ]);
         
         $this->assertDatabaseHas('kartu_keluargas', [
-            'nkk' => $penduduk->nkk,
+            'id' => $kk->id,
             'anggota_pindah' => 1
         ]);
     }

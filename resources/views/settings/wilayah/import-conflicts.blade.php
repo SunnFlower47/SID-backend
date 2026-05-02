@@ -326,6 +326,7 @@
                     </div>
 
                     <!-- Field Perbaikan Utama -->
+                    <input type="hidden" name="rw_id" id="field_rw_id">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="md:col-span-2">
                             <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Nama Lengkap</label>
@@ -387,6 +388,7 @@
                                         <option value="{{ $rt->id }}" 
                                                 data-rt="{{ $rt->kode }}" 
                                                 data-rw="{{ $rw->kode }}" 
+                                                data-rw-id="{{ $rw->id }}" 
                                                 data-dusun="{{ $rt->dusun->nama ?? '' }}">
                                             RW {{ $rw->kode }} - RT {{ $rt->kode }} ({{ $rt->dusun->nama ?? 'Dusun ?' }})
                                         </option>
@@ -511,9 +513,14 @@
                     document.getElementById('field_rw').value = selected.dataset.rw;
                     document.getElementById('field_dusun').value = selected.dataset.dusun;
                     
+                    // Update hidden IDs for controller
+                    document.getElementById('field_rw_id').value = selected.dataset.rwId;
+                    
                     // Auto-select "Pakai Master RT" action for convenience
                     const useExistingRadio = document.querySelector('input[name="action"][value="use_existing"]');
                     if (useExistingRadio) useExistingRadio.checked = true;
+                } else {
+                    document.getElementById('field_rw_id').value = '';
                 }
             });
         }

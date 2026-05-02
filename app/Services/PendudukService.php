@@ -14,36 +14,47 @@ class PendudukService
     public function createPenduduk(array $data, ?array $familyMembers = [])
     {
         return DB::transaction(function () use ($data, $familyMembers) {
-            // Handle KK logic (Simplified to only NKK)
+            // Handle KK logic - Always get KartuKeluarga ID
+            $kkId = null;
+            
             if (isset($data['kk_option'])) {
                 if ($data['kk_option'] === 'existing' && !empty($data['nkk_existing'])) {
                     // Use existing NKK
-                    $existingMember = Penduduk::where('nkk', $data['nkk_existing'])->first();
-                    if ($existingMember) {
-                        $data['nkk'] = $existingMember->nkk;
-                        $data['alamat'] = $existingMember->alamat;
-                        $data['rt_id'] = $existingMember->rt_id;
-                        $data['rw_id'] = $existingMember->rw_id;
-                        $data['dusun_id'] = $existingMember->dusun_id;
+                    $kk = \App\Models\KartuKeluarga::where('nkk', $data['nkk_existing'])->first();
+                    if ($kk) {
+                        $kkId = $kk->id;
                     }
                 } elseif ($data['kk_option'] === 'manual' && !empty($data['nkk'])) {
-                    // Use manual NKK
-                    $existingKK = Penduduk::where('nkk', $data['nkk'])->first();
-                    if ($existingKK) {
-                        $data['alamat'] = $existingKK->alamat;
-                        $data['rt_id'] = $existingKK->rt_id;
-                        $data['rw_id'] = $existingKK->rw_id;
-                        $data['dusun_id'] = $existingKK->dusun_id;
-                    }
+                    // Use manual NKK - Find or Create KK record (Source of Truth)
+                    $kk = \App\Models\KartuKeluarga::firstOrCreate(
+                        ['nkk' => $data['nkk']],
+                        [
+                            'alamat' => $data['alamat'] ?? 'Belum Diisi',
+                            'rt_id' => $data['rt_id'] ?? null,
+                            'rw_id' => $data['rw_id'] ?? null,
+                            'dusun_id' => $data['dusun_id'] ?? null,
+                            'nama_kepala_keluarga' => $data['nama'] ?? 'Belum Ditentukan',
+                            'nik_kepala_keluarga' => $data['nik'] ?? null,
+                        ]
+                    );
+                    $kkId = $kk->id;
                 }
             }
 
-            // Validation safety net
-            if (empty($data['nkk'])) {
-                throw new \Exception('No KK tidak dapat ditentukan.');
+            // Fallback for direct kartu_keluarga_id
+            if (empty($kkId) && !empty($data['kartu_keluarga_id'])) {
+                $kkId = $data['kartu_keluarga_id'];
             }
 
-            // Create main record
+            // Validation safety net
+            if (empty($kkId)) {
+                throw new \Exception('Data Kartu Keluarga tidak ditemukan atau tidak dapat dibuat.');
+            }
+
+            // Set the relational ID
+            $data['kartu_keluarga_id'] = $kkId;
+
+            // Create main record (Only unique fields will be saved due to $fillable)
             $penduduk = Penduduk::create($data);
 
             // Handle family members
@@ -61,23 +72,66 @@ class PendudukService
     public function updatePenduduk(Penduduk $penduduk, array $data)
     {
         return DB::transaction(function () use ($penduduk, $data) {
+            // Update personal data on Penduduk model
             $penduduk->update($data);
+
+            // Handle NKK change (Family Merging / Migration)
+            if (isset($data['nkk']) && (string)$data['nkk'] !== (string)$penduduk->nkk) {
+                $newNkk = preg_replace('/\D+/', '', $data['nkk']);
+                if (strlen($newNkk) === 16) {
+                    $targetKk = \App\Models\KartuKeluarga::firstOrCreate(
+                        ['nkk' => $newNkk],
+                        [
+                            'alamat' => $penduduk->kartuKeluarga->alamat ?? 'Belum Diisi',
+                            'rt_id' => $penduduk->kartuKeluarga->rt_id ?? null,
+                            'rw_id' => $penduduk->kartuKeluarga->rw_id ?? null,
+                            'dusun_id' => $penduduk->kartuKeluarga->dusun_id ?? null,
+                            'nama_kepala_keluarga' => $penduduk->nama,
+                            'nik_kepala_keluarga' => $penduduk->nik,
+                        ]
+                    );
+                    
+                    $oldKkId = $penduduk->kartu_keluarga_id;
+                    $penduduk->kartu_keluarga_id = $targetKk->id;
+                    $penduduk->save();
+
+                    // Recalculate both old and new families
+                    $kkService = app(\App\Services\KartuKeluargaService::class);
+                    $kkService->recalculate($targetKk->id);
+                    if ($oldKkId) $kkService->recalculate($oldKkId);
+                }
+            }
+
+            // KK Address update logic removed from personal update to enforce centralized family address management
+            
+            // SELALU Picu sinkronisasi statistik & data identitas KK setelah update
+            if ($penduduk->kartu_keluarga_id) {
+                app(\App\Services\KartuKeluargaService::class)->recalculate($penduduk->kartu_keluarga_id);
+            }
+
             return $penduduk->refresh();
         });
     }
 
     /**
-     * Update family address based on RT ID
+     * Update family address (Redirected to KartuKeluarga Source of Truth)
      */
     public function updateFamilyAddress($nkk, array $data)
     {
         return DB::transaction(function () use ($nkk, $data) {
-            return Penduduk::where('nkk', $nkk)->update([
+            $kk = \App\Models\KartuKeluarga::where('nkk', $nkk)->firstOrFail();
+            
+            $kk->update([
                 'alamat' => $data['alamat'],
                 'rt_id' => $data['rt_id'],
                 'rw_id' => $data['rw_id'],
-                'dusun_id' => $data['dusun_id'] ?? null,
+                'dusun_id' => $data['dusun_id'] ?? $kk->dusun_id,
             ]);
+
+            // Trigger recalculation
+            app(\App\Services\KartuKeluargaService::class)->recalculate($kk->id);
+            
+            return 1; // Simplified return
         });
     }
 
@@ -89,12 +143,9 @@ class PendudukService
         foreach ($members as $index => $memberData) {
             if (empty($memberData['nik']) || empty($memberData['nama'])) continue;
 
+            // Only send essential fields + the relationship ID
             $familyData = array_merge($memberData, [
-                'nkk' => $mainPenduduk->nkk,
-                'alamat' => $memberData['alamat'] ?? $mainPenduduk->alamat,
-                'rt_id' => $memberData['rt_id'] ?? $mainPenduduk->rt_id,
-                'rw_id' => $memberData['rw_id'] ?? $mainPenduduk->rw_id,
-                'dusun_id' => $memberData['dusun_id'] ?? $mainPenduduk->dusun_id,
+                'kartu_keluarga_id' => $mainPenduduk->kartu_keluarga_id,
                 'agama' => $memberData['agama'] ?? $mainPenduduk->agama,
                 'kedudukan_keluarga' => $memberData['kedudukan_keluarga'] ?? 'Anggota Keluarga',
             ]);

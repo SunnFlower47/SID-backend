@@ -17,7 +17,7 @@ class ImportController extends Controller
      */
     public function index()
     {
-        Gate::authorize('penduduk.import');
+        Gate::authorize('kependudukan');
         
         return view('import.index');
     }
@@ -27,7 +27,7 @@ class ImportController extends Controller
      */
     public function excel(Request $request)
     {
-        Gate::authorize('penduduk.import');
+        Gate::authorize('kependudukan');
 
         $request->validate([
             'file' => 'required|file|mimes:xlsx,xls|max:10240', // 10MB max

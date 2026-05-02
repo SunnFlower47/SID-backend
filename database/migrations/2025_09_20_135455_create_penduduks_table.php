@@ -32,7 +32,7 @@ return new class extends Migration
             $table->string('rw');
             $table->string('dusun')->nullable();
             $table->text('keterangan')->nullable();
-            $table->string('status', 20);
+            $table->string('status', 20)->default('Aktif');
             $table->softDeletes();
             $table->timestamps();
         });

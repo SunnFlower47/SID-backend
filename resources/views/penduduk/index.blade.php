@@ -29,7 +29,7 @@
 
         <!-- Action Buttons -->
         <div class="flex flex-col sm:flex-row gap-3 mb-6">
-            @can('penduduk.create')
+            @can('kependudukan')
             <a href="{{ route('penduduk.create') }}" class="group flex items-center justify-center px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
                 <div class="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center mr-3 group-hover:scale-110 transition-transform">
                     <i class="fas fa-plus text-white text-sm"></i>
@@ -41,7 +41,7 @@
             </a>
             @endcan
 
-            @can('penduduk.export')
+            @can('kependudukan')
             <button onclick="exportExcel()"
                class="group flex items-center justify-center px-4 py-3 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
                 <div class="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center mr-3 group-hover:scale-110 transition-transform">
@@ -302,25 +302,7 @@
                                 <td class="px-4 py-4">
                                     <div class="space-y-2">
                                         <div class="font-mono text-sm text-gray-900 bg-green-50 px-3 py-2 rounded-lg">{{ $penduduk->nkk }}</div>
-                                        @php
-                                            // Get kepala keluarga from database
-                                            $kepalaKeluarga = null;
-
-                                            // Check if current penduduk is kepala keluarga (case insensitive)
-                                            if (strtoupper($penduduk->kedudukan_keluarga) === 'KEPALA KELUARGA') {
-                                                $kepalaKeluarga = $penduduk;
-                                            } else {
-                                                // Find kepala keluarga with same NKK from database
-                                                $kepalaKeluarga = \App\Models\Penduduk::where('nkk', $penduduk->nkk)
-                                                    ->where(function($query) {
-                                                        $query->where('kedudukan_keluarga', 'KEPALA KELUARGA')
-                                                              ->orWhere('kedudukan_keluarga', 'Kepala Keluarga')
-                                                              ->orWhere('kedudukan_keluarga', 'kepala keluarga');
-                                                    })
-                                                    ->first();
-                                            }
-                                        @endphp
-                                        <div class="text-sm font-medium text-gray-700">{{ $kepalaKeluarga ? $kepalaKeluarga->nama : 'Tidak ada kepala keluarga' }}</div>
+                                        <div class="text-sm font-medium text-gray-700">{{ optional($penduduk->kartuKeluarga)->nama_kepala_keluarga ?? 'Tidak ada kepala keluarga' }}</div>
                                     </div>
                                 </td>
 
@@ -358,7 +340,7 @@
                                         <i class="fas fa-eye text-sm mr-1"></i>
                                         <span class="text-sm font-medium hidden sm:inline">Detail</span>
                                     </button>
-                                    @can('penduduk.edit')
+                                    @can('kependudukan')
                                     <a href="{{ route('penduduk.edit', $penduduk) }}"
                                        class="group flex items-center px-3 py-2 bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105"
                                        onclick="event.stopPropagation()"
@@ -368,7 +350,7 @@
                                     </a>
                                     @endcan
                                     <!-- Tombol KK dihapus karena terlalu ribet untuk struktur data saat ini -->
-                                    @can('penduduk.delete')
+                                    @can('kependudukan')
                                     <button onclick="event.stopPropagation(); confirmDelete('{{ $penduduk->id }}', '{{ $penduduk->nama }}')"
                                             class="group flex items-center px-3 py-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105"
                                             title="Hapus Data">
@@ -408,21 +390,11 @@
 
                     <!-- Family Header (if new family) -->
                     @if($isNewFamily)
-                        @php
-                            // Find kepala keluarga for this family from database
-                            $kepalaKeluargaMobile = \App\Models\Penduduk::where('nkk', $penduduk->nkk)
-                                ->where(function($query) {
-                                    $query->where('kedudukan_keluarga', 'KEPALA KELUARGA')
-                                          ->orWhere('kedudukan_keluarga', 'Kepala Keluarga')
-                                          ->orWhere('kedudukan_keluarga', 'kepala keluarga');
-                                })
-                                ->first();
-                        @endphp
                         <div class="bg-gradient-to-r from-green-50 to-blue-50 rounded-2xl p-4 border-l-4 border-green-500">
                             <div class="flex items-center justify-between">
                                 <div>
                                     <h4 class="font-bold text-gray-900">No KK: {{ $penduduk->nkk }}</h4>
-                                    <p class="text-sm text-gray-600">Kepala Keluarga: {{ $kepalaKeluargaMobile ? $kepalaKeluargaMobile->nama : 'Belum ditentukan' }}</p>
+                                    <p class="text-sm text-gray-600">Kepala Keluarga: {{ optional($penduduk->kartuKeluarga)->nama_kepala_keluarga ?? 'Belum ditentukan' }}</p>
                                 </div>
                                 <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
                                     <i class="fas fa-home text-white text-lg"></i>
@@ -525,7 +497,7 @@
                                     <i class="fas fa-eye mr-2 text-sm"></i>
                                     <span class="text-sm font-medium">Detail</span>
                                 </a>
-                                @can('penduduk.edit')
+                                @can('kependudukan')
                                 <a href="{{ route('penduduk.edit', $penduduk) }}" class="flex-1 bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white px-3 py-2.5 rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-105 shadow-md">
                                     <i class="fas fa-edit mr-2 text-sm"></i>
                                     <span class="text-sm font-medium">Edit</span>
@@ -534,7 +506,7 @@
                             </div>
 
                             <!-- Hapus Button - Full Width -->
-                            @can('penduduk.delete')
+                            @can('kependudukan')
                                 <button onclick="confirmDelete('{{ $penduduk->id }}', '{{ $penduduk->nama }}')" class="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-3 py-2.5 rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-105 shadow-md">
                                 <i class="fas fa-trash mr-2 text-sm"></i>
                                 <span class="text-sm font-medium">Hapus</span>
@@ -557,7 +529,7 @@
                 </div>
                 <h3 class="text-2xl font-bold text-gray-900 mb-3">Tidak ada data penduduk</h3>
                 <p class="text-gray-600 mb-8 max-w-md mx-auto">Mulai dengan menambahkan data penduduk baru ke dalam sistem</p>
-                @can('penduduk.create')
+                @can('kependudukan')
                 <a href="{{ route('penduduk.create') }}" class="group inline-flex items-center px-8 py-4 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
                     <div class="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center mr-3 group-hover:scale-110 transition-transform">
                         <i class="fas fa-plus text-white text-sm"></i>

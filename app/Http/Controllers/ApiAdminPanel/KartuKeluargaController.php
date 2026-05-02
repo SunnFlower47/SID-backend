@@ -104,7 +104,7 @@ class KartuKeluargaController extends Controller
         Gate::authorize('create', KartuKeluarga::class);
 
         $request->validate([
-            'nkk' => 'required|string|size:16|unique:penduduks,nkk',
+            'nkk' => 'required|string|size:16|unique:kartu_keluargas,nkk',
             'nik_kepala_keluarga' => 'required|string|size:16|unique:penduduks,nik',
             'nama_kepala_keluarga' => 'required|string|max:255',
             'jenis_kelamin' => 'required|in:LAKI-LAKI,PEREMPUAN',
@@ -120,10 +120,22 @@ class KartuKeluargaController extends Controller
             'dusun_id' => 'required|exists:dusuns,id',
         ]);
 
+        DB::beginTransaction();
         try {
-            $pendudukService = app(\App\Services\PendudukService::class);
-            
-            $data = [
+            // 1. Create the Kartu Keluarga first (The Source of Truth)
+            $kk = KartuKeluarga::create([
+                'nkk' => $request->nkk,
+                'nama_kepala_keluarga' => $request->nama_kepala_keluarga,
+                'nik_kepala_keluarga' => $request->nik_kepala_keluarga,
+                'alamat' => $request->alamat,
+                'rt_id' => $request->rt_id,
+                'rw_id' => $request->rw_id,
+                'dusun_id' => $request->dusun_id,
+            ]);
+
+            // 2. Create the Kepala Keluarga and link via ID
+            $penduduk = Penduduk::create([
+                'kartu_keluarga_id' => $kk->id,
                 'nik' => $request->nik_kepala_keluarga,
                 'nama' => $request->nama_kepala_keluarga,
                 'jenis_kelamin' => $request->jenis_kelamin,
@@ -133,16 +145,10 @@ class KartuKeluargaController extends Controller
                 'status_perkawinan' => $request->status_perkawinan,
                 'pekerjaan' => $request->pekerjaan,
                 'pendidikan' => $request->pendidikan,
-                'alamat' => $request->alamat,
-                'rt_id' => $request->rt_id,
-                'rw_id' => $request->rw_id,
-                'dusun_id' => $request->dusun_id,
-                'nkk' => $request->nkk,
                 'kedudukan_keluarga' => 'Kepala Keluarga',
-            ];
+            ]);
 
-            $penduduk = $pendudukService->createPenduduk($data);
-
+            DB::commit();
             return response()->json([
                 'status' => 'success',
                 'message' => 'Kartu Keluarga berhasil dibuat',
@@ -163,15 +169,17 @@ class KartuKeluargaController extends Controller
     {
         Gate::authorize('view', KartuKeluarga::class);
 
-        $members = Penduduk::withTrashed()->where('nkk', $nkk)
-            ->orderByRaw("FIELD(kedudukan_keluarga, 'Kepala Keluarga', 'Istri', 'Anak')")
-            ->get();
-
-        if ($members->isEmpty()) {
+        $summary = KartuKeluarga::where('nkk', $nkk)->first();
+        if (!$summary) {
             return response()->json(['status' => 'error', 'message' => 'Kartu Keluarga tidak ditemukan'], 404);
         }
 
-        $summary = KartuKeluarga::where('nkk', $nkk)->first();
+        $members = Penduduk::withTrashed()->where('kartu_keluarga_id', $summary->id)
+            ->orderByRaw("CASE 
+                WHEN kedudukan_keluarga = 'Kepala Keluarga' THEN 1 
+                ELSE 2 
+                END")
+            ->get();
 
         return response()->json([
             'status' => 'success',
@@ -197,15 +205,23 @@ class KartuKeluargaController extends Controller
             'dusun_id' => 'required|exists:dusuns,id',
         ]);
 
-        $kepalaKeluarga = Penduduk::where('nkk', $nkk)
+        $kkRecord = KartuKeluarga::where('nkk', $nkk)->firstOrFail();
+        
+        $kkRecord->update([
+            'nama_kepala_keluarga' => $request->nama_kepala_keluarga,
+            'alamat' => $request->alamat,
+            'rt_id' => $request->rt_id,
+            'rw_id' => $request->rw_id,
+            'dusun_id' => $request->dusun_id,
+        ]);
+
+        $kepalaKeluarga = Penduduk::where('kartu_keluarga_id', $kkRecord->id)
             ->where('kedudukan_keluarga', 'Kepala Keluarga')
             ->first();
 
-        if (!$kepalaKeluarga) {
-            return response()->json(['status' => 'error', 'message' => 'Kepala Keluarga tidak ditemukan'], 404);
+        if ($kepalaKeluarga) {
+            $kepalaKeluarga->update(['nama' => $request->nama_kepala_keluarga]);
         }
-
-        $kepalaKeluarga->update($request->only(['nama', 'alamat', 'rt_id', 'rw_id', 'dusun_id']));
 
         return response()->json([
             'status' => 'success',
@@ -221,7 +237,9 @@ class KartuKeluargaController extends Controller
         Gate::authorize('delete', KartuKeluarga::class);
 
         try {
-            Penduduk::where('nkk', $nkk)->delete();
+            $kk = KartuKeluarga::where('nkk', $nkk)->firstOrFail();
+            Penduduk::where('kartu_keluarga_id', $kk->id)->delete();
+            $kk->delete();
             return response()->json([
                 'status' => 'success',
                 'message' => 'Kartu Keluarga berhasil dihapus'
@@ -278,7 +296,7 @@ class KartuKeluargaController extends Controller
     public function resolveKkPermanen(Request $request, $nkk): JsonResponse
     {
         $request->validate([
-            'nkk_baru' => 'required|string|size:16|unique:kartu_keluargas,nkk|unique:penduduks,nkk',
+            'nkk_baru' => 'required|string|size:16|unique:kartu_keluargas,nkk',
         ]);
 
         $kkRecord = KartuKeluarga::where('nkk', $nkk)->firstOrFail();
@@ -290,17 +308,24 @@ class KartuKeluargaController extends Controller
 
         DB::beginTransaction();
         try {
-            Penduduk::withoutEvents(function () use ($nkk, $nkkBaru) {
-                Penduduk::where('nkk', $nkk)->update(['nkk' => $nkkBaru]);
-            });
-
-            KartuKeluarga::create([
+            // Update NKK on the KartuKeluarga record (Source of Truth)
+            // Accessor on Penduduk will handle the display
+            $kkRecord->update([
                 'nkk' => $nkkBaru,
-                'nama_kepala_keluarga' => $kkRecord->kkSementara?->nama ?? $kkRecord->nama_kepala_keluarga,
-                'nik_kepala_keluarga'  => $kkRecord->kkSementara?->nik  ?? $kkRecord->nik_kepala_keluarga,
-                'alamat' => $kkRecord->alamat, 'rt_id' => $kkRecord->rt_id, 'rw_id' => $kkRecord->rw_id, 'dusun_id' => $kkRecord->dusun_id,
                 'status_kk' => 'normal',
+                'kk_sementara_id' => null
             ]);
+
+            // Mark the mutation cause so Undo is blocked
+            if ($kkRecord->mutasi_penyebab_id) {
+                $mutasi = Mutasi::find($kkRecord->mutasi_penyebab_id);
+                if ($mutasi) {
+                    $detail = $mutasi->detail_tambahan ?? [];
+                    $detail['kk_sudah_diselesaikan'] = true;
+                    $detail['nkk_baru'] = $nkkBaru;
+                    $mutasi->update(['detail_tambahan' => $detail]);
+                }
+            }
 
             $kkRecord->update(['status_kk' => 'resolved', 'anggota_aktif' => 0]);
 
@@ -358,7 +383,7 @@ class KartuKeluargaController extends Controller
      */
     public function sync(): JsonResponse
     {
-        Gate::authorize('kartu-keluarga.edit');
+        Gate::authorize('kependudukan');
         try {
             Artisan::call('sync:kartu-keluarga');
             Artisan::call('kk:scan-historis', ['--force' => true]);

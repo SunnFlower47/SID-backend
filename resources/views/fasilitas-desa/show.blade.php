@@ -147,7 +147,7 @@
             <div class="bg-white rounded-2xl shadow-lg border-0 p-6">
                 <h3 class="text-lg font-semibold text-gray-900 mb-4">Aksi</h3>
                 <div class="space-y-3">
-                    @can('fasilitas-desa.edit')
+                    @can('pelayanan_informasi')
                     <a href="{{ route('fasilitas-desa.edit', $fasilitasDesa) }}"
                        class="w-full inline-flex items-center justify-center px-4 py-3 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white font-medium rounded-xl hover:from-yellow-600 hover:to-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 transition-all duration-200 shadow-lg">
                         <i class="fas fa-edit mr-2"></i>
@@ -161,7 +161,7 @@
                         Kembali ke Daftar
                     </a>
 
-                    @can('fasilitas-desa.delete')
+                    @can('pelayanan_informasi')
                     <button onclick="confirmDelete({{ $fasilitasDesa->id }}, '{{ $fasilitasDesa->nama }}')"
                             class="w-full inline-flex items-center justify-center px-4 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white font-medium rounded-xl hover:from-red-600 hover:to-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-200 shadow-lg">
                         <i class="fas fa-trash mr-2"></i>
@@ -190,7 +190,7 @@
 </div>
 
 <!-- Hidden Delete Form -->
-@can('fasilitas-desa.delete')
+@can('pelayanan_informasi')
 <form id="delete-form-{{ $fasilitasDesa->id }}" action="{{ route('fasilitas-desa.destroy', $fasilitasDesa) }}" method="POST" class="hidden">
     @csrf
     @method('DELETE')

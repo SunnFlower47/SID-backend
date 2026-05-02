@@ -10,7 +10,7 @@
     <meta name="keywords" content="konfirmasi password, desa cibatu, purwakarta">
 
     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="{{ asset('logo-desa-cibatu.png') }}">
+    <link rel="icon" type="image/png" href="{{ asset('assets/images/logo-desa-cibatu.png') }}">
 
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -89,7 +89,7 @@
             <!-- Logo -->
             <div class="flex justify-center mb-8">
                 <div class="bg-white p-4 rounded-2xl shadow-lg">
-                    <img src="{{ asset('logo-desa-cibatu.png') }}" alt="Logo Desa Cibatu" class="h-16 w-16 mx-auto">
+                    <img src="{{ asset('assets/images/logo-desa-cibatu.png') }}" alt="Logo Desa Cibatu" class="h-16 w-16 mx-auto">
                 </div>
             </div>
 
