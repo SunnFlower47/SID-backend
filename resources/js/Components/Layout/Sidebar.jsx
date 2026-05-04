@@ -22,8 +22,9 @@ const menuGroups = [
         hoverBg: 'hover:from-green-50 hover:to-green-100 hover:text-green-700',
         items: [
             { name: 'Data Penduduk', href: 'penduduk.index', icon: 'Users' },
-            { name: 'Data Mutasi', href: 'mutasi.data.index', icon: 'ArrowLeftRight' },
             { name: 'Kartu Keluarga', href: 'kk.index', icon: 'Home' },
+            { name: 'Penduduk Domisili', href: 'domisili.index', icon: 'MapPin' },
+            { name: 'Data Mutasi', href: 'mutasi.data.index', icon: 'ArrowLeftRight' },
         ]
     },
     {
@@ -33,7 +34,7 @@ const menuGroups = [
         hoverBg: 'hover:from-purple-50 hover:to-purple-100 hover:text-purple-700',
         items: [
             { name: 'Layanan Surat', href: 'admin.surat-pengajuan.index', icon: 'FileText' },
-            { name: 'Master Jenis Surat', href: 'admin.surat-type.index', icon: 'FileText' },
+            { name: 'Master Jenis Surat', href: 'admin.surat-type.index', icon: 'ScrollText' },
             { name: 'Bantuan Sosial', href: 'bantuan-sosial.index', icon: 'HeartHandshake' },
             { name: 'Pengaduan Warga', href: 'pengaduan.index', icon: 'MessageSquare' },
             { name: 'Pesan Kontak', href: 'contact-messages.index', icon: 'Mail' },
@@ -116,12 +117,21 @@ export default function Sidebar({ collapsed, isMobile = false, closeMobile, togg
             // Exact match
             if (current === routeName) return true;
 
-            // Handle KK Bermasalah separation
-            if (routeName === 'kk.index' && current.startsWith('kk.bermasalah')) return false;
+            // Handle resource sub-routes (e.g. penduduk.create matches penduduk.index)
+            if (routeName.endsWith('.index')) {
+                const resourceBase = routeName.replace('.index', '');
+                // Check if current route starts with resourceBase followed by a dot
+                if (current.startsWith(resourceBase + '.')) return true;
+            }
 
-            // General group match (e.g., penduduk.index matches penduduk.show)
-            const prefix = routeName.replace('.index', '');
-            return current.startsWith(prefix);
+            // Fallback for custom patterns
+            const routeParts = routeName.split('.');
+            const currentParts = current.split('.');
+            if (routeParts.length >= 2 && currentParts.length >= 2) {
+                return routeParts[0] === currentParts[0] && routeParts[1] === currentParts[1];
+            }
+            
+            return false;
         } catch (e) {
             return false;
         }

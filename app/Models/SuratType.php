@@ -23,6 +23,7 @@ class SuratType extends Model
         'persyaratan',
         'has_template',
         'template_code',
+        'file_template',
         'icon',
         'color',
         'is_active',

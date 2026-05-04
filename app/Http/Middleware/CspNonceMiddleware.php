@@ -51,7 +51,8 @@ class CspNonceMiddleware
             "object-src 'none'",
             "base-uri 'self'",
             "form-action 'self'",
-            "frame-ancestors 'self'"
+            "frame-ancestors 'self'",
+            "media-src 'self' data:"
         ]);
     }
 }

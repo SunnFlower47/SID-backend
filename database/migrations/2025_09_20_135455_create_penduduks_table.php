@@ -13,28 +13,32 @@ return new class extends Migration
     {
         Schema::create('penduduks', function (Blueprint $table) {
             $table->id();
-            $table->string('nkk'); // No. KK
+            
+            // Relational ID (Source of Truth for Wilayah and NKK)
+            $table->foreignId('kartu_keluarga_id')->nullable()->constrained('kartu_keluargas')->nullOnDelete();
+            
             $table->string('nik')->unique();
             $table->string('nama');
             $table->string('jenis_kelamin', 20);
-            $table->string('tempat_lahir');
+            $table->string('tempat_lahir')->nullable();
             $table->date('tanggal_lahir')->nullable();
-            $table->integer('usia')->nullable();
-            $table->string('agama');
+            
+            $table->string('agama')->nullable();
             $table->string('status_perkawinan')->nullable();
             $table->string('kedudukan_keluarga')->nullable();
-            $table->string('pendidikan');
-            $table->string('pekerjaan');
+            $table->string('pendidikan')->nullable();
+            $table->string('pekerjaan')->nullable();
             $table->string('nama_ayah')->nullable();
             $table->string('nama_ibu')->nullable();
-            $table->text('alamat');
-            $table->string('rt');
-            $table->string('rw');
-            $table->string('dusun')->nullable();
+            
             $table->text('keterangan')->nullable();
-            $table->string('status', 20)->default('Aktif');
+            
             $table->softDeletes();
             $table->timestamps();
+
+            // Indexes for Performance
+            $table->index('nama');
+            $table->index('kartu_keluarga_id');
         });
     }
 

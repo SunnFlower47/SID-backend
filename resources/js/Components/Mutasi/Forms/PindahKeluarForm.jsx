@@ -79,9 +79,12 @@ export default function PindahKeluarForm({ mutasi = null }) {
 
   const handleResidentSelect = async (resident) => {
     setSelectedResident(resident);
-    setData('penduduk_id', resident?.id || '');
-    setData('anggota_pindah', []);
-    setFamilyMembers([]);
+    setData(prev => ({
+        ...prev,
+        penduduk_id: resident?.id || '',
+        anggota_pindah: isEdit ? prev.anggota_pindah : []
+    }));
+    if (!isEdit) setFamilyMembers([]);
     clearErrors();
 
     if (resident?.id) {
@@ -100,6 +103,13 @@ export default function PindahKeluarForm({ mutasi = null }) {
       }
     }
   };
+
+  // Fetch family members on edit mode init
+  useEffect(() => {
+    if (isEdit && selectedResident?.id && familyMembers.length === 0) {
+        handleResidentSelect(selectedResident);
+    }
+  }, [isEdit, selectedResident]);
 
   const toggleMember = (id) => {
     const current = [...data.anggota_pindah];
@@ -242,7 +252,7 @@ export default function PindahKeluarForm({ mutasi = null }) {
       </div>
 
       {/* 2. Address Details */}
-      <div className="p-8 bg-gray-50/50 border border-gray-100 rounded-[40px] space-y-8">
+      <div className="p-8 bg-gray-50/50 border border-gray-100 rounded-3xl space-y-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
             <MapPin className="w-4 h-4" />
@@ -372,7 +382,7 @@ export default function PindahKeluarForm({ mutasi = null }) {
       </div>
 
       {/* 3. Reason & Date */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 p-8 bg-white border border-gray-100 rounded-[40px] shadow-sm">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 p-8 bg-white border border-gray-100 rounded-3xl shadow-sm">
         <div className="space-y-2">
           <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Tanggal Pindah</label>
           <input 
@@ -397,10 +407,10 @@ export default function PindahKeluarForm({ mutasi = null }) {
       <div className="pt-4 flex items-center justify-end">
         <button
           type="submit" disabled={processing}
-          className="px-12 py-4 bg-orange-600 text-white rounded-2xl text-sm font-black hover:bg-orange-700 transition-all shadow-xl shadow-orange-900/20 flex items-center gap-2 active:scale-95 disabled:opacity-50"
+          className="px-10 py-3.5 bg-gradient-to-r from-orange-400 to-orange-600 text-white rounded-xl text-[11px] font-bold uppercase tracking-widest hover:scale-[1.02] transition-all shadow-xl shadow-orange-200 flex items-center gap-2 active:scale-95 disabled:opacity-50"
         >
           {processing ? (
-            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
           ) : <Save className="w-4 h-4" />}
           SIMPAN DATA PINDAH KELUAR
         </button>

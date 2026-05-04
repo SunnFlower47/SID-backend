@@ -38,7 +38,7 @@ export default function KkStats({ stats }) {
     };
 
     return (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             {statCards.map((stat, index) => {
                 const Icon = stat.icon;
                 const colors = colorClasses[stat.color] || colorClasses.blue;
@@ -47,7 +47,7 @@ export default function KkStats({ stats }) {
                     <div 
                         key={index} 
                         className={cn(
-                            "bg-white rounded-2xl p-3 sm:p-5 border shadow-sm hover:shadow-md transition-all flex items-center gap-3 sm:gap-4",
+                            "bg-white rounded-2xl p-4 sm:p-6 border shadow-sm hover:shadow-md transition-all flex items-center gap-3 sm:gap-4",
                             colors.split(' ')[0], // border class
                             colors.split(' ')[3]  // shadow class
                         )}

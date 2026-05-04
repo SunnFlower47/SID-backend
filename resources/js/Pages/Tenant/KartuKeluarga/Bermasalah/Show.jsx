@@ -81,28 +81,26 @@ export default function Show({ auth, kkRecord, nkk, anggotaAktif, mutasiPenyebab
         <AuthenticatedLayout user={auth.user} title={`Resolusi KK - ${nkk}`}>
             <Head title="Selesaikan KK Bermasalah" />
 
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20">
                 
                 {/* Header Section */}
                 <div className={cn(
-                    "rounded-3xl shadow-xl p-5 sm:px-8 sm:py-6 text-white relative overflow-hidden transition-all duration-500",
-                    status === 'bermasalah' ? "bg-gradient-to-br from-red-600 via-red-700 to-red-800" :
-                    status === 'bermasalah_sementara' ? "bg-gradient-to-br from-orange-500 via-orange-600 to-orange-700" :
-                    "bg-gradient-to-br from-emerald-500 via-emerald-600 to-emerald-700"
+                    "rounded-3xl shadow-xl p-6 sm:p-8 text-white relative overflow-hidden transition-all duration-500",
+                    status === 'resolved' 
+                        ? "bg-gradient-to-r from-emerald-600 via-emerald-700 to-emerald-800" 
+                        : "bg-gradient-to-r from-green-600 via-green-700 to-green-800"
                 )}>
                     <div className="absolute top-0 right-0 -mt-6 -mr-6 w-48 h-48 bg-white opacity-10 rounded-full blur-3xl"></div>
-                    <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
                         <div className="flex items-center space-x-4">
-                            <div className="w-14 h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/10">
-                                <AlertTriangle className="w-8 h-8 text-yellow-300" />
+                            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/10 shadow-inner shrink-0">
+                                <AlertTriangle className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-300" />
                             </div>
                             <div>
-                                <h1 className="text-xl font-black tracking-tight uppercase italic leading-tight">Resolusi KK</h1>
-                                <div className="flex items-center gap-2 mt-1">
-                                    <p className="text-white/80 font-mono text-sm tracking-widest">{nkk}</p>
-                                    <span className="w-1 h-1 bg-white/30 rounded-full"></span>
-                                    <p className="text-[10px] font-bold text-white/60 uppercase tracking-widest">Audit Trail</p>
-                                </div>
+                                <h1 className="text-xl sm:text-3xl font-black text-white tracking-tight uppercase italic leading-none text-left">Resolusi KK</h1>
+                                <p className="text-white/80 font-bold text-[10px] sm:text-xs uppercase tracking-widest mt-1 opacity-80 text-left italic">
+                                    Audit & Pemulihan Data Kartu Keluarga Bermasalah
+                                </p>
                             </div>
                         </div>
                         <Link 

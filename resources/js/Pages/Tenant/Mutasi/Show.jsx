@@ -81,7 +81,7 @@ export default function Show({ auth, mutasi }) {
     };
 
     const DetailSection = ({ icon: Icon, title, color = 'blue', children }) => (
-        <div className={cn("bg-white rounded-[32px] border border-gray-100 shadow-xl overflow-hidden mb-8")}>
+        <div className={cn("bg-white rounded-3xl border border-gray-100 shadow-xl overflow-hidden mb-8")}>
             <div className={cn("px-8 py-5 border-b border-gray-50 flex items-center gap-4", 
                 color === 'red' ? 'bg-red-50/30' : 
                 color === 'rose' ? 'bg-rose-50/30' : 
@@ -296,10 +296,10 @@ export default function Show({ auth, mutasi }) {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Left Column: Resident Info Card */}
                     <div className="lg:col-span-1">
-                        <div className="bg-white rounded-[40px] border border-gray-100 shadow-xl overflow-hidden sticky top-8 animate-in slide-in-from-left-4 duration-700">
+                        <div className="bg-white rounded-3xl border border-gray-100 shadow-xl overflow-hidden sticky top-8 animate-in slide-in-from-left-4 duration-700">
                             <div className="p-10 text-center border-b border-gray-50 bg-gradient-to-b from-gray-50 to-white">
-                                <div className="w-28 h-28 bg-white rounded-[32px] flex items-center justify-center mx-auto mb-6 border border-gray-100 shadow-xl relative group">
-                                    <div className="absolute inset-0 bg-green-500/0 group-hover:bg-green-500/5 transition-colors rounded-[32px]"></div>
+                                <div className="w-28 h-28 bg-white rounded-3xl flex items-center justify-center mx-auto mb-6 border border-gray-100 shadow-xl relative group">
+                                    <div className="absolute inset-0 bg-green-500/0 group-hover:bg-green-500/5 transition-colors rounded-3xl"></div>
                                     <User className="w-14 h-14 text-gray-200 group-hover:text-green-200 transition-colors" />
                                 </div>
                                 <h2 className="text-xl font-black text-gray-950 uppercase tracking-tighter italic leading-tight">
@@ -356,7 +356,7 @@ export default function Show({ auth, mutasi }) {
                         {renderMutasiSpecifics()}
 
                         {/* Documents Section */}
-                        <div className="bg-white rounded-[40px] border border-gray-100 shadow-xl overflow-hidden p-8 md:p-10">
+                        <div className="bg-white rounded-3xl border border-gray-100 shadow-xl overflow-hidden p-8 md:p-10">
                             <div className="flex items-center gap-4 mb-8 pb-4 border-b border-gray-50">
                                 <div className="p-2 bg-gray-50 rounded-xl">
                                     <FileText className="w-6 h-6 text-gray-400" />
@@ -365,7 +365,7 @@ export default function Show({ auth, mutasi }) {
                             </div>
                             
                             {mutasi.dokumen_pendukung ? (
-                                <div className="p-6 bg-gradient-to-r from-gray-50 to-white rounded-[32px] border border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-6 hover:shadow-lg transition-shadow">
+                                <div className="p-6 bg-gradient-to-r from-gray-50 to-white rounded-3xl border border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-6 hover:shadow-lg transition-shadow">
                                     <div className="flex items-center gap-5">
                                         <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center border border-gray-100 shadow-sm relative overflow-hidden group">
                                             <div className="absolute inset-0 bg-blue-500/0 group-hover:bg-blue-500/5 transition-colors"></div>
@@ -385,7 +385,7 @@ export default function Show({ auth, mutasi }) {
                                     </a>
                                 </div>
                             ) : (
-                                <div className="py-20 border-2 border-dashed border-gray-100 rounded-[40px] flex flex-col items-center justify-center text-center bg-gray-50/30">
+                                <div className="py-20 border-2 border-dashed border-gray-100 rounded-3xl flex flex-col items-center justify-center text-center bg-gray-50/30">
                                     <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-6 shadow-inner">
                                         <XCircle className="w-10 h-10 text-gray-100" />
                                     </div>

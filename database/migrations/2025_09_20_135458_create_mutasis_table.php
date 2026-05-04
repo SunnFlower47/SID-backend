@@ -13,13 +13,28 @@ return new class extends Migration
     {
         Schema::create('mutasis', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('penduduk_id')->constrained()->onDelete('cascade');
-            $table->enum('jenis_mutasi', ['kelahiran', 'kematian', 'pindah_masuk', 'pindah_keluar', 'pindah_rt_rw', 'perubahan_data', 'pisah_kk']);
-            $table->string('kategori_mutasi', 100);
-            $table->string('asal_tujuan');
+            $table->foreignId('penduduk_id')->constrained('penduduks')->onDelete('cascade');
+            
+            $table->enum('jenis_mutasi', [
+                'kelahiran',
+                'kematian',
+                'pindah_masuk',
+                'pindah_keluar',
+                'pindah_rt_rw',
+                'pisah_kk',
+                'pembaruan_kk'
+            ]);
+            
             $table->date('tanggal_mutasi');
-            $table->text('alasan');
-            $table->string('dokumen_pendukung')->nullable();
+            $table->text('alasan')->nullable();
+            $table->json('detail_tambahan')->nullable(); // Menampung metadata spesifik (ex: No Akta)
+            $table->string('dokumen_pendukung')->nullable(); // Ditambahkan sesuai db lama
+            
+            // Kolom pembantu untuk laporan
+            $table->string('kategori_mutasi')->nullable(); // ex: Antar Desa, Antar Kecamatan
+            $table->string('asal_tujuan')->nullable();
+            
+            $table->softDeletes();
             $table->timestamps();
         });
     }

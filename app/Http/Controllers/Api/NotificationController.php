@@ -27,7 +27,7 @@ class NotificationController extends Controller
                         'id' => $surat->id,
                         'type' => 'surat',
                         'title' => 'Pengajuan Surat Baru',
-                        'message' => "{$surat->penduduk->nama} mengajukan {$surat->jenis_surat}",
+                        'message' => ($surat->penduduk?->nama ?? 'Penduduk Tidak Ditemukan') . " mengajukan " . ($surat->surat_type_name),
                         'time' => $surat->created_at->diffForHumans(),
                         'status' => $surat->status,
                         'url' => route('admin.surat-pengajuan.show', $surat->id),
@@ -73,6 +73,7 @@ class NotificationController extends Controller
             ]);
 
         } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Notification Error: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal memuat notifikasi',

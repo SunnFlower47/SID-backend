@@ -215,7 +215,7 @@
     </table>
 
     <div class="title">SURAT KETERANGAN KEMATIAN</div>
-    <div class="subtitle">No. 470 / {{ $nomor_surat ?? '......' }} / 2001 / {{ intToRoman($bulanSurat) }} / {{ $tahunSurat }}</div>
+    <div class="subtitle">No. {{ $kode_surat }} / {{ $nomor_urut }} / {{ $kode_desa }} / {{ $bulan_romawi }} / {{ $tahun_surat }}</div>
 
     <div class="content">
         <p>Yang bertanda tangan di bawah ini, menerangkan bahwa :</p>

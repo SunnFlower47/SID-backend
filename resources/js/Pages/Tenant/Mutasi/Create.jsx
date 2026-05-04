@@ -52,12 +52,12 @@ export default function Create({ auth, wilayahTree }) {
                 </div>
 
                 {/* Form Section */}
-                <div className="max-w-7xl mx-auto">
-                    <div className="bg-white overflow-hidden shadow-xl sm:rounded-[40px] border border-gray-100 animate-in slide-in-from-bottom-4 duration-700">
+                <div className="w-full">
+                    <div className="bg-white overflow-hidden shadow-xl sm:rounded-3xl border border-gray-100 animate-in slide-in-from-bottom-4 duration-700">
                         <div className="p-1 border-b border-gray-50 bg-gradient-to-r from-gray-50 to-white">
-                             <div className="p-4 md:p-10">
+                                <div className="p-4 md:p-10">
                                 <MutasiFormManager wilayahTree={wilayahTree} />
-                             </div>
+                                </div>
                         </div>
                     </div>
                 </div>

@@ -213,7 +213,7 @@ export default function KelahiranForm({ mutasi = null }) {
       </div>
 
       {/* 2. Data Bayi */}
-      <div className="p-8 bg-blue-50/50 border border-blue-100 rounded-[32px] space-y-6">
+      <div className="p-8 bg-blue-50/50 border border-blue-100 rounded-3xl space-y-6">
         <h4 className="text-xs font-black text-blue-600 uppercase tracking-widest flex items-center gap-2">
           <Baby className="w-4 h-4" />
           Informasi Bayi
@@ -409,7 +409,7 @@ export default function KelahiranForm({ mutasi = null }) {
       </div>
 
       {/* 3. Data Orang Tua */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-8 bg-gray-50 border border-gray-100 rounded-[32px]">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-8 bg-gray-50 border border-gray-100 rounded-3xl">
         <div className="md:col-span-2">
            <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest flex items-center gap-2 mb-2">
             <Heart className="w-4 h-4 text-rose-400" />
@@ -456,9 +456,9 @@ export default function KelahiranForm({ mutasi = null }) {
         <button
           type="submit"
           disabled={processing}
-          className="px-10 py-4 bg-blue-600 text-white rounded-2xl text-sm font-black hover:bg-blue-700 transition-all shadow-xl shadow-blue-900/20 flex items-center gap-2 active:scale-95 disabled:opacity-50"
+          className="px-10 py-3.5 bg-gradient-to-r from-blue-500 to-blue-700 text-white rounded-xl text-[11px] font-bold uppercase tracking-widest hover:scale-[1.02] transition-all shadow-xl shadow-blue-200 flex items-center gap-2 active:scale-95 disabled:opacity-50"
         >
-          {processing ? 'Menyimpan...' : (
+          {processing ? 'MENYIMPAN...' : (
             <>
               <Save className="w-4 h-4" />
               SIMPAN DATA KELAHIRAN

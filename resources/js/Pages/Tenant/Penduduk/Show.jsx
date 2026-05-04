@@ -48,19 +48,19 @@ export default function Show({ auth, penduduk }) {
         <AuthenticatedLayout user={auth.user} title={`Detail - ${penduduk.nama}`}>
             <Head title={`Detail Penduduk - ${penduduk.nama}`} />
 
-            <div className="space-y-6 md:space-y-8 animate-in fade-in duration-700">
+            <div className="max-w-7xl mx-auto space-y-6 animate-in fade-in duration-700 pb-12">
                 
                 {/* 1. CONSISTENT HEADER */}
                 <div className="bg-gradient-to-r from-green-600 via-green-700 to-green-800 rounded-3xl shadow-xl p-6 sm:p-8 relative overflow-hidden">
                     <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl"></div>
-                    <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
                         <div className="flex items-center space-x-4">
                             <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-inner shrink-0">
                                 <User className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-300" />
                             </div>
                             <div>
-                                <h1 className="text-xl sm:text-3xl font-black text-white tracking-tight uppercase italic leading-none">Detail Penduduk</h1>
-                                <p className="text-green-100 font-bold text-[10px] sm:text-xs uppercase tracking-widest mt-2 opacity-80 flex items-center gap-2">
+                                <h1 className="text-xl sm:text-3xl font-black text-white tracking-tight uppercase italic leading-none text-left">Detail Penduduk</h1>
+                                <p className="text-green-100 font-bold text-[10px] sm:text-xs uppercase tracking-widest mt-1 opacity-80 flex items-center gap-2 text-left">
                                     <ShieldCheck className="w-3 h-3 text-yellow-300" />
                                     Profil Terverifikasi Sistem
                                 </p>
@@ -90,7 +90,7 @@ export default function Show({ auth, penduduk }) {
                     
                     {/* LEFT SIDE: SUMMARY CARD */}
                     <div className="lg:col-span-1 space-y-6">
-                        <div className="bg-white rounded-[32px] border border-gray-100 shadow-xl overflow-hidden">
+                        <div className="bg-white rounded-3xl border border-gray-100 shadow-xl overflow-hidden">
                             <div className="h-24 bg-gray-50 relative">
                                 <div className="absolute inset-0 bg-gradient-to-b from-gray-100/50 to-transparent"></div>
                                 <div className="absolute -bottom-12 left-1/2 -translate-x-1/2">
@@ -122,7 +122,7 @@ export default function Show({ auth, penduduk }) {
                         </div>
 
                         {/* INFO LOG - DESKTOP ONLY HERE */}
-                        <div className="hidden lg:block bg-white rounded-[32px] border border-gray-100 shadow-lg p-6 space-y-4">
+                        <div className="hidden lg:block bg-white rounded-3xl border border-gray-100 shadow-lg p-6 space-y-4">
                             <h3 className="text-[10px] font-black text-gray-900 uppercase tracking-widest flex items-center gap-2">
                                 <Clock className="w-4 h-4 text-gray-400" />
                                 Timeline Sistem
@@ -144,7 +144,7 @@ export default function Show({ auth, penduduk }) {
                     <div className="lg:col-span-2 space-y-6 md:space-y-8">
                         
                         {/* BIODATA SECTION */}
-                        <div className="bg-white rounded-[32px] border border-gray-100 shadow-xl overflow-hidden">
+                        <div className="bg-white rounded-3xl border border-gray-100 shadow-xl overflow-hidden">
                             <div className="p-6 md:p-8 border-b border-gray-50 flex items-center justify-between bg-gray-50/20">
                                 <h3 className="text-sm font-black text-gray-900 uppercase tracking-[0.2em] flex items-center gap-3 italic">
                                     <FileText className="w-5 h-5 text-green-600" />
@@ -165,7 +165,7 @@ export default function Show({ auth, penduduk }) {
                         </div>
 
                         {/* FAMILY SECTION */}
-                        <div className="bg-white rounded-[32px] border border-gray-100 shadow-xl overflow-hidden">
+                        <div className="bg-white rounded-3xl border border-gray-100 shadow-xl overflow-hidden">
                             <div className="p-6 md:p-8 border-b border-gray-50 flex items-center justify-between">
                                 <h3 className="text-sm font-black text-gray-900 uppercase tracking-[0.2em] flex items-center gap-3 italic">
                                     <Users className="w-5 h-5 text-blue-600" />
@@ -210,7 +210,7 @@ export default function Show({ auth, penduduk }) {
                         </div>
 
                         {/* MUTATION SECTION */}
-                        <div className="bg-white rounded-[32px] border border-gray-100 shadow-xl overflow-hidden">
+                        <div className="bg-white rounded-3xl border border-gray-100 shadow-xl overflow-hidden">
                             <div className="p-6 md:p-8 border-b border-gray-50 flex items-center gap-3 bg-orange-50/20">
                                 <History className="w-5 h-5 text-orange-600" />
                                 <h3 className="text-sm font-black text-gray-900 uppercase tracking-[0.2em] italic">Riwayat Mutasi</h3>
@@ -243,7 +243,7 @@ export default function Show({ auth, penduduk }) {
                         </div>
 
                         {/* INFO LOG - MOBILE ONLY HERE */}
-                        <div className="lg:hidden bg-white rounded-[32px] border border-gray-100 shadow-lg p-6 space-y-4 mb-6">
+                        <div className="lg:hidden bg-white rounded-3xl border border-gray-100 shadow-lg p-6 space-y-4 mb-6">
                             <h3 className="text-[10px] font-black text-gray-900 uppercase tracking-widest flex items-center gap-2">
                                 <Clock className="w-4 h-4 text-gray-400" />
                                 Timeline Sistem

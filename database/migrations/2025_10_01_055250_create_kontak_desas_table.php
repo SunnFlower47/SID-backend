@@ -17,9 +17,11 @@ return new class extends Migration
             $table->enum('jenis', ['kantor_desa', 'kepala_desa', 'sekretaris', 'bendahara', 'kasi_pemerintahan', 'kasi_kesejahteraan', 'kasi_pelayanan', 'kepala_dusun', 'ketua_rw', 'ketua_rt', 'ketua_bumdes', 'puskesmas', 'posyandu', 'sekolah', 'masjid', 'lainnya']);
             $table->string('jabatan')->nullable();
             $table->string('alamat');
-            $table->string('rt')->nullable();
-            $table->string('rw')->nullable();
-            $table->string('dusun')->nullable();
+            
+            $table->foreignId('rt_id')->nullable()->constrained('rts')->nullOnDelete();
+            $table->foreignId('rw_id')->nullable()->constrained('rws')->nullOnDelete();
+            $table->foreignId('dusun_id')->nullable()->constrained('dusuns')->nullOnDelete();
+            
             $table->string('no_telepon')->nullable();
             $table->string('no_hp')->nullable();
             $table->string('email')->nullable();

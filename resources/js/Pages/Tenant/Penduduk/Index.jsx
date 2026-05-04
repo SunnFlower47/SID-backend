@@ -57,20 +57,27 @@ export default function Index({ auth, penduduks, stats, rtList, rwList, dusunLis
 
     const handleDelete = (id, nama) => {
         Swal.fire({
-            title: 'Konfirmasi Hapus',
-            text: `Apakah Anda yakin ingin menghapus data ${nama}?`,
+            title: 'KONFIRMASI HAPUS',
+            html: `Apakah Anda yakin ingin menghapus data <b class="text-red-600">${nama}</b>?<br><small class="text-gray-400 font-bold uppercase tracking-widest text-[9px]">Tindakan ini tidak dapat dibatalkan</small>`,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Ya, Hapus!',
-            cancelButtonText: 'Batal'
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#f3f4f6',
+            confirmButtonText: 'YA, HAPUS DATA!',
+            cancelButtonText: 'BATALKAN',
+            background: '#ffffff',
+            customClass: {
+                popup: 'rounded-3xl border-none shadow-2xl',
+                title: 'font-black tracking-tighter uppercase italic text-red-600',
+                confirmButton: 'rounded-2xl px-6 py-3 font-black uppercase tracking-widest text-[10px] shadow-lg shadow-red-200',
+                cancelButton: 'rounded-2xl px-6 py-3 font-black uppercase tracking-widest text-[10px] text-gray-500'
+            }
         }).then((result) => {
             if (result.isConfirmed) {
                 router.delete(route('penduduk.destroy', id), {
                     preserveScroll: true,
                     onSuccess: () => {
-                        Swal.fire('Terhapus!', 'Data penduduk berhasil dihapus.', 'success');
+                        // Let global AuthenticatedLayout handle the success flash
                     }
                 });
             }
@@ -105,7 +112,7 @@ export default function Index({ auth, penduduks, stats, rtList, rwList, dusunLis
                 </div>
             )}
 
-            <div className="space-y-6 animate-in fade-in duration-500">
+            <div className="space-y-6 animate-in fade-in duration-700 pb-20">
                 {/* Header */}
                 <div className="bg-gradient-to-r from-green-600 via-green-700 to-green-800 rounded-3xl shadow-xl p-6 sm:p-8 relative overflow-hidden">
                     <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl"></div>
@@ -123,7 +130,7 @@ export default function Index({ auth, penduduks, stats, rtList, rwList, dusunLis
                             <button 
                                 onClick={handleExport}
                                 disabled={isExporting}
-                                className="flex items-center px-4 py-3 bg-green-500/30 hover:bg-green-500/50 disabled:opacity-50 backdrop-blur-md border border-green-400/30 text-white rounded-xl text-[10px] sm:text-xs font-black transition-all"
+                                className="flex items-center px-4 py-3 bg-green-500/30 hover:bg-green-500/50 disabled:opacity-50 backdrop-blur-md border border-green-400/30 text-white rounded-xl text-[10px] sm:text-xs font-black transition-all uppercase tracking-widest"
                             >
                                 {isExporting ? (
                                     <Loader2 className="w-3.5 h-3.5 mr-2 animate-spin" />
@@ -134,7 +141,7 @@ export default function Index({ auth, penduduks, stats, rtList, rwList, dusunLis
                             </button>
                             <Link 
                                 href={route('penduduk.create')}
-                                className="flex items-center px-6 py-3 bg-white text-green-700 hover:bg-green-50 rounded-xl text-[10px] sm:text-xs font-black shadow-lg shadow-black/10 transition-all hover:scale-105"
+                                className="flex items-center px-6 py-3 bg-white text-green-700 hover:bg-green-50 rounded-xl text-[10px] sm:text-xs font-black shadow-lg shadow-black/10 transition-all hover:scale-105 uppercase tracking-widest"
                             >
                                 <Plus className="w-3.5 h-3.5 mr-2" />
                                 TAMBAH
@@ -189,11 +196,11 @@ export default function Index({ auth, penduduks, stats, rtList, rwList, dusunLis
                 <Deferred data="penduduks" fallback={<SkeletonTable columns={6} rows={10} />}>
                     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                         <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-gray-50 to-white">
-                            <h3 className="text-lg font-black text-gray-900 flex items-center gap-2">
-                                <Users className="w-5 h-5 text-green-500" />
+                            <h3 className="text-lg font-black text-gray-900 flex items-center gap-3 uppercase italic tracking-tighter">
+                                <Users className="w-6 h-6 text-green-600" />
                                 Daftar Warga
                             </h3>
-                            <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-bold">
+                            <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-[10px] font-black uppercase tracking-widest">
                                 Total: {penduduks?.total || 0}
                             </span>
                         </div>
@@ -354,7 +361,7 @@ export default function Index({ auth, penduduks, stats, rtList, rwList, dusunLis
             {/* Success Animation Overlay */}
             {showSuccess && (
                 <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/20 backdrop-blur-sm animate-in fade-in duration-300">
-                    <div className="bg-white p-8 rounded-[40px] shadow-2xl flex flex-col items-center animate-in zoom-in duration-300">
+                    <div className="bg-white p-8 rounded-3xl shadow-2xl flex flex-col items-center animate-in zoom-in duration-300">
                         <div className="w-48 h-48">
                             <LottieComponent animationData={successAnimation} loop={false} />
                         </div>

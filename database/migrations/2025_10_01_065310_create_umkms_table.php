@@ -17,9 +17,11 @@ return new class extends Migration
             $table->string('nama_pemilik');
             $table->string('nik_pemilik')->nullable();
             $table->string('alamat_usaha');
-            $table->string('rt')->nullable();
-            $table->string('rw')->nullable();
-            $table->string('dusun')->nullable();
+            
+            $table->foreignId('rt_id')->nullable()->constrained('rts')->nullOnDelete();
+            $table->foreignId('rw_id')->nullable()->constrained('rws')->nullOnDelete();
+            $table->foreignId('dusun_id')->nullable()->constrained('dusuns')->nullOnDelete();
+            
             $table->string('no_telepon')->nullable();
             $table->string('email')->nullable();
             $table->enum('jenis_usaha', ['makanan', 'minuman', 'kerajinan', 'jasa', 'perdagangan', 'pertanian', 'peternakan', 'lainnya']);

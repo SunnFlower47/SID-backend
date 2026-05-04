@@ -26,7 +26,6 @@ class PendudukFactory extends Factory
             'nama_ayah' => $this->faker->name('male'),
             'nama_ibu' => $this->faker->name('female'),
             'kartu_keluarga_id' => KartuKeluarga::factory(),
-            'status' => 'Aktif',
         ];
     }
 }

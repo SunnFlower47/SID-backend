@@ -13,35 +13,56 @@
     .gradient-orange { background: linear-gradient(135deg, #f97316, #ea580c); }
 </style>
 <div class="space-y-6">
-    <!-- Header -->
-    <div class="flex flex-col lg:flex-row lg:justify-between lg:items-center space-y-4 lg:space-y-0">
-        <div>
-            <h1 class="text-3xl font-bold text-gray-900">Statistik Kependudukan</h1>
-            <p class="text-gray-600 mt-1">Analisis data kependudukan desa Cibatu</p>
-        </div>
-        <div class="flex flex-wrap gap-3">
-            <button onclick="refreshStatistics()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg flex items-center transition-colors shadow-md">
-                <i class="fas fa-sync-alt mr-2"></i>
-                Refresh Data
-            </button>
-            <button onclick="window.print()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg flex items-center transition-colors shadow-md">
-                <i class="fas fa-print mr-2"></i>
-                Cetak Laporan
-            </button>
+    <!-- Header Statistik -->
+    <div class="bg-gradient-to-r from-green-600 via-green-700 to-green-800 rounded-3xl shadow-xl p-6 sm:p-8 relative overflow-hidden mb-6">
+        <div class="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl"></div>
+        <div class="relative z-10 flex flex-col lg:flex-row lg:justify-between lg:items-center gap-6">
+            <div class="flex items-center space-x-4">
+                <div class="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-inner shrink-0">
+                    <i class="fas fa-chart-line text-2xl text-yellow-300"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl sm:text-3xl font-black text-white tracking-tight uppercase italic leading-none">Statistik Kependudukan</h1>
+                    <p class="text-emerald-100 font-bold text-[10px] sm:text-xs uppercase tracking-widest mt-1 opacity-80">Analisis data kependudukan desa Cibatu</p>
+                </div>
+            </div>
+            <div class="flex flex-wrap gap-2 sm:gap-3">
+                <button onclick="refreshStatistics()" class="flex items-center px-4 py-3 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white rounded-xl text-[10px] sm:text-xs font-black transition-all">
+                    <i class="fas fa-sync-alt mr-2"></i>
+                    REFRESH
+                </button>
+                <button onclick="window.print()" class="flex items-center px-6 py-3 bg-white text-green-700 hover:bg-green-50 rounded-xl text-[10px] sm:text-xs font-black shadow-lg transition-all hover:scale-105">
+                    <i class="fas fa-print mr-2"></i>
+                    CETAK
+                </button>
+            </div>
         </div>
     </div>
 
     <!-- Overview Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         <div class="gradient-blue p-6 rounded-xl shadow-lg text-white">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-blue-100 text-sm font-medium">Total Penduduk</p>
+                    <p class="text-blue-100 text-sm font-medium">Penduduk Tetap</p>
                     <p class="text-4xl font-bold">{{ number_format($totalPenduduk) }}</p>
-                    <p class="text-blue-100 text-sm mt-1">Warga Aktif</p>
+                    <p class="text-blue-100 text-sm mt-1">Warga Asli</p>
                 </div>
                 <div class="bg-white bg-opacity-20 p-4 rounded-xl">
                     <i class="fas fa-users text-3xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-gradient-to-br from-purple-600 to-purple-800 p-6 rounded-xl shadow-lg text-white">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-purple-100 text-sm font-medium">Penduduk Domisili</p>
+                    <p class="text-4xl font-bold">{{ number_format($totalDomisili) }}</p>
+                    <p class="text-purple-100 text-sm mt-1">Warga Pendatang</p>
+                </div>
+                <div class="bg-white bg-opacity-20 p-4 rounded-xl">
+                    <i class="fas fa-user-tag text-3xl"></i>
                 </div>
             </div>
         </div>

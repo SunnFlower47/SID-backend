@@ -129,10 +129,10 @@ export default function PisahKKForm({ wilayahTree, mutasi = null }) {
         ...prev,
         penduduk_id: resident?.id || '',
         alamat: resident?.alamat || '',
-        anggota_pisah_data: [],
+        anggota_pisah_data: isEdit ? prev.anggota_pisah_data : [],
         status_perkawinan_pisah: resident?.status_perkawinan || 'KAWIN'
     }));
-    setFamilyMembers([]);
+    if (!isEdit) setFamilyMembers([]);
     clearErrors();
 
     if (resident?.id) {
@@ -150,6 +150,13 @@ export default function PisahKKForm({ wilayahTree, mutasi = null }) {
       }
     }
   };
+
+  // Fetch family members on edit mode init
+  useEffect(() => {
+    if (isEdit && selectedResident?.id && familyMembers.length === 0) {
+        handleResidentSelect(selectedResident);
+    }
+  }, [isEdit, selectedResident]);
 
   const toggleMember = (member) => {
     const current = [...data.anggota_pisah_data];
@@ -313,7 +320,7 @@ export default function PisahKKForm({ wilayahTree, mutasi = null }) {
       </div>
 
       {(selectedResident || data.anggota_pisah_data.length > 0) && (
-        <div className="p-8 bg-white border border-gray-100 rounded-[40px] shadow-sm space-y-8 animate-in slide-in-from-top-4 duration-500">
+        <div className="p-8 bg-white border border-gray-100 rounded-3xl shadow-sm space-y-8 animate-in slide-in-from-top-4 duration-500">
            <h4 className="text-xs font-black text-gray-900 uppercase tracking-widest flex items-center gap-2 border-b border-gray-50 pb-4">
             <Users className="w-4 h-4 text-emerald-500" />
             Penyesuaian Status di KK Baru
@@ -382,7 +389,7 @@ export default function PisahKKForm({ wilayahTree, mutasi = null }) {
         </div>
       )}
 
-      <div className="p-8 bg-gray-50 border border-gray-100 rounded-[40px] space-y-8 shadow-sm">
+      <div className="p-8 bg-gray-50 border border-gray-100 rounded-3xl space-y-8 shadow-sm">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
             <Home className="w-4 h-4" />
@@ -594,7 +601,7 @@ export default function PisahKKForm({ wilayahTree, mutasi = null }) {
         </div>
       </div>
 
-      <div className="p-8 bg-white border border-gray-100 rounded-[40px] shadow-sm space-y-4">
+      <div className="p-8 bg-white border border-gray-100 rounded-3xl shadow-sm space-y-4">
         <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Alasan Pisah KK</label>
         <input 
           type="text" required placeholder="Contoh: Membentuk Rumah Tangga Baru, Pindah Domisili, dll..."
@@ -607,10 +614,10 @@ export default function PisahKKForm({ wilayahTree, mutasi = null }) {
       <div className="pt-4 flex items-center justify-end">
         <button
           type="submit" disabled={processing || !selectedResident}
-          className="px-12 py-4 bg-emerald-600 text-white rounded-2xl text-sm font-black hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-900/20 flex items-center gap-2 active:scale-95 disabled:opacity-50"
+          className="px-10 py-3.5 bg-gradient-to-r from-emerald-500 to-emerald-700 text-white rounded-xl text-[11px] font-bold uppercase tracking-widest hover:scale-[1.02] transition-all shadow-xl shadow-emerald-200 flex items-center gap-2 active:scale-95 disabled:opacity-50"
         >
           {processing ? (
-            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
           ) : <Save className="w-4 h-4" />}
           SIMPAN DATA PISAH KK
         </button>

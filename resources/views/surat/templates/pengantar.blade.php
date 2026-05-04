@@ -157,7 +157,7 @@
 
     <!-- Nomor Surat -->
     <div class="nomor-surat">
-        Nomor: {{ $nomor_surat }}<br>
+        Nomor: {{ $kode_surat }} / {{ $nomor_urut }} / {{ $kode_desa }} / {{ $bulan_romawi }} / {{ $tahun_surat }}<br>
         Tanggal: {{ $tanggal_surat->format('d F Y') }}
     </div>
 

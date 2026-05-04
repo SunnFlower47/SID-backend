@@ -19,9 +19,6 @@ class DatabaseSeeder extends Seeder
             // 2. Global Village Information (Settings)
             DesaSettingsSeeder::class,
             
-            // 3. Master Wilayah (Dusun, RW, RT) - Diambil dari data penduduk asli
-            WilayahMasterSeeder::class,
-            
             // 4. Struktur Desa (Pejabat Desa)
             StrukturDesaSeeder::class,
             

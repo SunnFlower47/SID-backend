@@ -296,7 +296,7 @@ export default function PindahMasukForm({ wilayahTree, mutasi = null }) {
     <form onSubmit={handleSubmit} className="space-y-8 animate-in slide-in-from-bottom-4 duration-500">
       
       {/* 1. Konfigurasi KK */}
-      <div className="p-8 bg-green-50/50 border border-green-100 rounded-[32px] space-y-6">
+      <div className="p-8 bg-green-50/50 border border-green-100 rounded-3xl space-y-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <h4 className="text-xs font-black text-green-600 uppercase tracking-widest flex items-center gap-2">
             <Home className="w-4 h-4" />
@@ -415,7 +415,7 @@ export default function PindahMasukForm({ wilayahTree, mutasi = null }) {
       </div>
 
       {/* 2. Data Personal (Warga Utama) */}
-      <div className="p-8 bg-gray-50 border border-gray-100 rounded-[32px] space-y-6">
+      <div className="p-8 bg-gray-50 border border-gray-100 rounded-3xl space-y-6">
         <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
           <User className="w-4 h-4" />
           Data Warga Utama (Kepala Keluarga / Pemindah)
@@ -539,7 +539,7 @@ export default function PindahMasukForm({ wilayahTree, mutasi = null }) {
       </div>
 
       {/* 2.5 Batch Input: Anggota Keluarga Tambahan */}
-      <div className="p-8 bg-blue-50/30 border border-blue-100 rounded-[32px] space-y-6">
+      <div className="p-8 bg-blue-50/30 border border-blue-100 rounded-3xl space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h4 className="text-xs font-black text-blue-600 uppercase tracking-widest flex items-center gap-2">
@@ -696,7 +696,7 @@ export default function PindahMasukForm({ wilayahTree, mutasi = null }) {
       </div>
 
       {/* 3. Detail Alamat & Wilayah */}
-      <div className="p-8 bg-gray-50 border border-gray-100 rounded-[32px] space-y-6">
+      <div className="p-8 bg-gray-50 border border-gray-100 rounded-3xl space-y-6">
         <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest flex items-center gap-2 mb-4">
           <MapPin className="w-4 h-4" />
           Alamat & Wilayah (Tujuan di Desa)
@@ -734,7 +734,7 @@ export default function PindahMasukForm({ wilayahTree, mutasi = null }) {
       </div>
 
       {/* 4. Informasi Kepindahan */}
-      <div className="p-8 bg-orange-50/30 border border-orange-100 rounded-[32px] space-y-6">
+      <div className="p-8 bg-orange-50/30 border border-orange-100 rounded-3xl space-y-6">
         <h4 className="text-xs font-black text-orange-600 uppercase tracking-widest flex items-center gap-2">
           <FileText className="w-4 h-4" />
           Detail Kepindahan (Asal)
@@ -769,9 +769,9 @@ export default function PindahMasukForm({ wilayahTree, mutasi = null }) {
         <button
           type="submit"
           disabled={processing}
-          className="px-10 py-4 bg-green-600 text-white rounded-2xl text-sm font-black hover:bg-green-700 transition-all shadow-xl shadow-green-900/20 flex items-center gap-2 active:scale-95 disabled:opacity-50"
+          className="px-10 py-3.5 bg-gradient-to-r from-green-500 to-green-700 text-white rounded-xl text-[11px] font-bold uppercase tracking-widest hover:scale-[1.02] transition-all shadow-xl shadow-green-200 flex items-center gap-2 active:scale-95 disabled:opacity-50"
         >
-          {processing ? 'Menyimpan...' : (
+          {processing ? 'MENYIMPAN...' : (
             <>
               <Save className="w-4 h-4" />
               SIMPAN PINDAH MASUK

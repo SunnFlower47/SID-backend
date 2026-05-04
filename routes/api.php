@@ -107,7 +107,7 @@ Route::prefix('v1')->group(function () {
     Route::post('/search-penduduk', [SuratPengajuanApiController::class, 'checkNik'])->middleware(['throttle:10,1', 'private.api', 'captcha:v3']);
 
     // Admin Notifications (for header)
-    Route::get('/contact-messages/notifications', [\App\Http\Controllers\Tenant\ContactMessageController::class, 'notifications'])->middleware(['throttle:50,1', 'private.api']);
+    Route::get('/contact-messages/notifications', [\App\Http\Controllers\Tenant\Pelayanan\ContactMessageController::class, 'notifications'])->middleware(['throttle:50,1', 'private.api']);
 
     // ========================================
     // FORM SUBMISSIONS (Private API)

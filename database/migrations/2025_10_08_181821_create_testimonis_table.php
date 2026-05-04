@@ -16,8 +16,11 @@ return new class extends Migration
             $table->string('nama');
             $table->string('email')->nullable();
             $table->string('telepon')->nullable();
-            $table->string('rt')->nullable();
-            $table->string('rw')->nullable();
+            
+            $table->foreignId('rt_id')->nullable()->constrained('rts')->nullOnDelete();
+            $table->foreignId('rw_id')->nullable()->constrained('rws')->nullOnDelete();
+            $table->foreignId('dusun_id')->nullable()->constrained('dusuns')->nullOnDelete();
+            
             $table->text('testimoni');
             $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
             $table->integer('rating')->nullable(); // 1-5 stars

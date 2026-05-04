@@ -27,6 +27,86 @@ export default function Edit(props) {
     const penduduk = props.penduduk || {};
 
     const [nikStatus, setNikStatus] = useState({ checking: false, exists: false, data: null });
+    
+    // Standard Options
+    const OPTIONS = {
+        agama: ['ISLAM', 'KRISTEN', 'KATOLIK', 'HINDU', 'BUDDHA', 'KONGHUCU'],
+        pendidikan: [
+            'TIDAK / BELUM SEKOLAH', 'BELUM TAMAT SD/SEDERAJAT', 'TAMAT SD / SEDERAJAT',
+            'SLTP/SEDERAJAT', 'SLTA / SEDERAJAT', 'DIPLOMA I / II',
+            'AKADEMI / DIPLOMA III / S. MUDA', 'DIPLOMA IV / STRATA I', 'STRATA II', 'STRATA III'
+        ],
+        status_perkawinan: ['BELUM KAWIN', 'KAWIN', 'CERAI HIDUP', 'CERAI MATI'],
+        kedudukan_keluarga: ['Kepala Keluarga', 'Istri', 'Anak', 'Menantu', 'Cucu', 'Orang Tua', 'Mertua', 'Saudara', 'LAINNYA'],
+        pekerjaan: [
+            'BELUM/TIDAK BEKERJA', 'MENGURUS RUMAH TANGGA', 'PELAJAR/MAHASISWA', 
+            'PENSIUNAN', 'PEGAWAI NEGERI SIPIL', 'TENTARA NASIONAL INDONESIA', 
+            'KEPOLISIAN NEGARA RI', 'PETANI/PEKEBUN', 'KARYAWAN SWASTA', 
+            'BURUH HARIAN LEPAS', 'WIRASWASTA', 'PERANGKAT DESA'
+        ],
+    };
+
+    // Handle manual input state for "LAINNYA"
+    const [manualFields, setManualFields] = useState({});
+
+    const toggleManual = (field, isOther) => {
+        setManualFields(prev => ({ ...prev, [field]: isOther }));
+    };
+
+    const renderSelectWithOther = (label, field, options, required = false) => {
+        const isManual = manualFields[field] || (!options.includes(data[field]) && data[field] !== '');
+        
+        return (
+            <div className="space-y-2">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{label} {required && '*'}</label>
+                <select 
+                    value={isManual ? 'LAINNYA' : data[field]}
+                    onChange={e => {
+                        if (e.target.value === 'LAINNYA') {
+                            toggleManual(field, true);
+                            setData(field, '');
+                        } else {
+                            toggleManual(field, false);
+                            setData(field, e.target.value);
+                        }
+                    }}
+                    className={cn(
+                        "w-full px-4 py-3.5 bg-gray-50 border rounded-2xl text-sm font-black outline-none transition-all focus:bg-white focus:ring-4",
+                        errors[field] ? 'border-red-300 focus:ring-red-500/10' : 'border-gray-100 focus:ring-blue-500/10 focus:border-blue-500'
+                    )}
+                    required={required && !isManual}
+                >
+                    <option value="">Pilih {label}</option>
+                    {options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                    <option value="LAINNYA" className="text-blue-600 font-bold">--- LAINNYA (KETIK MANUAL) ---</option>
+                </select>
+
+                {isManual && (
+                    <div className="relative animate-in slide-in-from-top-2 duration-200">
+                        <input 
+                            type="text"
+                            placeholder={`Ketik ${label} manual...`}
+                            value={data[field]}
+                            onChange={e => setData(field, e.target.value.toUpperCase())}
+                            className="w-full px-4 py-3.5 bg-blue-50 border border-blue-200 rounded-2xl text-sm font-black outline-none focus:ring-4 focus:ring-blue-500/10"
+                            required={required}
+                        />
+                        <button 
+                            type="button"
+                            onClick={() => {
+                                toggleManual(field, false);
+                                setData(field, options[0]);
+                            }}
+                            className="absolute right-3 top-3.5 text-[10px] font-black text-blue-500 hover:text-blue-700"
+                        >
+                            KEMBALI
+                        </button>
+                    </div>
+                )}
+                {errors[field] && <p className="mt-1 text-[10px] font-black text-red-600 uppercase tracking-widest ml-1">{errors[field]}</p>}
+            </div>
+        );
+    };
 
     const handleBack = (e) => {
         e.preventDefault();
@@ -105,19 +185,19 @@ export default function Edit(props) {
         <AuthenticatedLayout title={`Edit Data ${penduduk.nama || 'Warga'}`}>
             <Head title={`Edit - ${penduduk.nama || 'Warga'}`} />
             
-            <div className="space-y-6 md:space-y-8 animate-in fade-in duration-700 pb-20">
+            <div className="max-w-7xl mx-auto space-y-6 animate-in fade-in duration-700 pb-20">
                 
                 {/* 1. CONSISTENT HEADER */}
                 <div className="bg-gradient-to-r from-green-600 via-green-700 to-green-800 rounded-3xl shadow-xl p-6 sm:p-8 relative overflow-hidden">
                     <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl"></div>
-                    <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
                         <div className="flex items-center space-x-4">
                             <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-inner shrink-0">
                                 <EditIcon className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-300" />
                             </div>
                             <div>
-                                <h1 className="text-xl sm:text-3xl font-black text-white tracking-tight uppercase italic leading-none">Edit Data Warga</h1>
-                                <p className="text-green-100 font-bold text-[10px] sm:text-xs uppercase tracking-widest mt-2 opacity-80 flex items-center gap-2">
+                                <h1 className="text-xl sm:text-3xl font-black text-white tracking-tight uppercase italic leading-none text-left">Edit Data Warga</h1>
+                                <p className="text-green-100 font-bold text-[10px] sm:text-xs uppercase tracking-widest mt-1 opacity-80 flex items-center gap-2 text-left">
                                     <ShieldCheck className="w-3 h-3 text-yellow-300" />
                                     Mode Penyuntingan Data Aktif
                                 </p>
@@ -143,7 +223,7 @@ export default function Edit(props) {
                 </div>
 
                 {penduduk.nkk && (
-                    <div className="bg-white rounded-[32px] border border-green-100 shadow-sm p-6 flex flex-col sm:flex-row sm:items-center gap-4 animate-in slide-in-from-top-4 duration-500">
+                    <div className="bg-white rounded-3xl border border-green-100 shadow-sm p-6 flex flex-col sm:flex-row sm:items-center gap-4 animate-in slide-in-from-top-4 duration-500">
                         <div className="w-12 h-12 bg-green-50 rounded-2xl flex items-center justify-center shadow-inner shrink-0">
                             <Home className="text-green-600 w-6 h-6" />
                         </div>
@@ -166,7 +246,7 @@ export default function Edit(props) {
                 <form onSubmit={handleSubmit} className="space-y-8">
                     
                     {/* Data Pribadi */}
-                    <div className="bg-white rounded-[32px] shadow-xl border border-gray-100 p-8 md:p-10">
+                    <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8 md:p-10">
                         <div className="flex items-center gap-3 mb-8 pb-4 border-b border-gray-50">
                             <div className="p-2 bg-blue-50 rounded-xl">
                                 <User className="w-5 h-5 text-blue-600" />
@@ -258,63 +338,15 @@ export default function Edit(props) {
                                 </div>
                             </div>
 
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Agama</label>
-                                <select 
-                                    value={data.agama}
-                                    onChange={e => setData('agama', e.target.value)}
-                                    className="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-black outline-none focus:bg-white focus:border-blue-500"
-                                    required
-                                >
-                                    <option value="ISLAM">ISLAM</option>
-                                    <option value="KRISTEN">KRISTEN</option>
-                                    <option value="KATHOLIK">KATHOLIK</option>
-                                    <option value="HINDU">HINDU</option>
-                                    <option value="BUDHA">BUDHA</option>
-                                    <option value="KONGHUCU">KONGHUCU</option>
-                                </select>
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Status Perkawinan</label>
-                                <select 
-                                    value={data.status_perkawinan}
-                                    onChange={e => setData('status_perkawinan', e.target.value)}
-                                    className="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-black outline-none focus:bg-white focus:border-blue-500"
-                                    required
-                                >
-                                    <option value="BELUM KAWIN">BELUM KAWIN</option>
-                                    <option value="KAWIN">KAWIN</option>
-                                    <option value="CERAI HIDUP">CERAI HIDUP</option>
-                                    <option value="CERAI MATI">CERAI MATI</option>
-                                </select>
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Hubungan Keluarga</label>
-                                <select 
-                                    value={data.kedudukan_keluarga}
-                                    onChange={e => setData('kedudukan_keluarga', e.target.value)}
-                                    className="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-black outline-none focus:bg-white focus:border-blue-500"
-                                    required
-                                >
-                                    <option value="KEPALA KELUARGA">KEPALA KELUARGA</option>
-                                    <option value="ISTRI">ISTRI</option>
-                                    <option value="ANAK">ANAK</option>
-                                    <option value="MENANTU">MENANTU</option>
-                                    <option value="CUCU">CUCU</option>
-                                    <option value="ORANG TUA">ORANG TUA</option>
-                                    <option value="MERTUA">MERTUA</option>
-                                    <option value="SAUDARA">SAUDARA</option>
-                                    <option value="LAINNYA">LAINNYA</option>
-                                </select>
-                            </div>
+                            {renderSelectWithOther('Agama', 'agama', OPTIONS.agama, true)}
+                            {renderSelectWithOther('Status Perkawinan', 'status_perkawinan', OPTIONS.status_perkawinan, true)}
+                            {renderSelectWithOther('Hubungan Keluarga', 'kedudukan_keluarga', OPTIONS.kedudukan_keluarga, true)}
                         </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         {/* Data Orang Tua */}
-                        <div className="bg-white rounded-[32px] shadow-xl border border-gray-100 p-8">
+                        <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
                             <h3 className="text-sm font-black text-gray-900 mb-6 uppercase tracking-widest flex items-center gap-2 italic">
                                 <Users className="w-4 h-4 text-orange-500" />
                                 Data Orang Tua
@@ -342,37 +374,20 @@ export default function Edit(props) {
                         </div>
 
                         {/* Pendidikan & Pekerjaan */}
-                        <div className="bg-white rounded-[32px] shadow-xl border border-gray-100 p-8">
+                        <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
                             <h3 className="text-sm font-black text-gray-900 mb-6 uppercase tracking-widest flex items-center gap-2 italic">
                                 <GraduationCap className="w-4 h-4 text-green-500" />
                                 Profesi & Pendidikan
                             </h3>
                             <div className="space-y-6">
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Pendidikan Terakhir</label>
-                                    <input 
-                                        type="text" 
-                                        value={data.pendidikan}
-                                        onChange={e => setData('pendidikan', e.target.value.toUpperCase())}
-                                        className="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-black outline-none focus:bg-white focus:border-green-500"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Pekerjaan Utama</label>
-                                    <input 
-                                        type="text" 
-                                        value={data.pekerjaan}
-                                        onChange={e => setData('pekerjaan', e.target.value.toUpperCase())}
-                                        className="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-black outline-none focus:bg-white focus:border-green-500"
-                                        required
-                                    />
-                                </div>
+                                {renderSelectWithOther('Pendidikan Terakhir', 'pendidikan', OPTIONS.pendidikan)}
+                                {renderSelectWithOther('Pekerjaan Utama', 'pekerjaan', OPTIONS.pekerjaan, true)}
                             </div>
                         </div>
                     </div>
 
                     {/* Alamat (Read-only view) */}
-                    <div className="bg-gray-50 rounded-[32px] border border-gray-100 p-8 opacity-70">
+                    <div className="bg-gray-50 rounded-3xl border border-gray-100 p-8 opacity-70">
                         <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
                             <h3 className="text-sm font-black text-gray-900 uppercase tracking-widest italic flex items-center gap-3">
                                 <MapPin className="w-5 h-5 text-gray-400" />

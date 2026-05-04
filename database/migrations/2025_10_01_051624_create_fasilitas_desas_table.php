@@ -16,9 +16,11 @@ return new class extends Migration
             $table->string('nama');
             $table->enum('jenis', ['sekolah', 'posyandu', 'masjid', 'gereja', 'puskesmas', 'pos_ronda', 'balai_desa', 'lapangan', 'pasar', 'lainnya']);
             $table->text('alamat');
-            $table->string('rt')->nullable();
-            $table->string('rw')->nullable();
-            $table->string('dusun')->nullable();
+            
+            $table->foreignId('rt_id')->nullable()->constrained('rts')->nullOnDelete();
+            $table->foreignId('rw_id')->nullable()->constrained('rws')->nullOnDelete();
+            $table->foreignId('dusun_id')->nullable()->constrained('dusuns')->nullOnDelete();
+            
             $table->decimal('latitude', 10, 8)->nullable();
             $table->decimal('longitude', 11, 8)->nullable();
             $table->text('deskripsi')->nullable();

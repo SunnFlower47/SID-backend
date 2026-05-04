@@ -104,7 +104,7 @@ export default function KematianForm({ mutasi = null }) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* 2. Waktu & Tempat Meninggal */}
-        <div className="p-8 bg-red-50/50 border border-red-100 rounded-[32px] space-y-6">
+        <div className="p-8 bg-red-50/50 border border-red-100 rounded-3xl space-y-6">
           <h4 className="text-xs font-black text-red-600 uppercase tracking-widest flex items-center gap-2">
             <Clock className="w-4 h-4" />
             Waktu & Tempat Meninggal
@@ -139,7 +139,7 @@ export default function KematianForm({ mutasi = null }) {
 
         {/* 3. Detail Pemakaman & Pelapor */}
         <div className="space-y-8">
-          <div className="p-8 bg-gray-50 border border-gray-100 rounded-[32px] space-y-6">
+          <div className="p-8 bg-gray-50 border border-gray-100 rounded-3xl space-y-6">
             <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
               <MapPin className="w-4 h-4" />
               Detail Pemakaman
@@ -168,7 +168,7 @@ export default function KematianForm({ mutasi = null }) {
             </div>
           </div>
 
-          <div className="p-8 bg-gray-50 border border-gray-100 rounded-[32px] space-y-6">
+          <div className="p-8 bg-gray-50 border border-gray-100 rounded-3xl space-y-6">
             <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
               <ClipboardList className="w-4 h-4" />
               Pelapor (Opsional)
@@ -202,9 +202,9 @@ export default function KematianForm({ mutasi = null }) {
       <div className="pt-4 flex items-center justify-end">
         <button
           type="submit" disabled={processing}
-          className="px-10 py-4 bg-red-600 text-white rounded-2xl text-sm font-black hover:bg-red-700 transition-all shadow-xl shadow-red-900/20 flex items-center gap-2 active:scale-95 disabled:opacity-50"
+          className="px-10 py-3.5 bg-gradient-to-r from-red-500 to-red-700 text-white rounded-xl text-[11px] font-bold uppercase tracking-widest hover:scale-[1.02] transition-all shadow-xl shadow-red-200 flex items-center gap-2 active:scale-95 disabled:opacity-50"
         >
-          {processing ? 'Memproses...' : <><Save className="w-4 h-4" /> SIMPAN KEMATIAN</>}
+          {processing ? 'MEMPROSES...' : <><Save className="w-4 h-4" /> SIMPAN KEMATIAN</>}
         </button>
       </div>
     </form>

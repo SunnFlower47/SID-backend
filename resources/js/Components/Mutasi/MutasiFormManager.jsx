@@ -90,9 +90,9 @@ export default function MutasiFormManager({ wilayahTree, mutasi = null, penduduk
               <h3 className="text-xl font-black text-gray-900 tracking-tight uppercase">Mutasi {typeInfo?.title}</h3>
               <button 
                 onClick={() => setSelectedType(null)}
-                className="text-xs font-bold text-gray-400 hover:text-blue-600 transition-colors flex items-center gap-1 mt-0.5"
+                className="text-[10px] font-black text-gray-400 hover:text-blue-600 transition-colors flex items-center gap-1 mt-1 uppercase tracking-widest"
               >
-                ← Kembali Ganti Jenis Mutasi
+                ← KEMBALI GANTI JENIS MUTASI
               </button>
             </div>
           </div>
@@ -120,7 +120,7 @@ export default function MutasiFormManager({ wilayahTree, mutasi = null, penduduk
         </div>
         <Link 
           href={route('mutasi.data.index')}
-          className="flex items-center gap-2 px-5 py-2.5 bg-gray-50 hover:bg-gray-100 text-gray-500 rounded-xl text-xs font-bold transition-all border border-gray-100"
+          className="flex items-center gap-2 px-5 py-2.5 bg-gray-50 hover:bg-gray-100 text-gray-500 rounded-xl text-[10px] font-black transition-all border border-gray-100 uppercase tracking-widest"
         >
           <ArrowLeft className="w-4 h-4" />
           KEMBALI KE DAFTAR
@@ -134,7 +134,7 @@ export default function MutasiFormManager({ wilayahTree, mutasi = null, penduduk
             <button
               key={type.id}
               onClick={() => setSelectedType(type.id)}
-              className="group p-6 text-left bg-white border border-gray-100 rounded-[32px] hover:border-blue-500 hover:bg-blue-50/30 transition-all shadow-sm hover:shadow-xl hover:shadow-blue-900/5 flex flex-col items-start gap-5 active:scale-[0.98]"
+              className="group p-6 text-left bg-white border border-gray-100 rounded-3xl hover:border-blue-500 hover:bg-blue-50/30 transition-all shadow-sm hover:shadow-xl hover:shadow-blue-900/5 flex flex-col items-start gap-5 active:scale-[0.98]"
             >
               <div className={`w-16 h-16 rounded-[24px] flex items-center justify-center border shadow-sm group-hover:scale-110 transition-transform ${
                 type.color === 'red' ? 'bg-red-50 text-red-600 border-red-100' :
@@ -158,7 +158,7 @@ export default function MutasiFormManager({ wilayahTree, mutasi = null, penduduk
                 <p className="text-sm font-medium text-gray-400 mt-2 leading-relaxed group-hover:text-gray-500 transition-colors">
                   {type.description}
                 </p>
-                <div className={`mt-6 pt-4 border-t border-gray-50 flex items-center justify-between w-full opacity-0 group-hover:opacity-100 transition-all translate-y-[10px] group-hover:translate-y-0 text-xs font-black uppercase tracking-wider ${
+                <div className={`mt-6 pt-4 border-t border-gray-50 flex items-center justify-between w-full opacity-0 group-hover:opacity-100 transition-all translate-y-[10px] group-hover:translate-y-0 text-[10px] font-black uppercase tracking-widest ${
                     type.color === 'red' ? 'text-red-500' :
                     type.color === 'blue' ? 'text-blue-500' :
                     type.color === 'green' ? 'text-green-500' :

@@ -48,15 +48,14 @@ export default function Index({ auth, mutasis, filters, stats }) {
 
   const handleFilterChange = (type) => {
     setJenisFilter(type);
-    router.get(route('mutasi.data.index'), { search: tempSearch, jenis_mutasi: type === 'all' ? '' : type }, { preserveState: true, replace: true });
   };
 
   const handleAction = (m) => {
     // Gunakan attribute dari backend (bukan hardcode list)
     const isSoftDelete = m.is_soft_delete_type ?? false;
     const isPembaruanKK = m.is_pembaruan_kk ?? false;
-    
-    const actionLabel = isPembaruanKK 
+
+    const actionLabel = isPembaruanKK
       ? 'Undo Pembaruan KK'
       : isSoftDelete ? 'Undo (Kembalikan Data)' : 'Cancel (Batalkan Mutasi)';
     const confirmMsg = isPembaruanKK
@@ -66,13 +65,21 @@ export default function Index({ auth, mutasis, filters, stats }) {
         : `Apakah Anda yakin ingin membatalkan mutasi ${m.penduduk?.nama}? Data yang baru dibuat akan dihapus secara permanen.`;
 
     Swal.fire({
-      title: isPembaruanKK ? 'Undo Pembaruan KK?' : isSoftDelete ? 'Undo Mutasi?' : 'Batalkan Mutasi?',
-      text: confirmMsg,
+      title: isPembaruanKK ? 'UNDO PEMBARUAN KK' : isSoftDelete ? 'UNDO MUTASI' : 'BATALKAN MUTASI',
+      html: `${confirmMsg}<br><small class="text-gray-400 font-bold uppercase tracking-widest text-[9px]">Tindakan ini akan memproses ulang data kependudukan</small>`,
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
-      confirmButtonText: `Ya, ${isSoftDelete ? 'Undo' : 'Batalkan'}!`
+      confirmButtonColor: isSoftDelete ? '#10b981' : '#ef4444',
+      cancelButtonColor: '#f3f4f6',
+      confirmButtonText: `YA, ${isSoftDelete ? 'UNDO SEKARANG' : 'BATALKAN'}!`,
+      cancelButtonText: 'KEMBALI',
+      background: '#ffffff',
+      customClass: {
+        popup: 'rounded-3xl border-none shadow-2xl',
+        title: `font-black tracking-tighter uppercase italic ${isSoftDelete ? 'text-emerald-600' : 'text-rose-600'}`,
+        confirmButton: `rounded-2xl px-6 py-3 font-black uppercase tracking-widest text-[10px] shadow-lg ${isSoftDelete ? 'shadow-emerald-200' : 'shadow-rose-200'}`,
+        cancelButton: 'rounded-2xl px-6 py-3 font-black uppercase tracking-widest text-[10px] text-gray-500'
+      }
     }).then(async (result) => {
       if (result.isConfirmed) {
         setIsProcessing(m.id);
@@ -82,11 +89,26 @@ export default function Index({ auth, mutasis, filters, stats }) {
             : await axios.delete(route('mutasi.cancel', m.id));
 
           if (response.data.success) {
-            Swal.fire('Berhasil!', response.data.message || (actionLabel + ' berhasil'), 'success');
+            Swal.fire({
+              icon: 'success',
+              title: 'BERHASIL!',
+              text: response.data.message || (actionLabel + ' berhasil'),
+              showConfirmButton: true,
+              confirmButtonColor: '#10b981',
+              customClass: {
+                popup: 'rounded-3xl shadow-2xl',
+                title: 'font-black uppercase italic tracking-tighter'
+              }
+            });
             router.reload();
           }
         } catch (error) {
-          Swal.fire('Error', error.response?.data?.message || 'Gagal memproses permintaan', 'error');
+          Swal.fire({
+            icon: 'error',
+            title: 'TERJADI KESALAHAN!',
+            text: error.response?.data?.message || 'Gagal memproses permintaan',
+            customClass: { popup: 'rounded-3xl' }
+          });
         } finally {
           setIsProcessing(null);
         }
@@ -350,7 +372,7 @@ export default function Index({ auth, mutasis, filters, stats }) {
                 className="flex items-center px-6 py-3 bg-white text-green-700 hover:bg-green-50 rounded-xl text-[10px] sm:text-xs font-black shadow-lg shadow-black/10 transition-all hover:scale-105 active:scale-95 uppercase tracking-widest"
               >
                 <Plus className="w-4 h-4 mr-2" />
-                TAMBAH MUTASI
+                TAMBAH
               </Link>
             </div>
           </div>
@@ -375,10 +397,10 @@ export default function Index({ auth, mutasis, filters, stats }) {
               const colors = colorClasses[item.color] || colorClasses.blue;
 
               return (
-                <div 
-                  key={idx} 
+                <div
+                  key={idx}
                   className={cn(
-                    "bg-white rounded-2xl p-3 sm:p-5 border shadow-sm hover:shadow-md transition-all flex items-center gap-3 sm:gap-4",
+                    "bg-white rounded-2xl p-4 sm:p-6 border shadow-sm hover:shadow-md transition-all flex items-center gap-3 sm:gap-4",
                     colors.split(' ')[0], // border class
                     colors.split(' ')[3]  // shadow class
                   )}
@@ -431,7 +453,7 @@ export default function Index({ auth, mutasis, filters, stats }) {
 
         {/* Filters Content */}
         {showFilters && (
-          <div className="bg-white rounded-[32px] border border-gray-100 shadow-xl p-6 sm:p-8 animate-in slide-in-from-top-4 duration-500">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-xl p-6 sm:p-8 animate-in slide-in-from-top-4 duration-500">
             <div className="flex flex-col md:flex-row gap-6 items-end justify-between">
               <div className="w-full md:flex-1 space-y-4">
                 <div className="space-y-2">
@@ -441,7 +463,7 @@ export default function Index({ auth, mutasis, filters, stats }) {
                     <input
                       type="text"
                       placeholder="Nama Warga, NIK, atau Alasan Mutasi..."
-                      className="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-black outline-none transition-all focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500"
+                      className="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-bold outline-none transition-all focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500"
                       value={tempSearch}
                       onChange={(e) => setTempSearch(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -453,7 +475,7 @@ export default function Index({ auth, mutasis, filters, stats }) {
               <div className="w-full md:w-64 space-y-2">
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Jenis Mutasi</label>
                 <select
-                  className="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-black outline-none focus:bg-white focus:border-blue-500"
+                  className="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-bold outline-none focus:bg-white focus:border-blue-500"
                   value={jenisFilter}
                   onChange={(e) => handleFilterChange(e.target.value)}
                 >
@@ -469,7 +491,7 @@ export default function Index({ auth, mutasis, filters, stats }) {
 
               <button
                 onClick={handleSearch}
-                className="w-full md:w-auto px-10 py-3.5 bg-blue-600 text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all active:scale-95"
+                className="w-full md:w-auto px-10 py-3.5 bg-blue-600 text-white rounded-2xl text-xs font-bold uppercase tracking-widest shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all active:scale-95"
               >
                 Terapkan
               </button>
@@ -479,7 +501,7 @@ export default function Index({ auth, mutasis, filters, stats }) {
 
         {/* Main Table Card */}
         <Deferred data="mutasis" fallback={<SkeletonTable columns={5} rows={8} />}>
-          <div className="bg-white rounded-[40px] border border-gray-100 shadow-xl overflow-hidden flex flex-col min-h-[600px]">
+          <div className="bg-white rounded-3xl border border-gray-100 shadow-xl overflow-hidden flex flex-col min-h-[600px]">
             {/* Table Header Section */}
             <div className="p-8 border-b border-gray-50 flex items-center justify-between bg-gradient-to-r from-gray-50 to-white">
               <h3 className="text-lg font-black text-gray-900 uppercase tracking-tight italic flex items-center gap-3">

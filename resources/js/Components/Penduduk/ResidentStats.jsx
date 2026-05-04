@@ -47,17 +47,17 @@ export default function ResidentStats({ stats }) {
                     <div
                         key={index}
                         className={cn(
-                            "bg-white rounded-2xl p-2.5 sm:p-5 border shadow-sm hover:shadow-md transition-all flex items-center gap-2.5 sm:gap-4",
+                            "bg-white rounded-2xl p-3 sm:p-5 border shadow-sm hover:shadow-md transition-all flex items-center gap-3 sm:gap-4",
                             colors.split(' ')[0], // border class
                             colors.split(' ')[3]  // shadow class
                         )}
                     >
                         <div className={cn(
-                            "w-8 h-8 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0",
+                            "w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shrink-0",
                             colors.split(' ')[1], // bg class
                             colors.split(' ')[2]  // text class
                         )}>
-                            <Icon className="w-4 h-4 sm:w-6 sm:h-6" />
+                            <Icon className="w-5 h-5 sm:w-6 sm:h-6" />
                         </div>
                         <div className="min-w-0">
                             <p className="text-[8px] sm:text-xs font-black text-gray-400 uppercase tracking-widest truncate leading-none">

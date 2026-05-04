@@ -62,10 +62,10 @@ class MutasiService
      */
     public function handleKematian(array $validated)
     {
-        $penduduk = Penduduk::findOrFail($validated['penduduk_id']);
+        $penduduk = Penduduk::withTrashed()->findOrFail($validated['penduduk_id']);
 
         // Buat log mutasi
-        Mutasi::create([
+        $mutasi = Mutasi::create([
             'penduduk_id' => $penduduk->id,
             'jenis_mutasi' => 'kematian',
             'kategori_mutasi' => 'dalam_kota',
@@ -105,6 +105,58 @@ class MutasiService
                 'pelapor_hubungan' => $validated['pelapor_hubungan'] ?? null,
             ],
         ]);
+
+        // OTOMATISASI: Buat record Surat Keterangan Kematian (SuratPengajuan)
+        // Agar nomor surat ter-generate dan bisa langsung dicetak dari riwayat surat
+        try {
+            $suratId = $validated['surat_pengajuan_id'] ?? null;
+
+            if (!$suratId) {
+                $suratTypeId = 'kematian'; // ID dari tabel surat_types
+                $nomorSurat = \App\Models\DesaSetting::generateNomorSurat($suratTypeId);
+
+                $surat = \App\Models\SuratPengajuan::create([
+                    'jenis_surat' => $suratTypeId,
+                    'penduduk_id' => $penduduk->id, 
+                    'nomor_surat' => $nomorSurat,
+                    'tanggal_surat' => now(),
+                    'status' => 'SELESAI', 
+                    'approved_at' => now(),
+                    'approved_by' => auth()->id(),
+                    'data_tambahan' => [
+                        'kematian' => [
+                            'hari' => $validated['hari_meninggal'],
+                            'tanggal' => $validated['tanggal_mutasi'],
+                            'jam' => $validated['jam_meninggal'],
+                            'bertempat_di' => $validated['bertempat_di']
+                        ],
+                        'pemakaman' => [
+                            'hari' => $validated['hari_pemakaman'],
+                            'tanggal' => $validated['tanggal_pemakaman'],
+                            'jam' => $validated['jam_pemakaman'],
+                            'lokasi' => $validated['lokasi_pemakaman']
+                        ],
+                        'alasan' => $validated['alasan'],
+                        'pelapor_nama' => $validated['pelapor_nama'] ?? null,
+                        'pelapor_umur' => $validated['pelapor_umur'] ?? null,
+                        'pelapor_pekerjaan' => $validated['pelapor_pekerjaan'] ?? null,
+                        'pelapor_alamat' => $validated['pelapor_alamat'] ?? null,
+                        'pelapor_hubungan' => $validated['pelapor_hubungan'] ?? null,
+                    ],
+                    'keterangan_tambahan' => 'Dibuat otomatis melalui mutasi kematian'
+                ]);
+                $suratId = $surat->id;
+            }
+
+            // Hubungkan ID Surat ke Mutasi untuk kebutuhan Undo/Sync
+            $detailMutasi = $mutasi->detail_tambahan;
+            $detailMutasi['surat_pengajuan_id'] = $suratId;
+            $mutasi->update(['detail_tambahan' => $detailMutasi]);
+
+        } catch (\Exception $e) {
+            // Log error tapi jangan gagalkan proses mutasi utama
+            \Illuminate\Support\Facades\Log::error('Gagal memproses link surat kematian: ' . $e->getMessage());
+        }
 
         // Soft delete penduduk
         $penduduk->delete();
@@ -157,6 +209,10 @@ class MutasiService
                 'asal_tujuan' => $validated['asal_tujuan'],
                 'tanggal_mutasi' => $validated['tanggal_mutasi'],
                 'alasan' => $validated['alasan'] ?? 'Pindah masuk ke Desa Cibatu',
+                'detail_tambahan' => [
+                    'kk_option' => !empty($validated['nkk']) ? 'existing' : 'new',
+                    'family_members' => $validated['family_members'] ?? []
+                ]
             ]);
 
             // 4. Handle additional family members (BATCH)
@@ -200,7 +256,7 @@ class MutasiService
 
     public function handlePindahKeluar(array $validated)
     {
-        $penduduk = Penduduk::findOrFail($validated['penduduk_id']);
+        $penduduk = Penduduk::withTrashed()->findOrFail($validated['penduduk_id']);
         
         $snapshotAsal = [
             'nkk' => $penduduk->kartuKeluarga->nkk ?? $penduduk->nkk,
@@ -283,7 +339,7 @@ class MutasiService
     {
         // Fallback: jika NKK tidak dikirim tapi penduduk_id ada, ambil dari penduduk
         if (empty($validated['nkk']) && !empty($validated['penduduk_id'])) {
-            $validated['nkk'] = Penduduk::findOrFail($validated['penduduk_id'])->nkk;
+            $validated['nkk'] = Penduduk::withTrashed()->findOrFail($validated['penduduk_id'])->nkk;
         }
 
         // Ambil record KK (Source of Truth)
@@ -391,7 +447,7 @@ class MutasiService
     public function handlePisahKK(array $validated)
     {
         // Get the person who will become new head of family
-        $penduduk = Penduduk::findOrFail($validated['penduduk_id']);
+        $penduduk = Penduduk::withTrashed()->findOrFail($validated['penduduk_id']);
         $oldNKK = $penduduk->nkk;
 
         // Determine new KK ID and NKK based on option

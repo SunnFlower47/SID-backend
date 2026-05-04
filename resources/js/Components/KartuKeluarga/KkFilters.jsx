@@ -148,7 +148,7 @@ export default function KkFilters({ filters, rtList = [], rwList = [], dusunList
                 <div className="flex justify-center sm:justify-end pt-4 border-t border-gray-50 mt-4">
                     <button 
                         onClick={handleApply}
-                        className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl transition-all text-xs font-bold uppercase tracking-widest shadow-md shadow-green-200 active:scale-95 group"
+                        className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl transition-all text-[10px] font-black uppercase tracking-widest shadow-md shadow-green-200 active:scale-95 group"
                     >
                         <Filter className="mr-2 w-3.5 h-3.5 sm:w-4 h-4 group-hover:rotate-12 transition-transform" />
                         Terapkan Filter

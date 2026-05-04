@@ -132,15 +132,48 @@
         <!-- Main Content Area -->
         <main class="flex-1 main-content">
             @if (session('success'))
-                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mx-4 mt-4" role="alert">
-                    <span class="block sm:inline">{{ session('success') }}</span>
-                </div>
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'BERHASIL!',
+                            text: "{{ session('success') }}",
+                            showConfirmButton: true,
+                            confirmButtonText: 'OKE SIAP!',
+                            confirmButtonColor: '#10b981',
+                            timer: 5000,
+                            timerProgressBar: true,
+                            background: '#ffffff',
+                            color: '#1f2937',
+                            iconColor: '#10b981',
+                            customClass: {
+                                popup: 'rounded-[32px] border-none shadow-2xl',
+                                title: 'font-black tracking-tighter uppercase italic',
+                                confirmButton: 'rounded-2xl px-8 py-3 font-black uppercase tracking-widest text-[10px]'
+                            }
+                        });
+                    });
+                </script>
             @endif
 
             @if (session('error'))
-                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mx-4 mt-4" role="alert">
-                    <span class="block sm:inline">{{ session('error') }}</span>
-                </div>
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'TERJADI KESALAHAN!',
+                            text: "{{ session('error') }}",
+                            showConfirmButton: true,
+                            confirmButtonColor: '#ef4444',
+                            background: '#ffffff',
+                            customClass: {
+                                popup: 'rounded-[32px] border-none shadow-2xl',
+                                title: 'font-black tracking-tighter uppercase italic',
+                                confirmButton: 'rounded-2xl px-8 py-3 font-black uppercase tracking-widest text-[10px]'
+                            }
+                        });
+                    });
+                </script>
             @endif
 
             @yield('content')

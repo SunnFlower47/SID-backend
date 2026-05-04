@@ -149,7 +149,10 @@
     <div class="garis-double"></div>
     <div class="garis-tebal"></div>
 
-    <div class="surat-title">SURAT KETERANGAN KELAHIRAN</div>
+    <div class="surat-title" style="text-align: center; margin-bottom: 5px;">SURAT KETERANGAN KELAHIRAN</div>
+    <div style="text-align: center; margin-bottom: 30px; font-weight: bold;">
+        No. {{ $kode_surat }} / {{ $nomor_urut }} / {{ $kode_desa }} / {{ $bulan_romawi }} / {{ $tahun_surat }}
+    </div>
 
     <div class="date">
         {{ $nama_desa }}, {{ \Carbon\Carbon::parse($tgl_surat)->isoFormat('D MMMM Y') }}

@@ -52,7 +52,8 @@ class StorePendudukRequest extends FormRequest
             ],
             'kedudukan_keluarga' => [
                 'required',
-                'in:Kepala Keluarga,Istri,Anak,Menantu,Cucu,Orang Tua,Famili Lain,Lainnya',
+                'string',
+                'max:50',
                 new DataConsistencyValidation($this->all())
             ],
             'pendidikan' => 'nullable|string|max:100',
@@ -74,8 +75,8 @@ class StorePendudukRequest extends FormRequest
             'family_members.*.tempat_lahir' => 'required|string|max:100',
             'family_members.*.tanggal_lahir' => 'nullable|date|before:today|after:1900-01-01',
             'family_members.*.agama' => 'required|string|max:50',
-            'family_members.*.kedudukan_keluarga' => 'required|in:Istri,Anak,Cucu,Lainnya',
-            'family_members.*.status_perkawinan' => 'nullable|in:Belum Kawin,Kawin,Cerai Hidup,Cerai Mati',
+            'family_members.*.kedudukan_keluarga' => 'required|string|max:50',
+            'family_members.*.status_perkawinan' => 'nullable|string|max:50',
             'family_members.*.pendidikan' => 'required|string|max:100',
             'family_members.*.pekerjaan' => 'required|string|max:100',
             'family_members.*.nama_ayah' => 'nullable|string|max:255',

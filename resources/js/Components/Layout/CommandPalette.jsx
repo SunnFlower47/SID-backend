@@ -156,7 +156,7 @@ export default function CommandPalette({ isOpen, onClose }) {
   return (
     <div className="fixed inset-0 z-[100] flex items-start justify-center pt-24 px-4 bg-gray-900/60 backdrop-blur-md animate-in fade-in duration-300" onClick={onClose}>
       <div
-        className="w-full max-w-2xl bg-white rounded-[32px] shadow-2xl border border-gray-100 overflow-hidden flex flex-col animate-in zoom-in-95 duration-300"
+        className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden flex flex-col animate-in zoom-in-95 duration-300"
         onClick={e => e.stopPropagation()}
       >
         {/* Search Input */}

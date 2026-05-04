@@ -112,7 +112,7 @@ export default function PindahRTRWForm({ wilayahTree, mutasi = null }) {
       </div>
 
       {/* 2. Wilayah Tujuan */}
-      <div className="p-8 bg-purple-50/50 border border-purple-100 rounded-[32px] space-y-6">
+      <div className="p-8 bg-purple-50/50 border border-purple-100 rounded-3xl space-y-6">
         <h4 className="text-xs font-black text-purple-600 uppercase tracking-widest flex items-center gap-2 mb-4">
           <ArrowRightLeft className="w-4 h-4" />
           Alamat & Wilayah Tujuan
@@ -141,7 +141,7 @@ export default function PindahRTRWForm({ wilayahTree, mutasi = null }) {
       </div>
 
       {/* 3. Detail Ekstra */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-8 bg-gray-50 border border-gray-100 rounded-[32px]">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-8 bg-gray-50 border border-gray-100 rounded-3xl">
          <div className="space-y-2">
           <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Tanggal Pindah</label>
           <input 
@@ -165,9 +165,9 @@ export default function PindahRTRWForm({ wilayahTree, mutasi = null }) {
       <div className="pt-4 flex items-center justify-end">
         <button
           type="submit" disabled={processing}
-          className="px-10 py-4 bg-purple-600 text-white rounded-2xl text-sm font-black hover:bg-purple-700 transition-all shadow-xl shadow-purple-900/20 flex items-center gap-2 active:scale-95 disabled:opacity-50"
+          className="px-10 py-3.5 bg-gradient-to-r from-purple-500 to-purple-700 text-white rounded-xl text-[11px] font-bold uppercase tracking-widest hover:scale-[1.02] transition-all shadow-xl shadow-purple-200 flex items-center gap-2 active:scale-95 disabled:opacity-50"
         >
-          {processing ? 'Memproses...' : <><Save className="w-4 h-4" /> SIMPAN PINDAH RT/RW</>}
+          {processing ? 'MEMPROSES...' : <><Save className="w-4 h-4" /> SIMPAN PINDAH RT/RW</>}
         </button>
       </div>
     </form>

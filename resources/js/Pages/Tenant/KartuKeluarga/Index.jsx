@@ -63,7 +63,7 @@ export default function Index({ auth, kartuKeluarga, stats, dusunList, rwList, r
             if (result.isConfirmed) {
                 // Close confirm dialog first to prevent overlapping
                 Swal.close();
-                
+
                 setIsSyncing(true);
                 router.post(route('kk.sync-summary'), {}, {
                     onFinish: () => setIsSyncing(false),
@@ -86,18 +86,27 @@ export default function Index({ auth, kartuKeluarga, stats, dusunList, rwList, r
 
     const handleDelete = (nkk) => {
         Swal.fire({
-            title: 'Konfirmasi Hapus',
-            html: `Apakah Anda yakin ingin menghapus KK <b>${nkk}</b>?<br><small class="text-red-500">Semua anggota keluarga akan ikut terhapus.</small>`,
+            title: 'KONFIRMASI HAPUS KK',
+            html: `Apakah Anda yakin ingin menghapus KK <b class="text-red-600">${nkk}</b>?<br><small class="text-red-500 font-bold uppercase tracking-widest text-[9px]">Peringatan: Semua anggota keluarga di dalamnya akan ikut terhapus!</small>`,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Ya, Hapus Semua!',
-            cancelButtonText: 'Batal'
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#f3f4f6',
+            confirmButtonText: 'YA, HAPUS SEMUA!',
+            cancelButtonText: 'BATALKAN',
+            background: '#ffffff',
+            customClass: {
+                popup: 'rounded-3xl border-none shadow-2xl',
+                title: 'font-black tracking-tighter uppercase italic text-red-600',
+                confirmButton: 'rounded-2xl px-6 py-3 font-black uppercase tracking-widest text-[10px] shadow-lg shadow-red-200',
+                cancelButton: 'rounded-2xl px-6 py-3 font-black uppercase tracking-widest text-[10px] text-gray-500'
+            }
         }).then((result) => {
             if (result.isConfirmed) {
                 router.delete(route('kk.destroy', nkk), {
-                    onSuccess: () => Swal.fire('Terhapus!', 'Data KK berhasil dihapus.', 'success')
+                    onSuccess: () => {
+                        // Let global handle flash
+                    }
                 });
             }
         });
@@ -119,7 +128,7 @@ export default function Index({ auth, kartuKeluarga, stats, dusunList, rwList, r
             {/* Loading Overlays */}
             {(isExporting || isSyncing) && (
                 <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-300">
-                    <div className="bg-white rounded-[40px] p-8 shadow-2xl flex flex-col items-center gap-4 max-w-xs w-full mx-4 animate-in zoom-in-95 duration-300">
+                    <div className="bg-white rounded-3xl p-8 shadow-2xl flex flex-col items-center gap-4 max-w-xs w-full mx-4 animate-in zoom-in-95 duration-300">
                         <div className="w-24 h-24">
                             <LottieComponent animationData={loadingAnimation} loop={true} />
                         </div>
@@ -148,21 +157,21 @@ export default function Index({ auth, kartuKeluarga, stats, dusunList, rwList, r
                         <div className="flex flex-wrap gap-2">
                             <button
                                 onClick={handleSync}
-                                className="flex items-center px-4 py-3 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white rounded-xl text-[10px] sm:text-xs font-black transition-all"
+                                className="flex items-center px-4 py-3 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white rounded-xl text-[10px] sm:text-xs font-black transition-all uppercase tracking-widest"
                             >
                                 <RefreshCw className={cn("w-3.5 h-3.5 mr-2", isSyncing && "animate-spin")} />
                                 SYNC
                             </button>
                             <button
                                 onClick={handleExport}
-                                className="flex items-center px-4 py-3 bg-emerald-500/30 hover:bg-emerald-500/50 border border-emerald-400/30 text-white rounded-xl text-[10px] sm:text-xs font-black transition-all"
+                                className="flex items-center px-4 py-3 bg-emerald-500/30 hover:bg-emerald-500/50 border border-emerald-400/30 text-white rounded-xl text-[10px] sm:text-xs font-black transition-all uppercase tracking-widest"
                             >
                                 <FileSpreadsheet className="w-3.5 h-3.5 mr-2" />
                                 EXCEL
                             </button>
                             <Link
                                 href={route('kk.create')}
-                                className="flex items-center px-6 py-3 bg-white text-emerald-700 hover:bg-emerald-50 rounded-xl text-[10px] sm:text-xs font-black shadow-lg transition-all hover:scale-105"
+                                className="flex items-center px-6 py-3 bg-white text-emerald-700 hover:bg-emerald-50 rounded-xl text-[10px] sm:text-xs font-black shadow-lg transition-all hover:scale-105 uppercase tracking-widest"
                             >
                                 <Plus className="w-3.5 h-3.5 mr-2" />
                                 TAMBAH
@@ -199,25 +208,27 @@ export default function Index({ auth, kartuKeluarga, stats, dusunList, rwList, r
                 )}
 
                 {/* Filter Toggle */}
-                <div className="flex justify-between items-center bg-white p-3 sm:p-5 rounded-2xl border border-gray-100 shadow-sm">
-                    <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-emerald-50 rounded-xl flex items-center justify-center">
-                            <Search className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600" />
+                <div className="flex justify-between items-center bg-white p-3 sm:p-5 rounded-2xl sm:rounded-3xl border border-gray-100 shadow-sm transition-all">
+                    <div className="flex items-center gap-2 sm:gap-4">
+                        <div className="w-8 h-8 sm:w-12 sm:h-12 bg-green-50 rounded-xl flex items-center justify-center">
+                            <Search className="w-4 h-4 sm:w-6 sm:h-6 text-green-600" />
                         </div>
                         <div>
-                            <h3 className="text-xs sm:text-sm font-black text-gray-950 uppercase italic tracking-tighter leading-none mb-1">Konfigurasi Data</h3>
-                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Pencarian & Filter Wilayah</p>
+                            <h3 className="text-[10px] sm:text-sm font-black text-gray-950 uppercase italic tracking-tighter">Konfigurasi Data</h3>
+                            <p className="hidden sm:block text-[10px] font-bold text-gray-400 uppercase tracking-widest">Pencarian & Filter Wilayah</p>
                         </div>
                     </div>
                     <button
                         onClick={() => setShowFilters(!showFilters)}
                         className={cn(
-                            "flex items-center px-4 py-2 sm:px-6 sm:py-3 rounded-xl text-[10px] font-black transition-all border shadow-sm",
-                            showFilters ? "bg-yellow-400 text-yellow-900 border-yellow-500" : "bg-gray-50 text-gray-600 border-gray-200"
+                            "flex items-center px-4 py-2 sm:px-6 sm:py-3 rounded-xl text-[9px] sm:text-xs font-black transition-all border shadow-sm active:scale-95",
+                            showFilters
+                                ? "bg-yellow-400 text-yellow-900 border-yellow-500 shadow-yellow-400/20"
+                                : "bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100"
                         )}
                     >
-                        <Filter className="w-3.5 h-3.5 mr-2" />
-                        {showFilters ? 'TUTUP' : 'FILTER'}
+                        <Filter className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
+                        {showFilters ? 'TUTUP PANEL' : 'BUKA FILTER'}
                     </button>
                 </div>
 
@@ -341,7 +352,7 @@ export default function Index({ auth, kartuKeluarga, stats, dusunList, rwList, r
             {/* Export Success Overlay */}
             {showSuccess && (
                 <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/20 backdrop-blur-sm">
-                    <div className="bg-white p-8 rounded-[40px] shadow-2xl flex flex-col items-center animate-in zoom-in duration-300">
+                    <div className="bg-white p-8 rounded-3xl shadow-2xl flex flex-col items-center animate-in zoom-in duration-300">
                         <div className="w-48 h-48">
                             <LottieComponent animationData={successAnimation} loop={false} />
                         </div>

@@ -229,31 +229,19 @@ class DesaSetting extends Model
 
         // Jika belum ada counter untuk tahun ini, inisialisasi dengan nomor terakhir dari database
         if ($lastNumber == 0) {
-            // Hitung dari surats yang sudah dibuat
-            $lastSurat = \App\Models\Surat::whereYear('created_at', $currentYear)
-                ->orderBy('nomor_surat', 'desc')
-                ->first();
-
-            $maxSuratNumber = 0;
-            if ($lastSurat) {
-                $maxSuratNumber = static::extractNomorUrutFromNomorSurat($lastSurat->nomor_surat);
-            }
-
-            // Hitung dari surat_pengajuans yang sudah approved
+            // Hitung dari surat_pengajuans yang sudah ada
             $approvedPengajuans = \App\Models\SuratPengajuan::whereYear('created_at', $currentYear)
-                ->where('status', 'approved')
                 ->get();
 
-            $maxPengajuanNumber = 0;
+            $maxNumber = 0;
             foreach ($approvedPengajuans as $pengajuan) {
                 $nomorUrut = static::extractNomorUrutFromNomorSurat($pengajuan->nomor_surat);
-                if ($nomorUrut > $maxPengajuanNumber) {
-                    $maxPengajuanNumber = $nomorUrut;
+                if ($nomorUrut > $maxNumber) {
+                    $maxNumber = $nomorUrut;
                 }
             }
 
-            // Ambil nomor tertinggi dari kedua sumber
-            $lastNumber = max($maxSuratNumber, $maxPengajuanNumber);
+            $lastNumber = $maxNumber;
         }
 
         $nextNumber = $lastNumber + 1;

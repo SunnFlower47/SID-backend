@@ -225,7 +225,7 @@
         $bulan = $tanggal_surat ? \Carbon\Carbon::parse($tanggal_surat)->format('n') : \Carbon\Carbon::now()->format('n');
         $tahun = $tanggal_surat ? \Carbon\Carbon::parse($tanggal_surat)->format('Y') : \Carbon\Carbon::now()->format('Y');
     @endphp
-        <p style="margin-top: 0;">Nomor : 472 /&emsp;/2001/ {{ intToRoman($bulan) }} / {{ $tahun }}</p>
+        <p style="margin-top: 0;">Nomor : {{ $kode_surat }} / {{ $nomor_urut }} / {{ $kode_desa }} / {{ $bulan_romawi }} / {{ $tahun_surat }}</p>
 
   </div>
 
