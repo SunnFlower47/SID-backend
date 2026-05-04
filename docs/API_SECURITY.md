@@ -1,63 +1,107 @@
-# API Security Documentation
+# 🔒 API Security Documentation (V2 - High Security)
 
-## 🔒 Keamanan API Desa Cibatu
+Dokumen ini menjelaskan lapisan keamanan tingkat tinggi yang diterapkan pada API **Sistem Desa Cibatu** untuk melindungi data sensitif warga.
 
-### Endpoint yang Dilindungi:
-- `/api/v1/penduduk` - Data penduduk lengkap
-- `/api/v1/statistics` - Statistik penduduk
-- `/api/v1/statistics/penduduk` - Statistik detail penduduk
-- `/api/v1/statistics/kk` - Statistik kartu keluarga
-- `/api/v1/statistics/mutasi` - Statistik mutasi
-- `/api/v1/struktur-desa` - Struktur organisasi (mengandung NIK)
-- `/api/v1/perangkat-desa` - Data perangkat desa (mengandung NIK)
-- `/api/v1/rt-rw` - Data RT/RW (mengandung NIK)
-- `/api/v1/bumdes` - Data BUMDes (mengandung NIK)
-- `/api/v1/search-penduduk` - Pencarian penduduk
-- `/api/v1/check-nik/{nik}` - Validasi NIK
-- `/api/v1/testimoni` - Data testimoni (mengandung email, telepon, RT/RW)
-- `/api/v1/testimoni/stats` - Statistik testimoni
-- `/api/v1/testimoni/categories` - Kategori testimoni
-- `/api/v1/surat-pengajuan/nik/{nik}` - Data surat pengajuan
-- `/api/v1/surat-pengajuan/search` - Pencarian surat
+---
 
-### Cara Menggunakan API:
+## 🛡️ 1. Mekanisme Keamanan Utama
 
-#### 1. Header Authentication
-```bash
-curl -H "X-API-Key: desa-cibatu-2024-secure-key" \
-     https://admin-dscibatu.sunnflower.site/api/v1/penduduk
+Sistem menggunakan **Zero Trust Architecture** dengan beberapa lapis pertahanan:
+
+### A. Digital Signature (HMAC-SHA256)
+Setiap request ke endpoint **Private API** WAJIB menyertakan tanda tangan digital untuk memastikan integritas data.
+- **Header**: `X-Signature`
+- **Algoritma**: HMAC-SHA256
+- **Secret**: Diambil dari `API_KEY` di file `.env`.
+- **Payload**: `timestamp + method + path`
+
+### B. Request Expiration (Anti-Replay)
+Mencegah hacker mencuri request dan menggunakannya kembali di lain waktu.
+- **Header**: `X-Timestamp` (Unix Timestamp)
+- **Toleransi**: 300 detik (5 Menit). Request lebih dari 5 menit akan ditolak otomatis.
+
+### C. Origin & User-Agent Whitelisting
+- Hanya domain resmi yang terdaftar di `PrivateApiMiddleware` yang diizinkan.
+- Request non-browser (curl/bot polosan) akan diblokir kecuali menyertakan header yang valid.
+
+---
+
+## 🔑 2. Cara Request (Untuk Developer/Frontend)
+
+Untuk mengakses endpoint seperti `/api/v1/penduduk`, frontend harus mengirimkan header berikut:
+
+```http
+X-API-Key: [API_KEY_ANDA]
+X-Timestamp: 1714845000
+X-Signature: [HASIL_HMAC_SHA256]
+User-Agent: Mozilla/5.0...
 ```
 
-#### 2. Query Parameter
-```bash
-curl "https://admin-dscibatu.sunnflower.site/api/v1/penduduk?api_key=desa-cibatu-2024-secure-key"
-```
-
-### Frontend Configuration:
+### Contoh Generator Signature (JavaScript):
 ```javascript
-// Di file .env
-REACT_APP_API_URL=https://admin-dscibatu.sunnflower.site/api/v1
-REACT_APP_API_KEY=desa-cibatu-2024-secure-key
+const timestamp = Math.floor(Date.now() / 1000);
+const method = 'GET';
+const path = 'v1/statistics';
+const secret = 'your-api-key-secret';
+
+const message = timestamp + method + path;
+const signature = crypto.createHmac('sha256', secret).update(message).digest('hex');
 ```
 
-### Keamanan yang Diterapkan:
-1. ✅ **API Key Authentication** - Semua endpoint sensitif memerlukan API key
-2. ✅ **Rate Limiting** - Mencegah abuse dengan throttle
-3. ✅ **CORS Protection** - Hanya domain yang diizinkan
-4. ✅ **Input Validation** - Validasi semua input
-5. ✅ **Error Handling** - Tidak mengekspos informasi sensitif
+---
 
-### Rekomendasi:
-1. **Ganti API Key** secara berkala
-2. **Monitor API Usage** untuk mendeteksi abuse
-3. **Log semua akses** untuk audit
-4. **Gunakan HTTPS** di production
-5. **Backup data** secara berkala
+## 🛡️ 3. Content Security Policy (CSP) & Nonce
 
-### Endpoint yang Aman (Tidak Perlu API Key):
-- `/api/v1/berita` - Berita publik
-- `/api/v1/contact` - Informasi kontak
-- `/api/v1/desa-info` - Informasi desa
-- `/api/v1/fasilitas-desa` - Fasilitas desa
-- `/api/v1/agenda-desa` - Agenda desa
-- `/api/v1/agenda-categories` - Kategori agenda
+Untuk mencegah serangan **XSS (Cross-Site Scripting)**, sistem menggunakan `CspNonceMiddleware`.
+- **Nonce**: String unik yang di-generate setiap kali halaman direfresh.
+- **Cara Pakai**: Semua inline script di Blade/React harus menyertakan atribut `nonce`.
+  ```html
+  <script nonce="{{ $csp_nonce }}"> ... </script>
+  ```
+- **Whitelist**: Google ReCAPTCHA, Google Fonts, dan CDN terpercaya sudah masuk daftar izin.
+
+---
+
+## 🚦 4. Rate Limiting (Throttling)
+
+Setiap endpoint memiliki batas akses untuk mencegah serangan Brute Force:
+- **General Data**: 100 request / menit.
+- **Search NIK**: 10 request / menit.
+- **Form Submit**: 5 request / menit.
+
+---
+
+## 📑 5. Daftar Endpoint Berdasarkan Tingkat Keamanan
+
+| Endpoint | Keamanan | Middleware |
+|----------|----------|------------|
+| `/api/v1/berita` | Low | `throttle` |
+| `/api/v1/statistics` | High | `private.api`, `signature` |
+| `/api/v1/search-penduduk`| Critical | `private.api`, `captcha:v3` |
+| `/api/v1/surat-pengajuan`| Critical | `private.api`, `captcha` |
+
+---
+
+## 🛡️ 6. CSRF Protection for Web-Desa
+
+Meskipun menggunakan prefix `/v1`, sistem tetap menerapkan perlindungan CSRF untuk semua request yang merubah state (POST/PATCH/DELETE).
+
+### Cara Kerja:
+1. **Fetch Token**: Frontend (web-desa) harus memanggil endpoint `GET /api/v1/csrf-token` saat inisialisasi aplikasi.
+2. **Storage**: Simpan token tersebut di memory (state) atau session.
+3. **Usage**: Sertakan token tersebut di header `X-CSRF-TOKEN` untuk setiap request POST.
+
+```javascript
+// Contoh Fetch CSRF Token
+const response = await axios.get('/api/v1/csrf-token');
+const csrfToken = response.data.csrf_token;
+
+// Contoh Kirim Request dengan CSRF
+await axios.post('/api/v1/surat-pengajuan', data, {
+    headers: { 'X-CSRF-TOKEN': csrfToken }
+});
+```
+
+---
+> [!IMPORTANT]
+> **Peringatan**: Jangan pernah memberikan `API_KEY` kepada pihak ketiga. Gunakan `Proxy API` jika ingin mengakses data dari domain yang berbeda.
