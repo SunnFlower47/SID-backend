@@ -90,6 +90,7 @@ DB_COLLATION=utf8mb4_unicode_ci
 | `pengaduans` | Citizen complaints |
 | `bantuan_sosials` | Social assistance programs |
 | `penerima_bantuan_sosials` | Social assistance recipients |
+| `penduduk_domisilis` | Domicile/Residence management |
 | `apbdes` | Village budget |
 | `proyek_desas` | Village projects |
 | `histori_pengeluarans` | Financial expenditure logs |
@@ -547,7 +548,56 @@ CREATE TABLE penerima_bantuan_sosials (
 
 ---
 
-### **11. CONTACT_MESSAGES (Contact Form Messages Table)**
+### **11. PENDUDUK_DOMISILIS (Domicile Management Table)**
+
+#### **Table Definition**
+```sql
+CREATE TABLE penduduk_domisilis (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    nik VARCHAR(255) NOT NULL,
+    nama VARCHAR(255) NOT NULL,
+    tempat_lahir VARCHAR(255) NULL,
+    tanggal_lahir DATE NULL,
+    jenis_kelamin VARCHAR(20) NULL,
+    agama VARCHAR(100) NULL,
+    status_perkawinan VARCHAR(100) NULL,
+    kewarganegaraan VARCHAR(100) NULL,
+    pekerjaan VARCHAR(255) NULL,
+    asal_daerah VARCHAR(255) NULL,
+    alamat_asal TEXT NULL,
+    rt_id BIGINT UNSIGNED NULL,
+    rw_id BIGINT UNSIGNED NULL,
+    dusun_id BIGINT UNSIGNED NULL,
+    alamat_tinggal TEXT NULL,
+    keperluan_domisili TEXT NULL,
+    tanggal_masuk DATE NULL,
+    tanggal_berlaku DATE NULL,
+    status ENUM('aktif', 'expired', 'mutasi') DEFAULT 'aktif',
+    perpanjangan_ke INT DEFAULT 0,
+    nomor_surat VARCHAR(255) NULL,
+    surat_pengajuan_id BIGINT UNSIGNED NULL,
+    catatan TEXT NULL,
+    created_by BIGINT UNSIGNED NULL,
+    deleted_at TIMESTAMP NULL DEFAULT NULL,
+    created_at TIMESTAMP NULL DEFAULT NULL,
+    updated_at TIMESTAMP NULL DEFAULT NULL,
+
+    FOREIGN KEY (surat_pengajuan_id) REFERENCES surat_pengajuans(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+```
+
+#### **Field Descriptions**
+| Field | Type | Description | Constraints |
+|-------|------|-------------|-------------|
+| `id` | BIGINT UNSIGNED | Primary key | AUTO_INCREMENT |
+| `nik` | VARCHAR(255) | Resident NIK | NOT NULL |
+| `nama` | VARCHAR(255) | Full name | NOT NULL |
+| `surat_pengajuan_id` | BIGINT UNSIGNED | Link to parent letter | FK, CASCADE DELETE |
+| `status` | ENUM | Residence status | aktif, expired, mutasi |
+
+---
+
+### **12. CONTACT_MESSAGES (Contact Form Messages Table)**
 
 #### **Table Definition**
 ```sql
@@ -603,7 +653,7 @@ CREATE TABLE contact_messages (
 
 ---
 
-### **12. USERS (System Users Table)**
+### **13. USERS (System Users Table)**
 
 #### **Table Definition**
 ```sql
@@ -633,7 +683,7 @@ CREATE TABLE users (
 
 ---
 
-### **13. ROLES & PERMISSIONS (User Management Tables)**
+### **14. ROLES & PERMISSIONS (User Management Tables)**
 
 #### **Roles Table**
 ```sql
@@ -695,7 +745,7 @@ CREATE TABLE role_has_permissions (
 
 ---
 
-### **14. KARTU_KELUARGAS (KK Cache Table)**
+### **15. KARTU_KELUARGAS (KK Cache Table)**
 
 #### **Table Definition**
 ```sql
@@ -732,7 +782,7 @@ CREATE TABLE kartu_keluargas (
 
 ---
 
-### **15. WILAYAH MASTER (Dusun, RW, RT)**
+### **16. WILAYAH MASTER (Dusun, RW, RT)**
 
 #### **dusuns Table**
 | Field | Type | Description |
@@ -755,7 +805,7 @@ CREATE TABLE kartu_keluargas (
 
 ---
 
-### **16. FINANCIAL MODULE (APBDes & Proyek)**
+### **17. FINANCIAL MODULE (APBDes & Proyek)**
 
 #### **apbdes Table**
 | Field | Type | Description |
@@ -776,7 +826,7 @@ CREATE TABLE kartu_keluargas (
 
 ---
 
-### **17. SYSTEM TABLES (Laravel Default Tables)**
+### **18. SYSTEM TABLES (Laravel Default Tables)**
 
 #### **Migrations Table**
 ```sql

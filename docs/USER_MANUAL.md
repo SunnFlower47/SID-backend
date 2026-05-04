@@ -100,7 +100,8 @@
 
 ### **Cancel/Undo Mutasi**
 - **Cancel**: Untuk mutasi dalam desa (mengembalikan data ke kondisi semula)
-- **Undo**: Untuk mutasi soft delete (mengembalikan penduduk yang dihapus)
+- **Undo**: Untuk mutasi soft delete (mengembalikan penduduk yang dihapus).
+- **Automated Cleanup**: Menghapus data mutasi atau pembatalan domisili akan otomatis menghapus surat terkait untuk mencegah duplikasi data sampah.
 
 ---
 
@@ -301,8 +302,9 @@
 - Klik tombol **"Buat Surat"**
 
 #### **2. Isi Data Surat**
-- Pilih penduduk yang bersangkutan
-- Isi data tambahan sesuai jenis surat
+- Pilih penduduk yang bersangkutan.
+- Isi data tambahan sesuai jenis surat.
+- **Pilih Penandatangan**: Anda dapat memilih siapa yang akan menandatangani surat (Kepala Desa atau Sekretaris Desa) melalui dropdown yang tersedia.
 - Klik **"Simpan Surat"**
 
 #### **3. Preview dan Cetak**
