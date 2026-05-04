@@ -138,8 +138,8 @@
 
 ### **1. Clone Repository**
 ```bash
-git clone https://github.com/your-repo/sistem-desa-cibatu.git
-cd sistem-desa-cibatu
+git clone https://github.com/your-repo/sid-backend.git
+cd sid-backend
 ```
 
 ### **2. Backend Setup**
