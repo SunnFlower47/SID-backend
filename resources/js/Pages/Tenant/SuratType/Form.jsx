@@ -146,7 +146,7 @@ export default function Form({ auth, suratType = null }) {
                     <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
                         <div className="flex items-center space-x-4">
                             <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-inner shrink-0">
-                                <FileText className="w-6 h-6 sm:w-7 sm:h-7 text-blue-200" />
+                                <FileText className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-300" />
                             </div>
                             <div>
                                 <h1 className="text-xl sm:text-3xl font-black text-white tracking-tight uppercase italic leading-none">
