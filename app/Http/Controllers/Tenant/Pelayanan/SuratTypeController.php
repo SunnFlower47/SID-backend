@@ -53,6 +53,9 @@ class SuratTypeController extends Controller
             $validated['file_template'] = basename($path);
         }
 
+        // Pastikan form_json terisi meskipun kosong
+        $validated['form_json'] = $request->input('form_json', []);
+
         SuratType::create($validated);
 
         return redirect()->route('admin.surat-type.index')
@@ -89,6 +92,9 @@ class SuratTypeController extends Controller
             $path = $request->file('file_template')->store('templates/surat', 'local');
             $validated['file_template'] = basename($path);
         }
+
+        // Pastikan form_json terupdate meskipun kosong (dihapus semua)
+        $validated['form_json'] = $request->input('form_json', []);
 
         $suratType->update($validated);
 

@@ -20,10 +20,10 @@ class SuratService
     public function generate($templateName, array $data, $outputName = null, $penandatangan = 'kepala_desa')
     {
         try {
-            $templatePath = storage_path('app/templates/surat/' . $templateName);
+            $templatePath = Storage::disk('local')->path('templates/surat/' . $templateName);
 
             if (!file_exists($templatePath)) {
-                throw new \Exception("Template surat tidak ditemukan: {$templateName}");
+                throw new \Exception("Template surat tidak ditemukan di: {$templatePath}");
             }
 
             $templateProcessor = new TemplateProcessor($templatePath);
@@ -32,7 +32,7 @@ class SuratService
             $kades = \App\Models\StrukturDesa::where('kategori', 'kepala_desa')->where('status_aktif', true)->first();
             $sekdes = \App\Models\StrukturDesa::where('kategori', 'sekretaris')->where('status_aktif', true)->first();
             
-            $namaDesa = 'Cibatu'; // Nanti bisa ambil dari config/settings
+            $namaDesa = \App\Models\DesaSetting::getValue('nama_desa', 'Cibatu');
 
             if ($penandatangan === 'kepala_desa' && $kades) {
                 $data['ttd_atas'] = "Kepala Desa " . $namaDesa;
@@ -41,9 +41,13 @@ class SuratService
                 $data['ttd_atas'] = "a.n. Kepala Desa " . $namaDesa;
                 $data['ttd_bawah'] = strtoupper($sekdes->nama);
             } else {
-                // Fallback jika tidak ada data yang pas
                 $data['ttd_atas'] = "Kepala Desa " . $namaDesa;
                 $data['ttd_bawah'] = strtoupper($kades->nama ?? '....................');
+            }
+
+            // Tambahkan Alamat Desa secara Global
+            if (!isset($data['alamat_desa'])) {
+                $data['alamat_desa'] = \App\Models\DesaSetting::getValue('alamat_lengkap', 'Jl. Cibatu Km. 15, Desa Cibatu');
             }
 
             // 2. Tambahkan Tanggal Otomatis jika belum ada
@@ -62,16 +66,18 @@ class SuratService
                         'ratio' => $value['ratio'] ?? true,
                     ]);
                 } else {
-                    // Cek jika ada block (misal: ${block_wali} ... ${/block_wali})
-                    // Ini logic sederhana untuk deleteBlock jika value-nya false/empty
-                    if (str_starts_with($key, 'block_')) {
-                        if (!$value) {
-                            $templateProcessor->deleteBlock($key);
+                    // Hanya suntikkan jika nilainya bukan array (kecuali image di atas)
+                    if (!is_array($value)) {
+                        // Cek jika ada block (misal: ${block_wali} ... ${/block_wali})
+                        if (str_starts_with($key, 'block_')) {
+                            if (!$value) {
+                                $templateProcessor->deleteBlock($key);
+                            } else {
+                                $templateProcessor->cloneBlock($key, 1, true, false);
+                            }
                         } else {
-                            $templateProcessor->cloneBlock($key, 1, true, false);
+                            $templateProcessor->setValue($key, (string)$value);
                         }
-                    } else {
-                        $templateProcessor->setValue($key, (string)$value);
                     }
                 }
             }

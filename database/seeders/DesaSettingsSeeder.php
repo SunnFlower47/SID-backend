@@ -25,6 +25,22 @@ class DesaSettingsSeeder extends Seeder
             // Logos
             ['key' => 'logo_desa', 'value' => '/logo desa cibatu.png', 'type' => 'image', 'group' => 'logo', 'description' => 'Logo Desa'],
             ['key' => 'logo_kabupaten', 'value' => null, 'type' => 'image', 'group' => 'logo', 'description' => 'Logo Kabupaten'],
+            ['key' => 'logo_provinsi', 'value' => null, 'type' => 'image', 'group' => 'logo', 'description' => 'Logo Provinsi'],
+
+            // Geography
+            ['key' => 'latitude', 'value' => '-6.5001403', 'type' => 'text', 'group' => 'general', 'description' => 'Latitude Lokasi Desa'],
+            ['key' => 'longitude', 'value' => '107.5342964', 'type' => 'text', 'group' => 'general', 'description' => 'Longitude Lokasi Desa'],
+            ['key' => 'luas_total', 'value' => '1250', 'type' => 'text', 'group' => 'geography', 'description' => 'Luas Total Wilayah (Ha)'],
+
+            // Strategic Profile
+            ['key' => 'visi', 'value' => 'Terwujudnya Desa Cibatu yang Mandiri, Sejahtera, dan Berakhlak Mulia.', 'type' => 'text', 'group' => 'profile', 'description' => 'Visi Desa'],
+            ['key' => 'misi', 'value' => "1. Meningkatkan kualitas pelayanan publik.\n2. Mengembangkan potensi ekonomi lokal.\n3. Memperkuat kerukunan antar warga.", 'type' => 'text', 'group' => 'profile', 'description' => 'Misi Desa'],
+            ['key' => 'sejarah_desa', 'value' => 'Desa Cibatu memiliki sejarah panjang yang dimulai dari...', 'type' => 'text', 'group' => 'profile', 'description' => 'Sejarah Singkat Desa'],
+
+            // Social Media
+            ['key' => 'link_facebook', 'value' => 'https://facebook.com/desacibatu', 'type' => 'text', 'group' => 'social', 'description' => 'URL Facebook Desa'],
+            ['key' => 'link_instagram', 'value' => 'https://instagram.com/desacibatu', 'type' => 'text', 'group' => 'social', 'description' => 'URL Instagram Desa'],
+            ['key' => 'link_youtube', 'value' => 'https://youtube.com/@desacibatu', 'type' => 'text', 'group' => 'social', 'description' => 'URL YouTube Desa'],
         ];
 
         foreach ($settings as $setting) {

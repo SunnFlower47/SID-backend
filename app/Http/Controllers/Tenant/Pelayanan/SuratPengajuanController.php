@@ -233,9 +233,7 @@ class SuratPengajuanController extends Controller
         Gate::authorize('pelayanan_informasi');
 
         $suratPengajuan->load(['penduduk.kartuKeluarga']);
-
-        // Get desa settings
-        $desaSettings = DesaSetting::getDesaInfo();
+        $desaSettings = \App\Models\DesaSetting::getDesaInfo();
 
         // Prepare signer data
         $penandatangan = $suratPengajuan->penandatangan ?? 'kepala_desa';
@@ -258,27 +256,50 @@ class SuratPengajuanController extends Controller
                  $nomor_urut = $parts[1] ?? '......';
              }
         }
-
-        // Prepare data for template
+        
+        // 1. Data Dasar
         $data = [
-            'penduduk' => $suratPengajuan->penduduk,
+            'desa' => $desaSettings['nama_desa'] ?? 'Cibatu',
+            'kecamatan' => $desaSettings['kecamatan'] ?? 'Cisaat',
+            'kabupaten' => $desaSettings['kabupaten'] ?? 'Sukabumi',
+            'provinsi' => $desaSettings['provinsi'] ?? 'Jawa Barat',
+            'nama_desa' => $desaSettings['nama_desa'] ?? 'Cibatu',
+            'nama_kecamatan' => $desaSettings['kecamatan'] ?? 'Cisaat',
+            'nama_kabupaten' => $desaSettings['kabupaten'] ?? 'Sukabumi',
+            
             'pengajuan' => $suratPengajuan,
+            'penduduk' => $suratPengajuan->penduduk,
             'desa_info' => $desaSettings,
-            'desa' => $desaSettings,
             'kepala_desa' => $signerData,
             'is_sekdes' => ($penandatangan === 'sekretaris_desa'),
-            'tanggal_surat' => $suratPengajuan->tanggal_surat,
+            
+            'tanggal_surat' => $suratPengajuan->tanggal_surat, 
+            'tanggal_lahir' => $suratPengajuan->penduduk->tanggal_lahir,
+            
+            'nomor_surat' => $suratPengajuan->nomor_surat,
             'keperluan' => $suratPengajuan->keperluan,
             'tujuan' => $suratPengajuan->tujuan,
             'keterangan_tambahan' => $suratPengajuan->keterangan_tambahan,
-            'data_tambahan' => $suratPengajuan->data_tambahan ?? [],
-            'nomor_surat' => $suratPengajuan->nomor_surat,
-            'kode_surat' => $kode_surat,
-            'nomor_urut' => $nomor_urut,
-            'kode_desa' => $kode_desa,
+            'alamat_desa' => \App\Models\DesaSetting::getValue('alamat_lengkap', 'Jl. Cibatu Km. 15, Desa Cibatu'),
+            'jenis_kelamin' => $suratPengajuan->penduduk->jenis_kelamin === 'L' ? 'Laki-laki' : ($suratPengajuan->penduduk->jenis_kelamin === 'P' ? 'Perempuan' : $suratPengajuan->penduduk->jenis_kelamin),
             'bulan_romawi' => \App\Models\DesaSetting::intToRoman(\Carbon\Carbon::parse($suratPengajuan->tanggal_surat)->format('n')),
             'tahun_surat' => \Carbon\Carbon::parse($suratPengajuan->tanggal_surat)->format('Y'),
         ];
+
+        // 2. Auto-Map Data Penduduk
+        foreach ($suratPengajuan->penduduk->toArray() as $key => $value) {
+            if ($key === 'rt_id') $data['rt'] = $suratPengajuan->penduduk->rt_label ?? $value;
+            elseif ($key === 'rw_id') $data['rw'] = $suratPengajuan->penduduk->rw_label ?? $value;
+            elseif ($key === 'dusun_id') $data['dusun'] = $suratPengajuan->penduduk->dusun_label ?? $value;
+            else $data[$key] = $value;
+        }
+
+        // 3. Khusus Word: Pakai format Indonesia
+        $suratType = \App\Models\SuratType::find($suratPengajuan->jenis_surat);
+        if ($suratType && $suratType->file_template) {
+            $data['tanggal_surat'] = \Carbon\Carbon::parse($suratPengajuan->tanggal_surat)->isoFormat('D MMMM Y');
+            $data['tanggal_lahir'] = $suratPengajuan->penduduk->tanggal_lahir?->isoFormat('D MMMM Y');
+        }
 
         // Merge additional data for specific surat types
         if ($suratPengajuan->data_tambahan) {
@@ -351,40 +372,56 @@ class SuratPengajuanController extends Controller
         Gate::authorize('pelayanan_informasi');
 
         $suratPengajuan->load(['penduduk.kartuKeluarga']);
-
-        // Get desa settings
-        $desaSettings = DesaSetting::getByGroup('desa_info');
+        $desaSettings = \App\Models\DesaSetting::getDesaInfo();
 
         // Prepare data for template
+        $penduduk = $suratPengajuan->penduduk;
+        $desaInfo = $desaSettings;
         $penandatangan = $suratPengajuan->penandatangan ?? 'kepala_desa';
         $signerData = ($penandatangan === 'sekretaris_desa')
             ? DesaSetting::getSekretarisInfo()
             : DesaSetting::getKepalaDesaInfo();
 
+        // 1. Data Dasar
         $data = [
-            'penduduk' => $suratPengajuan->penduduk,
+            'desa' => $desaInfo['nama_desa'] ?? 'Cibatu',
+            'kecamatan' => $desaInfo['kecamatan'] ?? 'Cisaat',
+            'kabupaten' => $desaInfo['kabupaten'] ?? 'Sukabumi',
+            'provinsi' => $desaInfo['provinsi'] ?? 'Jawa Barat',
+            'nama_desa' => $desaInfo['nama_desa'] ?? 'Cibatu',
+            'nama_kecamatan' => $desaInfo['kecamatan'] ?? 'Cisaat',
+            'nama_kabupaten' => $desaInfo['kabupaten'] ?? 'Sukabumi',
+            'alamat_desa' => $desaInfo['alamat_lengkap'] ?? '',
+            
             'pengajuan' => $suratPengajuan,
-            'desa_info' => $desaSettings,
+            'penduduk' => $penduduk,
+            'desa_info' => $desaInfo,
             'kepala_desa' => $signerData,
             'is_sekdes' => ($penandatangan === 'sekretaris_desa'),
             'tanggal_surat' => $suratPengajuan->tanggal_surat,
+            'tanggal_lahir' => $penduduk->tanggal_lahir,
             'keperluan' => $suratPengajuan->keperluan,
             'tujuan' => $suratPengajuan->tujuan,
             'keterangan_tambahan' => $suratPengajuan->keterangan_tambahan,
             'data_tambahan' => $suratPengajuan->data_tambahan ?? []
         ];
 
-        // Merge additional data for specific surat types
+        // 2. Auto-Map SEMUA data penduduk
+        $pendudukArray = $penduduk->toArray();
+        foreach ($pendudukArray as $key => $value) {
+            if ($key === 'rt_id') $data['rt'] = $penduduk->rt_label ?? $value;
+            elseif ($key === 'rw_id') $data['rw'] = $penduduk->rw_label ?? $value;
+            elseif ($key === 'dusun_id') $data['dusun'] = $penduduk->dusun_label ?? $value;
+            else $data[$key] = $value;
+        }
+
+        // 3. Khusus Word: Pakai format Indonesia (Hanya jika preview Word diaktifkan di masa depan)
+        // Saat ini preview Blade selalu pakai format mentah.
+
+        // Merge additional data
         if ($suratPengajuan->data_tambahan) {
-            // Handle both string and array cases
             $dataTambahan = $suratPengajuan->data_tambahan;
-
-            // If it's a string, try to decode it
-            if (is_string($dataTambahan)) {
-                $dataTambahan = json_decode($dataTambahan, true);
-            }
-
-            // Only proceed if we have a valid array
+            if (is_string($dataTambahan)) $dataTambahan = json_decode($dataTambahan, true);
             if (is_array($dataTambahan) && !empty($dataTambahan)) {
                 foreach ($dataTambahan as $key => $value) {
                     $data[$key] = $value;

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { FileText, Plus, Edit, Trash2, Search, CheckCircle2, XCircle, Layout, Palette, Type, Info } from 'lucide-react';
+import { FileText, Plus, Edit, Trash2, Search, CheckCircle2, XCircle, Layout, Palette, Type, Info, Users, Briefcase, MapPin, Heart, Baby, Ghost, ShieldAlert, School, Wallet, Home, Truck, Building, Skull, ClipboardList, Footprints } from 'lucide-react';
 import Swal from 'sweetalert2';
 
 export default function Index({ auth, suratTypes }) {
@@ -38,13 +38,48 @@ export default function Index({ auth, suratTypes }) {
         type.id.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
+    // Icon mapping logic
+    const getIcon = (iconName) => {
+        if (!iconName) return <FileText className="w-6 h-6" />;
+        
+        // Bersihkan prefix FontAwesome jika ada (fas fa-baby -> baby)
+        const cleanName = iconName.replace('fas fa-', '').replace('fa-', '').toLowerCase();
+
+        const icons = {
+            'filetext': <FileText className="w-6 h-6" />,
+            'file-text': <FileText className="w-6 h-6" />,
+            'file-alt': <FileText className="w-6 h-6" />,
+            'plus': <Plus className="w-6 h-6" />,
+            'users': <Users className="w-6 h-6" />,
+            'briefcase': <Briefcase className="w-6 h-6" />,
+            'mappin': <MapPin className="w-6 h-6" />,
+            'map-pin': <MapPin className="w-6 h-6" />,
+            'heart': <Heart className="w-6 h-6" />,
+            'baby': <Baby className="w-6 h-6" />,
+            'ghost': <Ghost className="w-6 h-6" />,
+            'skull': <Skull className="w-6 h-6" />,
+            'home': <Home className="w-6 h-6" />,
+            'building': <Building className="w-6 h-6" />,
+            'clipboardlist': <ClipboardList className="w-6 h-6" />,
+            'clipboard-list': <ClipboardList className="w-6 h-6" />,
+            'walking': <Footprints className="w-6 h-6" />,
+            'hand-holding-heart': <Heart className="w-6 h-6" />,
+            'school': <School className="w-6 h-6" />,
+            'wallet': <Wallet className="w-6 h-6" />,
+            'truck': <Truck className="w-6 h-6" />,
+        };
+
+        // Coba cari dengan nama asli atau nama yang sudah dibersihkan
+        return icons[cleanName] || icons[iconName.toLowerCase()] || <FileText className="w-6 h-6" />;
+    };
+
     return (
         <AuthenticatedLayout user={auth.user} title="Master Jenis Surat">
             <Head title="Master Jenis Surat" />
 
             <div className="space-y-6 animate-in fade-in duration-700 pb-20">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 rounded-3xl shadow-xl p-6 sm:p-8 relative overflow-hidden">
+                <div className="bg-gradient-to-r from-green-600 via-green-700 to-green-800 rounded-3xl shadow-xl p-6 sm:p-8 relative overflow-hidden">
                     <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl"></div>
                     <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
                         <div className="flex items-center space-x-4">
@@ -53,13 +88,13 @@ export default function Index({ auth, suratTypes }) {
                             </div>
                             <div>
                                 <h1 className="text-xl sm:text-3xl font-black text-white tracking-tight uppercase italic leading-none">Master Jenis Surat</h1>
-                                <p className="text-blue-100 font-bold text-[10px] sm:text-xs uppercase tracking-widest mt-1 opacity-80">Konfigurasi Template & Form Surat Dinamis</p>
+                                <p className="text-green-100 font-bold text-[10px] sm:text-xs uppercase tracking-widest mt-1 opacity-80">Konfigurasi Template & Form Surat Dinamis</p>
                             </div>
                         </div>
                         <div className="flex gap-2 sm:gap-3">
                             <Link 
                                 href={route('admin.surat-type.create')}
-                                className="flex items-center px-6 py-3 bg-white text-blue-700 hover:bg-blue-50 rounded-xl text-[10px] sm:text-xs font-black shadow-lg shadow-black/10 transition-all hover:scale-105 uppercase tracking-widest"
+                                className="flex items-center px-6 py-3 bg-white text-green-700 hover:bg-green-50 rounded-xl text-[10px] sm:text-xs font-black shadow-lg shadow-black/10 transition-all hover:scale-105 uppercase tracking-widest"
                             >
                                 <Plus className="w-3.5 h-3.5 mr-2" />
                                 TAMBAH JENIS
@@ -69,15 +104,15 @@ export default function Index({ auth, suratTypes }) {
                 </div>
                 
                 {/* Info Box */}
-                <div className="bg-blue-50 border border-blue-100 rounded-3xl p-6 flex items-start gap-4">
-                    <div className="p-2 bg-blue-100 text-blue-600 rounded-xl">
+                <div className="bg-green-50 border border-green-100 rounded-3xl p-6 flex items-start gap-4">
+                    <div className="p-2 bg-green-100 text-green-600 rounded-xl">
                         <Info className="w-5 h-5" />
                     </div>
                     <div>
-                        <p className="text-xs font-bold text-blue-800 uppercase tracking-widest mb-1 italic">Informasi Sistem</p>
-                        <p className="text-[11px] text-blue-700/80 font-medium leading-relaxed">
+                        <p className="text-xs font-bold text-green-800 uppercase tracking-widest mb-1 italic">Informasi Sistem</p>
+                        <p className="text-[11px] text-green-700/80 font-medium leading-relaxed">
                             Di sini Anda dapat menentukan syarat dokumen (berupa PDF) dan mengatur apakah surat tersebut menggunakan template sistem (otomatis) 
-                            atau akan diproses manual menggunakan Microsoft Word. Gunakan <span className="font-black italic">Custom Fields</span> untuk menambah pertanyaan khusus pada setiap jenis surat.
+                            atau akan diproses manual menggunakan Microsoft Word. Gunakan <span className="font-black italic text-green-700">Custom Fields</span> untuk menambah pertanyaan khusus pada setiap jenis surat.
                         </p>
                     </div>
                 </div>
@@ -111,8 +146,8 @@ export default function Index({ auth, suratTypes }) {
                         <div key={type.id} className="group bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-500 overflow-hidden flex flex-col">
                             <div className="p-6 flex-1">
                                 <div className="flex justify-between items-start mb-4">
-                                    <div className={type.is_active ? "p-3 bg-blue-50 text-blue-600 rounded-2xl" : "p-3 bg-gray-50 text-gray-400 rounded-2xl"}>
-                                        <FileText className="w-6 h-6" />
+                                    <div className={type.is_active ? "p-3 bg-green-50 text-green-600 rounded-2xl" : "p-3 bg-gray-50 text-gray-400 rounded-2xl"}>
+                                        {getIcon(type.icon)}
                                     </div>
                                     <div className="flex gap-1">
                                         <Link 
@@ -131,7 +166,7 @@ export default function Index({ auth, suratTypes }) {
                                 </div>
                                 
                                 <div className="mb-4">
-                                    <h3 className="text-lg font-black text-gray-900 tracking-tight uppercase italic leading-tight group-hover:text-blue-700 transition-colors">{type.nama}</h3>
+                                    <h3 className="text-lg font-black text-gray-900 tracking-tight uppercase italic leading-tight group-hover:text-green-700 transition-colors">{type.nama}</h3>
                                     <div className="flex items-center gap-2 mt-1">
                                         <span className="px-2 py-0.5 bg-gray-100 text-gray-500 text-[10px] font-bold rounded uppercase tracking-wider">{type.id}</span>
                                         <span className="px-2 py-0.5 bg-blue-100 text-blue-600 text-[10px] font-bold rounded uppercase tracking-wider">{type.kode}</span>

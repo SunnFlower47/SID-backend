@@ -46,13 +46,13 @@ const menuGroups = [
         color: 'from-blue-600 to-blue-700',
         hoverBg: 'hover:from-blue-50 hover:to-blue-100 hover:text-blue-700',
         items: [
+            { name: 'Profil Desa', href: 'profil-desa.index', icon: 'Building2' },
             { name: 'Struktur Desa', href: 'struktur-desa.index', icon: 'Users' },
             { name: 'Kontak Desa', href: 'kontak-desa.index', icon: 'Phone' },
             { name: 'Fasilitas Desa', href: 'fasilitas-desa.index', icon: 'MapPin' },
             { name: 'Data UMKM', href: 'umkm.index', icon: 'Store' },
             { name: 'Berita & Pengumuman', href: 'berita.index', icon: 'Newspaper' },
             { name: 'Testimoni Warga', href: 'testimoni.index', icon: 'Star' },
-            { name: 'Pengaturan Web', href: 'web-desa.settings', icon: 'Settings' },
         ]
     },
     {

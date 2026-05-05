@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, router } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { 
     FileText, Save, ArrowLeft, Plus, Trash2, 
@@ -117,10 +117,11 @@ export default function Form({ auth, suratType = null }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
+        
         if (isEdit) {
-            post(route('admin.surat-type.update', suratType.id), {
+            // Kita tembak ke route POST khusus update agar tidak perlu spoofing _method
+            post(route('admin.surat-type.update.post', suratType.id), {
                 forceFormData: true,
-                _method: 'put',
             });
         } else {
             post(route('admin.surat-type.store'));
@@ -204,13 +205,21 @@ export default function Form({ auth, suratType = null }) {
                                 <div className="grid grid-cols-2 gap-3 text-[10px] font-bold">
                                     {[
                                         { code: '${nama}', desc: 'Nama Lengkap Warga' },
-                                        { code: '${nik}', desc: 'Nomor Induk Kependudukan' },
+                                        { code: '${nik}', desc: 'NIK (16 Digit)' },
+                                        { code: '${nkk}', desc: 'Nomor Kartu Keluarga' },
                                         { code: '${tempat_lahir}', desc: 'Tempat Lahir' },
-                                        { code: '${tanggal_lahir}', desc: 'Tanggal Lahir' },
+                                        { code: '${tanggal_lahir}', desc: 'Tanggal Lahir (Format Indo)' },
                                         { code: '${jenis_kelamin}', desc: 'Laki-laki / Perempuan' },
                                         { code: '${agama}', desc: 'Agama' },
                                         { code: '${pekerjaan}', desc: 'Pekerjaan' },
-                                        { code: '${alamat}', desc: 'Alamat Lengkap' },
+                                        { code: '${pendidikan}', desc: 'Pendidikan Terakhir' },
+                                        { code: '${status_perkawinan}', desc: 'Status Kawin' },
+                                        { code: '${nama_ayah}', desc: 'Nama Ayah' },
+                                        { code: '${nama_ibu}', desc: 'Nama Ibu' },
+                                        { code: '${alamat}', desc: 'Alamat (Tanpa RT/RW)' },
+                                        { code: '${rt}', desc: 'Nomor RT' },
+                                        { code: '${rw}', desc: 'Nomor RW' },
+                                        { code: '${dusun}', desc: 'Nama Dusun' },
                                     ].map((item, i) => (
                                         <div key={i} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
                                             <code className="text-blue-600 bg-blue-50 px-2 py-1 rounded-md">{item.code}</code>
@@ -223,14 +232,21 @@ export default function Form({ auth, suratType = null }) {
                             <section>
                                 <h4 className="text-[11px] font-black text-green-600 uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
                                     <div className="w-1.5 h-1.5 bg-green-600 rounded-full"></div>
-                                    Header & Penandatangan
+                                    Wilayah & Penandatangan
                                 </h4>
-                                <div className="grid grid-cols-1 gap-3 text-[10px] font-bold">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[10px] font-bold">
                                     {[
-                                        { code: '${nomor_surat}', desc: 'Nomor Surat Lengkap (Contoh: 001/SKD/CBT/V/2026)' },
-                                        { code: '${tanggal_surat}', desc: 'Tanggal Cetak Surat (Contoh: 04 Mei 2026)' },
-                                        { code: '${ttd_atas}', desc: 'Jabatan Atas (Contoh: Kepala Desa Cibatu / a.n. Kepala Desa...)' },
-                                        { code: '${ttd_bawah}', desc: 'Nama Penandatangan (UPPERCASE + BOLD)' },
+                                        { code: '${desa}', desc: 'Nama Desa' },
+                                        { code: '${kecamatan}', desc: 'Nama Kecamatan' },
+                                        { code: '${kabupaten}', desc: 'Nama Kabupaten' },
+                                        { code: '${provinsi}', desc: 'Nama Provinsi' },
+                                        { code: '${alamat_desa}', desc: 'Alamat Kantor Desa' },
+                                        { code: '${nomor_surat}', desc: 'Nomor Surat Lengkap' },
+                                        { code: '${tanggal_surat}', desc: 'Tanggal Cetak Indo' },
+                                        { code: '${keperluan}', desc: 'Keperluan Surat' },
+                                        { code: '${tujuan}', desc: 'Tujuan Surat' },
+                                        { code: '${ttd_atas}', desc: 'Jabatan Penandatangan' },
+                                        { code: '${ttd_bawah}', desc: 'Nama Penandatangan (Bold)' },
                                     ].map((item, i) => (
                                         <div key={i} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
                                             <code className="text-green-600 bg-green-50 px-2 py-1 rounded-md">{item.code}</code>

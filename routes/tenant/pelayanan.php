@@ -34,6 +34,7 @@ Route::middleware('can:pelayanan_informasi')->group(function () {
         
         // Master Jenis Surat
         Route::resource('surat-type', SuratTypeController::class)->middleware('can:admin_sistem');
+        Route::post('surat-type/{surat_type}', [SuratTypeController::class, 'update'])->name('surat-type.update.post')->middleware('can:admin_sistem');
         
         // Legacy Surat Routes
         Route::get('/surat-pengajuan/legacy/{id}', 'downloadLegacy')->name('surat-pengajuan.download-legacy');

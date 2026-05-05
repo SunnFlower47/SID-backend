@@ -21,6 +21,13 @@ class DesaSetting extends Model
         'value' => 'string'
     ];
 
+    // Groups constants
+    const GROUP_GENERAL = 'general';
+    const GROUP_LOGO = 'logo';
+    const GROUP_GEOGRAPHY = 'geography';
+    const GROUP_PROFILE = 'profile'; // New group for Vision, Mission, History
+    const GROUP_SOCIAL = 'social';   // New group for Social Media
+
     /**
      * Get setting value by key
      */
@@ -79,6 +86,30 @@ class DesaSetting extends Model
             'website' => static::getValue('website', 'https://desa-cibatu.id'),
             'latitude' => static::getValue('latitude', '-6.5001403'),
             'longitude' => static::getValue('longitude', '107.5342964')
+        ];
+    }
+
+    /**
+     * Get full profile for centralized dashboard
+     */
+    public static function getFullProfile()
+    {
+        return [
+            'general' => static::getDesaInfo(),
+            'branding' => static::getLogos(),
+            'geography' => static::getLuasWilayah(),
+            'leadership' => [
+                'kepala_desa' => static::getKepalaDesaInfo(),
+                'sekretaris' => static::getSekretarisInfo(),
+            ],
+            'additional' => [
+                'visi' => static::getValue('visi', ''),
+                'misi' => static::getValue('misi', ''),
+                'sejarah_desa' => static::getValue('sejarah_desa', ''),
+                'facebook' => static::getValue('link_facebook', ''),
+                'instagram' => static::getValue('link_instagram', ''),
+                'youtube' => static::getValue('link_youtube', ''),
+            ]
         ];
     }
 

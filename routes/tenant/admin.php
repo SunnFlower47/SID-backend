@@ -9,6 +9,7 @@ use App\Http\Controllers\Tenant\Admin\ExportController;
 use App\Http\Controllers\Tenant\Admin\AuditLogController;
 use App\Http\Controllers\Tenant\Admin\BackupController;
 use App\Http\Controllers\Tenant\Admin\DesaSettingsController;
+use App\Http\Controllers\Tenant\Admin\VillageProfileController;
 use Illuminate\Support\Facades\Artisan;
 
 // MODULE 5: Admin Sistem
@@ -108,5 +109,12 @@ Route::middleware('can:admin_sistem')->group(function () {
         Route::post('/desa/reset', 'reset')->name('desa.reset');
         Route::get('/desa/export', 'export')->name('desa.export');
         Route::post('/desa/import', 'import')->name('desa.import');
+    });
+
+    // Profil Desa Terpusat
+    Route::prefix('profil-desa')->name('profil-desa.')->controller(VillageProfileController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/update', 'update')->name('update');
+        Route::post('/update-logos', 'updateLogos')->name('update-logos');
     });
 });
