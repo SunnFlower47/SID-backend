@@ -162,21 +162,18 @@ export default function Edit({ auth, suratPengajuan, suratTypes, wilayah }) {
 
             <div className="space-y-6 animate-in fade-in duration-700 pb-20">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 rounded-3xl shadow-xl p-6 sm:p-8 relative overflow-hidden">
+                <div className="bg-gradient-to-r from-green-600 via-green-700 to-green-800 rounded-3xl shadow-xl p-6 sm:p-8 relative overflow-hidden">
                     <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl"></div>
                     <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 text-left">
                         <div className="flex items-center space-x-4">
-                            <Link 
-                                href={route('admin.surat-pengajuan.index')}
-                                className="w-10 h-10 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-all group shrink-0"
-                            >
-                                <ArrowLeft className="w-5 h-5 text-white group-hover:-translate-x-1 transition-transform" />
-                            </Link>
+                            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-inner shrink-0">
+                                <FileSignature className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-300" />
+                            </div>
                             <div>
                                 <h1 className="text-xl sm:text-3xl font-black text-white tracking-tight uppercase italic leading-none">
                                     Edit Pengajuan Surat
                                 </h1>
-                                <p className="text-blue-100 font-bold text-[10px] sm:text-xs uppercase tracking-widest mt-1 opacity-80">
+                                <p className="text-green-100 font-bold text-[10px] sm:text-xs uppercase tracking-widest mt-1 opacity-80">
                                     NOMOR: {suratPengajuan.nomor_surat || 'DRAFT'}
                                 </p>
                             </div>
@@ -197,7 +194,7 @@ export default function Edit({ auth, suratPengajuan, suratTypes, wilayah }) {
                         <div className="bg-white rounded-3xl shadow-sm border border-gray-100">
                             <div className="p-6 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between text-left">
                                 <div className="flex items-center gap-3">
-                                    <User className="w-5 h-5 text-blue-600" />
+                                    <User className="w-5 h-5 text-green-600" />
                                     <h3 className="text-sm font-black text-gray-900 uppercase italic tracking-tighter">Informasi Penduduk</h3>
                                 </div>
                                 {data.jenis_surat === 'keterangan-domisili' && (
@@ -245,7 +242,7 @@ export default function Edit({ auth, suratPengajuan, suratTypes, wilayah }) {
                         {/* Letter Details */}
                         <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
                             <div className="p-6 border-b border-gray-100 bg-gray-50/50 flex items-center gap-3 text-left">
-                                <Settings2 className="w-5 h-5 text-blue-600" />
+                                <Settings2 className="w-5 h-5 text-green-600" />
                                 <h3 className="text-sm font-black text-gray-900 uppercase italic tracking-tighter">Konfigurasi Surat</h3>
                             </div>
                             <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
@@ -257,7 +254,7 @@ export default function Edit({ auth, suratPengajuan, suratTypes, wilayah }) {
                                             const type = suratTypes.find(t => t.id === e.target.value);
                                             if (type) handleTypeSetup(type);
                                         }}
-                                        className="w-full px-5 py-3.5 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500 transition-all shadow-inner"
+                                        className="w-full px-5 py-3.5 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-green-500 transition-all shadow-inner"
                                     >
                                         {suratTypes.map(t => <option key={t.id} value={t.id}>{t.nama}</option>)}
                                     </select>
@@ -268,7 +265,7 @@ export default function Edit({ auth, suratPengajuan, suratTypes, wilayah }) {
                                         type="date"
                                         value={data.tanggal_surat}
                                         onChange={e => setData('tanggal_surat', e.target.value)}
-                                        className="w-full px-5 py-3.5 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500 transition-all shadow-inner"
+                                        className="w-full px-5 py-3.5 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-green-500 transition-all shadow-inner"
                                     />
                                 </div>
                                 <div className="md:col-span-2 space-y-2">
@@ -276,7 +273,7 @@ export default function Edit({ auth, suratPengajuan, suratTypes, wilayah }) {
                                     <textarea 
                                         value={data.keperluan}
                                         onChange={e => setData('keperluan', e.target.value)}
-                                        className="w-full px-5 py-3.5 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500 transition-all shadow-inner"
+                                        className="w-full px-5 py-3.5 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-green-500 transition-all shadow-inner"
                                         rows="2"
                                     ></textarea>
                                 </div>
@@ -287,7 +284,7 @@ export default function Edit({ auth, suratPengajuan, suratTypes, wilayah }) {
                                             type="text"
                                             value={data.tujuan}
                                             onChange={e => setData('tujuan', e.target.value)}
-                                            className="w-full px-5 py-3.5 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500 transition-all shadow-inner"
+                                            className="w-full px-5 py-3.5 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-green-500 transition-all shadow-inner"
                                         />
                                     </div>
                                 )}
@@ -306,7 +303,7 @@ export default function Edit({ auth, suratPengajuan, suratTypes, wilayah }) {
                         {selectedType?.form_json && selectedType.form_json.length > 0 && selectedType.id !== 'kematian' && (
                             <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden animate-in slide-in-from-bottom-4 duration-500">
                                 <div className="p-6 border-b border-gray-100 bg-gray-50/50 flex items-center gap-3 text-left">
-                                    <FileText className="w-5 h-5 text-blue-600" />
+                                    <FileText className="w-5 h-5 text-green-600" />
                                     <h3 className="text-sm font-black text-gray-900 uppercase italic tracking-tighter">Data Spesifik {selectedType.nama}</h3>
                                 </div>
                                 <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
@@ -320,7 +317,7 @@ export default function Edit({ auth, suratPengajuan, suratTypes, wilayah }) {
                                                 <textarea 
                                                     value={data.data_tambahan[field.name] || ''}
                                                     onChange={e => updateDataTambahan(field.name, e.target.value)}
-                                                    className="w-full px-5 py-3.5 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500 transition-all shadow-inner"
+                                                    className="w-full px-5 py-3.5 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-green-500 transition-all shadow-inner"
                                                     rows="3"
                                                     required={field.required}
                                                 ></textarea>
@@ -328,7 +325,7 @@ export default function Edit({ auth, suratPengajuan, suratTypes, wilayah }) {
                                                 <select 
                                                     value={data.data_tambahan[field.name] || ''}
                                                     onChange={e => updateDataTambahan(field.name, e.target.value)}
-                                                    className="w-full px-5 py-3.5 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500 transition-all shadow-inner"
+                                                    className="w-full px-5 py-3.5 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-green-500 transition-all shadow-inner"
                                                     required={field.required}
                                                 >
                                                     <option value="">Pilih {field.label}...</option>
@@ -341,7 +338,7 @@ export default function Edit({ auth, suratPengajuan, suratTypes, wilayah }) {
                                                     type={field.type}
                                                     value={data.data_tambahan[field.name] || ''}
                                                     onChange={e => updateDataTambahan(field.name, e.target.value)}
-                                                    className="w-full px-5 py-3.5 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500 transition-all shadow-inner"
+                                                    className="w-full px-5 py-3.5 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-green-500 transition-all shadow-inner"
                                                     required={field.required}
                                                 />
                                             )}
@@ -356,7 +353,7 @@ export default function Edit({ auth, suratPengajuan, suratTypes, wilayah }) {
                     <div className="space-y-6">
                         <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden sticky top-6">
                             <div className="p-6 border-b border-gray-100 bg-gray-50/50 flex items-center gap-3 text-left">
-                                <Save className="w-5 h-5 text-blue-600" />
+                                <Save className="w-5 h-5 text-green-600" />
                                 <h3 className="text-sm font-black text-gray-900 uppercase italic tracking-tighter">Simpan Perubahan</h3>
                             </div>
                             <div className="p-6 space-y-6 text-left">
@@ -374,7 +371,7 @@ export default function Edit({ auth, suratPengajuan, suratTypes, wilayah }) {
                                                 className={cn(
                                                     "flex items-center justify-between px-5 py-4 rounded-2xl border transition-all text-left",
                                                     data.penandatangan === signer.id 
-                                                        ? "bg-blue-600 border-blue-700 text-white shadow-lg shadow-blue-200" 
+                                                        ? "bg-green-600 border-green-700 text-white shadow-lg shadow-green-200" 
                                                         : "bg-gray-50 border-transparent text-gray-600 hover:bg-gray-100"
                                                 )}
                                             >
@@ -390,7 +387,7 @@ export default function Edit({ auth, suratPengajuan, suratTypes, wilayah }) {
                                     <textarea 
                                         value={data.keterangan_tambahan}
                                         onChange={e => setData('keterangan_tambahan', e.target.value)}
-                                        className="w-full px-5 py-3.5 bg-gray-50 border-none rounded-2xl text-[11px] font-bold focus:ring-2 focus:ring-blue-500 transition-all shadow-inner"
+                                        className="w-full px-5 py-3.5 bg-gray-50 border-none rounded-2xl text-[11px] font-bold focus:ring-2 focus:ring-green-500 transition-all shadow-inner"
                                         rows="3"
                                         placeholder="Catatan tambahan untuk admin lain..."
                                     ></textarea>
@@ -399,7 +396,7 @@ export default function Edit({ auth, suratPengajuan, suratTypes, wilayah }) {
                                 <button 
                                     type="submit"
                                     disabled={processing}
-                                    className="w-full py-4 bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-3xl text-sm font-black shadow-xl shadow-blue-200 hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+                                    className="w-full py-4 bg-gradient-to-r from-green-600 to-green-800 text-white rounded-3xl text-sm font-black shadow-xl shadow-green-200 hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-50"
                                 >
                                     {processing ? <Layers className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
                                     SIMPAN PERUBAHAN

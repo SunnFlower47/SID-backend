@@ -40,22 +40,18 @@ export default function Show({ auth, suratPengajuan, statusList }) {
 
             <div className="space-y-6 animate-in fade-in duration-700 pb-20">
                 {/* Header Section */}
-                <div className="bg-gradient-to-r from-gray-800 to-gray-900 rounded-3xl shadow-xl p-6 sm:p-8 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 -mt-4 -mr-4 w-48 h-48 bg-white opacity-5 rounded-full blur-3xl"></div>
+                <div className="bg-gradient-to-r from-green-600 via-green-700 to-green-800 rounded-3xl shadow-xl p-6 sm:p-8 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl"></div>
                     <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 text-left">
                         <div className="flex items-center space-x-4">
-                            <Link 
-                                href={route('admin.surat-pengajuan.index')}
-                                className="w-10 h-10 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-all group shrink-0"
-                            >
-                                <ArrowLeft className="w-5 h-5 text-white group-hover:-translate-x-1 transition-transform" />
-                            </Link>
+                            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-inner shrink-0">
+                                <FileSignature className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-300" />
+                            </div>
                             <div>
-                                <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight uppercase italic leading-none flex items-center gap-3">
-                                    <FileText className="w-6 h-6 text-yellow-400" />
+                                <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight uppercase italic leading-none">
                                     Detail Pengajuan Surat
                                 </h1>
-                                <p className="text-gray-400 font-bold text-[10px] sm:text-xs uppercase tracking-widest mt-2 opacity-80">
+                                <p className="text-green-100 font-bold text-[10px] sm:text-xs uppercase tracking-widest mt-2 opacity-80">
                                     ID: #{p.id} • Dibuat pada {dayjs(p.created_at).format('DD MMMM YYYY HH:mm')}
                                 </p>
                             </div>
@@ -71,7 +67,7 @@ export default function Show({ auth, suratPengajuan, statusList }) {
                             <a 
                                 href={route('admin.surat-pengajuan.pdf', p.id)}
                                 target="_blank"
-                                className="flex items-center px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl text-[10px] font-black shadow-lg shadow-green-900/20 transition-all uppercase tracking-widest"
+                                className="flex items-center px-6 py-3 bg-white text-green-700 hover:bg-green-50 rounded-xl text-[10px] font-black shadow-lg shadow-black/10 transition-all hover:scale-105 uppercase tracking-widest"
                             >
                                 <Printer className="w-3.5 h-3.5 mr-2" />
                                 CETAK SURAT
