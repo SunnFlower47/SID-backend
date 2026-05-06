@@ -3,246 +3,163 @@
 namespace App\Http\Controllers\Tenant\Pelayanan;
 
 use App\Http\Controllers\Controller;
-
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
+use App\Http\Requests\BantuanSosial\StoreBantuanSosialRequest;
+use App\Http\Requests\BantuanSosial\UpdateBantuanSosialRequest;
+use App\Http\Requests\BantuanSosial\StorePenerimaRequest;
+use App\Http\Requests\BantuanSosial\UpdatePenerimaRequest;
 use App\Models\BantuanSosial;
 use App\Models\PenerimaBantuanSosial;
 use App\Models\Penduduk;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
+use Inertia\Inertia;
+
 class BantuanSosialController extends Controller
 {
-        public function __construct()
-    {
-        $this->middleware(['auth', 'can:pelayanan_informasi']);
-    }
-
     /**
-     * Display a listing of the resource.
+     * Daftar program bantuan sosial.
      */
     public function index(Request $request)
     {
+        $filters = $request->only(['search', 'status', 'jenis_bantuan', 'tahun']);
+
         $query = BantuanSosial::withCount('penerima');
 
-        // Filter by status
-        if ($request->has('status') && $request->status) {
-            $query->where('status', $request->status);
+        if (!empty($filters['status'])) {
+            $query->where('status', $filters['status']);
         }
 
-        // Filter by jenis bantuan
-        if ($request->has('jenis_bantuan') && $request->jenis_bantuan) {
-            $query->where('jenis_bantuan', $request->jenis_bantuan);
+        if (!empty($filters['jenis_bantuan'])) {
+            $query->where('jenis_bantuan', $filters['jenis_bantuan']);
         }
 
-        // Search
-        if ($request->has('search') && $request->search) {
-            $query->where(function($q) use ($request) {
-                $q->where('nama_program', 'like', "%{$request->search}%")
-                  ->orWhere('deskripsi', 'like', "%{$request->search}%");
+        if (!empty($filters['search'])) {
+            $query->where(function ($q) use ($filters) {
+                $q->where('nama_program', 'like', "%{$filters['search']}%")
+                  ->orWhere('deskripsi', 'like', "%{$filters['search']}%");
             });
         }
 
-        $bantuanSosials = $query->orderBy('created_at', 'desc')->paginate(20);
+        if (!empty($filters['tahun'])) {
+            $query->where(function ($q) use ($filters) {
+                $q->whereYear('tanggal_mulai', $filters['tahun'])
+                  ->orWhereYear('tanggal_selesai', $filters['tahun'])
+                  ->orWhere('periode', 'like', "%{$filters['tahun']}%");
+            });
+        }
 
-        // Get statistics
+        $bantuanSosials = $query->orderBy('created_at', 'desc')->paginate(15)->withQueryString();
+
         $stats = [
-            'total_program' => BantuanSosial::count(),
-            'program_aktif' => BantuanSosial::where('status', 'aktif')->count(),
+            'total_program'  => BantuanSosial::count(),
+            'program_aktif'  => BantuanSosial::where('status', 'aktif')->count(),
             'total_penerima' => PenerimaBantuanSosial::count(),
             'penerima_aktif' => PenerimaBantuanSosial::where('status_penerimaan', 'aktif')->count(),
         ];
 
-        return view('bantuan-sosial.index', compact('bantuanSosials', 'stats'));
+        return Inertia::render('Tenant/BantuanSosial/Index', [
+            'bantuanSosials' => $bantuanSosials,
+            'stats'          => $stats,
+            'filters'        => $filters,
+        ]);
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Form tambah program baru.
      */
     public function create()
     {
-        Gate::authorize('pelayanan_informasi');
-
-        return view('bantuan-sosial.create');
+        return Inertia::render('Tenant/BantuanSosial/Create');
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Simpan program baru.
      */
-    public function store(Request $request)
+    public function store(StoreBantuanSosialRequest $request)
     {
-        Gate::authorize('pelayanan_informasi');
-
-        $validator = Validator::make($request->all(), [
-            'nama_program' => 'required|string|max:255',
-            'jenis_bantuan' => 'required|string|in:BLT,PKH,BPNT,Bansos Lainnya',
-            'deskripsi' => 'required|string',
-            'nilai_bantuan' => 'nullable|numeric|min:0',
-            'periode' => 'required|string|max:50',
-            'tanggal_mulai' => 'required|date',
-            'tanggal_selesai' => 'required|date|after:tanggal_mulai',
-            'status' => 'required|in:aktif,selesai,ditangguhkan',
-            'kriteria_penerima' => 'required',
-            'sumber_dana' => 'required|string|max:255',
-            'kuota_penerima' => 'nullable|integer|min:0'
-        ], [
-            'nama_program.required' => 'Nama program wajib diisi.',
-            'jenis_bantuan.required' => 'Jenis bantuan wajib dipilih.',
-            'deskripsi.required' => 'Deskripsi wajib diisi.',
-            'periode.required' => 'Periode wajib diisi.',
-            'tanggal_mulai.required' => 'Tanggal mulai wajib diisi.',
-            'tanggal_selesai.required' => 'Tanggal selesai wajib diisi.',
-            'tanggal_selesai.after' => 'Tanggal selesai harus setelah tanggal mulai.',
-            'status.required' => 'Status wajib dipilih.',
-            'kriteria_penerima.required' => 'Kriteria penerima wajib diisi.',
-            'sumber_dana.required' => 'Sumber dana wajib diisi.'
-        ]);
-
-        if ($validator->fails()) {
-            return redirect()->back()
-                ->withErrors($validator)
-                ->withInput();
-        }
-
+        DB::beginTransaction();
         try {
-            DB::beginTransaction();
-
-            BantuanSosial::create($request->all());
-
+            BantuanSosial::create($request->validated());
             DB::commit();
-
-            return redirect()->route('bantuan-sosial.index')
-                ->with('success', 'Program bantuan sosial berhasil ditambahkan!');
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Gagal menambahkan program bantuan sosial: ' . $e->getMessage());
+            return back()->with('error', 'Gagal menambahkan program bantuan sosial: ' . $e->getMessage());
         }
+
+        return redirect()->route('bantuan-sosial.index')
+            ->with('success', 'Program bantuan sosial berhasil ditambahkan!');
     }
 
     /**
-     * Display the specified resource.
+     * Detail program bantuan sosial.
      */
     public function show(BantuanSosial $bantuanSosial)
     {
         $bantuanSosial->load(['penerima.penduduk']);
+        $bantuanSosial->loadCount('penerima');
 
-        return view('bantuan-sosial.show', compact('bantuanSosial'));
+        return Inertia::render('Tenant/BantuanSosial/Show', [
+            'bantuanSosial' => $bantuanSosial,
+        ]);
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Form edit program.
      */
     public function edit(BantuanSosial $bantuanSosial)
     {
-        Gate::authorize('pelayanan_informasi');
-
-        return view('bantuan-sosial.edit', compact('bantuanSosial'));
+        return Inertia::render('Tenant/BantuanSosial/Edit', [
+            'bantuanSosial' => $bantuanSosial,
+        ]);
     }
 
     /**
-     * Update the specified resource in storage.
+     * Update program.
      */
-    public function update(Request $request, BantuanSosial $bantuanSosial)
+    public function update(UpdateBantuanSosialRequest $request, BantuanSosial $bantuanSosial)
     {
-        Gate::authorize('pelayanan_informasi');
-
-        $validator = Validator::make($request->all(), [
-            'nama_program' => 'required|string|max:255',
-            'jenis_bantuan' => 'required|string|in:BLT,PKH,BPNT,Bansos Lainnya',
-            'deskripsi' => 'required|string',
-            'nilai_bantuan' => 'nullable|numeric|min:0',
-            'periode' => 'required|string|max:50',
-            'tanggal_mulai' => 'required|date',
-            'tanggal_selesai' => 'required|date|after:tanggal_mulai',
-            'status' => 'required|in:aktif,selesai,ditangguhkan',
-            'kriteria_penerima' => 'required',
-            'sumber_dana' => 'required|string|max:255',
-            'kuota_penerima' => 'nullable|integer|min:0'
-        ], [
-            'nama_program.required' => 'Nama program wajib diisi.',
-            'jenis_bantuan.required' => 'Jenis bantuan wajib dipilih.',
-            'deskripsi.required' => 'Deskripsi wajib diisi.',
-            'periode.required' => 'Periode wajib diisi.',
-            'tanggal_mulai.required' => 'Tanggal mulai wajib diisi.',
-            'tanggal_selesai.required' => 'Tanggal selesai wajib diisi.',
-            'tanggal_selesai.after' => 'Tanggal selesai harus setelah tanggal mulai.',
-            'status.required' => 'Status wajib dipilih.',
-            'kriteria_penerima.required' => 'Kriteria penerima wajib diisi.',
-            'sumber_dana.required' => 'Sumber dana wajib diisi.'
-        ]);
-
-        if ($validator->fails()) {
-            return redirect()->back()
-                ->withErrors($validator)
-                ->withInput();
-        }
-
+        DB::beginTransaction();
         try {
-            DB::beginTransaction();
-
-            $bantuanSosial->update($request->all());
-
+            $bantuanSosial->update($request->validated());
             DB::commit();
-
-            return redirect()->route('bantuan-sosial.index')
-                ->with('success', 'Program bantuan sosial berhasil diperbarui!');
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Gagal memperbarui program bantuan sosial: ' . $e->getMessage());
+            return back()->with('error', 'Gagal memperbarui program bantuan sosial: ' . $e->getMessage());
         }
+
+        return redirect()->route('bantuan-sosial.index')
+            ->with('success', 'Program bantuan sosial berhasil diperbarui!');
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Hapus program.
      */
     public function destroy(BantuanSosial $bantuanSosial)
     {
-        Gate::authorize('pelayanan_informasi');
-
+        DB::beginTransaction();
         try {
-            DB::beginTransaction();
-
             $bantuanSosial->delete();
-
             DB::commit();
-
-            return redirect()->route('bantuan-sosial.index')
-                ->with('success', 'Program bantuan sosial berhasil dihapus!');
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()
-                ->with('error', 'Gagal menghapus program bantuan sosial: ' . $e->getMessage());
+            return back()->with('error', 'Gagal menghapus program bantuan sosial: ' . $e->getMessage());
         }
+
+        return redirect()->route('bantuan-sosial.index')
+            ->with('success', 'Program bantuan sosial berhasil dihapus!');
     }
 
     /**
-     * Check bantuan sosial by NIK
+     * Cek bantuan sosial berdasarkan NIK (API).
      */
     public function checkByNik(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'nik' => 'required|string|size:16'
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'NIK harus 16 digit',
-                'errors' => $validator->errors()
-            ], 400);
-        }
+        $request->validate(['nik' => 'required|string|size:16']);
 
         $penduduk = Penduduk::where('nik', $request->nik)->first();
 
         if (!$penduduk) {
-            return response()->json([
-                'success' => false,
-                'message' => 'NIK tidak ditemukan'
-            ], 404);
+            return response()->json(['success' => false, 'message' => 'NIK tidak ditemukan'], 404);
         }
 
         $bantuanSosials = PenerimaBantuanSosial::with('bantuanSosial')
@@ -252,269 +169,201 @@ class BantuanSosialController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => [
-                'penduduk' => $penduduk,
-                'bantuan_sosials' => $bantuanSosials
-            ]
+            'data'    => ['penduduk' => $penduduk, 'bantuan_sosials' => $bantuanSosials],
         ]);
     }
 
+    // =========================================================================
+    // PENERIMA BANTUAN SOSIAL
+    // =========================================================================
+
     /**
-     * Display a listing of penerima for specific bantuan sosial
+     * Daftar penerima bantuan untuk program tertentu.
      */
     public function penerimaIndex(BantuanSosial $bantuanSosial)
     {
-        Gate::authorize('pelayanan_informasi');
+        $penerima = $bantuanSosial->penerima()
+            ->with('penduduk')
+            ->paginate(15)
+            ->withQueryString();
 
-        $penerima = $bantuanSosial->penerima()->with('penduduk')->paginate(20);
-
-        return view('bantuan-sosial.penerima.index', compact('bantuanSosial', 'penerima'));
+        return Inertia::render('Tenant/BantuanSosial/Penerima/Index', [
+            'bantuanSosial' => $bantuanSosial,
+            'penerima'      => $penerima,
+        ]);
     }
 
     /**
-     * Show the form for creating a new penerima
+     * Form tambah penerima.
      */
     public function penerimaCreate(BantuanSosial $bantuanSosial)
     {
-        Gate::authorize('pelayanan_informasi');
-
-        return view('bantuan-sosial.penerima.create', compact('bantuanSosial'));
+        return Inertia::render('Tenant/BantuanSosial/Penerima/Create', [
+            'bantuanSosial' => $bantuanSosial,
+        ]);
     }
 
     /**
-     * Store a newly created penerima
+     * Simpan penerima baru.
      */
-    public function penerimaStore(Request $request, BantuanSosial $bantuanSosial)
+    public function penerimaStore(StorePenerimaRequest $request, BantuanSosial $bantuanSosial)
     {
-        Gate::authorize('pelayanan_informasi');
+        $pendudukIds = $request->penduduk_ids;
+        $successCount = 0;
+        $skipCount = 0;
 
-        $validator = Validator::make($request->all(), [
-            'penduduk_id' => 'required|exists:penduduks,id',
-            'sistem_pembayaran' => 'required|in:sekali,triwulanan',
-            'nilai_diterima' => 'required_if:sistem_pembayaran,sekali|numeric|min:0',
-            'nilai_total_triwulanan' => 'required_if:sistem_pembayaran,triwulanan|numeric|min:0',
-            'tanggal_penerimaan' => 'required_if:sistem_pembayaran,sekali|date',
-            'tanggal_triwulan_1' => 'required_if:sistem_pembayaran,triwulanan|date',
-            'tanggal_triwulan_2' => 'required_if:sistem_pembayaran,triwulanan|date',
-            'tanggal_triwulan_3' => 'required_if:sistem_pembayaran,triwulanan|date',
-            'status_penerimaan' => 'required|in:aktif,ditangguhkan,berhenti'
-        ]);
-
-        // Custom validation: check if penduduk already exists for this bantuan sosial
-        $validator->after(function ($validator) use ($request, $bantuanSosial) {
-            $existingPenerima = PenerimaBantuanSosial::where('bantuan_sosial_id', $bantuanSosial->id)
-                ->where('penduduk_id', $request->penduduk_id)
-                ->first();
-
-            if ($existingPenerima) {
-                $penduduk = Penduduk::find($request->penduduk_id);
-                $validator->errors()->add('penduduk_id',
-                    "Penduduk {$penduduk->nama} (NIK: {$penduduk->nik}) sudah terdaftar sebagai penerima bantuan sosial '{$bantuanSosial->nama_program}' periode {$bantuanSosial->periode}."
-                );
-            }
-        });
-
-        if ($validator->fails()) {
-            return redirect()->back()
-                ->withErrors($validator)
-                ->withInput();
-        }
-
+        DB::beginTransaction();
         try {
-            DB::beginTransaction();
+            foreach ($pendudukIds as $pendudukId) {
+                // Cek duplikasi penerima
+                $existing = PenerimaBantuanSosial::where('bantuan_sosial_id', $bantuanSosial->id)
+                    ->where('penduduk_id', $pendudukId)
+                    ->first();
 
-            if ($request->sistem_pembayaran === 'sekali') {
-                // Sistem pembayaran sekali
-                $bantuanSosial->penerima()->create([
-                    'penduduk_id' => $request->penduduk_id,
-                    'nilai_diterima' => $request->nilai_diterima,
-                    'tanggal_penerimaan' => $request->tanggal_penerimaan,
-                    'status_penerimaan' => $request->status_penerimaan,
-                    'keterangan' => $request->keterangan ?? null,
-                    'data_tambahan' => json_encode(['sistem_pembayaran' => 'sekali'])
-                ]);
-            } else {
-                // Sistem pembayaran triwulanan - 1 record dengan 3 tanggal
-                $totalAmount = $request->nilai_total_triwulanan;
-                $perTriwulan = floor($totalAmount / 3);
-                $remainder = $totalAmount % 3;
+                if ($existing) {
+                    $skipCount++;
+                    continue; // Skip jika sudah ada
+                }
 
-                $triwulan1Amount = $perTriwulan + ($remainder >= 1 ? 1 : 0);
-                $triwulan2Amount = $perTriwulan + ($remainder >= 2 ? 1 : 0);
-                $triwulan3Amount = $perTriwulan;
+                if ($request->sistem_pembayaran === 'sekali') {
+                    $bantuanSosial->penerima()->create([
+                        'penduduk_id'       => $pendudukId,
+                        'nilai_diterima'    => $request->nilai_diterima,
+                        'tanggal_penerimaan'=> $request->tanggal_penerimaan,
+                        'status_penerimaan' => $request->status_penerimaan,
+                        'keterangan'        => $request->keterangan,
+                        'data_tambahan'     => json_encode(['sistem_pembayaran' => 'sekali']),
+                    ]);
+                } else {
+                    $total       = (float) $request->nilai_total_berkala;
+                    $perTahap    = (int) floor($total / 4);
+                    $remainder   = (int) ($total % 4);
 
-                $bantuanSosial->penerima()->create([
-                    'penduduk_id' => $request->penduduk_id,
-                    'nilai_diterima' => $totalAmount, // Total amount
-                    'tanggal_penerimaan' => $request->tanggal_triwulan_1, // Tanggal pertama
-                    'status_penerimaan' => $request->status_penerimaan,
-                    'keterangan' => $request->keterangan ?? null,
-                    'data_tambahan' => json_encode([
-                        'sistem_pembayaran' => 'triwulanan',
-                        'total_amount' => $totalAmount,
-                        'triwulan_1' => [
-                            'tanggal' => $request->tanggal_triwulan_1,
-                            'jumlah' => $triwulan1Amount
-                        ],
-                        'triwulan_2' => [
-                            'tanggal' => $request->tanggal_triwulan_2,
-                            'jumlah' => $triwulan2Amount
-                        ],
-                        'triwulan_3' => [
-                            'tanggal' => $request->tanggal_triwulan_3,
-                            'jumlah' => $triwulan3Amount
-                        ]
-                    ])
-                ]);
+                    $bantuanSosial->penerima()->create([
+                        'penduduk_id'       => $pendudukId,
+                        'nilai_diterima'    => $total,
+                        'tanggal_penerimaan'=> $request->tanggal_tahap_1,
+                        'status_penerimaan' => $request->status_penerimaan,
+                        'keterangan'        => $request->keterangan,
+                        'data_tambahan'     => json_encode([
+                            'sistem_pembayaran' => 'berkala',
+                            'total_amount'      => $total,
+                            'tahap_1'           => ['tanggal' => $request->tanggal_tahap_1, 'jumlah' => $perTahap + ($remainder >= 1 ? 1 : 0)],
+                            'tahap_2'           => ['tanggal' => $request->tanggal_tahap_2, 'jumlah' => $perTahap + ($remainder >= 2 ? 1 : 0)],
+                            'tahap_3'           => ['tanggal' => $request->tanggal_tahap_3, 'jumlah' => $perTahap + ($remainder >= 3 ? 1 : 0)],
+                            'tahap_4'           => ['tanggal' => $request->tanggal_tahap_4, 'jumlah' => $perTahap],
+                        ]),
+                    ]);
+                }
+                $successCount++;
             }
-
             DB::commit();
-
-            $message = $request->sistem_pembayaran === 'sekali'
-                ? 'Penerima bantuan berhasil ditambahkan!'
-                : 'Penerima bantuan triwulanan berhasil ditambahkan!';
-
-            return redirect()->route('bantuan-sosial.penerima.index', $bantuanSosial)
-                ->with('success', $message);
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Gagal menambahkan penerima bantuan: ' . $e->getMessage());
+            return back()->with('error', 'Gagal menambahkan penerima: ' . $e->getMessage());
         }
+
+        if ($successCount === 0 && $skipCount > 0) {
+            return back()->with('error', 'Semua penduduk yang dipilih sudah terdaftar pada program ini.');
+        }
+
+        $msg = "Berhasil menambahkan {$successCount} penerima baru.";
+        if ($skipCount > 0) {
+            $msg .= " ({$skipCount} dilewati karena sudah terdaftar)";
+        }
+
+        return redirect()->route('bantuan-sosial.penerima.index', $bantuanSosial)
+            ->with('success', $msg);
     }
 
     /**
-     * Display the specified penerima
+     * Detail penerima.
      */
     public function penerimaShow(BantuanSosial $bantuanSosial, PenerimaBantuanSosial $penerima)
     {
-        Gate::authorize('pelayanan_informasi');
-
         $penerima->load('penduduk');
 
-        return view('bantuan-sosial.penerima.show', compact('bantuanSosial', 'penerima'));
+        return Inertia::render('Tenant/BantuanSosial/Penerima/Show', [
+            'bantuanSosial' => $bantuanSosial,
+            'penerima'      => $penerima,
+        ]);
     }
 
     /**
-     * Show the form for editing the specified penerima
+     * Form edit penerima.
      */
     public function penerimaEdit(BantuanSosial $bantuanSosial, PenerimaBantuanSosial $penerima)
     {
-        Gate::authorize('pelayanan_informasi');
+        $penerima->load('penduduk');
 
-        return view('bantuan-sosial.penerima.edit', compact('bantuanSosial', 'penerima'));
+        return Inertia::render('Tenant/BantuanSosial/Penerima/Edit', [
+            'bantuanSosial' => $bantuanSosial,
+            'penerima'      => $penerima,
+        ]);
     }
 
     /**
-     * Update the specified penerima
+     * Update penerima.
      */
-    public function penerimaUpdate(Request $request, BantuanSosial $bantuanSosial, PenerimaBantuanSosial $penerima)
+    public function penerimaUpdate(UpdatePenerimaRequest $request, BantuanSosial $bantuanSosial, PenerimaBantuanSosial $penerima)
     {
-        Gate::authorize('pelayanan_informasi');
-
-        $validator = Validator::make($request->all(), [
-            'penduduk_id' => 'required|exists:penduduks,id',
-            'sistem_pembayaran' => 'required|in:sekali,triwulanan',
-            'nilai_diterima' => 'required_if:sistem_pembayaran,sekali|numeric|min:0',
-            'nilai_total_triwulanan' => 'required_if:sistem_pembayaran,triwulanan|numeric|min:0',
-            'tanggal_penerimaan' => 'required_if:sistem_pembayaran,sekali|date',
-            'tanggal_triwulan_1' => 'required_if:sistem_pembayaran,triwulanan|date',
-            'tanggal_triwulan_2' => 'required_if:sistem_pembayaran,triwulanan|date',
-            'tanggal_triwulan_3' => 'required_if:sistem_pembayaran,triwulanan|date',
-            'status_penerimaan' => 'required|in:aktif,ditangguhkan,berhenti'
-        ]);
-
-        if ($validator->fails()) {
-            return redirect()->back()
-                ->withErrors($validator)
-                ->withInput();
-        }
-
+        DB::beginTransaction();
         try {
-            DB::beginTransaction();
-
             if ($request->sistem_pembayaran === 'sekali') {
-                // Sistem pembayaran sekali
                 $penerima->update([
-                    'penduduk_id' => $request->penduduk_id,
-                    'nilai_diterima' => $request->nilai_diterima,
-                    'tanggal_penerimaan' => $request->tanggal_penerimaan,
+                    'penduduk_id'       => $request->penduduk_id,
+                    'nilai_diterima'    => $request->nilai_diterima,
+                    'tanggal_penerimaan'=> $request->tanggal_penerimaan,
                     'status_penerimaan' => $request->status_penerimaan,
-                    'keterangan' => $request->keterangan ?? null,
-                    'data_tambahan' => json_encode(['sistem_pembayaran' => 'sekali'])
+                    'keterangan'        => $request->keterangan,
+                    'data_tambahan'     => json_encode(['sistem_pembayaran' => 'sekali']),
                 ]);
             } else {
-                // Sistem pembayaran triwulanan - 1 record dengan 3 tanggal
-                $totalAmount = $request->nilai_total_triwulanan;
-                $perTriwulan = floor($totalAmount / 3);
-                $remainder = $totalAmount % 3;
-
-                $triwulan1Amount = $perTriwulan + ($remainder >= 1 ? 1 : 0);
-                $triwulan2Amount = $perTriwulan + ($remainder >= 2 ? 1 : 0);
-                $triwulan3Amount = $perTriwulan;
+                $total       = (float) $request->nilai_total_berkala;
+                $perTahap    = (int) floor($total / 4);
+                $remainder   = (int) ($total % 4);
 
                 $penerima->update([
-                    'penduduk_id' => $request->penduduk_id,
-                    'nilai_diterima' => $totalAmount, // Total amount
-                    'tanggal_penerimaan' => $request->tanggal_triwulan_1, // Tanggal pertama
+                    'penduduk_id'       => $request->penduduk_id,
+                    'nilai_diterima'    => $total,
+                    'tanggal_penerimaan'=> $request->tanggal_tahap_1,
                     'status_penerimaan' => $request->status_penerimaan,
-                    'keterangan' => $request->keterangan ?? null,
-                    'data_tambahan' => json_encode([
-                        'sistem_pembayaran' => 'triwulanan',
-                        'total_amount' => $totalAmount,
-                        'triwulan_1' => [
-                            'tanggal' => $request->tanggal_triwulan_1,
-                            'jumlah' => $triwulan1Amount
-                        ],
-                        'triwulan_2' => [
-                            'tanggal' => $request->tanggal_triwulan_2,
-                            'jumlah' => $triwulan2Amount
-                        ],
-                        'triwulan_3' => [
-                            'tanggal' => $request->tanggal_triwulan_3,
-                            'jumlah' => $triwulan3Amount
-                        ]
-                    ])
+                    'keterangan'        => $request->keterangan,
+                    'data_tambahan'     => json_encode([
+                        'sistem_pembayaran' => 'berkala',
+                        'total_amount'      => $total,
+                        'tahap_1'           => ['tanggal' => $request->tanggal_tahap_1, 'jumlah' => $perTahap + ($remainder >= 1 ? 1 : 0)],
+                        'tahap_2'           => ['tanggal' => $request->tanggal_tahap_2, 'jumlah' => $perTahap + ($remainder >= 2 ? 1 : 0)],
+                        'tahap_3'           => ['tanggal' => $request->tanggal_tahap_3, 'jumlah' => $perTahap + ($remainder >= 3 ? 1 : 0)],
+                        'tahap_4'           => ['tanggal' => $request->tanggal_tahap_4, 'jumlah' => $perTahap],
+                    ]),
                 ]);
             }
-
             DB::commit();
-
-            $message = $request->sistem_pembayaran === 'sekali'
-                ? 'Penerima bantuan berhasil diperbarui!'
-                : 'Penerima bantuan triwulanan berhasil diperbarui!';
-
-            return redirect()->route('bantuan-sosial.penerima.index', $bantuanSosial)
-                ->with('success', $message);
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Gagal memperbarui penerima bantuan: ' . $e->getMessage());
+            return back()->with('error', 'Gagal memperbarui penerima: ' . $e->getMessage());
         }
+
+        return redirect()->route('bantuan-sosial.penerima.index', $bantuanSosial)
+            ->with('success', 'Data penerima berhasil diperbarui!');
     }
 
     /**
-     * Remove the specified penerima
+     * Hapus penerima.
      */
     public function penerimaDestroy(BantuanSosial $bantuanSosial, PenerimaBantuanSosial $penerima)
     {
-        Gate::authorize('pelayanan_informasi');
-
+        DB::beginTransaction();
         try {
-            DB::beginTransaction();
-
             $penerima->delete();
-
             DB::commit();
-
-            return redirect()->route('bantuan-sosial.penerima.index', $bantuanSosial)
-                ->with('success', 'Penerima bantuan berhasil dihapus!');
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()
-                ->with('error', 'Gagal menghapus penerima bantuan: ' . $e->getMessage());
+            return back()->with('error', 'Gagal menghapus penerima: ' . $e->getMessage());
         }
+
+        return redirect()->route('bantuan-sosial.penerima.index', $bantuanSosial)
+            ->with('success', 'Penerima bantuan berhasil dihapus!');
     }
 }
