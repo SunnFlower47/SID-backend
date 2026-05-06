@@ -46,7 +46,9 @@ return [
         'site_key' => env('RECAPTCHA_SITE_KEY', env('RECAPTCHA_V2_SITE_KEY')),
         'secret_key' => env('RECAPTCHA_SECRET_KEY', env('RECAPTCHA_V2_SECRET_KEY')),
         // Master switch + score threshold v3
-        'enabled' => env('RECAPTCHA_ENABLED', env('APP_ENV') === 'production'),
+        // CATATAN: Jangan nested env() di sini - tidak bekerja di Laravel config.
+        // Set RECAPTCHA_ENABLED=true di .env production, RECAPTCHA_ENABLED=false di .env local.
+        'enabled' => env('RECAPTCHA_ENABLED', false),
         'v3_min_score' => env('RECAPTCHA_V3_MIN_SCORE', 0.5),
     ],
 

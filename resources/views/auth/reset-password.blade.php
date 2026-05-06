@@ -19,7 +19,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <!-- reCAPTCHA -->
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    @if(config('services.recaptcha.enabled'))
+        <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    @endif
 
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -239,7 +241,7 @@
                     </div>
 
                     <!-- reCAPTCHA - Show if keys are configured -->
-                    @if(config('services.recaptcha.v2_site_key') && config('services.recaptcha.v2_secret_key') && !app()->environment('local', 'testing'))
+                    @if(config('services.recaptcha.enabled') && config('services.recaptcha.v2_site_key') && config('services.recaptcha.v2_secret_key'))
                     <div class="flex justify-center">
                         <div class="g-recaptcha" data-sitekey="{{ config('services.recaptcha.v2_site_key') }}"></div>
                     </div>
@@ -249,7 +251,7 @@
                             {{ $message }}
                         </p>
                     @enderror
-                    @elseif(!app()->environment('local', 'testing'))
+                    @elseif(config('services.recaptcha.enabled'))
                     <!-- reCAPTCHA Keys Not Configured -->
                     <div class="flex justify-center">
                         <div class="px-4 py-2 bg-yellow-100 border border-yellow-300 rounded-lg text-sm text-yellow-800">
