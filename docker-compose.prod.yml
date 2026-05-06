@@ -1,0 +1,54 @@
+services:
+    app:
+        build:
+            context: .
+            dockerfile: Dockerfile.prod
+        image: desa-cibatu-app
+        restart: always
+        environment:
+            APP_ENV: production
+            APP_DEBUG: "false"
+        ports:
+            - "80:80"
+            - "443:443"
+            - "443:443/udp"
+        volumes:
+            - .:/var/www/html
+            - caddy_data:/data
+            - caddy_config:/config
+        depends_on:
+            - mysql
+            - redis
+        networks:
+            - production
+
+    mysql:
+        image: 'mysql:8.0'
+        restart: always
+        environment:
+            MYSQL_ROOT_PASSWORD: '${DB_PASSWORD}'
+            MYSQL_DATABASE: '${DB_DATABASE}'
+            MYSQL_USER: '${DB_USERNAME}'
+            MYSQL_PASSWORD: '${DB_PASSWORD}'
+        volumes:
+            - db_data:/var/lib/mysql
+        networks:
+            - production
+
+    redis:
+        image: 'redis:alpine'
+        restart: always
+        volumes:
+            - redis_data:/data
+        networks:
+            - production
+
+networks:
+    production:
+        driver: bridge
+
+volumes:
+    db_data:
+    redis_data:
+    caddy_data:
+    caddy_config:

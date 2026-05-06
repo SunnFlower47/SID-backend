@@ -52,9 +52,11 @@ class BantuanSosialController extends Controller
 
         $stats = [
             'total_program'  => BantuanSosial::count(),
-            'program_aktif'  => BantuanSosial::where('status', 'aktif')->count(),
+            'program_aktif'  => BantuanSosial::aktif()->count(),
             'total_penerima' => PenerimaBantuanSosial::count(),
-            'penerima_aktif' => PenerimaBantuanSosial::where('status_penerimaan', 'aktif')->count(),
+            'penerima_aktif' => PenerimaBantuanSosial::where('status_penerimaan', 'aktif')
+                                ->whereHas('bantuanSosial', fn($q) => $q->aktif())
+                                ->count(),
         ];
 
         return Inertia::render('Tenant/BantuanSosial/Index', [
@@ -198,6 +200,11 @@ class BantuanSosialController extends Controller
      */
     public function penerimaCreate(BantuanSosial $bantuanSosial)
     {
+        if ($bantuanSosial->status === 'selesai' || ($bantuanSosial->tanggal_selesai && $bantuanSosial->tanggal_selesai->isPast())) {
+            return redirect()->route('bantuan-sosial.penerima.index', $bantuanSosial)
+                ->with('error', 'Program bantuan ini telah selesai/kadaluarsa dan tidak dapat menambah penerima lagi.');
+        }
+
         return Inertia::render('Tenant/BantuanSosial/Penerima/Create', [
             'bantuanSosial' => $bantuanSosial,
         ]);
@@ -208,6 +215,10 @@ class BantuanSosialController extends Controller
      */
     public function penerimaStore(StorePenerimaRequest $request, BantuanSosial $bantuanSosial)
     {
+        if ($bantuanSosial->status === 'selesai' || ($bantuanSosial->tanggal_selesai && $bantuanSosial->tanggal_selesai->isPast())) {
+            return back()->with('error', 'Gagal: Program bantuan ini telah selesai atau kadaluarsa.');
+        }
+
         $pendudukIds = $request->penduduk_ids;
         $successCount = 0;
         $skipCount = 0;
@@ -294,6 +305,11 @@ class BantuanSosialController extends Controller
      */
     public function penerimaEdit(BantuanSosial $bantuanSosial, PenerimaBantuanSosial $penerima)
     {
+        if ($bantuanSosial->status === 'selesai' || ($bantuanSosial->tanggal_selesai && $bantuanSosial->tanggal_selesai->isPast())) {
+            return redirect()->route('bantuan-sosial.penerima.index', $bantuanSosial)
+                ->with('error', 'Program bantuan ini telah selesai/kadaluarsa. Data tidak dapat diubah.');
+        }
+
         $penerima->load('penduduk');
 
         return Inertia::render('Tenant/BantuanSosial/Penerima/Edit', [
@@ -307,6 +323,10 @@ class BantuanSosialController extends Controller
      */
     public function penerimaUpdate(UpdatePenerimaRequest $request, BantuanSosial $bantuanSosial, PenerimaBantuanSosial $penerima)
     {
+        if ($bantuanSosial->status === 'selesai' || ($bantuanSosial->tanggal_selesai && $bantuanSosial->tanggal_selesai->isPast())) {
+            return back()->with('error', 'Gagal: Program bantuan ini telah selesai atau kadaluarsa.');
+        }
+
         DB::beginTransaction();
         try {
             if ($request->sistem_pembayaran === 'sekali') {
@@ -354,6 +374,10 @@ class BantuanSosialController extends Controller
      */
     public function penerimaDestroy(BantuanSosial $bantuanSosial, PenerimaBantuanSosial $penerima)
     {
+        if ($bantuanSosial->status === 'selesai' || ($bantuanSosial->tanggal_selesai && $bantuanSosial->tanggal_selesai->isPast())) {
+            return back()->with('error', 'Gagal: Data tidak dapat dihapus karena program telah selesai/kadaluarsa.');
+        }
+
         DB::beginTransaction();
         try {
             $penerima->delete();

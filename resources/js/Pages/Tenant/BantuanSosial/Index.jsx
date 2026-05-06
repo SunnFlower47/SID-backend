@@ -27,11 +27,15 @@ const JENIS_BADGE = {
     'Bansos Lainnya': 'bg-orange-100 text-orange-800',
 };
 
-function StatusBadge({ status }) {
-    const label = { aktif: 'Aktif', selesai: 'Selesai', ditangguhkan: 'Ditangguhkan' }[status] ?? status;
+function StatusBadge({ status, label, isExpired }) {
+    const badgeClass = isExpired 
+        ? 'bg-gray-100 text-gray-500 border border-gray-200' 
+        : (STATUS_BADGE[status] ?? 'bg-gray-100 text-gray-700');
+    
     return (
-        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${STATUS_BADGE[status] ?? 'bg-gray-100 text-gray-700'}`}>
-            {label}
+        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${badgeClass}`}>
+            {isExpired && <span className="w-1.5 h-1.5 rounded-full bg-gray-400 mr-1.5 animate-pulse" />}
+            {label || status}
         </span>
     );
 }
@@ -206,7 +210,13 @@ export default function Index({ auth, bantuanSosials, stats, filters }) {
                                                         {b.penerima_count} orang
                                                     </span>
                                                 </td>
-                                                <td className="px-6 py-4"><StatusBadge status={b.status} /></td>
+                                                <td className="px-6 py-4">
+                                                    <StatusBadge 
+                                                        status={b.status} 
+                                                        label={b.status_label} 
+                                                        isExpired={b.is_expired} 
+                                                    />
+                                                </td>
                                                 <td className="px-6 py-4">
                                                     <div className="flex justify-end gap-2">
                                                         <Link
@@ -250,7 +260,11 @@ export default function Index({ auth, bantuanSosials, stats, filters }) {
                                                 <h4 className="font-black text-gray-900 truncate">{b.nama_program}</h4>
                                                 <div className="flex flex-wrap items-center gap-2 mt-1">
                                                     <JenisBadge jenis={b.jenis_bantuan} />
-                                                    <StatusBadge status={b.status} />
+                                                    <StatusBadge 
+                                                        status={b.status} 
+                                                        label={b.status_label} 
+                                                        isExpired={b.is_expired} 
+                                                    />
                                                 </div>
                                             </div>
                                         </div>

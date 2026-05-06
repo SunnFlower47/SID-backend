@@ -1,0 +1,41 @@
+FROM dunglas/frankenphp:latest-php8.4-alpine
+
+# Install system dependencies
+RUN apk add --no-cache \
+    libpng-dev \
+    libjpeg-turbo-dev \
+    freetype-dev \
+    zip \
+    libzip-dev \
+    unzip \
+    git \
+    oniguruma-dev \
+    libxml2-dev \
+    icu-dev
+
+# Install PHP extensions
+RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip intl opcache
+
+# Set working directory
+WORKDIR /var/www/html
+
+# Copy existing application directory contents
+COPY . /var/www/html
+
+# Install composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Set permissions
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+
+# Optimization for Production
+ENV PHP_INI_SCAN_DIR=:/usr/local/etc/php/conf.d
+RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
+
+# FrankenPHP configuration
+ENV FRANKENPHP_CONFIG="worker ./public/index.php"
+
+# Expose port 80 and 443
+EXPOSE 80
+EXPOSE 443
+EXPOSE 443/udp

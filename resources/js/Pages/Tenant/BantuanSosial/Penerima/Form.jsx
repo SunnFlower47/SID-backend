@@ -55,6 +55,7 @@ function BerkalaBreakdown({ total }) {
 // ────────────────────────────────────────────────────────────────
 export default function PenerimaForm({ mode = 'create', bantuanSosial, penerima = null }) {
     const isEdit = mode === 'edit';
+    const isLocked = bantuanSosial.status === 'selesai' || bantuanSosial.is_expired;
 
     // Parse data_tambahan dari penerima existing
     const dataTambahan = (() => {
@@ -110,9 +111,27 @@ export default function PenerimaForm({ mode = 'create', bantuanSosial, penerima 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
             {/* ── Form ── */}
             <div className="lg:col-span-2">
-                <form onSubmit={handleSubmit} className="space-y-5">
+                {isLocked ? (
+                    <div className="bg-white rounded-2xl border border-amber-100 shadow-sm p-12 text-center">
+                         <div className="w-16 h-16 bg-amber-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                            <Clock className="w-8 h-8 text-amber-600" />
+                         </div>
+                         <h3 className="text-xl font-black text-gray-900 uppercase italic tracking-tighter">Akses Terkunci</h3>
+                         <p className="text-sm text-gray-500 mt-2 max-w-sm mx-auto font-bold uppercase tracking-widest text-[10px]">
+                            Program bantuan ini telah selesai atau kadaluarsa. Data tidak dapat ditambah atau diubah lagi.
+                         </p>
+                         <Link
+                            href={route('bantuan-sosial.penerima.index', bantuanSosial.id)}
+                            className="inline-flex items-center mt-8 px-8 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-black uppercase tracking-widest transition-all"
+                         >
+                            <ArrowLeft className="w-4 h-4 mr-2" />
+                            KEMBALI KE DAFTAR
+                         </Link>
+                    </div>
+                ) : (
+                    <form onSubmit={handleSubmit} className="space-y-5">
                     {/* Pilih Penduduk */}
-                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
+                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm relative z-50">
                         <div className="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white flex items-center gap-3 rounded-t-2xl">
                             <div className="w-8 h-8 bg-green-100 rounded-xl flex items-center justify-center">
                                 <Users className="w-4 h-4 text-green-600" />
@@ -291,6 +310,7 @@ export default function PenerimaForm({ mode = 'create', bantuanSosial, penerima 
                         </button>
                     </div>
                 </form>
+                )}
             </div>
 
             {/* ── Info Program Sidebar ── */}

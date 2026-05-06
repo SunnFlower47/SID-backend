@@ -1,24 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, User, MapPin, Loader2, X, Plus } from 'lucide-react';
+import { Search, User, MapPin, Loader2, X, CheckCircle2 } from 'lucide-react';
 import axios from 'axios';
+import { cn } from '@/lib/utils';
 
-export default function MultiResidentAutocomplete({ onSelect, placeholder, label, initialSelected = [], className = '' }) {
+export default function MultiResidentAutocomplete({ onSelect, placeholder, label, className = '' }) {
     const [query, setQuery] = useState('');
     const [results, setResults] = useState([]);
     const [loading, setLoading] = useState(false);
     const [showResults, setShowResults] = useState(false);
-    const [selected, setSelected] = useState(initialSelected || []);
+    const [selected, setSelected] = useState([]);
     const wrapperRef = useRef(null);
 
-    // Sync from parent if initialSelected changes (useful for edit mode if we pass single to multi)
-    useEffect(() => {
-        if (initialSelected && Array.isArray(initialSelected)) {
-            setSelected(initialSelected);
-        } else if (initialSelected && initialSelected.id) {
-            setSelected([initialSelected]);
-        }
-    }, [initialSelected]);
-
+    // Handle click outside to close dropdown
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
@@ -29,6 +22,7 @@ export default function MultiResidentAutocomplete({ onSelect, placeholder, label
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
+    // Search Logic - Mengikuti cara Layanan Surat yang terbukti jalan
     useEffect(() => {
         if (query.length < 3) {
             setResults([]);
@@ -38,22 +32,28 @@ export default function MultiResidentAutocomplete({ onSelect, placeholder, label
         const delayDebounceFn = setTimeout(async () => {
             setLoading(true);
             try {
-                const response = await axios.get('/mutasi/search-penduduk', { params: { query } });
-                // Filter out already selected
-                const filtered = response.data.filter(r => !selected.find(s => s.id === r.id));
-                setResults(filtered);
+                // Pakai route penduduk.search yang dipakai di menu lain
+                const response = await axios.get(route('penduduk.search'), { 
+                    params: { q: query } 
+                });
+                
+                // Pastikan data ada
+                const data = response.data || [];
+                setResults(data);
+                setShowResults(true);
             } catch (error) {
-                console.error('Search error', error);
+                console.error('Search error:', error);
             } finally {
                 setLoading(false);
-                setShowResults(true);
             }
         }, 500);
 
         return () => clearTimeout(delayDebounceFn);
-    }, [query, selected]);
+    }, [query]);
 
     const handleSelect = (resident) => {
+        if (selected.find(s => s.id === resident.id)) return;
+        
         const newSelected = [...selected, resident];
         setSelected(newSelected);
         setQuery('');
@@ -61,91 +61,103 @@ export default function MultiResidentAutocomplete({ onSelect, placeholder, label
         if (onSelect) onSelect(newSelected);
     };
 
-    const handleRemove = (id) => {
+    const removeSelected = (id) => {
         const newSelected = selected.filter(s => s.id !== id);
         setSelected(newSelected);
         if (onSelect) onSelect(newSelected);
     };
 
     return (
-        <div ref={wrapperRef} className={`relative space-y-3 ${className}`}>
-            {label && (
-                <div className="flex justify-between items-end">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{label}</label>
-                    <span className="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">
-                        {selected.length} Dipilih
-                    </span>
-                </div>
-            )}
-
-            {/* Selected Tags */}
-            {selected.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                    {selected.map((res) => (
-                        <div key={res.id} className="flex items-center gap-2 py-1.5 pl-3 pr-1.5 bg-teal-50 border border-teal-200 rounded-xl animate-in zoom-in-95 duration-200">
-                            <div>
-                                <p className="text-[11px] font-black text-teal-900 uppercase leading-none">{res.nama}</p>
-                                <p className="text-[9px] font-bold text-teal-600 tracking-wider mt-0.5">{res.nik}</p>
-                            </div>
-                            <button
-                                type="button"
-                                onClick={() => handleRemove(res.id)}
-                                className="p-1 hover:bg-teal-200 rounded-lg text-teal-600 transition-colors ml-1"
-                            >
-                                <X className="w-3.5 h-3.5" />
-                            </button>
-                        </div>
-                    ))}
-                </div>
-            )}
-
+        <div ref={wrapperRef} className={cn("relative space-y-3", className)}>
+            {label && <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{label}</label>}
+            
             {/* Search Input */}
             <div className="relative">
-                <Search className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors ${loading ? 'text-teal-500 animate-pulse' : 'text-gray-400'}`} />
+                <Search className={cn(
+                    "absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors",
+                    loading ? "text-green-500 animate-pulse" : "text-gray-400"
+                )} />
                 <input
                     type="text"
-                    placeholder={placeholder || (selected.length > 0 ? "Ketik untuk tambah warga lagi..." : "Cari Nama atau NIK Warga...")}
-                    className="w-full pl-12 pr-12 py-3.5 bg-white border border-gray-200 hover:border-gray-300 rounded-2xl text-sm font-medium focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 transition-all outline-none"
+                    placeholder={placeholder || "Cari Nama atau NIK..."}
+                    className="w-full pl-11 pr-12 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-green-500 transition-all shadow-inner"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     onFocus={() => query.length >= 3 && setShowResults(true)}
                 />
-                {loading && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-teal-500 animate-spin" />}
+                {loading && (
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                        <Loader2 className="w-4 h-4 text-green-600 animate-spin" />
+                    </div>
+                )}
             </div>
 
-            {/* Dropdown Results */}
+            {/* Dropdown Results - Z-INDEX TINGGI & ABSOLUTE */}
             {showResults && (
-                <div className="absolute z-[100] top-full left-0 right-0 mt-2 bg-white border border-gray-100 rounded-2xl shadow-2xl overflow-hidden animate-in slide-in-from-top-2 duration-200 max-h-80 overflow-y-auto">
+                <div className="absolute z-[9999] top-full left-0 right-0 mt-2 bg-white border border-gray-100 rounded-2xl shadow-2xl overflow-hidden animate-in slide-in-from-top-2 duration-200 max-h-80 overflow-y-auto">
                     {results.length > 0 ? (
                         <div className="p-2">
-                            {results.map((res) => (
-                                <button
-                                    key={res.id}
-                                    type="button"
-                                    onClick={() => handleSelect(res)}
-                                    className="w-full p-4 flex items-center gap-4 hover:bg-teal-50/50 rounded-xl transition-colors group text-left"
-                                >
-                                    <div className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center border border-gray-100 group-hover:bg-teal-100 group-hover:border-teal-200 transition-colors">
-                                        <Plus className="w-5 h-5 text-gray-400 group-hover:text-teal-600" />
-                                    </div>
-                                    <div className="flex-1">
-                                        <p className="text-sm font-black text-gray-900 group-hover:text-teal-900 uppercase">{res.nama}</p>
-                                        <div className="flex items-center gap-3 mt-0.5">
-                                            <span className="text-[10px] font-bold text-gray-400 tracking-wider">NIK: {res.nik}</span>
-                                            <span className="flex items-center gap-1 text-[10px] font-bold text-teal-400 uppercase">
-                                                <MapPin className="w-3 h-3" />
-                                                RT {res.rt_label}/RW {res.rw_label}
-                                            </span>
+                            {results.map((res) => {
+                                const isAlreadySelected = selected.find(s => s.id === res.id);
+                                return (
+                                    <button
+                                        key={res.id}
+                                        type="button"
+                                        disabled={isAlreadySelected}
+                                        onClick={() => handleSelect(res)}
+                                        className={cn(
+                                            "w-full p-4 flex items-center justify-between hover:bg-green-50 rounded-xl transition-colors group text-left",
+                                            isAlreadySelected && "opacity-50 cursor-not-allowed bg-gray-50"
+                                        )}
+                                    >
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center border border-gray-100 group-hover:bg-green-100 group-hover:border-green-200 transition-colors">
+                                                <User className="w-5 h-5 text-gray-400 group-hover:text-green-600" />
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-black text-gray-900 group-hover:text-green-900 uppercase italic tracking-tighter">{res.nama}</p>
+                                                <div className="flex items-center gap-2 mt-0.5">
+                                                    <span className="text-[10px] font-bold text-gray-400 tracking-wider">{res.nik}</span>
+                                                    {(res.rt_label || res.rt) && (
+                                                        <span className="flex items-center gap-1 text-[9px] font-bold text-green-600 uppercase">
+                                                            <MapPin className="w-3 h-3" />
+                                                            RT {res.rt_label || res.rt}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
-                                </button>
-                            ))}
+                                        {isAlreadySelected && <CheckCircle2 className="w-4 h-4 text-green-500" />}
+                                    </button>
+                                );
+                            })}
                         </div>
                     ) : (
                         <div className="p-8 text-center">
-                            <p className="text-sm font-bold text-gray-400">Data warga tidak ditemukan / sudah dipilih</p>
+                            <p className="text-sm font-bold text-gray-400">Data warga tidak ditemukan</p>
                         </div>
                     )}
+                </div>
+            )}
+
+            {/* Selected List */}
+            {selected.length > 0 && (
+                <div className="flex flex-wrap gap-2 pt-2">
+                    {selected.map((s) => (
+                        <div 
+                            key={s.id} 
+                            className="flex items-center gap-2 px-3 py-2 bg-green-600 text-white rounded-xl shadow-sm animate-in zoom-in-95 duration-200"
+                        >
+                            <span className="text-[10px] font-black uppercase tracking-tighter italic">{s.nama}</span>
+                            <button 
+                                type="button"
+                                onClick={() => removeSelected(s.id)}
+                                className="hover:bg-white/20 rounded-lg p-0.5 transition-colors"
+                            >
+                                <X className="w-3 h-3" />
+                            </button>
+                        </div>
+                    ))}
                 </div>
             )}
         </div>

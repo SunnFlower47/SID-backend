@@ -27,6 +27,8 @@ function StatusBadge({ status }) {
 }
 
 export default function Index({ auth, bantuanSosial, penerima }) {
+    const isLocked = bantuanSosial.status === 'selesai' || bantuanSosial.is_expired;
+
     const handleDelete = (id, nama) => {
         Swal.fire({
             title: 'KONFIRMASI HAPUS',
@@ -84,16 +86,31 @@ export default function Index({ auth, bantuanSosial, penerima }) {
                                 <ArrowLeft className="w-3.5 h-3.5 mr-2" />
                                 KEMBALI
                             </Link>
-                            <Link
-                                href={route('bantuan-sosial.penerima.create', bantuanSosial.id)}
-                                className="flex items-center px-5 py-2.5 bg-white text-green-700 hover:bg-green-50 rounded-xl text-[10px] font-black shadow-lg shadow-black/10 transition-all hover:scale-105 uppercase tracking-widest"
-                            >
-                                <Plus className="w-3.5 h-3.5 mr-2" />
-                                TAMBAH PENERIMA
-                            </Link>
+                            {!isLocked && (
+                                <Link
+                                    href={route('bantuan-sosial.penerima.create', bantuanSosial.id)}
+                                    className="flex items-center px-5 py-2.5 bg-white text-green-700 hover:bg-green-50 rounded-xl text-[10px] font-black shadow-lg shadow-black/10 transition-all hover:scale-105 uppercase tracking-widest"
+                                >
+                                    <Plus className="w-3.5 h-3.5 mr-2" />
+                                    TAMBAH PENERIMA
+                                </Link>
+                            )}
                         </div>
                     </div>
                 </div>
+
+                {/* ── Locked Alert ── */}
+                {isLocked && (
+                    <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center gap-4 animate-in slide-in-from-top duration-300">
+                        <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center shrink-0">
+                            <Clock className="w-5 h-5 text-amber-600" />
+                        </div>
+                        <div>
+                            <p className="text-[10px] font-black text-amber-800 uppercase tracking-widest">Program Telah Selesai</p>
+                            <p className="text-xs font-bold text-amber-700/80">Data penerima telah dikunci dan tidak dapat diubah lagi untuk menjaga integritas laporan.</p>
+                        </div>
+                    </div>
+                )}
 
                 {/* ── Table ── */}
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -159,18 +176,22 @@ export default function Index({ auth, bantuanSosial, penerima }) {
                                                             >
                                                                 <Eye className="w-4 h-4" />
                                                             </Link>
-                                                            <Link
-                                                                href={route('bantuan-sosial.penerima.edit', [bantuanSosial.id, p.id])}
-                                                                className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 text-gray-600 hover:bg-gray-800 hover:text-white transition-colors"
-                                                            >
-                                                                <Edit className="w-4 h-4" />
-                                                            </Link>
-                                                            <button
-                                                                onClick={() => handleDelete(p.id, p.penduduk?.nama)}
-                                                                className="w-8 h-8 flex items-center justify-center rounded-lg bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition-colors"
-                                                            >
-                                                                <Trash2 className="w-4 h-4" />
-                                                            </button>
+                                                            {!isLocked && (
+                                                                <>
+                                                                    <Link
+                                                                        href={route('bantuan-sosial.penerima.edit', [bantuanSosial.id, p.id])}
+                                                                        className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 text-gray-600 hover:bg-gray-800 hover:text-white transition-colors"
+                                                                    >
+                                                                        <Edit className="w-4 h-4" />
+                                                                    </Link>
+                                                                    <button
+                                                                        onClick={() => handleDelete(p.id, p.penduduk?.nama)}
+                                                                        className="w-8 h-8 flex items-center justify-center rounded-lg bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition-colors"
+                                                                    >
+                                                                        <Trash2 className="w-4 h-4" />
+                                                                    </button>
+                                                                </>
+                                                            )}
                                                         </div>
                                                     </td>
                                                 </tr>
@@ -214,12 +235,16 @@ export default function Index({ auth, bantuanSosial, penerima }) {
                                                 <Link href={route('bantuan-sosial.penerima.show', [bantuanSosial.id, p.id])} className="flex-1 py-2.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl text-xs font-bold text-center transition-colors">
                                                     DETAIL
                                                 </Link>
-                                                <Link href={route('bantuan-sosial.penerima.edit', [bantuanSosial.id, p.id])} className="flex-1 py-2.5 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-xl text-xs font-bold text-center transition-colors">
-                                                    EDIT
-                                                </Link>
-                                                <button onClick={() => handleDelete(p.id, p.penduduk?.nama)} className="px-4 py-2.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl transition-colors">
-                                                    <Trash2 className="w-4 h-4" />
-                                                </button>
+                                                {!isLocked && (
+                                                    <>
+                                                        <Link href={route('bantuan-sosial.penerima.edit', [bantuanSosial.id, p.id])} className="flex-1 py-2.5 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-xl text-xs font-bold text-center transition-colors">
+                                                            EDIT
+                                                        </Link>
+                                                        <button onClick={() => handleDelete(p.id, p.penduduk?.nama)} className="px-4 py-2.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl transition-colors">
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                    </>
+                                                )}
                                             </div>
                                         </div>
                                     );

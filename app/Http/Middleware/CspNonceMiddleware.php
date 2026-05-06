@@ -37,7 +37,7 @@ class CspNonceMiddleware
     private function buildCspHeader(string $nonce): string
     {
         // Whitelist yang sangat longgar untuk development agar tidak merusak admin panel
-        $hosts = "http://localhost:5173 http://127.0.0.1:5173 ws://localhost:5173 ws://127.0.0.1:5173";
+        $hosts = "http://localhost:5173 http://127.0.0.1:5173 ws://localhost:5173 ws://127.0.0.1:5173 http://localhost:5174 http://127.0.0.1:5174 ws://localhost:5174 ws://127.0.0.1:5174 http://localhost:5175 http://127.0.0.1:5175 ws://localhost:5175 ws://127.0.0.1:5175";
         
         return implode('; ', [
             "default-src 'self'",

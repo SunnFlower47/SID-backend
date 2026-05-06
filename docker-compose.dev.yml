@@ -1,0 +1,43 @@
+services:
+    mysql:
+        image: 'mysql:8.0'
+        ports:
+            - '${FORWARD_DB_PORT:-3306}:3306'
+        environment:
+            MYSQL_ROOT_PASSWORD: '${DB_PASSWORD}'
+            MYSQL_ROOT_HOST: '%'
+            MYSQL_DATABASE: '${DB_DATABASE}'
+            MYSQL_USER: '${DB_USERNAME}'
+            MYSQL_PASSWORD: '${DB_PASSWORD}'
+            MYSQL_ALLOW_EMPTY_PASSWORD: 1
+        volumes:
+            - 'sistem-desa-cibatu_sail-mysql:/var/lib/mysql'
+        networks:
+            - dev-network
+
+    redis:
+        image: 'redis:alpine'
+        ports:
+            - '${FORWARD_REDIS_PORT:-6379}:6379'
+        volumes:
+            - 'sistem-desa-cibatu_sail-redis:/data'
+        networks:
+            - dev-network
+
+    mailpit:
+        image: 'axllent/mailpit:latest'
+        ports:
+            - '${FORWARD_MAILPIT_PORT:-1025}:1025'
+            - '${FORWARD_MAILPIT_DASHBOARD_PORT:-8025}:8025'
+        networks:
+            - dev-network
+
+networks:
+    dev-network:
+        driver: bridge
+
+volumes:
+    sistem-desa-cibatu_sail-mysql:
+        external: true
+    sistem-desa-cibatu_sail-redis:
+        external: true

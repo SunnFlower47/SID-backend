@@ -32,6 +32,8 @@ class BantuanSosial extends Model
         'nilai_bantuan' => 'decimal:2'
     ];
 
+    protected $appends = ['is_expired', 'status_label', 'nilai_bantuan_formatted'];
+
     /**
      * Mutator untuk kriteria_penerima - konversi string ke array jika perlu
      */
@@ -54,11 +56,15 @@ class BantuanSosial extends Model
     }
 
     /**
-     * Scope untuk bantuan aktif
+     * Scope untuk bantuan aktif (Berdasarkan status DAN tanggal)
      */
     public function scopeAktif($query)
     {
-        return $query->where('status', 'aktif');
+        return $query->where('status', 'aktif')
+                     ->where(function($q) {
+                         $q->whereNull('tanggal_selesai')
+                           ->orWhere('tanggal_selesai', '>=', now());
+                     });
     }
 
     /**
@@ -80,16 +86,32 @@ class BantuanSosial extends Model
     }
 
     /**
+     * Accessor untuk cek apakah program sudah kadaluarsa
+     */
+    protected function isExpired(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->tanggal_selesai && $this->tanggal_selesai->isPast()
+        );
+    }
+
+    /**
      * Accessor untuk status label
      */
     protected function statusLabel(): Attribute
     {
         return Attribute::make(
-            get: fn () => match($this->status) {
-                'aktif' => 'Aktif',
-                'selesai' => 'Selesai',
-                'ditangguhkan' => 'Ditangguhkan',
-                default => 'Tidak Diketahui'
+            get: function () {
+                if ($this->status === 'aktif' && $this->tanggal_selesai && $this->tanggal_selesai->isPast()) {
+                    return 'Selesai (Otomatis)';
+                }
+
+                return match($this->status) {
+                    'aktif' => 'Aktif',
+                    'selesai' => 'Selesai',
+                    'ditangguhkan' => 'Ditangguhkan',
+                    default => 'Tidak Diketahui'
+                };
             }
         );
     }
