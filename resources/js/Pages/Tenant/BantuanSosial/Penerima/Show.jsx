@@ -27,7 +27,7 @@ export default function Show({ auth, bantuanSosial, penerima }) {
         try { return typeof penerima.data_tambahan === 'string' ? JSON.parse(penerima.data_tambahan || '{}') : (penerima.data_tambahan ?? {}); }
         catch { return {}; }
     })();
-    const isTriwulanan = dataTambahan?.sistem_pembayaran === 'triwulanan';
+    const isBerkala = dataTambahan?.sistem_pembayaran === 'berkala' || dataTambahan?.sistem_pembayaran === 'triwulanan';
 
     const handleDelete = () => {
         Swal.fire({
