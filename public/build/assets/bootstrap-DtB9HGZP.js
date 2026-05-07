@@ -1,1 +1,0 @@
-import{t as e}from"./axios-Df_URvos.js";window.axios=e,window.axios.defaults.headers.common[`X-Requested-With`]=`XMLHttpRequest`;
