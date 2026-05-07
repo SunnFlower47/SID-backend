@@ -4,6 +4,8 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import Pagination from '@/Components/Shared/Pagination';
 import SkeletonStats from '@/Components/Shared/Skeleton/SkeletonStats';
 import SkeletonTable from '@/Components/Shared/Skeleton/SkeletonTable';
+import DomisiliStats from '@/Components/Domisili/DomisiliStats';
+import DomisiliFilters from '@/Components/Domisili/DomisiliFilters';
 import { MapPin, Plus, CheckCircle, Clock, AlertTriangle, XCircle, Edit, Trash2, RefreshCw, Ban, Filter, Search, UserCheck, Eye, User, Home, Info, Calendar, Briefcase, Heart, X, ClipboardList } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { cn } from '@/lib/utils';
@@ -28,62 +30,15 @@ function StatusBadge({ status }) {
     );
 }
 
-function DomisiliStats({ stats }) {
-    const cards = [
-        { title: 'Domisili Aktif', value: stats?.total_aktif, icon: CheckCircle, color: 'green' },
-        { title: 'Expired Bulan Ini', value: stats?.expired_bulan_ini, icon: Clock, color: 'orange' },
-        { title: 'Baru Masuk Bulan Ini', value: stats?.baru_masuk_bulan_ini, icon: UserCheck, color: 'blue' },
-        { title: 'Akan Expired (30h)', value: stats?.warning_expired, icon: AlertTriangle, color: 'red' },
-    ];
-    const colors = {
-        green: 'border-green-100 bg-green-50 text-green-600 shadow-green-100/50',
-        orange: 'border-orange-100 bg-orange-50 text-orange-600 shadow-orange-100/50',
-        blue: 'border-blue-100 bg-blue-50 text-blue-600 shadow-blue-100/50',
-        red: 'border-red-100 bg-red-50 text-red-600 shadow-red-100/50',
-    };
-    return (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            {cards.map((c, i) => {
-                const Icon = c.icon;
-                const [border, bg, text, shadow] = colors[c.color].split(' ');
-                return (
-                    <div key={i} className={cn('bg-white rounded-2xl p-4 sm:p-6 border shadow-sm hover:shadow-md transition-all flex items-center gap-3 sm:gap-4', border, shadow)}>
-                        <div className={cn('w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shrink-0', bg, text)}>
-                            <Icon className="w-5 h-5 sm:w-6 sm:h-6" />
-                        </div>
-                        <div className="min-w-0">
-                            <p className="text-[10px] sm:text-xs font-black text-gray-400 uppercase tracking-widest truncate leading-none mb-1">{c.title}</p>
-                            <h3 className="text-lg sm:text-2xl font-black text-gray-900 leading-none">{c.value?.toLocaleString('id-ID') ?? 0}</h3>
-                        </div>
-                    </div>
-                );
-            })}
-        </div>
-    );
-}
+
 
 export default function Index({ auth, domisilis, stats, filters, rtList, rwList, dusunList }) {
-    const [showFilters, setShowFilters] = useState(Object.values(filters).some(Boolean));
-    const [filterData, setFilterData] = useState(filters);
     const [showCabutModal, setShowCabutModal] = useState(false);
     const [cabutTarget, setCabutTarget] = useState(null);
     const [alasan, setAlasan] = useState('');
     
     const [showDetailModal, setShowDetailModal] = useState(false);
     const [selectedDetail, setSelectedDetail] = useState(null);
-
-    const updateFilter = (key, val) => {
-        setFilterData(prev => ({ ...prev, [key]: val, page: 1 }));
-    };
-
-    const handleApply = () => {
-        router.get(route('domisili.index'), filterData, { preserveState: true, replace: true });
-    };
-
-    const resetFilter = () => {
-        setFilterData({});
-        router.get(route('domisili.index'), {}, { preserveState: false });
-    };
 
     const handleDelete = (id, nama) => {
         Swal.fire({
@@ -202,65 +157,7 @@ export default function Index({ auth, domisilis, stats, filters, rtList, rwList,
                 </Deferred>
 
                 {/* Filter Bar */}
-                <div className="flex justify-between items-center bg-white p-3 sm:p-5 rounded-2xl sm:rounded-3xl border border-gray-100 shadow-sm transition-all">
-                    <div className="flex items-center gap-2 sm:gap-4">
-                        <div className="w-8 h-8 sm:w-12 sm:h-12 bg-green-50 rounded-xl flex items-center justify-center">
-                            <Search className="w-4 h-4 sm:w-6 sm:h-6 text-green-600" />
-                        </div>
-                        <div>
-                            <h3 className="text-[10px] sm:text-sm font-black text-gray-950 uppercase italic tracking-tighter leading-none mb-1 text-left">Konfigurasi Data</h3>
-                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest text-left">Pencarian & Filter Domisili</p>
-                        </div>
-                    </div>
-                    <button
-                        onClick={() => setShowFilters(!showFilters)}
-                        className={cn(
-                            "flex items-center px-4 py-2 sm:px-6 sm:py-3 rounded-xl text-[9px] sm:text-xs font-black transition-all border shadow-sm active:scale-95",
-                            showFilters
-                                ? "bg-yellow-400 text-yellow-900 border-yellow-500 shadow-yellow-400/20"
-                                : "bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100"
-                        )}
-                    >
-                        <Filter className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
-                        {showFilters ? 'TUTUP PANEL' : 'BUKA FILTER'}
-                    </button>
-                </div>
-
-                {showFilters && (
-                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 animate-in slide-in-from-top-2 duration-300">
-                        <input type="text" value={filterData.search || ''} placeholder="Cari nama / NIK / asal daerah..."
-                            onChange={e => updateFilter('search', e.target.value)}
-                            onKeyDown={e => e.key === 'Enter' && handleApply()}
-                            className="col-span-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-green-500 focus:border-green-500" />
-                        <select value={filterData.status || ''} onChange={e => updateFilter('status', e.target.value)} className="border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-green-500">
-                            <option value="">Semua Status</option>
-                            <option value="aktif">Aktif</option>
-                            <option value="expired">Expired</option>
-                            <option value="dicabut">Dicabut</option>
-                        </select>
-                        <select value={filterData.rw_id || ''} onChange={e => updateFilter('rw_id', e.target.value)} className="border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-green-500">
-                            <option value="">Semua RW</option>
-                            {rwList?.map(rw => <option key={rw.id} value={rw.id}>RW {rw.kode}</option>)}
-                        </select>
-                        <select value={filterData.rt_id || ''} onChange={e => updateFilter('rt_id', e.target.value)} className="border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-green-500">
-                            <option value="">Semua RT</option>
-                            {rtList?.map(rt => <option key={rt.id} value={rt.id}>RT {rt.kode}</option>)}
-                        </select>
-                        <select value={filterData.keperluan_domisili || ''} onChange={e => updateFilter('keperluan_domisili', e.target.value)} className="border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-green-500">
-                            <option value="">Semua Keperluan</option>
-                            <option value="kerja">Kerja</option>
-                            <option value="sekolah">Sekolah</option>
-                            <option value="ikut_keluarga">Ikut Keluarga</option>
-                            <option value="lainnya">Lainnya</option>
-                        </select>
-                        <button onClick={resetFilter} className="flex items-center justify-center gap-2 py-3.5 rounded-xl bg-gray-50 text-gray-400 text-[10px] font-black uppercase tracking-widest hover:bg-red-50 hover:text-red-500 transition-all border border-gray-100">
-                            <RefreshCw className="w-3.5 h-3.5" /> RESET FILTER
-                        </button>
-                        <button onClick={handleApply} className="flex items-center justify-center gap-2 py-3.5 rounded-xl bg-green-600 text-white text-[10px] font-black uppercase tracking-widest hover:bg-green-700 transition-all shadow-lg shadow-green-200 active:scale-95">
-                            <Filter className="w-3.5 h-3.5" /> TERAPKAN FILTER
-                        </button>
-                    </div>
-                )}
+                <DomisiliFilters filters={filters} rtList={rtList} rwList={rwList} />
 
                 {/* Table */}
                 <Deferred data="domisilis" fallback={<SkeletonTable columns={7} rows={10} />}>

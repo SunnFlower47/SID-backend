@@ -1,12 +1,11 @@
 import React from 'react';
-import { List, CheckCircle, Users, UserCheck } from 'lucide-react';
+import { MessageSquare, AlertCircle, Clock, CheckCircle } from 'lucide-react';
 
 const STAT_CONFIG = [
     {
-        key: 'total_program',
-        label: 'Total Program',
-        icon: List,
-        color: 'blue',
+        key: 'total',
+        label: 'Total Aduan',
+        icon: MessageSquare,
         bg: 'bg-blue-50',
         iconBg: 'bg-blue-100',
         iconColor: 'text-blue-600',
@@ -14,21 +13,19 @@ const STAT_CONFIG = [
         border: 'border-blue-200',
     },
     {
-        key: 'program_aktif',
-        label: 'Program Aktif',
-        icon: CheckCircle,
-        color: 'green',
-        bg: 'bg-green-50',
-        iconBg: 'bg-green-100',
-        iconColor: 'text-green-600',
-        textColor: 'text-green-600',
-        border: 'border-green-200',
+        key: 'baru',
+        label: 'Aduan Baru',
+        icon: AlertCircle,
+        bg: 'bg-yellow-50',
+        iconBg: 'bg-yellow-100',
+        iconColor: 'text-yellow-600',
+        textColor: 'text-yellow-600',
+        border: 'border-yellow-200',
     },
     {
-        key: 'total_penerima',
-        label: 'Total Penerima',
-        icon: Users,
-        color: 'purple',
+        key: 'diproses',
+        label: 'Sedang Diproses',
+        icon: Clock,
         bg: 'bg-purple-50',
         iconBg: 'bg-purple-100',
         iconColor: 'text-purple-600',
@@ -36,19 +33,18 @@ const STAT_CONFIG = [
         border: 'border-purple-200',
     },
     {
-        key: 'penerima_aktif',
-        label: 'Penerima Aktif',
-        icon: UserCheck,
-        color: 'yellow',
-        bg: 'bg-yellow-50',
-        iconBg: 'bg-yellow-100',
-        iconColor: 'text-yellow-600',
-        textColor: 'text-yellow-600',
-        border: 'border-yellow-200',
+        key: 'darurat',
+        label: 'Prioritas Darurat',
+        icon: AlertCircle, // using AlertCircle again or maybe something like TriangleAlert if available, but AlertCircle is fine
+        bg: 'bg-red-50',
+        iconBg: 'bg-red-100',
+        iconColor: 'text-red-600',
+        textColor: 'text-red-600',
+        border: 'border-red-200',
     },
 ];
 
-export default function BansosStats({ stats = {} }) {
+export default function PengaduanStats({ stats = {} }) {
     return (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
             {STAT_CONFIG.map(({ key, label, icon: Icon, bg, iconBg, iconColor, textColor, border }) => (

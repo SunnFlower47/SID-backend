@@ -23,12 +23,12 @@ class ContactMessageController extends Controller
         $query = ContactMessage::query();
 
         // Filter by status
-        if ($request->has('status') && $request->status !== '') {
+        if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
 
         // Search by name, email, or subject
-        if ($request->has('search') && $request->search !== '') {
+        if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function($q) use ($search) {
                 $q->where('nama', 'like', "%{$search}%")
@@ -51,7 +51,11 @@ class ContactMessageController extends Controller
             'archived' => ContactMessage::archived()->count(),
         ];
 
-        return view('contact-messages.index', compact('messages', 'stats'));
+        return \Inertia\Inertia::render('Tenant/Pelayanan/ContactMessage/Index', [
+            'messages' => $messages,
+            'filters' => $request->only(['status', 'search']),
+            'stats' => $stats,
+        ]);
     }
 
     /**
@@ -64,7 +68,9 @@ class ContactMessageController extends Controller
             $contactMessage->markAsRead();
         }
 
-        return view('contact-messages.show', compact('contactMessage'));
+        return \Inertia\Inertia::render('Tenant/Pelayanan/ContactMessage/Show', [
+            'contactMessage' => $contactMessage
+        ]);
     }
 
     /**
@@ -90,9 +96,19 @@ class ContactMessageController extends Controller
             return redirect()->back()->withErrors($validator)->withInput();
         }
 
-        $contactMessage->markAsReplied($request->admin_reply);
+        try {
+            // Kirim Email balasan ke warga
+            \Illuminate\Support\Facades\Mail::to($contactMessage->email)
+                ->send(new \App\Mail\ContactMessageReply($contactMessage, $request->admin_reply));
 
-        return redirect()->back()->with('success', 'Pesan ditandai sebagai sudah dijawab');
+            $contactMessage->markAsReplied($request->admin_reply);
+
+            return redirect()->back()->with('success', 'Pesan berhasil dibalas dan email telah dikirim.');
+        } catch (\Exception $e) {
+            // Tetap simpan balasan meskipun gagal kirim email (opsional, tapi disarankan)
+            $contactMessage->markAsReplied($request->admin_reply);
+            return redirect()->back()->with('success', 'Pesan disimpan sebagai dibalas, namun peringatan: Gagal mengirim email (Pastikan konfigurasi SMTP .env sudah diatur).');
+        }
     }
 
     /**

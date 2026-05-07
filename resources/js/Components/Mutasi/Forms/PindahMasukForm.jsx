@@ -267,12 +267,7 @@ export default function PindahMasukForm({ wilayahTree, mutasi = null }) {
 
     const options = {
       onSuccess: () => {
-        Swal.fire({
-          icon: 'success',
-          title: 'Berhasil!',
-          text: isEdit ? 'Data Pindah Masuk berhasil diperbarui.' : `Data Pindah Masuk (${data.family_members.length + 1} jiwa) berhasil disimpan.`,
-          confirmButtonColor: '#10b981'
-        });
+        // Ditangani oleh flash message global di AuthenticatedLayout
       },
       onError: (errors) => {
         const firstError = Object.values(errors)[0];

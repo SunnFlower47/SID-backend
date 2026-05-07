@@ -25,14 +25,16 @@ import {
 import SkeletonStats from '@/Components/Shared/Skeleton/SkeletonStats';
 import SkeletonTable from '@/Components/Shared/Skeleton/SkeletonTable';
 import Pagination from '@/Components/Shared/Pagination';
-import Swal from 'sweetalert2';
+import MutasiStats from '@/Components/Mutasi/MutasiStats';
+import MutasiFilters from '@/Components/Mutasi/MutasiFilters';
 import axios from 'axios';
 import { format } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
 import Lottie from 'lottie-react';
 import noDataAnimation from '@/assets/lottie/no-data-animation.json';
 import { cn } from '@/lib/utils';
-
+import Swal from 'sweetalert2';
+a
 const LottieComponent = Lottie?.default || Lottie;
 
 export default function Index({ auth, mutasis, filters, stats }) {
@@ -380,124 +382,11 @@ export default function Index({ auth, mutasis, filters, stats }) {
 
         {/* Quick Stats Grid */}
         <Deferred data="stats" fallback={<SkeletonStats />}>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[
-              { label: 'Kelahiran', value: stats?.kelahiran || 0, color: 'blue', icon: Baby },
-              { label: 'Kematian', value: stats?.kematian || 0, color: 'red', icon: UserX },
-              { label: 'Pindahan', value: (stats?.pindahan || 0), color: 'green', icon: MapPin },
-              { label: 'Pisah KK', value: stats?.pisah_kk || 0, color: 'purple', icon: Split },
-            ].map((item, idx) => {
-              const Icon = item.icon;
-              const colorClasses = {
-                blue: 'border-blue-100 bg-blue-50 text-blue-600 shadow-blue-100/50',
-                red: 'border-red-100 bg-red-50 text-red-600 shadow-red-100/50',
-                green: 'border-green-100 bg-green-50 text-green-600 shadow-green-100/50',
-                purple: 'border-purple-100 bg-purple-50 text-purple-600 shadow-purple-100/50',
-              };
-              const colors = colorClasses[item.color] || colorClasses.blue;
-
-              return (
-                <div
-                  key={idx}
-                  className={cn(
-                    "bg-white rounded-2xl p-4 sm:p-6 border shadow-sm hover:shadow-md transition-all flex items-center gap-3 sm:gap-4",
-                    colors.split(' ')[0], // border class
-                    colors.split(' ')[3]  // shadow class
-                  )}
-                >
-                  <div className={cn(
-                    "w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-110",
-                    colors.split(' ')[1], // bg class
-                    colors.split(' ')[2]  // text class
-                  )}>
-                    <Icon className="w-5 h-5 sm:w-6 h-6" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-[10px] sm:text-xs font-black text-gray-400 uppercase tracking-widest truncate leading-none mb-1">
-                      {item.label}
-                    </p>
-                    <h4 className="text-lg sm:text-2xl font-black text-gray-900 leading-none">
-                      {item.value?.toLocaleString('id-ID')}
-                    </h4>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          <MutasiStats stats={stats} />
         </Deferred>
 
-        {/* Filter Toggle Section */}
-        <div className="flex justify-between items-center bg-white p-3 sm:p-5 rounded-2xl sm:rounded-3xl border border-gray-100 shadow-sm transition-all">
-          <div className="flex items-center gap-2 sm:gap-4">
-            <div className="w-8 h-8 sm:w-12 sm:h-12 bg-green-50 rounded-xl flex items-center justify-center">
-              <Search className="w-4 h-4 sm:w-6 sm:h-6 text-green-600" />
-            </div>
-            <div>
-              <h3 className="text-[10px] sm:text-sm font-black text-gray-950 uppercase italic tracking-tighter">Konfigurasi Data</h3>
-              <p className="hidden sm:block text-[10px] font-bold text-gray-400 uppercase tracking-widest">Pencarian & Filter Mutasi</p>
-            </div>
-          </div>
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className={cn(
-              "flex items-center px-4 py-2 sm:px-6 sm:py-3 rounded-xl text-[9px] sm:text-xs font-black transition-all border shadow-sm active:scale-95",
-              showFilters
-                ? "bg-yellow-400 text-yellow-900 border-yellow-500 shadow-yellow-400/20"
-                : "bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100"
-            )}
-          >
-            <Filter className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
-            {showFilters ? 'TUTUP PANEL' : 'BUKA FILTER'}
-          </button>
-        </div>
-
-        {/* Filters Content */}
-        {showFilters && (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-xl p-6 sm:p-8 animate-in slide-in-from-top-4 duration-500">
-            <div className="flex flex-col md:flex-row gap-6 items-end justify-between">
-              <div className="w-full md:flex-1 space-y-4">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Cari Mutasi</label>
-                  <div className="relative">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <input
-                      type="text"
-                      placeholder="Nama Warga, NIK, atau Alasan Mutasi..."
-                      className="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-bold outline-none transition-all focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500"
-                      value={tempSearch}
-                      onChange={(e) => setTempSearch(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="w-full md:w-64 space-y-2">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Jenis Mutasi</label>
-                <select
-                  className="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-bold outline-none focus:bg-white focus:border-blue-500"
-                  value={jenisFilter}
-                  onChange={(e) => handleFilterChange(e.target.value)}
-                >
-                  <option value="all">SEMUA JENIS</option>
-                  <option value="kelahiran">KELAHIRAN</option>
-                  <option value="kematian">KEMATIAN</option>
-                  <option value="pindah_masuk">PINDAH MASUK</option>
-                  <option value="pindah_keluar">PINDAH KELUAR</option>
-                  <option value="pindah_rt_rw">PINDAH RT/RW</option>
-                  <option value="pisah_kk">PISAH KK</option>
-                </select>
-              </div>
-
-              <button
-                onClick={handleSearch}
-                className="w-full md:w-auto px-10 py-3.5 bg-blue-600 text-white rounded-2xl text-xs font-bold uppercase tracking-widest shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all active:scale-95"
-              >
-                Terapkan
-              </button>
-            </div>
-          </div>
-        )}
+        {/* Filter Section */}
+        <MutasiFilters filters={filters} />
 
         {/* Main Table Card */}
         <Deferred data="mutasis" fallback={<SkeletonTable columns={5} rows={8} />}>

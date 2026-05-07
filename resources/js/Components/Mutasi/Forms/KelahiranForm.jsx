@@ -75,12 +75,7 @@ export default function KelahiranForm({ mutasi = null }) {
     // Let's refactor to use it properly.
     const options = {
       onSuccess: () => {
-        Swal.fire({
-          icon: 'success',
-          title: 'Berhasil!',
-          text: isEdit ? 'Data kelahiran berhasil diperbarui.' : 'Data kelahiran bayi berhasil disimpan.',
-          confirmButtonColor: '#3b82f6'
-        });
+        // Ditangani oleh flash message global di AuthenticatedLayout
       },
       onError: (errors) => {
         const firstError = Object.values(errors)[0];

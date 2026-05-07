@@ -1,20 +1,40 @@
 import React from 'react';
-import { Users, User, UserCheck, Home } from 'lucide-react';
+import { Mailbox, MailWarning, MailCheck, Archive, Mail } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export default function ResidentStats({ stats }) {
+export default function ContactMessageStats({ stats = {} }) {
     const statCards = [
-        { title: 'Total Penduduk', value: stats.total, icon: Users, color: 'blue' },
-        { title: 'Laki-Laki', value: stats.laki_laki, icon: User, color: 'cyan' },
-        { title: 'Perempuan', value: stats.perempuan, icon: UserCheck, color: 'pink' },
-        { title: 'Total KK', value: stats.total_kk, icon: Home, color: 'green' }
+        {
+            title: 'Total Pesan',
+            value: stats.total,
+            icon: Mailbox,
+            color: 'blue'
+        },
+        {
+            title: 'Belum Dibaca',
+            value: stats.unread,
+            icon: MailWarning,
+            color: 'red'
+        },
+        {
+            title: 'Sudah Dijawab',
+            value: stats.replied,
+            icon: MailCheck,
+            color: 'emerald'
+        },
+        {
+            title: 'Diarsipkan',
+            value: stats.archived,
+            icon: Archive,
+            color: 'gray'
+        }
     ];
 
     const colorClasses = {
         blue: 'border-blue-100 bg-blue-50 text-blue-600 shadow-blue-100/50',
-        cyan: 'border-cyan-100 bg-cyan-50 text-cyan-600 shadow-cyan-100/50',
-        pink: 'border-pink-100 bg-pink-50 text-pink-600 shadow-pink-100/50',
-        green: 'border-green-100 bg-green-50 text-green-600 shadow-green-100/50',
+        red: 'border-red-100 bg-red-50 text-red-600 shadow-red-100/50',
+        emerald: 'border-emerald-100 bg-emerald-50 text-emerald-600 shadow-emerald-100/50',
+        gray: 'border-gray-100 bg-gray-50 text-gray-600 shadow-gray-100/50',
     };
 
     return (
@@ -40,15 +60,12 @@ export default function ResidentStats({ stats }) {
                             <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
                         </div>
                         <div className="min-w-0">
-                            <p className="text-[10px] sm:text-xs font-black text-gray-400 uppercase tracking-widest truncate leading-none mb-1">
-                                {stat.title === 'Total Penduduk' ? (
-                                    <>
-                                        <span className="hidden sm:inline">Total Penduduk</span>
-                                        <span className="inline sm:hidden">Warga</span>
-                                    </>
-                                ) : stat.title}
+                            <p className="text-[10px] sm:text-xs font-black text-gray-400 uppercase tracking-widest truncate leading-none mb-1 text-left">
+                                {stat.title}
                             </p>
-                            <h3 className="text-xl sm:text-2xl font-black text-gray-900 leading-none">{stat.value?.toLocaleString('id-ID')}</h3>
+                            <h3 className="text-xl sm:text-2xl font-black text-gray-900 leading-none text-left">
+                                {stat.value?.toLocaleString('id-ID') ?? 0}
+                            </h3>
                         </div>
                     </div>
                 );
