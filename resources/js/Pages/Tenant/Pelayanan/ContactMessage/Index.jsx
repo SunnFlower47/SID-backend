@@ -1,9 +1,12 @@
 import React from 'react';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, Deferred } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import ContactMessageStats from '@/Components/ContactMessage/ContactMessageStats';
 import ContactMessageFilters from '@/Components/ContactMessage/ContactMessageFilters';
-import { Mailbox, Eye, Trash2, MailWarning, MailCheck, MailOpen, Archive } from 'lucide-react';
+import Pagination from '@/Components/Shared/Pagination';
+import SkeletonStats from '@/Components/Shared/Skeleton/SkeletonStats';
+import SkeletonTable from '@/Components/Shared/Skeleton/SkeletonTable';
+import { Mailbox, Eye, Trash2, MailWarning, MailCheck, MailOpen, Archive, CheckCircle } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { format } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
@@ -19,7 +22,7 @@ function StatusBadge({ status }) {
     const cfg = STATUS_COLORS[status] || STATUS_COLORS.unread;
     const Icon = cfg.icon;
     return (
-        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${cfg.bg} ${cfg.text}`}>
+        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-[9px] font-black uppercase tracking-widest ${cfg.bg} ${cfg.text}`}>
             <Icon className="w-3 h-3" />
             {cfg.label}
         </span>
@@ -60,99 +63,103 @@ export default function Index({ auth, messages, stats, filters }) {
     };
 
     return (
-        <AuthenticatedLayout user={auth.user} title="Pesan Kontak Warga">
-            <Head title="Pesan Kontak Warga" />
+        <AuthenticatedLayout user={auth.user} title="Pesan Masuk">
+            <Head title="Manajemen Pesan Masuk" />
 
-            <div className="space-y-5 animate-in fade-in duration-700 pb-20">
-                {/* Header Section */}
-                <div className="bg-gradient-to-r from-green-600 via-green-700 to-green-800 rounded-3xl shadow-xl p-6 sm:p-8 relative overflow-hidden">
+            <div className="space-y-6 animate-in fade-in duration-700 pb-20">
+                {/* Header */}
+                <div className="bg-gradient-to-r from-green-600 via-green-700 to-green-800 rounded-3xl shadow-xl p-6 sm:p-8 relative overflow-hidden text-left text-white">
                     <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl pointer-events-none" />
                     <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-4 text-left">
                             <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-inner shrink-0">
                                 <Mailbox className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-300" />
                             </div>
                             <div>
-                                <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight uppercase italic leading-none">
-                                    Kotak Masuk Desa
+                                <h1 className="text-xl sm:text-2xl font-black tracking-tight uppercase italic leading-none">
+                                    Pesan Masuk
                                 </h1>
-                                <p className="text-green-100 font-bold text-[10px] sm:text-xs uppercase tracking-widest mt-1 opacity-80">
-                                    Manajemen Pesan & Komunikasi Warga
+                                <p className="text-green-50 font-bold text-[10px] sm:text-xs uppercase tracking-widest mt-1 opacity-80 italic">
+                                    Pusat Komunikasi & Kontak Warga
                                 </p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {/* Statistics Cards */}
-                <ContactMessageStats stats={stats} />
+                {/* Stats */}
+                <Deferred data="stats" fallback={<SkeletonStats />}>
+                    <ContactMessageStats stats={stats} />
+                </Deferred>
 
-                {/* Search & Filter Panel */}
+                {/* Filters */}
                 <ContactMessageFilters filters={filters} />
 
                 {/* Data Table */}
-                <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden shadow-black/5">
-                    {/* Desktop View */}
-                    <div className="hidden lg:block overflow-x-auto">
-                        <table className="w-full text-left border-collapse">
-                            <thead>
-                                <tr className="bg-gray-50/80 border-b border-gray-100">
-                                    <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Diterima</th>
-                                    <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Pengirim</th>
-                                    <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Subjek & Pesan</th>
-                                    <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap text-center">Status</th>
-                                    <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-50">
-                                {messages?.data && messages.data.length > 0 ? (
-                                    messages.data.map((item) => (
-                                        <tr key={item.id} className={`transition-colors ${item.status === 'unread' ? 'bg-red-50/30 hover:bg-red-50/50' : 'hover:bg-gray-50'}`}>
-                                            <td className="px-6 py-4 whitespace-nowrap text-left">
-                                                <p className="text-xs font-bold text-gray-900">
-                                                    {format(new Date(item.created_at), 'dd MMM yyyy', { locale: localeId })}
-                                                </p>
-                                                <p className="text-[10px] font-medium text-gray-400 mt-0.5">
-                                                    {format(new Date(item.created_at), 'HH:mm')} WIB
-                                                </p>
-                                            </td>
-                                            <td className="px-6 py-4 text-left">
-                                                <div className="flex flex-col gap-0.5">
-                                                    <p className="font-bold text-gray-900 uppercase">{item.nama}</p>
-                                                    <p className="text-[10px] font-medium text-gray-500 tracking-wider">{item.email}</p>
-                                                    <p className="text-[10px] font-medium text-gray-400 tracking-wider">{item.telepon}</p>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 max-w-sm text-left">
+                <Deferred data="messages" fallback={<SkeletonTable columns={5} rows={10} />}>
+                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden text-left">
+                        <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-gray-50 to-white">
+                            <h3 className="text-lg font-black text-gray-900 flex items-center gap-3 uppercase italic tracking-tighter">
+                                <Mailbox className="w-6 h-6 text-green-600" />
+                                Daftar Pesan
+                            </h3>
+                            <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-[10px] font-black uppercase tracking-widest italic">
+                                Total: {messages?.total || 0}
+                            </span>
+                        </div>
+
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left border-collapse">
+                                <thead className="bg-gray-50/50 text-gray-900 font-bold uppercase text-xs tracking-wider border-b border-gray-100">
+                                    <tr>
+                                        <th className="px-6 py-4">Waktu & Pengirim</th>
+                                        <th className="px-6 py-4">Subjek & Pesan</th>
+                                        <th className="px-6 py-4 text-center">Status</th>
+                                        <th className="px-6 py-4 text-right">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-50">
+                                    {messages.data.length > 0 ? messages.data.map((item) => (
+                                        <tr key={item.id} className="group hover:bg-green-50/20 transition-colors">
+                                            <td className="px-6 py-5">
                                                 <div className="flex flex-col gap-1">
-                                                    <p className="text-xs font-black text-gray-900 line-clamp-1 uppercase tracking-tight">{item.subjek}</p>
-                                                    <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed">{item.pesan}</p>
+                                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 italic">
+                                                        {format(new Date(item.created_at), 'dd MMM yyyy HH:mm', { locale: localeId })}
+                                                    </p>
+                                                    <p className="font-bold text-gray-950 leading-none">{item.nama}</p>
+                                                    <p className="text-[10px] font-medium text-gray-400 mt-1">{item.email}</p>
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4 text-center">
+                                            <td className="px-6 py-5">
+                                                <div className="max-w-md">
+                                                    <p className="font-black text-gray-900 text-xs uppercase italic tracking-tight line-clamp-1 mb-1">{item.subjek}</p>
+                                                    <p className="text-xs text-gray-500 line-clamp-1 italic">"{item.pesan}"</p>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-5 text-center">
                                                 <StatusBadge status={item.status} />
                                             </td>
-                                            <td className="px-6 py-4 text-right">
+                                            <td className="px-6 py-5 text-right">
                                                 <div className="flex justify-end gap-2">
-                                                    <Link
+                                                    <Link 
                                                         href={route('contact-messages.show', item.id)}
-                                                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-xl transition-colors tooltip-trigger"
-                                                        title="Lihat Detail & Balas"
+                                                        className="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-colors"
+                                                        title="Lihat Detail"
                                                     >
                                                         <Eye className="w-4 h-4" />
                                                     </Link>
                                                     {item.status !== 'archived' && (
-                                                        <button
+                                                        <button 
                                                             onClick={() => handleArchive(item.id)}
-                                                            className="p-2 text-gray-600 hover:bg-gray-100 rounded-xl transition-colors tooltip-trigger"
+                                                            className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 text-gray-400 hover:bg-gray-800 hover:text-white transition-colors"
                                                             title="Arsipkan"
                                                         >
                                                             <Archive className="w-4 h-4" />
                                                         </button>
                                                     )}
-                                                    <button
-                                                        onClick={() => handleDelete(id, item.subjek)}
-                                                        className="p-2 text-red-600 hover:bg-red-50 rounded-xl transition-colors tooltip-trigger"
+                                                    <button 
+                                                        onClick={() => handleDelete(item.id, item.subjek)}
+                                                        className="w-8 h-8 flex items-center justify-center rounded-lg bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition-colors"
                                                         title="Hapus"
                                                     >
                                                         <Trash2 className="w-4 h-4" />
@@ -160,108 +167,20 @@ export default function Index({ auth, messages, stats, filters }) {
                                                 </div>
                                             </td>
                                         </tr>
-                                    ))
-                                ) : (
-                                    <tr>
-                                        <td colSpan="5" className="px-6 py-12 text-center text-gray-500">
-                                            <div className="flex flex-col items-center justify-center">
-                                                <Mailbox className="w-12 h-12 text-gray-300 mb-3" />
-                                                <p className="text-sm font-bold uppercase tracking-widest text-gray-400">Tidak ada pesan kontak</p>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+                                    )) : (
+                                        <tr>
+                                            <td colSpan="4" className="px-6 py-20 text-center uppercase font-black text-gray-300 italic tracking-widest">Tidak ada pesan ditemukan</td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
 
-                    {/* Mobile View */}
-                    <div className="lg:hidden divide-y divide-gray-50">
-                        {messages?.data && messages.data.length > 0 ? (
-                            messages.data.map((item) => (
-                                <div key={item.id} className={`p-5 space-y-4 ${item.status === 'unread' ? 'bg-red-50/30' : ''}`}>
-                                    <div className="flex justify-between items-start gap-4">
-                                        <div>
-                                            <h3 className="font-bold text-gray-900 uppercase text-sm">{item.nama}</h3>
-                                            <p className="text-[10px] text-gray-500 mt-0.5">{item.email}</p>
-                                        </div>
-                                        <StatusBadge status={item.status} />
-                                    </div>
-                                    
-                                    <div className="bg-gray-50 rounded-xl p-3 border border-gray-100">
-                                        <p className="text-[11px] font-black text-gray-900 uppercase tracking-wide mb-1 text-left">{item.subjek}</p>
-                                        <p className="text-xs text-gray-600 line-clamp-2 text-left">{item.pesan}</p>
-                                    </div>
-
-                                    <div className="flex items-center justify-between pt-2">
-                                        <span className="text-[10px] font-bold text-gray-400 uppercase">
-                                            {format(new Date(item.created_at), 'dd MMM yyyy', { locale: localeId })}
-                                        </span>
-                                        <div className="flex gap-2">
-                                            <Link
-                                                href={route('contact-messages.show', item.id)}
-                                                className="p-2 text-blue-600 bg-blue-50 rounded-lg"
-                                            >
-                                                <Eye className="w-4 h-4" />
-                                            </Link>
-                                            {item.status !== 'archived' && (
-                                                <button
-                                                    onClick={() => handleArchive(item.id)}
-                                                    className="p-2 text-gray-600 bg-gray-100 rounded-lg"
-                                                >
-                                                    <Archive className="w-4 h-4" />
-                                                </button>
-                                            )}
-                                            <button
-                                                onClick={() => handleDelete(item.id, item.subjek)}
-                                                className="p-2 text-red-600 bg-red-50 rounded-lg"
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))
-                        ) : (
-                            <div className="p-12 text-center text-gray-500">
-                                <Mailbox className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                                <p className="text-sm font-bold uppercase tracking-widest text-gray-400">Tidak ada pesan kontak</p>
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                {/* Pagination */}
-                {messages?.links && messages.links.length > 3 && (
-                    <div className="mt-6">
-                        <div className="flex items-center justify-between">
-                            <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                                <div>
-                                    <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">
-                                        Menampilkan <span className="font-black text-gray-900">{messages?.from}</span> - <span className="font-black text-gray-900">{messages?.to}</span> dari <span className="font-black text-gray-900">{messages?.total}</span> pesan
-                                    </p>
-                                </div>
-                                <div>
-                                    <nav className="relative z-0 inline-flex rounded-xl shadow-sm -space-x-px" aria-label="Pagination">
-                                        {messages.links.map((link, i) => (
-                                            <Link
-                                                key={i}
-                                                href={link.url || '#'}
-                                                className={`relative inline-flex items-center px-4 py-2 text-xs font-black uppercase tracking-widest ${
-                                                    link.active 
-                                                    ? 'z-10 bg-emerald-50 border-emerald-500 text-emerald-600' 
-                                                    : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'
-                                                } ${i === 0 ? 'rounded-l-xl' : ''} ${i === messages.links.length - 1 ? 'rounded-r-xl' : ''} ${!link.url ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                                dangerouslySetInnerHTML={{ __html: link.label }}
-                                                preserveScroll
-                                            />
-                                        ))}
-                                    </nav>
-                                </div>
-                            </div>
+                        <div className="p-4 border-t border-gray-100 bg-gray-50/50">
+                            <Pagination links={messages?.links} from={messages?.from} to={messages?.to} total={messages?.total} />
                         </div>
                     </div>
-                )}
+                </Deferred>
             </div>
         </AuthenticatedLayout>
     );

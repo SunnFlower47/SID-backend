@@ -36,8 +36,17 @@ const menuGroups = [
             { name: 'Layanan Surat', href: 'admin.surat-pengajuan.index', icon: 'FileText' },
             { name: 'Master Jenis Surat', href: 'admin.surat-type.index', icon: 'ScrollText' },
             { name: 'Bantuan Sosial', href: 'bantuan-sosial.index', icon: 'HeartHandshake' },
+        ]
+    },
+    {
+        name: 'Pusat Komunikasi',
+        icon: 'MessagesSquare',
+        color: 'from-indigo-600 to-indigo-700',
+        hoverBg: 'hover:from-indigo-50 hover:to-indigo-100 hover:text-indigo-700',
+        items: [
             { name: 'Pengaduan Warga', href: 'pengaduan.index', icon: 'MessageSquare' },
             { name: 'Pesan Kontak', href: 'contact-messages.index', icon: 'Mail' },
+            { name: 'Testimoni Warga', href: 'testimoni.index', icon: 'Star' },
         ]
     },
     {
@@ -52,7 +61,6 @@ const menuGroups = [
             { name: 'Fasilitas Desa', href: 'fasilitas-desa.index', icon: 'MapPin' },
             { name: 'Data UMKM', href: 'umkm.index', icon: 'Store' },
             { name: 'Berita & Pengumuman', href: 'berita.index', icon: 'Newspaper' },
-            { name: 'Testimoni Warga', href: 'testimoni.index', icon: 'Star' },
         ]
     },
     {

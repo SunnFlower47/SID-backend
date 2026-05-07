@@ -34,7 +34,7 @@ import Lottie from 'lottie-react';
 import noDataAnimation from '@/assets/lottie/no-data-animation.json';
 import { cn } from '@/lib/utils';
 import Swal from 'sweetalert2';
-a
+
 const LottieComponent = Lottie?.default || Lottie;
 
 export default function Index({ auth, mutasis, filters, stats }) {

@@ -3,15 +3,18 @@
 namespace App\Http\Controllers\Tenant\Konten;
 
 use App\Http\Controllers\Controller;
-
 use App\Models\Testimoni;
+use App\Models\Rw;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use App\Traits\WilayahResolver;
+use Inertia\Inertia;
+
 class TestimoniController extends Controller
 {
     use WilayahResolver;
-        /**
+
+    /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
@@ -40,7 +43,9 @@ class TestimoniController extends Controller
             });
         }
 
-        $testimonis = $query->orderBy('created_at', 'desc')->paginate(20);
+        $testimonis = $query->orderBy('created_at', 'desc')
+            ->paginate(10)
+            ->withQueryString();
 
         // Get statistics
         $stats = [
@@ -48,10 +53,14 @@ class TestimoniController extends Controller
             'approved' => Testimoni::where('status', 'approved')->count(),
             'pending' => Testimoni::where('status', 'pending')->count(),
             'rejected' => Testimoni::where('status', 'rejected')->count(),
-            'avg_rating' => Testimoni::whereNotNull('rating')->avg('rating') ?? 0,
+            'avg_rating' => round(Testimoni::whereNotNull('rating')->avg('rating') ?? 0, 1),
         ];
 
-        return view('testimoni.index', compact('testimonis', 'stats'));
+        return Inertia::render('Tenant/Testimoni/Index', [
+            'testimonis' => $testimonis,
+            'stats' => $stats,
+            'filters' => $request->only(['search', 'status', 'rating']),
+        ]);
     }
 
     /**
@@ -61,7 +70,7 @@ class TestimoniController extends Controller
     {
         Gate::authorize('pelayanan_informasi');
 
-        $masterRwOptions = \App\Models\Rw::with('rts')->orderBy('kode')->get()->map(function($rw) {
+        $masterRwOptions = Rw::with('rts')->orderBy('kode')->get()->map(function($rw) {
             return [
                 'id' => $rw->id,
                 'kode' => $rw->kode,
@@ -77,7 +86,9 @@ class TestimoniController extends Controller
             ];
         });
 
-        return view('testimoni.create', compact('masterRwOptions'));
+        return Inertia::render('Tenant/Testimoni/Create', [
+            'masterRwOptions' => $masterRwOptions
+        ]);
     }
 
     /**
@@ -116,7 +127,6 @@ class TestimoniController extends Controller
             'user_agent' => $request->userAgent(),
         ]);
 
-        // Clear relevant caches after creating testimoni
         return redirect()->route('testimoni.index')
             ->with('success', 'Testimoni berhasil ditambahkan dan menunggu persetujuan.');
     }
@@ -127,7 +137,9 @@ class TestimoniController extends Controller
     public function show(Testimoni $testimoni)
     {
         Gate::authorize('pelayanan_informasi');
-        return view('testimoni.show', compact('testimoni'));
+        return Inertia::render('Tenant/Testimoni/Show', [
+            'testimoni' => $testimoni->load(['rt', 'rw', 'dusun'])
+        ]);
     }
 
     /**
@@ -137,7 +149,7 @@ class TestimoniController extends Controller
     {
         Gate::authorize('pelayanan_informasi');
 
-        $masterRwOptions = \App\Models\Rw::with('rts')->orderBy('kode')->get()->map(function($rw) {
+        $masterRwOptions = Rw::with('rts')->orderBy('kode')->get()->map(function($rw) {
             return [
                 'id' => $rw->id,
                 'kode' => $rw->kode,
@@ -153,7 +165,10 @@ class TestimoniController extends Controller
             ];
         });
 
-        return view('testimoni.edit', compact('testimoni', 'masterRwOptions'));
+        return Inertia::render('Tenant/Testimoni/Edit', [
+            'testimoni' => $testimoni,
+            'masterRwOptions' => $masterRwOptions
+        ]);
     }
 
     /**
@@ -203,7 +218,6 @@ class TestimoniController extends Controller
         Gate::authorize('pelayanan_informasi');
         $testimoni->delete();
 
-        // Clear relevant caches after deleting testimoni
         return redirect()->route('testimoni.index')
             ->with('success', 'Testimoni berhasil dihapus.');
     }
@@ -221,36 +235,6 @@ class TestimoniController extends Controller
 
         $testimoni->update(['status' => $request->status]);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Status testimoni berhasil diperbarui.',
-            'status' => $testimoni->status
-        ]);
-    }
-
-    /**
-     * Approve testimoni
-     */
-    public function approve(Testimoni $testimoni)
-    {
-        Gate::authorize('pelayanan_informasi');
-
-        $testimoni->update(['status' => 'approved']);
-
-        return redirect()->route('testimoni.index')
-            ->with('success', 'Testimoni berhasil disetujui.');
-    }
-
-    /**
-     * Reject testimoni
-     */
-    public function reject(Testimoni $testimoni)
-    {
-        Gate::authorize('pelayanan_informasi');
-
-        $testimoni->update(['status' => 'rejected']);
-
-        return redirect()->route('testimoni.index')
-            ->with('success', 'Testimoni berhasil ditolak.');
+        return back()->with('success', 'Status testimoni berhasil diperbarui.');
     }
 }

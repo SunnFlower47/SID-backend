@@ -73,12 +73,12 @@ export default function Show({ auth, contactMessage }) {
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20">
                 
                 {/* Header Section */}
-                <div className="bg-gradient-to-r from-emerald-600 via-teal-700 to-teal-800 rounded-3xl shadow-xl p-6 sm:p-8 text-white relative overflow-hidden">
+                <div className="bg-gradient-to-r from-green-600 via-green-700 to-green-800 rounded-3xl shadow-xl p-6 sm:p-8 text-white relative overflow-hidden text-left">
                     <div className="absolute top-0 right-0 -mt-6 -mr-6 w-48 h-48 bg-white opacity-10 rounded-full blur-3xl"></div>
                     <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
                         <div className="flex items-center space-x-4">
                             <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/10 shadow-inner shrink-0">
-                                <Mailbox className="w-6 h-6 sm:w-7 sm:h-7 text-emerald-100" />
+                                <Mailbox className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-300" />
                             </div>
                             <div>
                                 <h1 className="text-xl sm:text-3xl font-black text-white tracking-tight uppercase italic leading-none text-left">Detail Pesan Masuk</h1>

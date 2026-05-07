@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import Swal from 'sweetalert2';
 import { MessageSquare, ArrowLeft, Edit, MapPin, User, Mail, Phone, Hash, Clock, CheckCircle, AlertTriangle, XCircle, FileText, Image as ImageIcon, X } from 'lucide-react';
 
 const PRIORITY_COLORS = {
@@ -72,7 +73,7 @@ export default function Show({ auth, pengaduan }) {
                     <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
                         <div className="flex items-center gap-4">
                             <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-inner shrink-0">
-                                <MessageSquare className="w-6 h-6 sm:w-7 sm:h-7 text-green-50" />
+                                <MessageSquare className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-300" />
                             </div>
                             <div>
                                 <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight uppercase italic leading-none line-clamp-1">
@@ -91,13 +92,15 @@ export default function Show({ auth, pengaduan }) {
                                 <ArrowLeft className="w-3.5 h-3.5 mr-2" />
                                 KEMBALI
                             </Link>
-                            <Link
-                                href={route('pengaduan.edit', pengaduan.id)}
-                                className="flex items-center px-4 py-2.5 bg-white text-green-700 hover:bg-green-50 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg"
-                            >
-                                <Edit className="w-3.5 h-3.5 mr-2" />
-                                EDIT / TANGGAPI
-                            </Link>
+                            {!(pengaduan.status === 'selesai' || pengaduan.status === 'ditolak') && (
+                                <Link
+                                    href={route('pengaduan.edit', pengaduan.id)}
+                                    className="flex items-center px-4 py-2.5 bg-white text-green-700 hover:bg-green-50 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg"
+                                >
+                                    <Edit className="w-3.5 h-3.5 mr-2" />
+                                    EDIT / TANGGAPI
+                                </Link>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -191,6 +194,89 @@ export default function Show({ auth, pengaduan }) {
                             )}
                         </div>
                     </div>
+
+                        {/* Form Tanggapan Langsung - Hanya muncul jika belum selesai/ditolak */}
+                        {!(pengaduan.status === 'selesai' || pengaduan.status === 'ditolak') && (
+                            <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden p-6 sm:p-8">
+                                <h3 className="text-sm font-black text-gray-900 uppercase italic tracking-tighter mb-6 flex items-center gap-2">
+                                    <MessageSquare className="w-5 h-5 text-indigo-600" />
+                                    Berikan Tanggapan & Kirim Email
+                                </h3>
+                                
+                                <form onSubmit={(e) => {
+                                    e.preventDefault();
+                                    const formData = new FormData(e.target);
+                                    const data = {
+                                        tanggapan: formData.get('tanggapan'),
+                                        status: formData.get('status'),
+                                        prioritas: pengaduan.prioritas,
+                                        judul: pengaduan.judul,
+                                        kategori: pengaduan.kategori,
+                                        nama_pelapor: pengaduan.nama_pelapor,
+                                        nik_pelapor: pengaduan.nik_pelapor,
+                                        telepon: pengaduan.telepon,
+                                        email: pengaduan.email,
+                                        alamat: pengaduan.alamat
+                                    };
+                                    
+                                    router.put(route('pengaduan.update', pengaduan.id), data, {
+                                        onSuccess: () => {
+                                            Swal.fire({
+                                                icon: 'success',
+                                                title: 'BERHASIL!',
+                                                text: 'Tanggapan telah disimpan dan email balasan telah dikirim.',
+                                                timer: 3000,
+                                                showConfirmButton: false,
+                                                customClass: { popup: 'rounded-3xl' }
+                                            });
+                                        }
+                                    });
+                                }} className="space-y-5">
+                                    <div>
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block">Pilih Status Terbaru</label>
+                                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                            {['baru', 'diproses', 'selesai', 'ditolak'].map((s) => (
+                                                <label key={s} className={`
+                                                    relative flex items-center justify-center p-3 rounded-2xl border-2 cursor-pointer transition-all active:scale-95
+                                                    ${pengaduan.status === s ? 'border-green-600 bg-green-50 shadow-inner' : 'border-gray-100 bg-white hover:border-gray-200'}
+                                                `}>
+                                                    <input type="radio" name="status" value={s} defaultChecked={pengaduan.status === s} className="sr-only" />
+                                                    <span className={`text-[10px] font-black uppercase tracking-wider ${pengaduan.status === s ? 'text-green-700' : 'text-gray-400'}`}>{s}</span>
+                                                </label>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block">Isi Tanggapan / Balasan Email</label>
+                                        <textarea 
+                                            name="tanggapan" 
+                                            rows="4" 
+                                            defaultValue={pengaduan.tanggapan}
+                                            placeholder="Ketik tanggapan resmi dari desa di sini..."
+                                            className="w-full px-5 py-4 bg-gray-50 border-none focus:ring-2 focus:ring-green-500 rounded-2xl text-sm font-medium text-gray-700 placeholder:text-gray-300 transition-all shadow-inner"
+                                            required
+                                        ></textarea>
+                                    </div>
+
+                                    <div className="flex items-center justify-between gap-4 pt-2">
+                                        <div className="flex items-center gap-2 text-gray-400">
+                                            <Mail className="w-4 h-4" />
+                                            <span className="text-[10px] font-bold uppercase tracking-widest">
+                                                {pengaduan.email ? `Akan dikirim ke: ${pengaduan.email}` : 'Email tidak tersedia'}
+                                            </span>
+                                        </div>
+                                        <button
+                                            type="submit"
+                                            className="px-8 py-3.5 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-lg shadow-green-100 transition-all hover:scale-105 active:scale-95 flex items-center gap-2"
+                                        >
+                                            <CheckCircle className="w-4 h-4" />
+                                            SIMPAN & KIRIM EMAIL
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        )}
 
                     {/* Sidebar */}
                     <div className="space-y-6 sm:space-y-8">

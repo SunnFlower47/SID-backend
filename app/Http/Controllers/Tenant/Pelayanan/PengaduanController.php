@@ -11,6 +11,9 @@ use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use App\Http\Requests\Pengaduan\StorePengaduanRequest;
 use App\Http\Requests\Pengaduan\UpdatePengaduanRequest;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
+use App\Mail\PengaduanReply;
 
 class PengaduanController extends Controller
 {
@@ -136,6 +139,11 @@ class PengaduanController extends Controller
     public function update(UpdatePengaduanRequest $request, Pengaduan $pengaduan)
     {
         try {
+            // Cek jika sudah selesai/ditolak agar tidak double tanggapan/email
+            if (in_array($pengaduan->status, ['selesai', 'ditolak'])) {
+                return back()->with('error', 'Pengaduan ini sudah berstatus ' . $pengaduan->status . ' dan tidak dapat diubah lagi.');
+            }
+
             DB::beginTransaction();
 
             $data = $request->validated();
@@ -147,10 +155,26 @@ class PengaduanController extends Controller
 
             $pengaduan->update($data);
 
+            // Kirim Email jika ada alamat email pelapor
+            Log::info('Mencoba kirim email pengaduan', [
+                'email' => $pengaduan->email,
+                'tanggapan_filled' => $request->filled('tanggapan')
+            ]);
+
+            if ($pengaduan->email && $request->filled('tanggapan')) {
+                try {
+                    Mail::to($pengaduan->email)->send(new PengaduanReply($pengaduan, $request->tanggapan));
+                    Log::info('Email pengaduan berhasil dikirim ke antrean/mail.');
+                } catch (\Exception $e) {
+                    Log::error('Gagal kirim email pengaduan: ' . $e->getMessage());
+                    report($e);
+                }
+            }
+
             DB::commit();
 
             return redirect()->route('pengaduan.index')
-                ->with('success', 'Tanggapan pengaduan berhasil disimpan dan diperbarui!');
+                ->with('success', 'Tanggapan pengaduan berhasil disimpan' . ($pengaduan->email ? ' dan email balasan telah dikirim.' : '.'));
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Gagal memperbarui pengaduan: ' . $e->getMessage());

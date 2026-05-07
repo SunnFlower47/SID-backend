@@ -80,7 +80,7 @@ export default function Index({ auth, pengaduans, stats, filters }) {
                     <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
                         <div className="flex items-center gap-4">
                             <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-inner shrink-0">
-                                <MessageSquare className="w-6 h-6 sm:w-7 sm:h-7 text-green-50" />
+                                <MessageSquare className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-300" />
                             </div>
                             <div>
                                 <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight uppercase italic leading-none">
