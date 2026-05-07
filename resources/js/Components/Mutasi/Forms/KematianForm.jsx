@@ -57,7 +57,7 @@ export default function KematianForm({ mutasi = null }) {
       if (result.isConfirmed) {
         const options = {
           onSuccess: () => {
-            Swal.fire('Berhasil!', isEdit ? 'Data berhasil diperbarui.' : 'Data kematian berhasil disimpan.', 'success');
+            // Ditangani oleh flash message global di AuthenticatedLayout
           },
           onError: (errs) => {
             Swal.fire('Error', Object.values(errs)[0] || 'Gagal menyimpan data.', 'error');

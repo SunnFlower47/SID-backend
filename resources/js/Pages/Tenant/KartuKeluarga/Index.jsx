@@ -21,7 +21,7 @@ export default function Index({ auth, kartuKeluarga, stats, dusunList, rwList, r
     const [isExporting, setIsExporting] = useState(false);
     const [isSyncing, setIsSyncing] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
-    const [showFilters, setShowFilters] = useState(Object.values(filters).some(v => v) ? true : false);
+
 
     const handleExport = async () => {
         setIsExporting(true);
@@ -68,13 +68,7 @@ export default function Index({ auth, kartuKeluarga, stats, dusunList, rwList, r
                 router.post(route('kk.sync-summary'), {}, {
                     onFinish: () => setIsSyncing(false),
                     onSuccess: () => {
-                        Swal.fire({
-                            title: 'Berhasil!',
-                            text: 'Statistik berhasil dihitung ulang.',
-                            icon: 'success',
-                            timer: 2000,
-                            showConfirmButton: false
-                        });
+                        // Ditangani oleh flash message global di AuthenticatedLayout
                     },
                     onError: () => {
                         Swal.fire('Gagal!', 'Terjadi kesalahan saat sinkronisasi data.', 'error');
@@ -207,34 +201,7 @@ export default function Index({ auth, kartuKeluarga, stats, dusunList, rwList, r
                     </Link>
                 )}
 
-                {/* Filter Toggle */}
-                <div className="flex justify-between items-center bg-white p-3 sm:p-5 rounded-2xl sm:rounded-3xl border border-gray-100 shadow-sm transition-all">
-                    <div className="flex items-center gap-2 sm:gap-4">
-                        <div className="w-8 h-8 sm:w-12 sm:h-12 bg-green-50 rounded-xl flex items-center justify-center">
-                            <Search className="w-4 h-4 sm:w-6 sm:h-6 text-green-600" />
-                        </div>
-                        <div>
-                            <h3 className="text-[10px] sm:text-sm font-black text-gray-950 uppercase italic tracking-tighter">Konfigurasi Data</h3>
-                            <p className="hidden sm:block text-[10px] font-bold text-gray-400 uppercase tracking-widest">Pencarian & Filter Wilayah</p>
-                        </div>
-                    </div>
-                    <button
-                        onClick={() => setShowFilters(!showFilters)}
-                        className={cn(
-                            "flex items-center px-4 py-2 sm:px-6 sm:py-3 rounded-xl text-[9px] sm:text-xs font-black transition-all border shadow-sm active:scale-95",
-                            showFilters
-                                ? "bg-yellow-400 text-yellow-900 border-yellow-500 shadow-yellow-400/20"
-                                : "bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100"
-                        )}
-                    >
-                        <Filter className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
-                        {showFilters ? 'TUTUP PANEL' : 'BUKA FILTER'}
-                    </button>
-                </div>
-
-                {showFilters && (
-                    <KkFilters filters={filters} dusunList={dusunList} rwList={rwList} rtList={rtList} />
-                )}
+                <KkFilters filters={filters} dusunList={dusunList} rwList={rwList} rtList={rtList} />
 
                 {/* Data Table */}
                 <Deferred data="kartuKeluarga" fallback={<SkeletonTable columns={6} rows={10} />}>

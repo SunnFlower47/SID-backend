@@ -6,7 +6,7 @@ export default function SkeletonStats({ count = 4 }) {
             {[...Array(count)].map((_, index) => (
                 <div 
                     key={index} 
-                    className="bg-white rounded-2xl p-4 sm:p-5 border border-gray-100 shadow-sm flex items-center gap-4 animate-pulse"
+                    className="bg-white rounded-2xl p-3 sm:p-4 border border-gray-100 shadow-sm flex items-center gap-4 animate-pulse"
                 >
                     <div className="w-12 h-12 rounded-xl bg-gray-100 flex-shrink-0"></div>
                     <div className="flex-1">

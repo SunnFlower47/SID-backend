@@ -63,7 +63,9 @@ export default function PindahRTRWForm({ wilayahTree, mutasi = null }) {
     }).then((result) => {
       if (result.isConfirmed) {
         const options = {
-          onSuccess: () => Swal.fire('Berhasil!', isEdit ? 'Data berhasil diperbarui.' : 'Seluruh anggota KK berhasil dipindah.', 'success'),
+          onSuccess: () => {
+              // Ditangani oleh flash message global di AuthenticatedLayout
+          },
           onError: (errs) => Swal.fire('Error', Object.values(errs)[0] || 'Gagal menyimpan.', 'error')
         };
 

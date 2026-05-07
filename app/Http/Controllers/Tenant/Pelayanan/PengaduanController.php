@@ -3,22 +3,17 @@
 namespace App\Http\Controllers\Tenant\Pelayanan;
 
 use App\Http\Controllers\Controller;
-
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
 use App\Models\Pengaduan;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
+use App\Http\Requests\Pengaduan\StorePengaduanRequest;
+use App\Http\Requests\Pengaduan\UpdatePengaduanRequest;
 
 class PengaduanController extends Controller
 {
-        public function __construct()
-    {
-        $this->middleware(['auth', 'can:pelayanan_informasi']);
-    }
-
     /**
      * Display a listing of the resource.
      */
@@ -50,18 +45,24 @@ class PengaduanController extends Controller
             });
         }
 
-        $pengaduans = $query->orderBy('created_at', 'desc')->paginate(20);
+        $pengaduans = $query->orderBy('created_at', 'desc')
+            ->paginate(15)
+            ->withQueryString();
 
         // Get statistics
         $stats = [
-            'total' => Pengaduan::count(),
-            'baru' => Pengaduan::where('status', 'baru')->count(),
+            'total'    => Pengaduan::count(),
+            'baru'     => Pengaduan::where('status', 'baru')->count(),
             'diproses' => Pengaduan::where('status', 'diproses')->count(),
-            'selesai' => Pengaduan::where('status', 'selesai')->count(),
-            'darurat' => Pengaduan::where('prioritas', 'darurat')->count(),
+            'selesai'  => Pengaduan::where('status', 'selesai')->count(),
+            'darurat'  => Pengaduan::where('prioritas', 'darurat')->count(),
         ];
 
-        return view('pengaduan.index', compact('pengaduans', 'stats'));
+        return Inertia::render('Tenant/Pengaduan/Index', [
+            'pengaduans' => $pengaduans,
+            'stats'      => $stats,
+            'filters'    => $request->only(['search', 'status', 'prioritas', 'kategori']),
+        ]);
     }
 
     /**
@@ -69,42 +70,18 @@ class PengaduanController extends Controller
      */
     public function create()
     {
-        Gate::authorize('pelayanan_informasi');
-
-        return view('pengaduan.create');
+        return Inertia::render('Tenant/Pengaduan/Create');
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StorePengaduanRequest $request)
     {
-        Gate::authorize('pelayanan_informasi');
-
-        $validator = Validator::make($request->all(), [
-            'nama_pelapor' => 'required|string|max:255',
-            'nik_pelapor' => 'nullable|string|size:16',
-            'telepon' => 'nullable|string|max:20',
-            'email' => 'nullable|email|max:255',
-            'alamat' => 'required|string|max:500',
-            'kategori' => 'required|string|in:infrastruktur,keamanan,kebersihan,administrasi,lainnya',
-            'judul' => 'required|string|max:255',
-            'deskripsi' => 'required|string',
-            'lokasi' => 'nullable|string|max:255',
-            'foto.*' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'prioritas' => 'required|in:rendah,sedang,tinggi,darurat'
-        ]);
-
-        if ($validator->fails()) {
-            return redirect()->back()
-                ->withErrors($validator)
-                ->withInput();
-        }
-
         try {
             DB::beginTransaction();
 
-            $data = $request->all();
+            $data = $request->validated();
             $data['status'] = 'baru';
 
             // Handle photo uploads
@@ -122,12 +99,10 @@ class PengaduanController extends Controller
             DB::commit();
 
             return redirect()->route('pengaduan.index')
-                ->with('success', 'Pengaduan berhasil disimpan!');
+                ->with('success', 'Pengaduan berhasil ditambahkan secara manual!');
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Gagal menyimpan pengaduan: ' . $e->getMessage());
+            return back()->with('error', 'Gagal menyimpan pengaduan: ' . $e->getMessage());
         }
     }
 
@@ -136,7 +111,11 @@ class PengaduanController extends Controller
      */
     public function show(Pengaduan $pengaduan)
     {
-        return view('pengaduan.show', compact('pengaduan'));
+        $pengaduan->load('user');
+
+        return Inertia::render('Tenant/Pengaduan/Show', [
+            'pengaduan' => $pengaduan,
+        ]);
     }
 
     /**
@@ -144,35 +123,23 @@ class PengaduanController extends Controller
      */
     public function edit(Pengaduan $pengaduan)
     {
-        Gate::authorize('pelayanan_informasi');
+        $pengaduan->load('user');
 
-        return view('pengaduan.edit', compact('pengaduan'));
+        return Inertia::render('Tenant/Pengaduan/Edit', [
+            'pengaduan' => $pengaduan,
+        ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Pengaduan $pengaduan)
+    public function update(UpdatePengaduanRequest $request, Pengaduan $pengaduan)
     {
-        Gate::authorize('pelayanan_informasi');
-
-        $validator = Validator::make($request->all(), [
-            'status' => 'required|in:baru,diproses,selesai,ditolak',
-            'prioritas' => 'required|in:rendah,sedang,tinggi,darurat',
-            'tanggapan' => 'nullable|string'
-        ]);
-
-        if ($validator->fails()) {
-            return redirect()->back()
-                ->withErrors($validator)
-                ->withInput();
-        }
-
         try {
             DB::beginTransaction();
 
-            $data = $request->only(['status', 'prioritas', 'tanggapan']);
-            $data['user_id'] = Auth::user()->id;
+            $data = $request->validated();
+            $data['user_id'] = Auth::id();
 
             if ($request->status === 'selesai' || $request->status === 'ditolak') {
                 $data['tanggal_tanggapan'] = now();
@@ -183,12 +150,10 @@ class PengaduanController extends Controller
             DB::commit();
 
             return redirect()->route('pengaduan.index')
-                ->with('success', 'Pengaduan berhasil diperbarui!');
+                ->with('success', 'Tanggapan pengaduan berhasil disimpan dan diperbarui!');
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Gagal memperbarui pengaduan: ' . $e->getMessage());
+            return back()->with('error', 'Gagal memperbarui pengaduan: ' . $e->getMessage());
         }
     }
 
@@ -197,8 +162,6 @@ class PengaduanController extends Controller
      */
     public function destroy(Pengaduan $pengaduan)
     {
-        Gate::authorize('pelayanan_informasi');
-
         try {
             DB::beginTransaction();
 
@@ -217,9 +180,7 @@ class PengaduanController extends Controller
                 ->with('success', 'Pengaduan berhasil dihapus!');
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()
-                ->with('error', 'Gagal menghapus pengaduan: ' . $e->getMessage());
+            return back()->with('error', 'Gagal menghapus pengaduan: ' . $e->getMessage());
         }
     }
-
 }

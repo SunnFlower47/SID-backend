@@ -146,16 +146,39 @@ class MutasiController extends Controller
 
             DB::commit();
 
+            $message = 'Data mutasi berhasil ditambahkan.';
+            switch ($jenisMutasi) {
+                case 'kelahiran':
+                    $message = 'Data kelahiran bayi berhasil disimpan.';
+                    break;
+                case 'kematian':
+                    $message = 'Data kematian berhasil disimpan.';
+                    break;
+                case 'pindah_masuk':
+                    $jiwa = 1 + count($request->input('family_members', []));
+                    $message = "Data Pindah Masuk ({$jiwa} jiwa) berhasil disimpan.";
+                    break;
+                case 'pindah_keluar':
+                    $message = 'Data pindah keluar berhasil diproses.';
+                    break;
+                case 'pindah_rt_rw':
+                    $message = 'Seluruh anggota KK berhasil dipindah.';
+                    break;
+                case 'pisah_kk':
+                    $message = 'Data Pisah KK berhasil disimpan.';
+                    break;
+            }
+
             if (($request->ajax() || $request->wantsJson()) && !$request->header('X-Inertia')) {
                 return response()->json([
                     'success' => true,
-                    'message' => 'Data mutasi berhasil ditambahkan.',
+                    'message' => $message,
                     'redirect' => route('mutasi.data.index')
                 ]);
             }
 
             return redirect()->route('mutasi.data.index')
-                ->with('success', 'Data mutasi berhasil ditambahkan.');
+                ->with('success', $message);
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -362,7 +385,7 @@ class MutasiController extends Controller
             $mutasi->save();
 
             DB::commit();
-            return redirect()->route('mutasi.data.index')->with('success', 'Data mutasi berhasil diperbarui.');
+            return redirect()->route('mutasi.data.index')->with('success', 'Data berhasil diperbarui.');
 
         } catch (\Exception $e) {
             DB::rollBack();

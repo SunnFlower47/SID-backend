@@ -213,7 +213,9 @@ export default function PisahKKForm({ wilayahTree, mutasi = null }) {
     }).then((result) => {
       if (result.isConfirmed) {
         const options = {
-          onSuccess: () => Swal.fire('Berhasil!', isEdit ? 'Data berhasil diperbarui.' : 'Data Pisah KK berhasil disimpan.', 'success'),
+          onSuccess: () => {
+              // Ditangani oleh flash message global di AuthenticatedLayout
+          },
           onError: (errs) => Swal.fire('Gagal!', Object.values(errs)[0] || 'Terjadi kesalahan.', 'error')
         };
 
