@@ -38,6 +38,7 @@ class BeritaSeeder extends Seeder
             Berita::updateOrCreate(['judul' => $b['judul']], array_merge($b, [
                 'slug' => Str::slug($b['judul']),
                 'author_id' => 1, // Assume admin user exists
+                'published_at' => now(),
             ]));
         }
     }
