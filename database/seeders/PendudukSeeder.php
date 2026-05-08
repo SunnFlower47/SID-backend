@@ -84,12 +84,12 @@ class PendudukSeeder extends Seeder
 
         for ($i = 0; $i < 150; $i++) {
             $rt = $rts->random();
-            $nkk = $faker->numerify('3214################');
+            $nkk = $faker->numerify('3214############');
             
             $kk = KartuKeluarga::create([
                 'nkk' => $nkk,
                 'nama_kepala_keluarga' => $faker->name,
-                'nik_kepala_keluarga' => $faker->numerify('3214################'),
+                'nik_kepala_keluarga' => $faker->numerify('3214############'),
                 'alamat' => $faker->streetAddress,
                 'rt_id' => $rt->id,
                 'rw_id' => $rt->rw_id,
@@ -104,7 +104,7 @@ class PendudukSeeder extends Seeder
                 $kedudukan = ($j === 0) ? 'Kepala Keluarga' : $faker->randomElement(['Istri', 'Anak', 'Orang Tua']);
                 
                 Penduduk::create([
-                    'nik' => $faker->numerify('3214################'),
+                    'nik' => $faker->numerify('3214############'),
                     'nama' => $faker->name($jk === 'LAKI-LAKI' ? 'male' : 'female'),
                     'jenis_kelamin' => $jk,
                     'tempat_lahir' => $faker->city,
