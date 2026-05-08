@@ -24,6 +24,12 @@ class DatabaseSeeder extends Seeder
             
             // 5. Master Jenis Surat (Layanan Surat)
             SuratTypeSeeder::class,
+
+            // 6. Simulation & Demo Data
+            WilayahSeeder::class,
+            BeritaSeeder::class,
+            TestimoniSeeder::class,
+            PendudukSeeder::class,
         ]);
         
         echo "\nDatabase Reset and Seeding Completed Successfully!\n";

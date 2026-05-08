@@ -61,7 +61,13 @@ class WilayahController extends Controller
             ->limit(15)
             ->get();
 
-        return view('settings.wilayah.index', compact('dusuns', 'rws', 'rts', 'summary', 'recentChangeLogs'));
+        $mapping = [
+            'dusuns' => $dusuns,
+            'rws' => $rws,
+            'rts' => $rts
+        ];
+
+        return view('settings.wilayah.index', compact('mapping', 'summary', 'recentChangeLogs'));
     }
 
     public function storeDusun(Request $request)
