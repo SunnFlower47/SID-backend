@@ -7,6 +7,11 @@ php_value memory_limit 256M
 
 # Security Headers
 <IfModule mod_headers.c>
+    # Unset existing CSP headers to prevent conflicts with Laravel middleware
+    Header unset Content-Security-Policy
+    Header unset X-Content-Security-Policy
+    Header unset X-WebKit-CSP
+
     Header always set X-Content-Type-Options "nosniff"
     Header always set X-XSS-Protection "1; mode=block"
     Header always set X-Frame-Options "DENY"
