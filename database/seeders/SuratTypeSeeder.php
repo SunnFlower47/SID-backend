@@ -23,6 +23,7 @@ class SuratTypeSeeder extends Seeder
                 'color' => 'green',
                 'has_template' => true,
                 'is_active' => true,
+                'persyaratan' => "1. Fotokopi KTP\n2. Fotokopi KK\n3. Surat Pengantar RT/RW\n4. Surat Keterangan Usaha dari Lingkungan",
                 'form_json' => [
                     ['name' => 'nama_usaha', 'label' => 'Nama Usaha', 'type' => 'text'],
                     ['name' => 'alamat_usaha', 'label' => 'Alamat Usaha', 'type' => 'textarea'],
@@ -39,6 +40,7 @@ class SuratTypeSeeder extends Seeder
                 'color' => 'blue',
                 'has_template' => true,
                 'is_active' => true,
+                'persyaratan' => "1. Fotokopi KTP\n2. Fotokopi KK\n3. Surat Pengantar RT/RW",
                 'form_json' => []
             ],
             [
@@ -51,6 +53,7 @@ class SuratTypeSeeder extends Seeder
                 'color' => 'green',
                 'has_template' => true,
                 'is_active' => true,
+                'persyaratan' => "1. Fotokopi KTP\n2. Fotokopi KK\n3. Surat Pengantar RT/RW",
                 'form_json' => []
             ],
             [
@@ -63,6 +66,7 @@ class SuratTypeSeeder extends Seeder
                 'color' => 'red',
                 'has_template' => true,
                 'is_active' => true,
+                'persyaratan' => "1. Fotokopi KTP\n2. Fotokopi KK\n3. Surat Pengantar RT/RW\n4. Alamat Tujuan Lengkap",
                 'form_json' => [
                     ['name' => 'alamat_tujuan', 'label' => 'Alamat Tujuan', 'type' => 'textarea'],
                     ['name' => 'rt_rw_tujuan', 'label' => 'RT/RW Tujuan', 'type' => 'text'],
@@ -81,6 +85,7 @@ class SuratTypeSeeder extends Seeder
                 'color' => 'gray',
                 'has_template' => true,
                 'is_active' => true,
+                'persyaratan' => "1. Fotokopi KTP/KK Jenazah\n2. Surat Keterangan dari RS/Puskesmas\n3. Fotokopi KTP Pelapor",
                 'form_json' => [
                     ['name' => 'tanggal_meninggal', 'label' => 'Tanggal Meninggal', 'type' => 'date'],
                     ['name' => 'penyebab_kematian', 'label' => 'Penyebab Kematian', 'type' => 'text'],
@@ -97,6 +102,7 @@ class SuratTypeSeeder extends Seeder
                 'color' => 'purple',
                 'has_template' => true,
                 'is_active' => true,
+                'persyaratan' => "1. Fotokopi KTP Orang Tua\n2. Fotokopi KK\n3. Surat Keterangan Kelahiran dari Bidan/RS",
                 'form_json' => [
                     ['name' => 'nama_bayi', 'label' => 'Nama Bayi', 'type' => 'text'],
                     ['name' => 'tempat_lahir', 'label' => 'Tempat Lahir', 'type' => 'text'],
@@ -116,6 +122,7 @@ class SuratTypeSeeder extends Seeder
                 'color' => 'indigo',
                 'has_template' => true,
                 'is_active' => true,
+                'persyaratan' => "1. Fotokopi KTP\n2. Fotokopi KK\n3. Surat Pengantar RT/RW\n4. Surat Pernyataan Tidak Mampu",
                 'form_json' => [
                     ['name' => 'pekerjaan', 'label' => 'Pekerjaan', 'type' => 'text'],
                     ['name' => 'penghasilan', 'label' => 'Penghasilan', 'type' => 'number'],
@@ -133,6 +140,7 @@ class SuratTypeSeeder extends Seeder
                 'color' => 'indigo',
                 'has_template' => true,
                 'is_active' => true,
+                'persyaratan' => "1. Fotokopi KTP Orang Tua\n2. Fotokopi KK\n3. Surat Pengantar RT/RW\n4. Akta Kelahiran Anak",
                 'form_json' => [
                     ['name' => 'nama_anak', 'label' => 'Nama Anak', 'type' => 'text'],
                     ['name' => 'nama_ortu', 'label' => 'Nama Orang Tua', 'type' => 'text'],
