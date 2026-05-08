@@ -37,7 +37,7 @@ class BeritaSeeder extends Seeder
         foreach ($beritas as $b) {
             Berita::updateOrCreate(['judul' => $b['judul']], array_merge($b, [
                 'slug' => Str::slug($b['judul']),
-                'user_id' => 1, // Assume admin user exists
+                'author_id' => 1, // Assume admin user exists
             ]));
         }
     }
