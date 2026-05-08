@@ -21,33 +21,47 @@ class ApiProxyController extends Controller
      */
     public function proxy(Request $request, $path = '')
     {
+        // 0. VALIDATE HANDSHAKE (Mastikan yang minta tanda tangan adalah Frontend Resmi kita)
+        $clientKey = $request->header('X-Proxy-App-Id');
+        $serverKey = env('PROXY_CLIENT_KEY', 'CIBATU_VIBE_2026');
+
+        if (!$clientKey || $clientKey !== $serverKey) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized Access. Proxy Handshake Failed.',
+            ], 403);
+        }
+
         try {
             $method = strtoupper($request->method());
+            $uri = $request->getRequestUri();
             
-            // Ambil host asli dari request yang datang (lebih akurat daripada APP_URL)
-            $host = $request->getSchemeAndHttpHost();
-            $fullPath = $path ? "/{$path}" : '';
+            // Industrial-grade path extraction
+            $pattern = '/proxy\/v1\/?/';
+            $fullPath = '/';
+            if (preg_match($pattern, $uri, $matches, PREG_OFFSET_CAPTURE)) {
+                $pos = $matches[0][1] + strlen($matches[0][0]);
+                $remaining = substr($uri, $pos);
+                $pathParts = explode('?', $remaining);
+                $fullPath = '/' . ltrim($pathParts[0], '/');
+            }
+
             $queryString = $request->getQueryString();
-            
-            // Build URL: Selalu pastikan formatnya adalah http://domain.test/api/v1/endpoint
-            $internalUrl = $host . '/api/v1' . $fullPath . ($queryString ? "?{$queryString}" : '');
+            // Resolve base URL from config for flexibility
+            $baseUrl = config('app.url', 'http://sistem-desa-cibatu.test');
+            $internalUrl = rtrim($baseUrl, '/') . '/api/v1' . $fullPath . ($queryString ? "?{$queryString}" : '');
 
-            // 1. GENERATE SIGNATURE
+            // Signature Handshake
             $timestamp = (string)time();
-            // Path yang akan dicocokkan oleh Middleware di sisi penerima
-            $signaturePath = 'api/v1' . $fullPath;
-            
-            $message = $timestamp . $method . $signaturePath;
-            $signature = hash_hmac('sha256', $message, $this->apiKey);
+            $signature = $this->generateSignature($method, $fullPath, $timestamp);
 
-            // 2. Siapkan Headers
             $headers = [
                 'Accept' => 'application/json',
                 'X-Timestamp' => $timestamp,
                 'X-Signature' => $signature,
                 'X-Forwarded-For' => $request->ip(),
-                'User-Agent' => $request->header('User-Agent'),
-                'Origin' => $request->header('Origin'),
+                'User-Agent' => $request->header('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Cibatu-Proxy/1.0'),
+                'Origin' => 'http://sistem-desa-cibatu.test',
             ];
 
             // Teruskan token-token penting
@@ -145,9 +159,19 @@ class ApiProxyController extends Controller
             ->withHeaders([
                 'Access-Control-Allow-Origin' => $request->header('Origin', '*'),
                 'Access-Control-Allow-Methods' => 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-                'Access-Control-Allow-Headers' => 'Content-Type, Accept, Origin, User-Agent, X-Recaptcha-V3-Token, X-Recaptcha-Token, X-CSRF-Token',
+                'Access-Control-Allow-Headers' => 'Content-Type, Accept, Origin, User-Agent, X-Recaptcha-V3-Token, X-Recaptcha-Token, X-CSRF-Token, X-Proxy-App-Id',
                 'Access-Control-Allow-Credentials' => 'true',
                 'Access-Control-Max-Age' => '86400',
             ]);
+    }
+
+    /**
+     * Generate secure HMAC signature for internal handshake
+     */
+    private function generateSignature($method, $fullPath, $timestamp)
+    {
+        $signaturePath = 'api/v1' . $fullPath;
+        $message = $timestamp . $method . $signaturePath;
+        return hash_hmac('sha256', $message, $this->apiKey);
     }
 }

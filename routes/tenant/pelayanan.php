@@ -74,7 +74,7 @@ Route::middleware('can:pelayanan_informasi')->group(function () {
     });
 
     // Berita & Testimoni
-    Route::resource('berita', BeritaController::class);
+    Route::resource('berita', BeritaController::class)->parameters(['berita' => 'berita']);
     Route::prefix('testimoni')->name('testimoni.')->controller(TestimoniController::class)->group(function () {
         Route::get('/', 'index')->name('index');
         Route::get('/create', 'create')->name('create');

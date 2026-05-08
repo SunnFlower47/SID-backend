@@ -116,6 +116,42 @@ class SuratPengajuanController extends Controller
         ]);
     }
 
+    /**
+     * Get surat statistics.
+     */
+    public function statistics(): JsonResponse
+    {
+        Gate::authorize('pelayanan_informasi');
+
+        $stats = [
+            'total' => SuratPengajuan::count(),
+            'pending' => SuratPengajuan::where('status', 'pending')->count(),
+            'approved' => SuratPengajuan::where('status', 'approved')->count(),
+            'completed' => SuratPengajuan::where('status', 'completed')->count(),
+            'rejected' => SuratPengajuan::where('status', 'rejected')->count(),
+        ];
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $stats
+        ]);
+    }
+
+    /**
+     * Download (generate PDF) for a surat.
+     */
+    public function download(SuratPengajuan $surat): JsonResponse
+    {
+        Gate::authorize('pelayanan_informasi');
+        
+        // Sementara kasih response sukses dulu, nanti logic PDF-nya kita pindahin dari Tenant
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Logic download sedang disiapkan',
+            'data' => $surat
+        ]);
+    }
+
     private function generateNomorSurat($suratType)
     {
         $suratSettings = \App\Models\DesaSetting::getSuratSettings();

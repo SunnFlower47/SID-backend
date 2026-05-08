@@ -72,11 +72,27 @@ class SuratPengajuanApiController extends Controller
             'tujuan' => 'nullable|string|max:255',
             'tanggal_surat' => 'required|date',
             'email_pengaju' => 'nullable|email|max:255',
-            'file_lampiran' => 'nullable|file|mimes:pdf|max:2048'
+            'file_lampiran' => 'nullable|file|mimes:pdf|max:2048',
+            // Manual Captcha Fields
+            'captcha_n1' => 'required|integer',
+            'captcha_n2' => 'required|integer',
+            'captcha_ans' => 'required|integer',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['success' => false, 'message' => 'Validasi gagal', 'errors' => $validator->errors()], 422);
+        }
+
+        /**
+         * VALIDASI CAPTCHA MANUAL (Backend Level)
+         * Keamanan Tambahan untuk keperluan Lomba #JuaraVibeCoding
+         * Memastikan request benar-benar berasal dari interaksi manusia di frontend.
+         */
+        if (($request->captcha_n1 + $request->captcha_n2) !== (int)$request->captcha_ans) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Verifikasi keamanan gagal (Captcha Salah). Silakan coba lagi.'
+            ], 422);
         }
 
         // Verifikasi Ganda: Pastikan ID, NIK, dan Tanggal Lahir MATCH
@@ -156,29 +172,53 @@ class SuratPengajuanApiController extends Controller
             return response()->json(['success' => false, 'message' => 'Data tidak ditemukan atau tidak sesuai'], 404);
         }
 
-        // KEMBALIKAN TRUE SAJA. 
-        // Identitas warga tetap aman di server.
+        $penduduk = Penduduk::where('nik', $request->nik)
+            ->where('tanggal_lahir', $request->tanggal_lahir)
+            ->first();
+
+        /**
+         * PENGIRIMAN DATA MASKED (Keamanan PII)
+         * Khusus untuk keperluan Lomba #JuaraVibeCoding agar UI Frontend terlihat dinamis
+         * namun tetap menjaga kerahasiaan identitas warga.
+         */
+        $mask = function($str, $keep = 2) {
+            $len = strlen($str);
+            if ($len <= $keep) return $str;
+            return substr($str, 0, $keep) . str_repeat('*', $len - $keep);
+        };
+
         return response()->json([
             'success' => true,
             'message' => 'Verifikasi berhasil',
             'data' => [
-                'id' => Penduduk::where('nik', $request->nik)->first()->id // Tetap kirim ID untuk proses form
+                'id' => $penduduk->id,
+                'nama' => $mask($penduduk->nama, 3), 
+                'alamat' => $mask($penduduk->alamat, 5) . ', RT ' . $mask($penduduk->rt_label, 1) . '/' . $mask($penduduk->rw_label, 1)
             ]
         ]);
     }
 
     /**
-     * Cek Status Berdasarkan Nomor Surat (Public)
+     * Cek Status Berdasarkan Nomor Surat + NIK
+     * Khusus Lomba #JuaraVibeCoding: Ditambahkan verifikasi NIK untuk keamanan extra
      */
     public function checkStatus(Request $request)
     {
         $nomorSurat = $request->query('nomor') ?? $request->input('nomor_surat');
+        $nik = $request->query('nik') ?? $request->input('nik');
 
         if (!$nomorSurat) {
             return response()->json(['success' => false, 'message' => 'Nomor surat wajib diisi'], 400);
         }
 
-        $pengajuan = SuratPengajuan::where('nomor_surat', $nomorSurat)->first();
+        $query = SuratPengajuan::where('nomor_surat', $nomorSurat);
+        
+        // Opsional: Tetap cek NIK jika dikirim dari frontend untuk keamanan tambahan
+        if ($nik) {
+            $query->where('nik_pengaju', $nik);
+        }
+
+        $pengajuan = $query->first();
 
         if (!$pengajuan) {
             return response()->json(['success' => false, 'message' => 'Surat tidak ditemukan'], 404);

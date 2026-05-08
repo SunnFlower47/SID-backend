@@ -22,6 +22,7 @@ return [
     'allowed_origins' => [
         'http://localhost:3000',
         'http://localhost:3001',
+        'http://localhost:3030',
         'http://127.0.0.1:3000',
         'http://sistem-desa-cibatu.test',
         'https://pemdescibatu2001.online',
