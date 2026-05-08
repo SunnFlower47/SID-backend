@@ -25,6 +25,8 @@ return [
         'http://127.0.0.1:3000',
         'http://sistem-desa-cibatu.test',
         'https://pemdescibatu2001.online',
+        'https://api-vilage.sunnflower.site',
+        'https://vilage.sunnflower.site',
     ],
 
     'allowed_origins_patterns' => [],
