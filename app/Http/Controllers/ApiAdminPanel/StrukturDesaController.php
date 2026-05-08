@@ -35,13 +35,25 @@ class StrukturDesaController extends Controller
         $validated = $request->validate([
             'nama' => 'required|string|max:255',
             'jabatan' => 'required|string|max:255',
-            'kategori' => 'required|in:kepala_desa,sekretaris,bendahara,kasi_pemerintahan,kasi_kesejahteraan,kasi_pelayanan,kepala_dusun,ketua_rw,ketua_rt,ketua_bumdes,staf_kaur,lainnya',
+            'kategori' => 'required|string',
+            'nik' => 'nullable|string|max:16|unique:struktur_desas,nik',
+            'no_hp' => 'nullable|string|max:15',
+            'email' => 'nullable|email|max:255',
+            'alamat' => 'nullable|string',
+            'rt_id' => 'nullable|exists:rts,id',
+            'rw_id' => 'nullable|exists:rws,id',
+            'dusun_id' => 'nullable|exists:dusuns,id',
+            'tugas_wewenang' => 'nullable|string',
+            'tanggal_pengangkatan' => 'nullable|date',
+            'tanggal_berakhir' => 'nullable|date|after_or_equal:tanggal_pengangkatan',
             'status_aktif' => 'boolean',
             'urutan' => 'integer|min:0',
             'foto' => 'nullable|image|max:2048',
         ]);
 
-        $data = $request->all();
+        $data = $request->except('foto');
+        $data['status_aktif'] = $request->boolean('status_aktif');
+        
         if ($request->hasFile('foto')) {
             $data['foto'] = $request->file('foto')->store('struktur-desa', 'public');
         }
@@ -57,12 +69,29 @@ class StrukturDesaController extends Controller
 
     public function show(StrukturDesa $strukturDesa): JsonResponse
     {
-        return response()->json(['status' => 'success', 'data' => $strukturDesa]);
+        return response()->json([
+            'status' => 'success', 
+            'data' => $strukturDesa->load(['rtMaster', 'rwMaster', 'dusunMaster'])
+        ]);
     }
 
     public function update(Request $request, StrukturDesa $strukturDesa): JsonResponse
     {
-        $data = $request->all();
+        $request->validate([
+            'nama' => 'sometimes|required|string|max:255',
+            'jabatan' => 'sometimes|required|string|max:255',
+            'kategori' => 'sometimes|required|string',
+            'nik' => 'nullable|string|max:16|unique:struktur_desas,nik,' . $strukturDesa->id,
+            'status_aktif' => 'boolean',
+            'urutan' => 'integer|min:0',
+            'foto' => 'nullable|image|max:2048',
+        ]);
+
+        $data = $request->except('foto');
+        if ($request->has('status_aktif')) {
+            $data['status_aktif'] = $request->boolean('status_aktif');
+        }
+
         if ($request->hasFile('foto')) {
             if ($strukturDesa->foto) Storage::disk('public')->delete($strukturDesa->foto);
             $data['foto'] = $request->file('foto')->store('struktur-desa', 'public');
@@ -79,3 +108,4 @@ class StrukturDesaController extends Controller
         return response()->json(['status' => 'success', 'message' => 'Data perangkat desa dihapus']);
     }
 }
+

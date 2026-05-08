@@ -8,9 +8,12 @@ use Illuminate\Http\Request;
 use App\Models\StrukturDesa;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
+use Inertia\Inertia;
+
 class StrukturDesaController extends Controller
 {
-        public function __construct()
+    public function __construct()
     {
         $this->middleware(['auth', 'can:pelayanan_informasi']);
     }
@@ -18,27 +21,29 @@ class StrukturDesaController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $struktur = StrukturDesa::byHierarchy()->paginate(20);
-
-        $stats = [
-            'total' => StrukturDesa::count(),
-            'aktif' => StrukturDesa::where('status_aktif', true)->count(),
-            'kepala_desa' => StrukturDesa::where('kategori', 'kepala_desa')->count(),
-            'sekretaris' => StrukturDesa::where('kategori', 'sekretaris')->count(),
-            'kepala_dusun' => StrukturDesa::where('kategori', 'kepala_dusun')->count(),
-            'ketua_rw' => StrukturDesa::where('kategori', 'ketua_rw')->count(),
-            'ketua_rt' => StrukturDesa::where('kategori', 'ketua_rt')->count(),
-        ];
-
-        // Group by category for display
-        $strukturByCategory = StrukturDesa::aktif()
-            ->byHierarchy()
-            ->get()
-            ->groupBy('kategori');
-
-        return view('struktur-desa.index', compact('struktur', 'stats', 'strukturByCategory'));
+        return Inertia::render('Tenant/StrukturDesa/Index', [
+            'filters' => $request->all(['search', 'kategori']),
+            'struktur' => Inertia::defer(fn() => 
+                StrukturDesa::query()
+                    ->when($request->search, fn($q) => $q->where('nama', 'like', "%{$request->search}%"))
+                    ->when($request->kategori, fn($q) => $q->where('kategori', $request->kategori))
+                    ->byHierarchy()
+                    ->paginate(20)
+                    ->withQueryString()
+            ),
+            'stats' => Inertia::defer(fn() => [
+                'total' => StrukturDesa::count(),
+                'aktif' => StrukturDesa::where('status_aktif', true)->count(),
+                'kepala_desa' => StrukturDesa::where('kategori', 'kepala_desa')->count(),
+                'sekretaris' => StrukturDesa::where('kategori', 'sekretaris')->count(),
+                'kepala_dusun' => StrukturDesa::where('kategori', 'kepala_dusun')->count(),
+                'ketua_rw' => StrukturDesa::where('kategori', 'ketua_rw')->count(),
+                'ketua_rt' => StrukturDesa::where('kategori', 'ketua_rt')->count(),
+            ]),
+            'kategoriOptions' => $this->getKategoriOptions()
+        ]);
     }
 
     /**
@@ -46,38 +51,10 @@ class StrukturDesaController extends Controller
      */
     public function create()
     {
-        $kategoriOptions = [
-            'kepala_desa' => 'Kepala Desa',
-            'sekretaris' => 'Sekretaris Desa',
-            'bendahara' => 'Bendahara Desa',
-            'kasi_pemerintahan' => 'Kasi Pemerintahan',
-            'kasi_kesejahteraan' => 'Kasi Kesejahteraan',
-            'kasi_pelayanan' => 'Kasi Pelayanan',
-            'kepala_dusun' => 'Kepala Dusun',
-            'ketua_rw' => 'Ketua RW',
-            'ketua_rt' => 'Ketua RT',
-            'ketua_bumdes' => 'Ketua BUMDes',
-            'staf_kaur' => 'Staf KAUR',
-            'lainnya' => 'Lainnya',
-        ];
-
-        $masterRwOptions = \App\Models\Rw::with('rts')->orderBy('kode')->get()->map(function($rw) {
-            return [
-                'id' => $rw->id,
-                'kode' => $rw->kode,
-                'nama' => $rw->nama,
-                'rts' => $rw->rts->map(function($rt) {
-                    return [
-                        'id' => $rt->id,
-                        'kode' => $rt->kode,
-                        'dusun_id' => $rt->dusun_id,
-                        'dusun' => optional($rt->dusun)->nama
-                    ];
-                })
-            ];
-        });
-
-        return view('struktur-desa.create', compact('kategoriOptions', 'masterRwOptions'));
+        return Inertia::render('Tenant/StrukturDesa/Create', [
+            'kategoriOptions' => $this->getKategoriOptions(),
+            'masterRwOptions' => $this->getMasterRwOptions()
+        ]);
     }
 
     /**
@@ -88,8 +65,13 @@ class StrukturDesaController extends Controller
         $validator = Validator::make($request->all(), [
             'nama' => 'required|string|max:255',
             'jabatan' => 'required|string|max:255',
-            'kategori' => 'required|in:kepala_desa,sekretaris,bendahara,kasi_pemerintahan,kasi_kesejahteraan,kasi_pelayanan,kepala_dusun,ketua_rw,ketua_rt,ketua_bumdes,staf_kaur,lainnya',
-            'nik' => 'nullable|string|max:16',
+            'kategori' => 'required|string', // Validasi diperlonggar di backend, dicek di logic
+            'nik' => [
+                'nullable',
+                'string',
+                'max:16',
+                Rule::unique('struktur_desas', 'nik')
+            ],
             'no_hp' => 'nullable|string|max:15',
             'email' => 'nullable|email|max:255',
             'alamat' => 'nullable|string',
@@ -110,8 +92,8 @@ class StrukturDesaController extends Controller
                 ->withInput();
         }
 
-        $data = $request->all();
-        $data['status_aktif'] = $request->has('status_aktif');
+        $data = $request->except('foto');
+        $data['status_aktif'] = $request->boolean('status_aktif');
         $data['urutan'] = $request->urutan ?? 0;
 
         if ($request->hasFile('foto')) {
@@ -129,7 +111,9 @@ class StrukturDesaController extends Controller
      */
     public function show(StrukturDesa $strukturDesa)
     {
-        return view('struktur-desa.show', compact('strukturDesa'));
+        return Inertia::render('Tenant/StrukturDesa/Show', [
+            'strukturDesa' => $strukturDesa->load(['rtMaster', 'rwMaster', 'dusunMaster'])
+        ]);
     }
 
     /**
@@ -137,38 +121,11 @@ class StrukturDesaController extends Controller
      */
     public function edit(StrukturDesa $strukturDesa)
     {
-        $kategoriOptions = [
-            'kepala_desa' => 'Kepala Desa',
-            'sekretaris' => 'Sekretaris Desa',
-            'bendahara' => 'Bendahara Desa',
-            'kasi_pemerintahan' => 'Kasi Pemerintahan',
-            'kasi_kesejahteraan' => 'Kasi Kesejahteraan',
-            'kasi_pelayanan' => 'Kasi Pelayanan',
-            'kepala_dusun' => 'Kepala Dusun',
-            'ketua_rw' => 'Ketua RW',
-            'ketua_rt' => 'Ketua RT',
-            'ketua_bumdes' => 'Ketua BUMDes',
-            'staf_kaur' => 'Staf KAUR',
-            'lainnya' => 'Lainnya',
-        ];
-
-        $masterRwOptions = \App\Models\Rw::with('rts')->orderBy('kode')->get()->map(function($rw) {
-            return [
-                'id' => $rw->id,
-                'kode' => $rw->kode,
-                'nama' => $rw->nama,
-                'rts' => $rw->rts->map(function($rt) {
-                    return [
-                        'id' => $rt->id,
-                        'kode' => $rt->kode,
-                        'dusun_id' => $rt->dusun_id,
-                        'dusun' => optional($rt->dusun)->nama
-                    ];
-                })
-            ];
-        });
-
-        return view('struktur-desa.edit', compact('strukturDesa', 'kategoriOptions', 'masterRwOptions'));
+        return Inertia::render('Tenant/StrukturDesa/Edit', [
+            'strukturDesa' => $strukturDesa,
+            'kategoriOptions' => $this->getKategoriOptions(),
+            'masterRwOptions' => $this->getMasterRwOptions()
+        ]);
     }
 
     /**
@@ -179,8 +136,13 @@ class StrukturDesaController extends Controller
         $validator = Validator::make($request->all(), [
             'nama' => 'required|string|max:255',
             'jabatan' => 'required|string|max:255',
-            'kategori' => 'required|in:kepala_desa,sekretaris,bendahara,kasi_pemerintahan,kasi_kesejahteraan,kasi_pelayanan,kepala_dusun,ketua_rw,ketua_rt,ketua_bumdes,staf_kaur,lainnya',
-            'nik' => 'nullable|string|max:16',
+            'kategori' => 'required|string',
+            'nik' => [
+                'nullable',
+                'string',
+                'max:16',
+                Rule::unique('struktur_desas', 'nik')->ignore($strukturDesa->id)
+            ],
             'no_hp' => 'nullable|string|max:15',
             'email' => 'nullable|email|max:255',
             'alamat' => 'nullable|string',
@@ -201,12 +163,11 @@ class StrukturDesaController extends Controller
                 ->withInput();
         }
 
-        $data = $request->all();
-        $data['status_aktif'] = $request->has('status_aktif');
+        $data = $request->except('foto');
+        $data['status_aktif'] = $request->boolean('status_aktif');
         $data['urutan'] = $request->urutan ?? 0;
 
         if ($request->hasFile('foto')) {
-            // Delete old photo
             if ($strukturDesa->foto) {
                 Storage::disk('public')->delete($strukturDesa->foto);
             }
@@ -233,4 +194,42 @@ class StrukturDesaController extends Controller
         return redirect()->route('struktur-desa.index')
             ->with('success', 'Data struktur desa berhasil dihapus.');
     }
+
+    private function getKategoriOptions()
+    {
+        return [
+            ['value' => 'kepala_desa', 'label' => 'Kepala Desa'],
+            ['value' => 'sekretaris', 'label' => 'Sekretaris Desa'],
+            ['value' => 'bendahara', 'label' => 'Bendahara Desa'],
+            ['value' => 'kasi_pemerintahan', 'label' => 'Kasi Pemerintahan'],
+            ['value' => 'kasi_kesejahteraan', 'label' => 'Kasi Kesejahteraan'],
+            ['value' => 'kasi_pelayanan', 'label' => 'Kasi Pelayanan'],
+            ['value' => 'kepala_dusun', 'label' => 'Kepala Dusun'],
+            ['value' => 'ketua_rw', 'label' => 'Ketua RW'],
+            ['value' => 'ketua_rt', 'label' => 'Ketua RT'],
+            ['value' => 'ketua_bumdes', 'label' => 'Ketua BUMDes'],
+            ['value' => 'staf_kaur', 'label' => 'Staf KAUR'],
+            ['value' => 'lainnya', 'label' => 'Lainnya'],
+        ];
+    }
+
+    private function getMasterRwOptions()
+    {
+        return \App\Models\Rw::with('rts')->orderBy('kode')->get()->map(function($rw) {
+            return [
+                'id' => $rw->id,
+                'kode' => $rw->kode,
+                'nama' => $rw->nama,
+                'rts' => $rw->rts->map(function($rt) {
+                    return [
+                        'id' => $rt->id,
+                        'kode' => $rt->kode,
+                        'dusun_id' => $rt->dusun_id,
+                        'dusun' => optional($rt->dusun)->nama
+                    ];
+                })
+            ];
+        });
+    }
 }
+
