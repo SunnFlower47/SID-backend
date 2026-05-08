@@ -23,8 +23,9 @@ class PendudukSeeder extends Seeder
         
         // User A
         $rtA = $rts->first();
-        $kkA = KartuKeluarga::create([
+        $kkA = KartuKeluarga::updateOrCreate([
             'nkk' => '1234567812345000',
+        ], [
             'nama_kepala_keluarga' => 'User Demo A',
             'nik_kepala_keluarga' => '1234567812345678',
             'alamat' => 'Jl. Cibatu Hilir No. 10',
@@ -34,8 +35,9 @@ class PendudukSeeder extends Seeder
             'status_kk' => 'normal'
         ]);
 
-        Penduduk::create([
+        Penduduk::updateOrCreate([
             'nik' => '1234567812345678',
+        ], [
             'nama' => 'User Demo A',
             'jenis_kelamin' => 'LAKI-LAKI',
             'tempat_lahir' => 'Purwakarta',
@@ -50,8 +52,9 @@ class PendudukSeeder extends Seeder
 
         // User B
         $rtB = $rts->skip(1)->first();
-        $kkB = KartuKeluarga::create([
+        $kkB = KartuKeluarga::updateOrCreate([
             'nkk' => '8888999988880000',
+        ], [
             'nama_kepala_keluarga' => 'User Demo B',
             'nik_kepala_keluarga' => '8888999988889999',
             'alamat' => 'Jl. Cibatu Girang No. 22',
@@ -61,8 +64,9 @@ class PendudukSeeder extends Seeder
             'status_kk' => 'normal'
         ]);
 
-        Penduduk::create([
+        Penduduk::updateOrCreate([
             'nik' => '8888999988889999',
+        ], [
             'nama' => 'User Demo B',
             'jenis_kelamin' => 'PEREMPUAN',
             'tempat_lahir' => 'Bandung',
