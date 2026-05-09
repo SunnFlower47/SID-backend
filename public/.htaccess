@@ -5,24 +5,12 @@ php_value max_execution_time 300
 php_value max_input_time 300
 php_value memory_limit 256M
 
-# Security Headers
+# Security Headers handled by Laravel Middleware
+# Do not set hardcoded CSP here as it will conflict with dynamic nonces
 <IfModule mod_headers.c>
-    # Unset ALL possible CSP headers (always and normal)
-    Header unset Content-Security-Policy
-    Header always unset Content-Security-Policy
-    Header unset X-Content-Security-Policy
-    Header always unset X-Content-Security-Policy
-    Header unset X-WebKit-CSP
-    Header always unset X-WebKit-CSP
-
-    # Fallback CSP if Middleware fails (Allowing common domains)
-    Header set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://api-vilage.sunnflower.site https://www.google.com https://www.gstatic.com https://www.recaptcha.net https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://api-vilage.sunnflower.site https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: https:; connect-src 'self' https://api-vilage.sunnflower.site https://www.google.com https://www.gstatic.com https://www.recaptcha.net;"
-
     Header always set X-Content-Type-Options "nosniff"
     Header always set X-XSS-Protection "1; mode=block"
-    Header always set X-Frame-Options "DENY"
     Header always set Referrer-Policy "strict-origin-when-cross-origin"
-    Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
     Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
 </IfModule>
 
