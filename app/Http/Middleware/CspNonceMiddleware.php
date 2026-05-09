@@ -40,18 +40,18 @@ class CspNonceMiddleware
         $hosts = "http://localhost:5173 http://127.0.0.1:5173 ws://localhost:5173 ws://127.0.0.1:5173 http://localhost:5174 http://127.0.0.1:5174 ws://localhost:5174 ws://127.0.0.1:5174 http://localhost:5175 http://127.0.0.1:5175 ws://localhost:5175 ws://127.0.0.1:5175";
         
         return implode('; ', [
-            "default-src 'self'",
-            "script-src 'self' 'nonce-{$nonce}' 'unsafe-inline' 'unsafe-eval' {$hosts} https://api-vilage.sunnflower.site https://www.google.com https://www.gstatic.com https://www.recaptcha.net https://unpkg.com https://cdn.jsdelivr.net https://cdn.tailwindcss.com",
+            "default-src 'self' https://www.google.com https://www.gstatic.com https://www.recaptcha.net",
+            "script-src 'self' 'nonce-{$nonce}' 'unsafe-inline' 'unsafe-eval' {$hosts} https://api-vilage.sunnflower.site https://www.google.com https://www.gstatic.com https://www.recaptcha.net https://unpkg.com https://cdn.jsdelivr.net https://cdn.tailwindcss.com https://static.cloudflareinsights.com",
             "script-src-attr 'unsafe-inline'",
-            "style-src 'self' 'unsafe-inline' {$hosts} https://api-vilage.sunnflower.site https://fonts.googleapis.com https://fonts.bunny.net https://cdnjs.cloudflare.com https://cdn.jsdelivr.net",
+            "style-src 'self' 'unsafe-inline' {$hosts} https://api-vilage.sunnflower.site https://fonts.googleapis.com https://fonts.bunny.net https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://cdn.tailwindcss.com",
             "font-src 'self' https://fonts.gstatic.com https://fonts.bunny.net https://cdnjs.cloudflare.com",
             "img-src 'self' data: https: {$hosts} https://api-vilage.sunnflower.site",
             "connect-src 'self' {$hosts} https://api-vilage.sunnflower.site http://sistem-desa-cibatu.test https://admin-dscibatu.pemdescibatu2001.online https://pemdescibatu2001.online https://www.google.com https://www.gstatic.com https://www.recaptcha.net https://cdn.jsdelivr.net",
-            "frame-src 'self' https://www.google.com https://www.recaptcha.net",
+            "frame-src 'self' https://www.google.com https://www.gstatic.com https://www.recaptcha.net https://recaptcha.net",
             "object-src 'none'",
             "base-uri 'self'",
             "form-action 'self'",
-            "frame-ancestors 'self'",
+            "frame-ancestors 'self' https://www.google.com https://www.recaptcha.net",
             "media-src 'self' data:"
         ]);
     }
