@@ -82,8 +82,16 @@ EOD;
             ];
 
             // 4. Panggil Gemini API via HTTP Facade
-            $apiKey = config('services.gemini.key', env('GEMINI_API_KEY'));
-            $model = env('GEMINI_MODEL', 'gemini-1.5-flash');
+            $apiKey = config('services.gemini.key');
+            $model = config('services.gemini.model', 'gemini-1.5-flash');
+
+            if (!$apiKey) {
+                Log::error('Gemini API Key is missing in configuration.');
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Konfigurasi AI belum lengkap.'
+                ], 500);
+            }
             
             $response = Http::withHeaders([
                 'Content-Type' => 'application/json',

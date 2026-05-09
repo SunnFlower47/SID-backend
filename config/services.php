@@ -52,4 +52,9 @@ return [
         'v3_min_score' => env('RECAPTCHA_V3_MIN_SCORE', 0.5),
     ],
 
+    'gemini' => [
+        'key' => env('GEMINI_API_KEY'),
+        'model' => env('GEMINI_MODEL', 'gemini-1.5-flash'),
+    ],
+
 ];
