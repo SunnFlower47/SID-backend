@@ -12,6 +12,7 @@ use App\Http\Controllers\Tenant\Konten\UmkmController;
 use App\Http\Controllers\Tenant\Pelayanan\ContactMessageController;
 use App\Http\Controllers\Tenant\Konten\BeritaController;
 use App\Http\Controllers\Tenant\Konten\TestimoniController;
+use App\Http\Controllers\Tenant\Konten\MasterJabatanController;
 
 // MODULE 2: Pelayanan Informasi
 Route::middleware('can:pelayanan_informasi')->group(function () {
@@ -61,6 +62,8 @@ Route::middleware('can:pelayanan_informasi')->group(function () {
     Route::resource('fasilitas-desa', FasilitasDesaController::class);
     Route::resource('struktur-desa', StrukturDesaController::class);
     Route::resource('kontak-desa', KontakDesaController::class);
+    Route::resource('master-jabatan', MasterJabatanController::class);
+    Route::post('master-jabatan/reorder', [MasterJabatanController::class, 'reorder'])->name('master-jabatan.reorder');
     Route::resource('umkm', UmkmController::class);
     
     // Contact Messages

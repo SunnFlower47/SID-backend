@@ -6,7 +6,7 @@ import StrukturDesaFilters from '@/Components/StrukturDesa/StrukturDesaFilters';
 import Pagination from '@/Components/Shared/Pagination';
 import SkeletonStats from '@/Components/Shared/Skeleton/SkeletonStats';
 import SkeletonTable from '@/Components/Shared/Skeleton/SkeletonTable';
-import { Users, Plus, Edit2, Trash2, Eye, Phone, Mail, MapPin, CheckCircle, XCircle } from 'lucide-react';
+import { Users, Plus, Edit2, Trash2, Eye, Phone, Mail, MapPin, CheckCircle, XCircle, Settings } from 'lucide-react';
 import Swal from 'sweetalert2';
 
 export default function Index({ auth, struktur, stats, filters, kategoriOptions }) {
@@ -64,6 +64,13 @@ export default function Index({ auth, struktur, stats, filters, kategoriOptions 
                             </div>
                         </div>
                         <div className="flex flex-wrap gap-2 sm:gap-3">
+                            <Link 
+                                href={route('master-jabatan.index')}
+                                className="flex items-center px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl text-[10px] sm:text-xs font-black transition-all hover:scale-105 uppercase tracking-widest backdrop-blur-md border border-white/10 shadow-lg"
+                            >
+                                <Settings className="w-3.5 h-3.5 mr-2" />
+                                SETTING JABATAN
+                            </Link>
                             <Link 
                                 href={route('struktur-desa.create')}
                                 className="flex items-center px-6 py-3 bg-white text-green-700 hover:bg-green-50 rounded-xl text-[10px] sm:text-xs font-black shadow-lg shadow-black/10 transition-all hover:scale-105 uppercase tracking-widest"

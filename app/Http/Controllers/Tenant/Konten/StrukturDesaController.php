@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 
 use Illuminate\Http\Request;
 use App\Models\StrukturDesa;
+use App\Models\MasterJabatan;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -42,7 +43,10 @@ class StrukturDesaController extends Controller
                 'ketua_rw' => StrukturDesa::where('kategori', 'ketua_rw')->count(),
                 'ketua_rt' => StrukturDesa::where('kategori', 'ketua_rt')->count(),
             ]),
-            'kategoriOptions' => $this->getKategoriOptions()
+            'kategoriOptions' => MasterJabatan::forStruktur()->get()->map(fn($j) => [
+                'value' => $j->slug,
+                'label' => $j->nama
+            ])
         ]);
     }
 
@@ -52,7 +56,10 @@ class StrukturDesaController extends Controller
     public function create()
     {
         return Inertia::render('Tenant/StrukturDesa/Create', [
-            'kategoriOptions' => $this->getKategoriOptions(),
+            'kategoriOptions' => MasterJabatan::forStruktur()->get()->map(fn($j) => [
+                'value' => $j->slug,
+                'label' => $j->nama
+            ]),
             'masterRwOptions' => $this->getMasterRwOptions()
         ]);
     }
@@ -123,7 +130,10 @@ class StrukturDesaController extends Controller
     {
         return Inertia::render('Tenant/StrukturDesa/Edit', [
             'strukturDesa' => $strukturDesa,
-            'kategoriOptions' => $this->getKategoriOptions(),
+            'kategoriOptions' => MasterJabatan::forStruktur()->get()->map(fn($j) => [
+                'value' => $j->slug,
+                'label' => $j->nama
+            ]),
             'masterRwOptions' => $this->getMasterRwOptions()
         ]);
     }
@@ -193,24 +203,6 @@ class StrukturDesaController extends Controller
 
         return redirect()->route('struktur-desa.index')
             ->with('success', 'Data struktur desa berhasil dihapus.');
-    }
-
-    private function getKategoriOptions()
-    {
-        return [
-            ['value' => 'kepala_desa', 'label' => 'Kepala Desa'],
-            ['value' => 'sekretaris', 'label' => 'Sekretaris Desa'],
-            ['value' => 'bendahara', 'label' => 'Bendahara Desa'],
-            ['value' => 'kasi_pemerintahan', 'label' => 'Kasi Pemerintahan'],
-            ['value' => 'kasi_kesejahteraan', 'label' => 'Kasi Kesejahteraan'],
-            ['value' => 'kasi_pelayanan', 'label' => 'Kasi Pelayanan'],
-            ['value' => 'kepala_dusun', 'label' => 'Kepala Dusun'],
-            ['value' => 'ketua_rw', 'label' => 'Ketua RW'],
-            ['value' => 'ketua_rt', 'label' => 'Ketua RT'],
-            ['value' => 'ketua_bumdes', 'label' => 'Ketua BUMDes'],
-            ['value' => 'staf_kaur', 'label' => 'Staf KAUR'],
-            ['value' => 'lainnya', 'label' => 'Lainnya'],
-        ];
     }
 
     private function getMasterRwOptions()
