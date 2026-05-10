@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 
 use Illuminate\Http\Request;
 use App\Models\KontakDesa;
+use App\Models\MasterJabatan;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 class KontakDesaController extends Controller
@@ -18,26 +19,49 @@ class KontakDesaController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $kontak = KontakDesa::byOrder()->paginate(20);
+        $query = KontakDesa::withWilayah();
+
+        // Search
+        if ($request->has('search') && $request->search) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('nama', 'like', "%{$search}%")
+                  ->orWhere('jabatan', 'like', "%{$search}%")
+                  ->orWhere('alamat', 'like', "%{$search}%");
+            });
+        }
+
+        // Filter by jenis
+        if ($request->has('jenis') && $request->jenis) {
+            $query->where('jenis', $request->jenis);
+        }
+
+        // Filter by status
+        if ($request->has('status') && $request->status) {
+            $status = $request->status === 'aktif';
+            $query->where('status_aktif', $status);
+        }
+
+        $kontak = $query->byOrder()->paginate(20)->withQueryString();
 
         $stats = [
             'total' => KontakDesa::count(),
             'aktif' => KontakDesa::where('status_aktif', true)->count(),
             'kantor_desa' => KontakDesa::where('jenis', 'kantor_desa')->count(),
-            'kepala_desa' => KontakDesa::where('jenis', 'kepala_desa')->count(),
-            'puskesmas' => KontakDesa::where('jenis', 'puskesmas')->count(),
-            'sekolah' => KontakDesa::where('jenis', 'sekolah')->count(),
+            'kontak_utama' => KontakDesa::whereIn('jenis', ['kantor_desa', 'kepala_desa'])->count(),
         ];
 
-        // Group by jenis for display
-        $kontakByJenis = KontakDesa::aktif()
-            ->byOrder()
-            ->get()
-            ->groupBy('jenis');
-
-        return view('kontak-desa.index', compact('kontak', 'stats', 'kontakByJenis'));
+        return \Inertia\Inertia::render('Tenant/KontakDesa/Index', [
+            'kontak' => $kontak,
+            'stats' => $stats,
+            'filters' => $request->all(['search', 'jenis', 'status']),
+            'jenisOptions' => MasterJabatan::forKontak()->get()->map(fn($j) => [
+                'value' => $j->slug,
+                'label' => $j->nama
+            ])
+        ]);
     }
 
     /**
@@ -45,42 +69,17 @@ class KontakDesaController extends Controller
      */
     public function create()
     {
-        $jenisOptions = [
-            'kantor_desa' => 'Kantor Desa',
-            'kepala_desa' => 'Kepala Desa',
-            'sekretaris' => 'Sekretaris Desa',
-            'bendahara' => 'Bendahara Desa',
-            'kasi_pemerintahan' => 'Kasi Pemerintahan',
-            'kasi_kesejahteraan' => 'Kasi Kesejahteraan',
-            'kasi_pelayanan' => 'Kasi Pelayanan',
-            'kepala_dusun' => 'Kepala Dusun',
-            'ketua_rw' => 'Ketua RW',
-            'ketua_rt' => 'Ketua RT',
-            'ketua_bumdes' => 'Ketua BUMDes',
-            'puskesmas' => 'Puskesmas',
-            'posyandu' => 'Posyandu',
-            'sekolah' => 'Sekolah',
-            'masjid' => 'Masjid',
-            'lainnya' => 'Lainnya',
-        ];
-
-        $masterRwOptions = \App\Models\Rw::with('rts')->orderBy('kode')->get()->map(function($rw) {
-            return [
-                'id' => $rw->id,
-                'kode' => $rw->kode,
-                'nama' => $rw->nama,
-                'rts' => $rw->rts->map(function($rt) {
-                    return [
-                        'id' => $rt->id,
-                        'kode' => $rt->kode,
-                        'dusun_id' => $rt->dusun_id,
-                        'dusun' => optional($rt->dusun)->nama
-                    ];
-                })
-            ];
-        });
-
-        return view('kontak-desa.create', compact('jenisOptions', 'masterRwOptions'));
+        return \Inertia\Inertia::render('Tenant/KontakDesa/Create', [
+            'jenisOptions' => MasterJabatan::forKontak()->get()->map(fn($j) => [
+                'value' => $j->slug,
+                'label' => $j->nama
+            ]),
+            'wilayah' => [
+                'dusun' => \App\Models\Dusun::all(),
+                'rw' => \App\Models\Rw::all(),
+                'rt' => \App\Models\Rt::all(),
+            ]
+        ]);
     }
 
     /**
@@ -118,7 +117,7 @@ class KontakDesaController extends Controller
         }
 
         $data = $request->all();
-        $data['status_aktif'] = $request->has('status_aktif');
+        $data['status_aktif'] = $request->boolean('status_aktif');
         $data['urutan'] = $request->urutan ?? 0;
 
         if ($request->hasFile('foto')) {
@@ -126,8 +125,8 @@ class KontakDesaController extends Controller
         }
 
         KontakDesa::create($data);
-            // Clear relevant caches after creating
-            return redirect()->route('kontak-desa.index')
+
+        return redirect()->route('kontak-desa.index')
             ->with('success', 'Data kontak desa berhasil ditambahkan.');
     }
 
@@ -136,7 +135,10 @@ class KontakDesaController extends Controller
      */
     public function show(KontakDesa $kontakDesa)
     {
-        return view('kontak-desa.show', compact('kontakDesa'));
+        $kontakDesa->load(['rt', 'rw', 'dusun']);
+        return \Inertia\Inertia::render('Tenant/KontakDesa/Show', [
+            'kontak' => $kontakDesa
+        ]);
     }
 
     /**
@@ -144,42 +146,18 @@ class KontakDesaController extends Controller
      */
     public function edit(KontakDesa $kontakDesa)
     {
-        $jenisOptions = [
-            'kantor_desa' => 'Kantor Desa',
-            'kepala_desa' => 'Kepala Desa',
-            'sekretaris' => 'Sekretaris Desa',
-            'bendahara' => 'Bendahara Desa',
-            'kasi_pemerintahan' => 'Kasi Pemerintahan',
-            'kasi_kesejahteraan' => 'Kasi Kesejahteraan',
-            'kasi_pelayanan' => 'Kasi Pelayanan',
-            'kepala_dusun' => 'Kepala Dusun',
-            'ketua_rw' => 'Ketua RW',
-            'ketua_rt' => 'Ketua RT',
-            'ketua_bumdes' => 'Ketua BUMDes',
-            'puskesmas' => 'Puskesmas',
-            'posyandu' => 'Posyandu',
-            'sekolah' => 'Sekolah',
-            'masjid' => 'Masjid',
-            'lainnya' => 'Lainnya',
-        ];
-
-        $masterRwOptions = \App\Models\Rw::with('rts')->orderBy('kode')->get()->map(function($rw) {
-            return [
-                'id' => $rw->id,
-                'kode' => $rw->kode,
-                'nama' => $rw->nama,
-                'rts' => $rw->rts->map(function($rt) {
-                    return [
-                        'id' => $rt->id,
-                        'kode' => $rt->kode,
-                        'dusun_id' => $rt->dusun_id,
-                        'dusun' => optional($rt->dusun)->nama
-                    ];
-                })
-            ];
-        });
-
-        return view('kontak-desa.edit', compact('kontakDesa', 'jenisOptions', 'masterRwOptions'));
+        return \Inertia\Inertia::render('Tenant/KontakDesa/Edit', [
+            'kontak' => $kontakDesa,
+            'jenisOptions' => MasterJabatan::forKontak()->get()->map(fn($j) => [
+                'value' => $j->slug,
+                'label' => $j->nama
+            ]),
+            'wilayah' => [
+                'dusun' => \App\Models\Dusun::all(),
+                'rw' => \App\Models\Rw::all(),
+                'rt' => \App\Models\Rt::all(),
+            ]
+        ]);
     }
 
     /**
@@ -216,8 +194,8 @@ class KontakDesaController extends Controller
                 ->withInput();
         }
 
-        $data = $request->all();
-        $data['status_aktif'] = $request->has('status_aktif');
+        $data = $request->except('foto');
+        $data['status_aktif'] = $request->boolean('status_aktif');
         $data['urutan'] = $request->urutan ?? 0;
 
         if ($request->hasFile('foto')) {
