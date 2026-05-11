@@ -56,6 +56,21 @@ class FasilitasDesa extends Model
         return $this->belongsTo(Dusun::class, 'dusun_id');
     }
 
+    public function rt(): BelongsTo
+    {
+        return $this->rtMaster();
+    }
+
+    public function rw(): BelongsTo
+    {
+        return $this->rwMaster();
+    }
+
+    public function dusun(): BelongsTo
+    {
+        return $this->dusunMaster();
+    }
+
     /**
      * Scope for Eager Loading Wilayah Master (High Performance)
      */
