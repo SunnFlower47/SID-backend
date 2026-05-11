@@ -9,6 +9,7 @@ use App\Models\Umkm;
 use App\Models\Rw;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Inertia\Inertia;
 
 class UmkmController extends Controller
 {
@@ -22,55 +23,36 @@ class UmkmController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Umkm::withWilayah();
-
-        // Filter by status
-        if ($request->has('status') && $request->status) {
-            $query->where('status_usaha', $request->status);
-        }
-
-        // Filter by jenis usaha
-        if ($request->has('jenis_usaha') && $request->jenis_usaha) {
-            $query->where('jenis_usaha', $request->jenis_usaha);
-        }
-
-        // Filter by unggulan
-        if ($request->has('is_unggulan') && $request->is_unggulan !== '') {
-            $query->where('is_unggulan', $request->is_unggulan);
-        }
-
-        // Filter by Wilayah
-        if ($request->has('rt_id') && $request->rt_id) {
-            $query->where('rt_id', $request->rt_id);
-        }
-        if ($request->has('rw_id') && $request->rw_id) {
-            $query->where('rw_id', $request->rw_id);
-        }
-        if ($request->has('dusun_id') && $request->dusun_id) {
-            $query->where('dusun_id', $request->dusun_id);
-        }
-
-        // Search
-        if ($request->has('search') && $request->search) {
-            $search = $request->search;
-            $query->where(function($q) use ($search) {
-                $q->where('nama_usaha', 'like', "%{$search}%")
-                  ->orWhere('nama_pemilik', 'like', "%{$search}%")
-                  ->orWhere('alamat_usaha', 'like', "%{$search}%");
-            });
-        }
-
-        $umkms = $query->orderBy('created_at', 'desc')->paginate(15);
-
-        // Statistics
-        $stats = [
-            'total' => Umkm::count(),
-            'aktif' => Umkm::where('status_usaha', 'aktif')->count(),
-            'unggulan' => Umkm::where('is_unggulan', true)->count(),
-            'verified' => Umkm::where('is_verified', true)->count(),
-        ];
-
-        return view('umkm.index', compact('umkms', 'stats'));
+        return Inertia::render('Tenant/Umkm/Index', [
+            'umkm' => Inertia::defer(fn() => Umkm::query()
+                ->when($request->search, function($query, $search) {
+                    $query->where('nama_usaha', 'like', "%{$search}%")
+                          ->orWhere('nama_pemilik', 'like', "%{$search}%")
+                          ->orWhere('alamat_usaha', 'like', "%{$search}%");
+                })
+                ->when($request->status, function($query, $status) {
+                    $query->where('status_usaha', $status);
+                })
+                ->when($request->jenis_usaha, function($query, $jenis) {
+                    $query->where('jenis_usaha', $jenis);
+                })
+                ->when($request->is_unggulan, function($query, $is_unggulan) {
+                    $query->where('is_unggulan', $is_unggulan === 'true');
+                })
+                ->with(['rt', 'rw', 'dusun'])
+                ->orderBy('created_at', 'desc')
+                ->paginate(15)
+                ->withQueryString()
+            ),
+            'stats' => Inertia::defer(fn() => [
+                'total' => Umkm::count(),
+                'aktif' => Umkm::where('status_usaha', 'aktif')->count(),
+                'unggulan' => Umkm::where('is_unggulan', true)->count(),
+                'verified' => Umkm::where('is_verified', true)->count(),
+            ]),
+            'filters' => $request->all(['search', 'status', 'jenis_usaha', 'is_unggulan']),
+            'jenisOptions' => $this->getJenisOptions()
+        ]);
     }
 
     /**
@@ -78,23 +60,15 @@ class UmkmController extends Controller
      */
     public function create()
     {
-        $rws = Rw::orderBy('kode')->get();
-        $masterRwOptions = Rw::with('rts')->orderBy('kode')->get()->map(function($rw) {
-            return [
-                'id' => $rw->id,
-                'kode' => $rw->kode,
-                'rts' => $rw->rts->map(function($rt) {
-                    return [
-                        'id' => $rt->id,
-                        'kode' => $rt->kode,
-                        'dusun' => optional($rt->dusunMaster)->nama,
-                        'dusun_id' => $rt->dusun_id
-                    ];
-                })
-            ];
-        });
-
-        return view('umkm.create', compact('rws', 'masterRwOptions'));
+        return Inertia::render('Tenant/Umkm/Create', [
+            'jenisOptions' => $this->getJenisOptions(),
+            'wilayah' => [
+                'dusun' => \App\Models\Dusun::all(),
+                'rw' => \App\Models\Rw::all(),
+                'rt' => \App\Models\Rt::all(),
+            ],
+            'masterRwOptions' => $this->getMasterRwOptions()
+        ]);
     }
 
     /**
@@ -171,7 +145,10 @@ class UmkmController extends Controller
      */
     public function show(Umkm $umkm)
     {
-        return view('umkm.show', compact('umkm'));
+        $umkm->load(['rt', 'rw', 'dusun']);
+        return Inertia::render('Tenant/Umkm/Show', [
+            'umkm' => $umkm
+        ]);
     }
 
     /**
@@ -179,23 +156,16 @@ class UmkmController extends Controller
      */
     public function edit(Umkm $umkm)
     {
-        $rws = Rw::orderBy('kode')->get();
-        $masterRwOptions = Rw::with('rts')->orderBy('kode')->get()->map(function($rw) {
-            return [
-                'id' => $rw->id,
-                'kode' => $rw->kode,
-                'rts' => $rw->rts->map(function($rt) {
-                    return [
-                        'id' => $rt->id,
-                        'kode' => $rt->kode,
-                        'dusun' => optional($rt->dusunMaster)->nama,
-                        'dusun_id' => $rt->dusun_id
-                    ];
-                })
-            ];
-        });
-
-        return view('umkm.edit', compact('umkm', 'rws', 'masterRwOptions'));
+        return Inertia::render('Tenant/Umkm/Edit', [
+            'umkm' => $umkm,
+            'jenisOptions' => $this->getJenisOptions(),
+            'wilayah' => [
+                'dusun' => \App\Models\Dusun::all(),
+                'rw' => \App\Models\Rw::all(),
+                'rt' => \App\Models\Rt::all(),
+            ],
+            'masterRwOptions' => $this->getMasterRwOptions()
+        ]);
     }
 
     /**
@@ -275,9 +245,6 @@ class UmkmController extends Controller
     }
 
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Umkm $umkm)
     {
         // Delete photos
@@ -291,5 +258,37 @@ class UmkmController extends Controller
 
         return redirect()->route('umkm.index')
             ->with('success', 'Data UMKM berhasil dihapus!');
+    }
+
+    private function getJenisOptions()
+    {
+        return [
+            ['value' => 'makanan', 'label' => 'Makanan'],
+            ['value' => 'minuman', 'label' => 'Minuman'],
+            ['value' => 'kerajinan', 'label' => 'Kerajinan'],
+            ['value' => 'jasa', 'label' => 'Jasa'],
+            ['value' => 'perdagangan', 'label' => 'Perdagangan'],
+            ['value' => 'pertanian', 'label' => 'Pertanian'],
+            ['value' => 'peternakan', 'label' => 'Peternakan'],
+            ['value' => 'lainnya', 'label' => 'Lainnya'],
+        ];
+    }
+
+    private function getMasterRwOptions()
+    {
+        return Rw::with('rts')->orderBy('kode')->get()->map(function($rw) {
+            return [
+                'id' => $rw->id,
+                'kode' => $rw->kode,
+                'rts' => $rw->rts->map(function($rt) {
+                    return [
+                        'id' => $rt->id,
+                        'kode' => $rt->kode,
+                        'dusun' => optional($rt->dusunMaster)->nama,
+                        'dusun_id' => $rt->dusun_id
+                    ];
+                })
+            ];
+        });
     }
 }

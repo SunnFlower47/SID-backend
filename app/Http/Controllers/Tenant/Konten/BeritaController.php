@@ -11,6 +11,8 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Database\QueryException;
+use Inertia\Inertia;
+
 class BeritaController extends Controller
 {
         public function __construct()
@@ -21,10 +23,32 @@ class BeritaController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $beritas = Berita::orderBy('created_at', 'desc')->paginate(10);
-        return view('berita.index', compact('beritas'));
+        return Inertia::render('Tenant/Berita/Index', [
+            'berita' => Inertia::defer(fn() => Berita::with('author')
+                ->when($request->search, function($query, $search) {
+                    $query->where('judul', 'like', "%{$search}%")
+                          ->orWhere('konten', 'like', "%{$search}%");
+                })
+                ->when($request->kategori, function($query, $kategori) {
+                    $query->where('kategori', $kategori);
+                })
+                ->when($request->status, function($query, $status) {
+                    $query->where('status', $status);
+                })
+                ->orderBy('created_at', 'desc')
+                ->paginate(10)
+                ->withQueryString()
+            ),
+            'stats' => Inertia::defer(fn() => [
+                'total' => Berita::count(),
+                'published' => Berita::where('status', 'published')->count(),
+                'draft' => Berita::where('status', 'draft')->count(),
+                'categories_count' => Berita::distinct('kategori')->count('kategori'),
+            ]),
+            'filters' => $request->all(['search', 'kategori', 'status'])
+        ]);
     }
 
     /**
@@ -32,7 +56,7 @@ class BeritaController extends Controller
      */
     public function create()
     {
-        return view('berita.create');
+        return Inertia::render('Tenant/Berita/Create');
     }
 
     /**
@@ -125,7 +149,10 @@ class BeritaController extends Controller
      */
     public function show(Berita $berita)
     {
-        return view('berita.show', compact('berita'));
+        $berita->load('author');
+        return Inertia::render('Tenant/Berita/Show', [
+            'berita' => $berita
+        ]);
     }
 
     /**
@@ -133,7 +160,10 @@ class BeritaController extends Controller
      */
     public function edit(Berita $berita)
     {
-        return view('berita.edit', compact('berita'));
+        $berita->load('author');
+        return Inertia::render('Tenant/Berita/Edit', [
+            'berita' => $berita
+        ]);
     }
 
     /**
