@@ -9,6 +9,7 @@ use App\Models\HistoriPengeluaran;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Inertia\Inertia;
 class AnggaranController extends Controller
 {
         public function __construct()
@@ -21,10 +22,13 @@ class AnggaranController extends Controller
      */
     public function createAnggaranTahunan()
     {
-        $tahunList = Apbdes::select('tahun')->distinct()->orderBy('tahun', 'desc')->pluck('tahun');
-        $currentYear = date('Y');
+        $tahunList   = Apbdes::select('tahun')->distinct()->orderBy('tahun', 'desc')->pluck('tahun');
+        $currentYear = (int) date('Y');
 
-        return view('keuangan.apbdes.index', compact('tahunList', 'currentYear'));
+        return Inertia::render('Tenant/Keuangan/APBDes/Create', [
+            'tahunList'   => $tahunList,
+            'currentYear' => $currentYear,
+        ]);
     }
 
     /**
@@ -67,17 +71,21 @@ class AnggaranController extends Controller
         $tahun = $request->get('tahun', date('Y'));
         $jenis = $request->get('jenis', 'belanja');
 
-        // Get APBDes entries that can receive expenditure
         $apbdesList = Apbdes::tahun($tahun)
             ->jenis($jenis)
             ->where('status', 'disetujui')
-            ->whereRaw('realisasi < anggaran') // Only those with remaining budget
+            ->whereRaw('realisasi < anggaran')
             ->orderBy('nama_rekening')
-            ->get();
+            ->get(['id', 'kode_rekening', 'nama_rekening', 'anggaran', 'realisasi', 'sisa_anggaran']);
 
         $tahunList = Apbdes::select('tahun')->distinct()->orderBy('tahun', 'desc')->pluck('tahun');
 
-        return view('keuangan.realisasi.index', compact('apbdesList', 'tahunList', 'tahun', 'jenis'));
+        return Inertia::render('Tenant/Keuangan/APBDes/AddExpenditure', [
+            'apbdesList' => $apbdesList,
+            'tahunList'  => $tahunList,
+            'tahun'      => $tahun,
+            'jenis'      => $jenis,
+        ]);
     }
 
     /**
@@ -146,18 +154,21 @@ class AnggaranController extends Controller
      */
     public function createProyek()
     {
-        $tahunList = Apbdes::select('tahun')->distinct()->orderBy('tahun', 'desc')->pluck('tahun');
-        $currentYear = date('Y');
+        $tahunList   = Apbdes::select('tahun')->distinct()->orderBy('tahun', 'desc')->pluck('tahun');
+        $currentYear = (int) date('Y');
 
-        // Get available APBDes entries for current year (belanja type with remaining budget)
         $apbdesList = Apbdes::where('tahun', $currentYear)
             ->where('jenis', 'belanja')
             ->where('status', 'disetujui')
-            ->whereRaw('realisasi < anggaran') // Only those with remaining budget
+            ->whereRaw('realisasi < anggaran')
             ->orderBy('nama_rekening')
-            ->get();
+            ->get(['id', 'kode_rekening', 'nama_rekening', 'anggaran', 'realisasi', 'sisa_anggaran']);
 
-        return view('keuangan.proyek.index', compact('tahunList', 'currentYear', 'apbdesList'));
+        return Inertia::render('Tenant/Keuangan/Proyek/Create', [
+            'tahunList'   => $tahunList,
+            'currentYear' => $currentYear,
+            'apbdesList'  => $apbdesList,
+        ]);
     }
 
     /**
@@ -311,9 +322,13 @@ class AnggaranController extends Controller
      */
     public function historiPengeluaran($id)
     {
-        $apbdes = Apbdes::with('historiPengeluarans.user')->findOrFail($id);
+        $apbdes = Apbdes::with(['historiPengeluarans' => function ($q) {
+            $q->orderBy('tanggal_pengeluaran', 'desc');
+        }])->findOrFail($id);
 
-        return view('keuangan.realisasi.history', compact('apbdes'));
+        return Inertia::render('Tenant/Keuangan/APBDes/History', [
+            'apbdes' => $apbdes,
+        ]);
     }
 
     /**
@@ -323,7 +338,9 @@ class AnggaranController extends Controller
     {
         $pengeluaran = HistoriPengeluaran::with('apbdes')->findOrFail($id);
 
-        return view('keuangan.realisasi.edit', compact('pengeluaran'));
+        return Inertia::render('Tenant/Keuangan/APBDes/EditExpenditure', [
+            'pengeluaran' => $pengeluaran,
+        ]);
     }
 
     /**
@@ -428,10 +445,11 @@ class AnggaranController extends Controller
     public function editApbdes($id)
     {
         $this->authorize('anggaran.edit');
-
         $apbdes = Apbdes::findOrFail($id);
 
-        return view('keuangan.apbdes.edit', compact('apbdes'));
+        return Inertia::render('Tenant/Keuangan/APBDes/Edit', [
+            'apbdes' => $apbdes,
+        ]);
     }
 
     /**
