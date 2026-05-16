@@ -8,7 +8,7 @@ use App\Models\Dusun;
 use App\Models\Penduduk;
 use App\Models\Rt;
 use App\Models\Rw;
-use App\Models\WilayahImportConflict;
+use App\Models\ImportConflict;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -388,7 +388,7 @@ class ImportDataFromExcel extends Command
 
     private function storeIssue(string $issueType, string $sheetName, int $row, string $nik, string $nama, string $nkk, string $rwRaw, string $rtRaw, string $dusunRaw, string $reason, array $meta = [], array $payloadRaw = []): void
     {
-        WilayahImportConflict::create([
+        ImportConflict::create([
             'batch_id' => $this->batchId,
             'source_file' => $this->sourceFile,
             'sheet_name' => $sheetName,

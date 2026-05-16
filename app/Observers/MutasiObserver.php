@@ -5,9 +5,16 @@ namespace App\Observers;
 use App\Models\Mutasi;
 use App\Models\Penduduk;
 use App\Models\KartuKeluarga;
+use App\Services\VillageStatisticsService;
 
 class MutasiObserver
 {
+    protected $statsService;
+
+    public function __construct(VillageStatisticsService $statsService)
+    {
+        $this->statsService = $statsService;
+    }
     /**
      * Handle the Mutasi "created" event.
      */
@@ -17,6 +24,8 @@ class MutasiObserver
 
         // BARU (Fase 2): Deteksi dan flag KK bermasalah
         $this->checkAndFlagKKBermasalah($mutasi);
+        
+        $this->statsService->clearStats();
     }
 
     /**
@@ -25,6 +34,7 @@ class MutasiObserver
     public function updated(Mutasi $mutasi): void
     {
         $this->updateFromPenduduk($mutasi->penduduk_id);
+        $this->statsService->clearStats();
     }
 
     /**
@@ -33,6 +43,7 @@ class MutasiObserver
     public function deleted(Mutasi $mutasi): void
     {
         $this->updateFromPenduduk($mutasi->penduduk_id);
+        $this->statsService->clearStats();
     }
 
     // =========================================================

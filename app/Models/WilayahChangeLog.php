@@ -29,4 +29,14 @@ class WilayahChangeLog extends Model
         'applied_at' => 'datetime',
         'rolled_back_at' => 'datetime',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function operatorRollback()
+    {
+        return $this->belongsTo(User::class, 'rolled_back_by');
+    }
 }

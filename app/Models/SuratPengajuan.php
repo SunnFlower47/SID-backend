@@ -11,6 +11,20 @@ class SuratPengajuan extends Model
 {
     use HasFactory, LogsActivity;
 
+    /**
+     * Boot the model.
+     */
+    protected static function booted()
+    {
+        static::saved(function ($surat) {
+            \Illuminate\Support\Facades\Cache::forget('dashboard_surat_stats');
+        });
+
+        static::deleted(function ($surat) {
+            \Illuminate\Support\Facades\Cache::forget('dashboard_surat_stats');
+        });
+    }
+
     protected $fillable = [
         'nik_pengaju',
         'nama_pengaju',

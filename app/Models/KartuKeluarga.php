@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class KartuKeluarga extends Model
 {
     use HasWilayahLabels, SoftDeletes, HasFactory;
+
     protected $fillable = [
         'nkk',
         'nama_kepala_keluarga',

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Tenant\Laporan;
 
 use App\Http\Controllers\Controller;
-
+use Inertia\Inertia;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use App\Models\Penduduk;
@@ -11,9 +11,19 @@ use App\Models\Mutasi;
 use App\Models\PendudukDomisili;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
+use App\Services\VillageStatisticsService;
 
 class StatisticsController extends Controller
 {
+    protected $statsService;
+
+    public function __construct(VillageStatisticsService $statsService)
+    {
+        $this->middleware(['auth', 'can:laporan_statistik']);
+        $this->statsService = $statsService;
+    }
+
     /**
      * Display statistics dashboard.
      */
@@ -21,364 +31,32 @@ class StatisticsController extends Controller
     {
         Gate::authorize('laporan_statistik');
 
-        try {
-            $basicStats = DB::table('penduduks as p')
-                ->leftJoin('kartu_keluargas as kk', 'p.kartu_keluarga_id', '=', 'kk.id')
-                ->select([
-                    DB::raw('COUNT(*) as total_penduduk'),
-                    DB::raw('COUNT(DISTINCT p.kartu_keluarga_id) as total_kk'),
-                    DB::raw('COUNT(CASE WHEN p.jenis_kelamin = "LAKI-LAKI" THEN 1 END) as laki_laki'),
-                    DB::raw('COUNT(CASE WHEN p.jenis_kelamin = "PEREMPUAN" THEN 1 END) as perempuan'),
-                ])
-                ->whereNull('p.deleted_at')
-                ->first();
-
-            $totalDomisili = PendudukDomisili::where('status', 'aktif')->count();
-            $totalMutasi = Mutasi::count();
-
-            $groupStats = DB::table('penduduks as p')
-                ->join('kartu_keluargas as kk', 'p.kartu_keluarga_id', '=', 'kk.id')
-                ->leftJoin('rts as rt', 'kk.rt_id', '=', 'rt.id')
-                ->leftJoin('rws as rw', 'kk.rw_id', '=', 'rw.id')
-                ->leftJoin('dusuns as d', 'kk.dusun_id', '=', 'd.id')
-                ->select([
-                    'p.jenis_kelamin',
-                    'rt.kode as rt_kode',
-                    'rw.kode as rw_kode',
-                    'd.nama as dusun_nama',
-                    'p.status_perkawinan',
-                    'p.kedudukan_keluarga',
-                    DB::raw('COUNT(*) as total')
-                ])
-                ->whereNull('p.deleted_at')
-                ->groupBy('p.jenis_kelamin', 'rt.kode', 'rw.kode', 'd.nama', 'p.status_perkawinan', 'p.kedudukan_keluarga')
-                ->get();
-
-            // Domisili group stats
-            $domisiliGroupStats = DB::table('penduduk_domisilis')
-                ->select(['rt_id', 'rw_id', 'dusun_id', DB::raw('COUNT(*) as total')])
-                ->where('status', 'aktif')
-                ->groupBy('rt_id', 'rw_id', 'dusun_id')
-                ->get();
-
-            // Process group statistics
-            $genderStats = $groupStats->where('jenis_kelamin', '!=', null)
-                ->groupBy(function($item) {
-                    $val = strtoupper(trim($item->jenis_kelamin));
-                    if (in_array($val, ['L', 'LAKI-LAKI', 'LAKI LAKI'])) return 'LAKI-LAKI';
-                    if (in_array($val, ['P', 'PEREMPUAN'])) return 'PEREMPUAN';
-                    return 'LAINNYA';
-                })
-                ->map(function($group) {
-                    return $group->sum('total');
-                });
-
-            $rtStats = $groupStats->where('rt_kode', '!=', null)
-                ->groupBy('rt_kode')
-                ->map(function($group) {
-                    return (object)['rt_label' => $group->first()->rt_kode, 'total' => $group->sum('total')];
-                })
-                ->sortBy('rt_label')
-                ->values();
-
-            $dusunStats = $groupStats->where('dusun_nama', '!=', null)
-                ->groupBy('dusun_nama')
-                ->map(function($group) {
-                    return (object)['dusun_label' => $group->first()->dusun_nama, 'total' => $group->sum('total')];
-                })
-                ->sortBy('dusun_label')
-                ->values();
-
-            $maritalStats = $groupStats->where('status_perkawinan', '!=', null)
-                ->groupBy('status_perkawinan')
-                ->map(function($group) {
-                    return (object)['status_perkawinan' => $group->first()->status_perkawinan, 'total' => $group->sum('total')];
-                })
-                ->sortByDesc('total')
-                ->values();
-
-            $familyPositionStats = $groupStats->where('kedudukan_keluarga', '!=', null)
-                ->groupBy('kedudukan_keluarga')
-                ->map(function($group) {
-                    return (object)['kedudukan_keluarga' => $group->first()->kedudukan_keluarga, 'total' => $group->sum('total')];
-                })
-                ->sortByDesc('total')
-                ->values();
-
-            // Age group statistics - hanya data aktif
-            $ageGroups = DB::table('penduduks as p')
-                ->leftJoin('mutasis as m', function($join) {
-                    $join->on('m.penduduk_id', '=', 'p.id')
-                         ->whereIn('m.jenis_mutasi', ['kematian', 'pindah_keluar']);
-                })
-                ->select(
-                    DB::raw('CASE
-                        WHEN TIMESTAMPDIFF(YEAR, p.tanggal_lahir, CURDATE()) < 5 THEN "0-4"
-                        WHEN TIMESTAMPDIFF(YEAR, p.tanggal_lahir, CURDATE()) BETWEEN 5 AND 9 THEN "5-9"
-                        WHEN TIMESTAMPDIFF(YEAR, p.tanggal_lahir, CURDATE()) BETWEEN 10 AND 14 THEN "10-14"
-                        WHEN TIMESTAMPDIFF(YEAR, p.tanggal_lahir, CURDATE()) BETWEEN 15 AND 19 THEN "15-19"
-                        WHEN TIMESTAMPDIFF(YEAR, p.tanggal_lahir, CURDATE()) BETWEEN 20 AND 24 THEN "20-24"
-                        WHEN TIMESTAMPDIFF(YEAR, p.tanggal_lahir, CURDATE()) BETWEEN 25 AND 29 THEN "25-29"
-                        WHEN TIMESTAMPDIFF(YEAR, p.tanggal_lahir, CURDATE()) BETWEEN 30 AND 34 THEN "30-34"
-                        WHEN TIMESTAMPDIFF(YEAR, p.tanggal_lahir, CURDATE()) BETWEEN 35 AND 39 THEN "35-39"
-                        WHEN TIMESTAMPDIFF(YEAR, p.tanggal_lahir, CURDATE()) BETWEEN 40 AND 44 THEN "40-44"
-                        WHEN TIMESTAMPDIFF(YEAR, p.tanggal_lahir, CURDATE()) BETWEEN 45 AND 49 THEN "45-49"
-                        WHEN TIMESTAMPDIFF(YEAR, p.tanggal_lahir, CURDATE()) BETWEEN 50 AND 54 THEN "50-54"
-                        WHEN TIMESTAMPDIFF(YEAR, p.tanggal_lahir, CURDATE()) BETWEEN 55 AND 59 THEN "55-59"
-                        WHEN TIMESTAMPDIFF(YEAR, p.tanggal_lahir, CURDATE()) BETWEEN 60 AND 64 THEN "60-64"
-                        WHEN TIMESTAMPDIFF(YEAR, p.tanggal_lahir, CURDATE()) >= 65 THEN "65+"
-                        ELSE "Tidak Diketahui"
-                    END as age_group'),
-                    DB::raw('COUNT(CASE WHEN m.id IS NULL THEN 1 END) as total')
-                )
-                ->whereNull('m.id')
-                ->whereNotNull('p.tanggal_lahir')
-                ->groupBy('age_group')
-                ->orderByRaw('CASE
-                    WHEN age_group = "0-4" THEN 1
-                    WHEN age_group = "5-9" THEN 2
-                    WHEN age_group = "10-14" THEN 3
-                    WHEN age_group = "15-19" THEN 4
-                    WHEN age_group = "20-24" THEN 5
-                    WHEN age_group = "25-29" THEN 6
-                    WHEN age_group = "30-34" THEN 7
-                    WHEN age_group = "35-39" THEN 8
-                    WHEN age_group = "40-44" THEN 9
-                    WHEN age_group = "45-49" THEN 10
-                    WHEN age_group = "50-54" THEN 11
-                    WHEN age_group = "55-59" THEN 12
-                    WHEN age_group = "60-64" THEN 13
-                    WHEN age_group = "65+" THEN 14
-                    ELSE 15
-                END')
-                ->get();
-
-            // Religion statistics - hanya data aktif
-            $religionStats = DB::table('penduduks as p')
-                ->leftJoin('mutasis as m', function($join) {
-                    $join->on('m.penduduk_id', '=', 'p.id')
-                         ->whereIn('m.jenis_mutasi', ['kematian', 'pindah_keluar']);
-                })
-                ->select('p.agama', DB::raw('COUNT(CASE WHEN m.id IS NULL THEN 1 END) as total'))
-                ->whereNull('m.id')
-                ->groupBy('p.agama')
-                ->orderBy('total', 'desc')
-                ->get();
-
-            // Education statistics - hanya data aktif
-            $educationStats = DB::table('penduduks as p')
-                ->leftJoin('mutasis as m', function($join) {
-                    $join->on('m.penduduk_id', '=', 'p.id')
-                         ->whereIn('m.jenis_mutasi', ['kematian', 'pindah_keluar']);
-                })
-                ->select('p.pendidikan', DB::raw('COUNT(CASE WHEN m.id IS NULL THEN 1 END) as total'))
-                ->whereNull('m.id')
-                ->groupBy('p.pendidikan')
-                ->orderBy('total', 'desc')
-                ->get();
-
-            // Job statistics - hanya data aktif
-            $jobStats = DB::table('penduduks as p')
-                ->leftJoin('mutasis as m', function($join) {
-                    $join->on('m.penduduk_id', '=', 'p.id')
-                         ->whereIn('m.jenis_mutasi', ['kematian', 'pindah_keluar']);
-                })
-                ->select('p.pekerjaan', DB::raw('COUNT(CASE WHEN m.id IS NULL THEN 1 END) as total'))
-                ->whereNull('m.id')
-                ->groupBy('p.pekerjaan')
-                ->orderBy('total', 'desc')
-                ->limit(10)
-                ->get();
-
-            $rwStats = DB::table('penduduks as p')
-                ->join('kartu_keluargas as kk', 'p.kartu_keluarga_id', '=', 'kk.id')
-                ->leftJoin('rws as rw', 'kk.rw_id', '=', 'rw.id')
-                ->leftJoin('mutasis as m', function($join) {
-                    $join->on('m.penduduk_id', '=', 'p.id')
-                         ->whereIn('m.jenis_mutasi', ['kematian', 'pindah_keluar']);
-                })
-                ->select('rw.kode as rw_kode', DB::raw('COUNT(CASE WHEN m.id IS NULL THEN 1 END) as total'))
-                ->whereNull('p.deleted_at')
-                ->whereNull('m.id')
-                ->groupBy('rw.kode')
-                ->orderBy('rw.kode')
-                ->get()
-                ->map(function($item) {
-                    return (object)['rw_label' => $item->rw_kode, 'total' => $item->total];
-                });
-
-            // Mutation statistics
-            $mutationStats = Mutasi::select('jenis_mutasi', DB::raw('count(*) as total'))
-                ->groupBy('jenis_mutasi')
-                ->get();
-
-            // Recent mutations
-            $recentMutations = Mutasi::with(['penduduk' => function($query) {
-                $query->withTrashed();
-            }])
-            ->orderBy('created_at', 'desc')
-            ->limit(10)
-            ->get();
-
-            $familySizeStats = Penduduk::select('kartu_keluarga_id', DB::raw('count(*) as family_size'))
-                ->whereNull('deleted_at')
-                ->groupBy('kartu_keluarga_id')
-                ->get()
-                ->groupBy('family_size')
-                ->map(function($group) {
-                    return (object) [
-                        'family_size' => $group->first()->family_size,
-                        'total' => $group->count()
-                    ];
-                })
-                ->sortBy('family_size')
-                ->values();
-
-            return view('statistics.index', compact(
-                'totalPenduduk',
-                'totalDomisili',
-                'totalKK',
-                'totalMutasi',
-                'genderStats',
-                'ageGroups',
-                'religionStats',
-                'educationStats',
-                'jobStats',
-                'rtStats',
-                'rwStats',
-                'dusunStats',
-                'maritalStats',
-                'familyPositionStats',
-                'mutationStats',
-                'recentMutations',
-                'familySizeStats'
-            ));
-
-        } catch (\Exception $e) {
-            Log::error('Statistics Controller Error: ' . $e->getMessage());
-
-            // Return basic data if there's an error
-            return view('statistics.simple', [
-                'totalPenduduk' => 0,
-                'totalDomisili' => 0,
-                'totalKK' => 0,
-                'totalMutasi' => 0,
-                'genderStats' => collect(),
-                'ageGroups' => collect(),
-                'religionStats' => collect(),
-                'educationStats' => collect(),
-                'jobStats' => collect(),
-                'rtStats' => collect(),
-                'rwStats' => collect(),
-                'mutationStats' => collect(),
-                'recentMutations' => collect(),
-                'familySizeStats' => collect(),
-            ]);
-        }
-    }
-
-    /**
-     * Refresh statistics cache (no longer needed - data is real-time).
-     */
-    public function refreshCache()
-    {
-        Gate::authorize('laporan_statistik');
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Data statistik sudah real-time, tidak perlu refresh cache'
+        return Inertia::render('Tenant/Laporan/Statistik/Index', [
+            'basicStats' => Inertia::defer(fn() => [
+                'total_penduduk' => once(fn() => $this->statsService->getDashboardStats())['basic']['total_penduduk'],
+                'laki_laki' => once(fn() => $this->statsService->getDashboardStats())['basic']['laki_laki'],
+                'perempuan' => once(fn() => $this->statsService->getDashboardStats())['basic']['perempuan'],
+                'total_kk' => once(fn() => $this->statsService->getDashboardStats())['basic']['total_kk'],
+                'total_domisili' => \App\Models\PendudukDomisili::where('status', 'aktif')->count(),
+                'total_mutasi' => \App\Models\Mutasi::count(),
+            ]),
+            'genderStats' => Inertia::defer(fn() => once(fn() => $this->statsService->getDetailedStats())['gender']),
+            'ageGroups' => Inertia::defer(fn() => once(fn() => $this->statsService->getDashboardStats())['age_groups']),
+            'religionStats' => Inertia::defer(fn() => Cache::tags(['statistics'])->remember('agama_stats_v2', 3600, function() {
+                return DB::table('penduduks')->select('agama', DB::raw('count(*) as total'))->whereNull('deleted_at')->groupBy('agama')->orderByDesc('total')->get();
+            })),
+            'educationStats' => Inertia::defer(fn() => Cache::tags(['statistics'])->remember('pendidikan_stats_v2', 3600, function() {
+                return DB::table('penduduks')->select('pendidikan', DB::raw('count(*) as total'))->whereNull('deleted_at')->groupBy('pendidikan')->orderByDesc('total')->get();
+            })),
+            'jobStats' => Inertia::defer(fn() => Cache::tags(['statistics'])->remember('pekerjaan_stats_v2', 3600, function() {
+                return DB::table('penduduks')->select('pekerjaan', DB::raw('count(*) as total'))->whereNull('deleted_at')->groupBy('pekerjaan')->orderByDesc('total')->limit(10)->get();
+            })),
+            'rtStats' => Inertia::defer(fn() => once(fn() => $this->statsService->getDetailedStats())['rt_distribution']),
+            'rwStats' => Inertia::defer(fn() => once(fn() => $this->statsService->getDetailedStats())['rw_distribution']),
+            'mutationStats' => Inertia::defer(fn() => once(fn() => $this->statsService->getDashboardStats())['mutasi']),
+            'recentMutations' => Inertia::defer(fn() => Cache::tags(['statistics'])->remember('recent_mutasi_detailed_v2', 600, function() {
+                return Mutasi::with(['penduduk' => fn($q) => $q->withTrashed()])->orderBy('created_at', 'desc')->limit(10)->get();
+            })),
         ]);
-    }
-
-    /**
-     * Get statistics data for charts (AJAX).
-     */
-    public function getChartData(Request $request)
-    {
-        Gate::authorize('laporan_statistik');
-
-        $type = $request->get('type');
-
-        switch ($type) {
-            case 'gender':
-                return Penduduk::whereDoesntHave('mutasis', function($query) {
-                    $query->whereIn('jenis_mutasi', ['kematian', 'pindah_keluar']);
-                })->select('jenis_kelamin', DB::raw('count(*) as total'))
-                    ->groupBy('jenis_kelamin')
-                    ->get();
-
-            case 'age':
-                return Penduduk::whereDoesntHave('mutasis', function($query) {
-                    $query->whereIn('jenis_mutasi', ['kematian', 'pindah_keluar']);
-                })->select(
-                    DB::raw('CASE
-                        WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) < 5 THEN "0-4"
-                        WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 5 AND 9 THEN "5-9"
-                        WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 10 AND 14 THEN "10-14"
-                        WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 15 AND 19 THEN "15-19"
-                        WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 20 AND 24 THEN "20-24"
-                        WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 25 AND 29 THEN "25-29"
-                        WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 30 AND 34 THEN "30-34"
-                        WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 35 AND 39 THEN "35-39"
-                        WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 40 AND 44 THEN "40-44"
-                        WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 45 AND 49 THEN "45-49"
-                        WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 50 AND 54 THEN "50-54"
-                        WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 55 AND 59 THEN "55-59"
-                        WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 60 AND 64 THEN "60-64"
-                        WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) >= 65 THEN "65+"
-                        ELSE "Tidak Diketahui"
-                    END as age_group'),
-                    DB::raw('count(*) as total')
-                )
-                ->groupBy('age_group')
-                ->orderByRaw('CASE
-                    WHEN age_group = "0-4" THEN 1
-                    WHEN age_group = "5-9" THEN 2
-                    WHEN age_group = "10-14" THEN 3
-                    WHEN age_group = "15-19" THEN 4
-                    WHEN age_group = "20-24" THEN 5
-                    WHEN age_group = "25-29" THEN 6
-                    WHEN age_group = "30-34" THEN 7
-                    WHEN age_group = "35-39" THEN 8
-                    WHEN age_group = "40-44" THEN 9
-                    WHEN age_group = "45-49" THEN 10
-                    WHEN age_group = "50-54" THEN 11
-                    WHEN age_group = "55-59" THEN 12
-                    WHEN age_group = "60-64" THEN 13
-                    WHEN age_group = "65+" THEN 14
-                    ELSE 15
-                END')
-                ->get();
-
-            case 'religion':
-                return Penduduk::whereDoesntHave('mutasis', function($query) {
-                    $query->whereIn('jenis_mutasi', ['kematian', 'pindah_keluar']);
-                })->select('agama', DB::raw('count(*) as total'))
-                    ->groupBy('agama')
-                    ->orderBy('total', 'desc')
-                    ->get();
-
-            case 'rt':
-                return DB::table('penduduks as p')
-                    ->join('kartu_keluargas as kk', 'p.kartu_keluarga_id', '=', 'kk.id')
-                    ->join('rts as rt', 'kk.rt_id', '=', 'rt.id')
-                    ->leftJoin('mutasis as m', function($join) {
-                        $join->on('m.penduduk_id', '=', 'p.id')
-                             ->whereIn('m.jenis_mutasi', ['kematian', 'pindah_keluar']);
-                    })
-                    ->select('rt.kode as rt_kode', DB::raw('COUNT(CASE WHEN m.id IS NULL THEN 1 END) as total'))
-                    ->whereNull('p.deleted_at')
-                    ->whereNull('m.id')
-                    ->groupBy('rt.kode')
-                    ->orderBy('rt.kode')
-                    ->get()
-                    ->map(function($item) {
-                        return (object)['rt_label' => $item->rt_kode, 'total' => $item->total];
-                    });
-
-
-            default:
-                return response()->json(['error' => 'Invalid chart type'], 400);
-        }
     }
 }

@@ -33,7 +33,6 @@ class PendudukController extends Controller
      */
     public function index(Request $request)
     {
-        // Simpan query terakhir dari halaman index agar filter + page tidak hilang saat kembali dari CRUD
         session(['penduduk_index_query' => $request->query()]);
 
         $query = Penduduk::withWilayah()
@@ -42,13 +41,8 @@ class PendudukController extends Controller
 
         $penduduks = $query->paginate(50);
         
-        // Statistics - Use KartuKeluarga for total_kk (Source of Truth), exclude resolved/archived KK
-        $stats = [
-            'total' => Penduduk::whereNull('deleted_at')->count(),
-            'laki_laki' => Penduduk::where('jenis_kelamin', 'LAKI-LAKI')->whereNull('deleted_at')->count(),
-            'perempuan' => Penduduk::where('jenis_kelamin', 'PEREMPUAN')->whereNull('deleted_at')->count(),
-            'total_kk' => \App\Models\KartuKeluarga::where('anggota_aktif', '>', 0)->count(),
-        ];
+        $statsService = app(\App\Services\VillageStatisticsService::class);
+        $stats = once(fn() => $statsService->getDashboardStats())['basic'];
 
         // Filter Lists (Fetched from Master Tables)
         $rtList = \App\Models\Rt::orderBy('kode')->get();
@@ -72,40 +66,10 @@ class PendudukController extends Controller
     {
         Gate::authorize('kependudukan');
 
-        $existingNKKs = \App\Models\KartuKeluarga::withWilayah()
-            ->orderBy('nkk')
-            ->get()
-            ->map(function($kk) {
-                return [
-                    'nkk' => $kk->nkk,
-                    'kepala_keluarga' => $kk->nama_kepala_keluarga,
-                    'alamat' => $kk->alamat,
-                    'rt' => $kk->rt_label,
-                    'rw' => $kk->rw_label,
-                ];
-            });
-
-        $rws = Rw::with(['rts.dusun'])->orderBy('kode')->get();
-        $masterRwOptions = $rws->map(function ($rw) {
-            return [
-                'id' => $rw->id,
-                'kode' => $rw->kode,
-                'nama' => $rw->nama,
-                'rts' => $rw->rts->map(function ($rt) {
-                    return [
-                        'id' => $rt->id,
-                        'kode' => $rt->kode,
-                        'dusun_id' => $rt->dusun_id,
-                        'dusun' => optional($rt->dusun)->nama,
-                    ];
-                })->values(),
-            ];
-        })->values();
-
         return Inertia::render('Tenant/Penduduk/Create', [
-            'existingNKKs' => $existingNKKs,
-            'rws' => $rws,
-            'masterRwOptions' => $masterRwOptions
+            'existingNKKs' => $this->pendudukService->getExistingNKKs(),
+            'rws' => Rw::orderBy('kode')->get(), // Small list for basic dropdown
+            'masterRwOptions' => $this->pendudukService->getMasterRwOptions()
         ]);
     }
 
@@ -167,26 +131,11 @@ class PendudukController extends Controller
     public function edit(Penduduk $penduduk)
     {
         Gate::authorize('kependudukan');
-        $penduduk->load('kartuKeluarga.rtMaster', 'kartuKeluarga.rwMaster', 'kartuKeluarga.dusunMaster');
-        $rws = Rw::with(['rts.dusun'])->orderBy('kode')->get();
-        $masterRwOptions = $rws->map(function ($rw) {
-            return [
-                'id' => $rw->id,
-                'kode' => $rw->kode,
-                'nama' => $rw->nama,
-                'rts' => $rw->rts->map(function ($rt) {
-                    return [
-                        'id' => $rt->id,
-                        'kode' => $rt->kode,
-                        'dusun' => optional($rt->dusun)->nama,
-                    ];
-                })->values(),
-            ];
-        })->values();
+        
         return Inertia::render('Tenant/Penduduk/Edit', [
-            'penduduk' => $penduduk,
-            'rws' => $rws,
-            'masterRwOptions' => $masterRwOptions
+            'penduduk' => $penduduk->load('kartuKeluarga.rtMaster', 'kartuKeluarga.rwMaster', 'kartuKeluarga.dusunMaster'),
+            'rws' => Rw::orderBy('kode')->get(),
+            'masterRwOptions' => $this->pendudukService->getMasterRwOptions()
         ]);
     }
 

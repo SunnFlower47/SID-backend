@@ -93,7 +93,7 @@ const menuGroups = [
         hoverBg: 'hover:from-cyan-50 hover:to-cyan-100 hover:text-cyan-700',
         items: [
             { name: 'Master Wilayah', href: 'settings.wilayah.index', icon: 'Map' },
-            { name: 'Issue Queue', href: 'settings.wilayah.import-conflicts.index', icon: 'AlertTriangle' },
+            { name: 'Issue Queue', href: 'import-conflicts.index', icon: 'AlertTriangle' },
             { name: 'Import Data', href: 'import.index', icon: 'Download' },
             { name: 'Export Data', href: 'export-import.index', icon: 'Upload' },
             { name: 'Sampah Penduduk', href: 'settings.trash.penduduk.index', icon: 'Trash2' },
@@ -129,13 +129,25 @@ export default function Sidebar({ collapsed, isMobile = false, closeMobile, togg
             if (routeName.endsWith('.index')) {
                 const resourceBase = routeName.replace('.index', '');
                 // Check if current route starts with resourceBase followed by a dot
-                if (current.startsWith(resourceBase + '.')) return true;
+                if (current.startsWith(resourceBase + '.')) {
+                    const resourcePartsCount = resourceBase.split('.').length;
+                    const currentPartsCount = current.split('.').length;
+                    // Only match direct resource actions (e.g., settings.edit), not sub-modules (e.g., settings.wilayah.index)
+                    if (currentPartsCount === resourcePartsCount + 1) {
+                        return true;
+                    }
+                }
             }
 
             // Fallback for custom patterns
             const routeParts = routeName.split('.');
             const currentParts = current.split('.');
             if (routeParts.length >= 2 && currentParts.length >= 2) {
+                // If it's a completely different sub-module under the same prefix, don't match
+                // e.g. settings.index vs settings.wilayah.index
+                if (routeParts.length !== currentParts.length && routeParts[routeParts.length - 1] === 'index') {
+                    return false;
+                }
                 return routeParts[0] === currentParts[0] && routeParts[1] === currentParts[1];
             }
             

@@ -6,6 +6,8 @@ import {
     Calendar, User, ShieldCheck, Tag,
     ChevronRight, ArrowRight, LayoutGrid
 } from 'lucide-react';
+import ReactQuill from 'react-quill-new';
+import 'react-quill-new/dist/quill.snow.css';
 import Swal from 'sweetalert2';
 import { cn } from '@/lib/utils';
 
@@ -60,9 +62,9 @@ export default function BeritaForm({ berita = null, isEdit = false }) {
 
     return (
         <form onSubmit={handleSubmit} className="space-y-6 text-left">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 text-left">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 text-left">
                 {/* Main Content Area */}
-                <div className="lg:col-span-2 space-y-6 text-left">
+                <div className="lg:col-span-9 space-y-6 text-left">
                     <div className="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 p-8 sm:p-10 text-left">
                         <div className="flex items-center gap-4 mb-8 text-left">
                             <div className="w-12 h-12 bg-green-50 rounded-2xl flex items-center justify-center text-left">
@@ -92,14 +94,27 @@ export default function BeritaForm({ berita = null, isEdit = false }) {
 
                             <div className="space-y-2 text-left">
                                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 text-left">Isi Konten / Berita</label>
-                                <div className="relative group text-left">
-                                    <textarea
+                                <div className="relative group text-left rounded-[2rem] overflow-hidden bg-gray-50 p-2 min-h-[600px]">
+                                    <ReactQuill 
+                                        theme="snow"
                                         value={data.konten}
-                                        onChange={e => setData('konten', e.target.value)}
-                                        rows="12"
-                                        className="w-full px-6 py-5 bg-gray-50 border-none rounded-[2rem] text-sm font-bold text-gray-700 focus:ring-4 focus:ring-green-500/10 transition-all resize-none leading-relaxed text-left"
-                                        placeholder="Tulis detail informasi di sini..."
-                                    ></textarea>
+                                        onChange={(content) => setData('konten', content)}
+                                        className="h-[500px] mb-14 border-none bg-white rounded-xl shadow-inner"
+                                        modules={{
+                                            toolbar: [
+                                                [{ 'font': [] }, { 'size': ['small', false, 'large', 'huge'] }],
+                                                ['bold', 'italic', 'underline', 'strike'],
+                                                [{ 'color': [] }, { 'background': [] }],
+                                                [{ 'script': 'sub' }, { 'script': 'super' }],
+                                                [{ 'header': 1 }, { 'header': 2 }, 'blockquote', 'code-block'],
+                                                [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'indent': '-1' }, { 'indent': '+1' }],
+                                                [{ 'direction': 'rtl' }, { 'align': [] }],
+                                                ['link', 'image', 'video'],
+                                                ['clean']
+                                            ],
+                                        }}
+                                        placeholder="Tulis detail informasi desa yang menarik di sini..."
+                                    />
                                 </div>
                                 {errors.konten && <p className="text-[10px] font-bold text-red-500 uppercase tracking-widest ml-1 italic text-left">{errors.konten}</p>}
                             </div>
@@ -122,7 +137,7 @@ export default function BeritaForm({ berita = null, isEdit = false }) {
                 </div>
 
                 {/* Sidebar Configuration */}
-                <div className="space-y-6 text-left text-left">
+                <div className="lg:col-span-3 space-y-6 text-left">
                     <div className="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 p-8 text-left">
                         <div className="flex items-center gap-4 mb-6 text-left">
                             <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-left">

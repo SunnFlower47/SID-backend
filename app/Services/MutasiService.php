@@ -9,8 +9,71 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
+use App\Models\SuratPengajuan;
+use App\Models\DesaSetting;
+use App\Services\KartuKeluargaService;
+
 class MutasiService
 {
+    protected $kkService;
+
+    public function __construct(KartuKeluargaService $kkService)
+    {
+        $this->kkService = $kkService;
+    }
+
+    /**
+     * Get Hierarchical Wilayah Tree (Dusun -> RW -> RT)
+     */
+    public function getWilayahTree()
+    {
+        $dusuns = \App\Models\Dusun::orderBy('nama')->get();
+        $rws = \App\Models\Rw::with('rts')->orderBy('kode')->get();
+
+        return $dusuns->map(function($dusun) use ($rws) {
+            return [
+                'id' => $dusun->id,
+                'nama' => $dusun->nama,
+                'rws' => $rws->filter(function($rw) use ($dusun) {
+                    return $rw->rts->where('dusun_id', $dusun->id)->count() > 0;
+                })->map(function($rw) use ($dusun) {
+                    return [
+                        'id' => $rw->id,
+                        'kode' => $rw->kode,
+                        'rts' => $rw->rts->where('dusun_id', $dusun->id)->map(function($rt) {
+                            return [
+                                'id' => $rt->id,
+                                'kode' => $rt->kode
+                            ];
+                        })->values()
+                    ];
+                })->values()
+            ];
+        })->values();
+    }
+
+    /**
+     * Get Master RW Options with nested RTs
+     */
+    public function getMasterRwOptions()
+    {
+        $rws = \App\Models\Rw::with(['rts.dusun'])->orderBy('kode')->get();
+        return $rws->map(function ($rw) {
+            return [
+                'id' => $rw->id,
+                'kode' => $rw->kode,
+                'nama' => $rw->nama,
+                'rts' => $rw->rts->map(function ($rt) {
+                    return [
+                        'id' => $rt->id,
+                        'kode' => $rt->kode,
+                        'dusun_id' => $rt->dusun_id,
+                        'dusun' => optional($rt->dusun)->nama,
+                    ];
+                })->values(),
+            ];
+        })->values();
+    }
     /**
      * Handle Kelahiran logic
      */
@@ -52,7 +115,7 @@ class MutasiService
         ]);
 
         // Trigger recalculation for the family
-        app(\App\Services\KartuKeluargaService::class)->recalculate($kk->id);
+        $this->kkService->recalculate($kk->id);
 
         return $penduduk;
     }
@@ -248,7 +311,7 @@ class MutasiService
             }
 
             // Trigger recalculation
-            app(\App\Services\KartuKeluargaService::class)->recalculate($kk->id);
+            $this->kkService->recalculate($kk->id);
 
             return $penduduk;
         });
@@ -392,7 +455,7 @@ class MutasiService
             ]);
             
             // Trigger recalculation untuk statistik terbaru
-            app(\App\Services\KartuKeluargaService::class)->recalculate($kk->id);
+            $this->kkService->recalculate($kk->id);
         }
 
         // Ambil kepala keluarga untuk log mutasi
@@ -553,17 +616,13 @@ class MutasiService
         }
 
         // Trigger recalculation for both KKs
-        $kkService = app(\App\Services\KartuKeluargaService::class);
-        
-        // 1. Recalculate Old KK (Source of Truth)
-        $oldKKRecord = KartuKeluarga::where('nkk', $oldNKK)->first();
         if ($oldKKRecord) {
-            $kkService->recalculate($oldKKRecord->id);
+            $this->kkService->recalculate($oldKKRecord->id);
         }
 
         // 2. Recalculate New KK (if within village)
         if ($newKK) {
-            $kkService->recalculate($newKK->id);
+            $this->kkService->recalculate($newKK->id);
         }
 
         // Create mutation log
@@ -642,4 +701,280 @@ class MutasiService
         }
     }
 
+    /**
+     * Handle Mutasi Update
+     */
+    public function updateMutasi(Mutasi $mutasi, array $validated, $file = null)
+    {
+        return DB::transaction(function () use ($mutasi, $validated, $file) {
+            $detailTambahan = $mutasi->detail_tambahan ?? [];
+
+            // Update specific metadata based on type
+            if ($mutasi->jenis_mutasi === 'kematian') {
+                $detailTambahan['kematian'] = [
+                    'hari' => $validated['hari_meninggal'],
+                    'jam' => $validated['jam_meninggal'],
+                    'bertempat_di' => $validated['bertempat_di'],
+                    'tanggal' => $validated['tanggal_mutasi'],
+                ];
+                $detailTambahan['pemakaman'] = [
+                    'hari' => $validated['hari_pemakaman'],
+                    'tanggal' => $validated['tanggal_pemakaman'],
+                    'jam' => $validated['jam_pemakaman'],
+                    'lokasi' => $validated['lokasi_pemakaman'],
+                ];
+                $mutasi->asal_tujuan = $validated['bertempat_di'];
+            } 
+            elseif ($mutasi->jenis_mutasi === 'kelahiran') {
+                if ($mutasi->penduduk) {
+                    $mutasi->penduduk->update([
+                        'nama' => $validated['nama_bayi'],
+                        'nik' => $validated['nik_bayi'],
+                        'jenis_kelamin' => $validated['jenis_kelamin_bayi'],
+                        'tanggal_lahir' => $validated['tanggal_lahir'],
+                        'tempat_lahir' => $validated['tempat_lahir'],
+                    ]);
+                }
+            }
+            elseif ($mutasi->jenis_mutasi === 'pisah_kk' || $mutasi->jenis_mutasi === 'pindah_keluar') {
+                $snapshot = $detailTambahan['snapshot_asal'] ?? [];
+                if (isset($validated['anggota_pisah_data'])) {
+                    $snapshot['anggota_pindah'] = $validated['anggota_pisah_data'];
+                }
+                if (isset($validated['anggota_pindah'])) {
+                    $members = Penduduk::whereIn('id', $validated['anggota_pindah'])->get()->map(function($m) {
+                        return [
+                            'id' => $m->id,
+                            'nama' => $m->nama,
+                            'nik' => $m->nik,
+                            'kedudukan' => $m->kedudukan_keluarga
+                        ];
+                    });
+                    $snapshot['anggota_pindah'] = $members;
+                }
+                $detailTambahan['snapshot_asal'] = $snapshot;
+            }
+
+            // Handle file upload
+            if ($file) {
+                if ($mutasi->dokumen_pendukung) {
+                    Storage::delete($mutasi->dokumen_pendukung);
+                }
+                $mutasi->dokumen_pendukung = $file->store('mutasi-documents');
+            }
+
+            $mutasi->tanggal_mutasi = $validated['tanggal_mutasi'];
+            $mutasi->alasan = $validated['alasan'];
+            $mutasi->kategori_mutasi = $validated['kategori_mutasi'] ?? $mutasi->kategori_mutasi;
+            $mutasi->asal_tujuan = $validated['asal_tujuan'] ?? $mutasi->asal_tujuan;
+            $mutasi->detail_tambahan = $detailTambahan;
+            $mutasi->save();
+
+            return $mutasi;
+        });
+    }
+
+    /**
+     * Handle Mutasi Cancel
+     */
+    public function cancelMutasi(Mutasi $mutasi)
+    {
+        return DB::transaction(function () use ($mutasi) {
+            // Guard conditions
+            if ($mutasi->jenis_mutasi == 'pisah_kk' && !in_array($mutasi->kategori_mutasi, ['dalam_desa'])) {
+                throw new \Exception('Mutasi ini tidak bisa dibatalkan. Gunakan tombol Undo untuk mengembalikan data.');
+            }
+
+            if (in_array($mutasi->jenis_mutasi, ['kematian', 'pindah_keluar', 'pembaruan_kk'])) {
+                throw new \Exception('Mutasi ini tidak bisa dibatalkan. Gunakan tombol Undo untuk mengembalikan data.');
+            }
+
+            if ($mutasi->jenis_mutasi == 'pindah_masuk' || $mutasi->jenis_mutasi == 'kelahiran') {
+                $penduduk = $mutasi->penduduk;
+                if ($penduduk) {
+                    $penduduk->forceDelete();
+                }
+            }
+
+            // Revert data Pindah RT/RW dari snapshot
+            if ($mutasi->jenis_mutasi == 'pindah_rt_rw') {
+                $snapshot = $mutasi->detail_tambahan['snapshot_asal'] ?? null;
+                if ($snapshot && !empty($snapshot['nkk'])) {
+                    $kk = KartuKeluarga::where('nkk', $snapshot['nkk'])->first();
+                    if ($kk) {
+                        $kk->update([
+                            'rt_id' => $snapshot['rt_id_asal'] ?? $kk->rt_id,
+                            'rw_id' => $snapshot['rw_id_asal'] ?? $kk->rw_id,
+                            'dusun_id' => $snapshot['dusun_id_asal'] ?? $kk->dusun_id,
+                            'alamat' => $snapshot['alamat_asal'] ?? $kk->alamat,
+                        ]);
+                    }
+                }
+            }
+
+            // Revert data Pisah KK dalam_desa dari snapshot
+            if ($mutasi->jenis_mutasi == 'pisah_kk' && $mutasi->kategori_mutasi === 'dalam_desa') {
+                $snapshot = $mutasi->detail_tambahan['snapshot_asal'] ?? null;
+                if ($snapshot) {
+                    $penduduk = Penduduk::find($mutasi->penduduk_id);
+                    if ($penduduk && !empty($snapshot['nkk_asal'])) {
+                        $originalKk = KartuKeluarga::where('nkk', $snapshot['nkk_asal'])->first();
+                        if ($originalKk) {
+                            $penduduk->update([
+                                'kartu_keluarga_id' => $originalKk->id,
+                                'kedudukan_keluarga' => $snapshot['kedudukan_asal'] ?? $penduduk->kedudukan_keluarga,
+                            ]);
+                        }
+                    }
+                    if (!empty($snapshot['anggota_pindah'])) {
+                        foreach ($snapshot['anggota_pindah'] as $anggotaData) {
+                            $anggota = Penduduk::find($anggotaData['id']);
+                            if ($anggota && !empty($anggotaData['nkk_asal'])) {
+                                $originalKk = KartuKeluarga::where('nkk', $anggotaData['nkk_asal'])->first();
+                                if ($originalKk) {
+                                    $anggota->update([
+                                        'kartu_keluarga_id' => $originalKk->id,
+                                    ]);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            $mutasi->forceDelete();
+            return true;
+        });
+    }
+
+    /**
+     * Handle Mutasi Undo
+     */
+    public function undoMutasi(Mutasi $mutasi)
+    {
+        if ($mutasi->detail_tambahan['kk_sudah_diselesaikan'] ?? false) {
+            throw new \Exception('Undo tidak dapat dilakukan. KK dari mutasi ini sudah diselesaikan secara permanen.');
+        }
+
+        return DB::transaction(function () use ($mutasi) {
+            // Rollback KK Sementara
+            $kkSementaraId = $mutasi->detail_tambahan['kk_sementara_id'] ?? null;
+            $kkSementaraAsal = $mutasi->detail_tambahan['kk_sementara_kedudukan_asal'] ?? null;
+            if ($kkSementaraId && $kkSementaraAsal) {
+                $kkSementara = Penduduk::find($kkSementaraId);
+                if ($kkSementara) {
+                    $kkSementara->update(['kedudukan_keluarga' => $kkSementaraAsal]);
+                }
+                $pembaruanKkMutasi = Mutasi::where('penduduk_id', $kkSementaraId)
+                    ->where('jenis_mutasi', 'pembaruan_kk')
+                    ->latest('id')
+                    ->first();
+
+                if ($pembaruanKkMutasi) {
+                    $detPem = $pembaruanKkMutasi->detail_tambahan ?? [];
+                    if (($detPem['tipe'] ?? null) === 'sementara') {
+                        $pembaruanKkMutasi->forceDelete();
+                    }
+                }
+                $pendudukKk = $kkSementara?->kartuKeluarga;
+                if ($pendudukKk && in_array($pendudukKk->status_kk, ['bermasalah', 'bermasalah_sementara'])) {
+                    $pendudukKk->update(['kk_sementara_id' => null]);
+                }
+            }
+
+            $snapshot = $mutasi->detail_tambahan['snapshot_asal'] ?? null;
+            $oldKK = null;
+            if ($snapshot && !empty($snapshot['nkk_asal'])) {
+                $oldKK = KartuKeluarga::where('nkk', $snapshot['nkk_asal'])->first();
+            }
+
+            $currentKKIdOfPenduduk = null;
+            $pendudukForRecalc = Penduduk::find($mutasi->penduduk_id);
+            if ($pendudukForRecalc) {
+                $currentKKIdOfPenduduk = $pendudukForRecalc->kartu_keluarga_id;
+            }
+
+            // HANDLER: Pembaruan KK
+            if ($mutasi->jenis_mutasi === 'pembaruan_kk') {
+                $penduduk = Penduduk::find($mutasi->penduduk_id);
+                if ($penduduk) {
+                    $kedudukanAsal = $mutasi->detail_tambahan['kedudukan_asal'] ?? 'ANGGOTA';
+                    $penduduk->update(['kedudukan_keluarga' => $kedudukanAsal]);
+                }
+                $nkk = $mutasi->detail_tambahan['nkk'] ?? null;
+                if ($nkk) {
+                    $kk = KartuKeluarga::where('nkk', $nkk)->first();
+                    if ($kk) {
+                        $kk->update([
+                            'status_kk' => 'bermasalah',
+                            'kk_sementara_id' => null,
+                            'catatan_bermasalah' => 'Dikembalikan via Undo mutasi pembaruan KK',
+                            'kk_bermasalah_sejak' => now(),
+                        ]);
+                        if ($kk->mutasi_penyebab_id) {
+                            $mutasiPenyebab = Mutasi::find($kk->mutasi_penyebab_id);
+                            if ($mutasiPenyebab) {
+                                $detail = $mutasiPenyebab->detail_tambahan;
+                                unset($detail['kk_sementara_id'], $detail['kk_sementara_kedudukan_asal']);
+                                $mutasiPenyebab->update(['detail_tambahan' => $detail]);
+                            }
+                        }
+                        $this->kkService->recalculate($kk->id);
+                    }
+                }
+                $mutasi->forceDelete();
+                return true;
+            }
+
+            // HANDLER: Kematian / Pindah Keluar / Pisah KK
+            if (in_array($mutasi->jenis_mutasi, ['kematian', 'pindah_keluar', 'pisah_kk'])) {
+                $suratId = $mutasi->detail_tambahan['surat_pengajuan_id'] ?? null;
+                if ($mutasi->jenis_mutasi === 'kematian') {
+                    $surat = $suratId ? SuratPengajuan::find($suratId) : SuratPengajuan::where('penduduk_id', $mutasi->penduduk_id)->where('jenis_surat', 'kematian')->whereIn('status', ['SELESAI', 'selesai', 'completed'])->latest()->first();
+                    if ($surat) $surat->delete();
+                }
+
+                $penduduk = Penduduk::withTrashed()->find($mutasi->penduduk_id);
+                if ($penduduk) {
+                    if ($penduduk->trashed()) $penduduk->restore();
+                    $kedudukanRestore = $snapshot['kedudukan_asal'] ?? $penduduk->kedudukan_keluarga;
+                    if ($oldKK && $penduduk->kartu_keluarga_id != $oldKK->id) {
+                        $penduduk->update(['kartu_keluarga_id' => $oldKK->id, 'kedudukan_keluarga' => $kedudukanRestore]);
+                    } else {
+                        $penduduk->update(['kedudukan_keluarga' => $kedudukanRestore]);
+                    }
+                }
+
+                if ($snapshot && !empty($snapshot['anggota_pindah'])) {
+                    foreach ($snapshot['anggota_pindah'] as $anggotaData) {
+                        $anggota = Penduduk::withTrashed()->find($anggotaData['id']);
+                        if ($anggota) {
+                            if ($anggota->trashed()) $anggota->restore();
+                            if ($oldKK && $anggota->kartu_keluarga_id != $oldKK->id) {
+                                $anggota->update(['kartu_keluarga_id' => $oldKK->id, 'kedudukan_keluarga' => $anggotaData['kedudukan_asal'] ?? $anggota->kedudukan_keluarga]);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // HANDLER: Pindah RT/RW
+            if ($mutasi->jenis_mutasi == 'pindah_rt_rw') {
+                if ($snapshot && $oldKK) {
+                    $oldKK->update([
+                        'rt_id' => $snapshot['rt_id_asal'] ?? $oldKK->rt_id,
+                        'rw_id' => $snapshot['rw_id_asal'] ?? $oldKK->rw_id,
+                        'dusun_id' => $snapshot['dusun_id_asal'] ?? $oldKK->dusun_id,
+                        'alamat' => $snapshot['alamat_asal'] ?? $oldKK->alamat,
+                    ]);
+                }
+            }
+
+            if ($oldKK) $this->kkService->recalculate($oldKK->id);
+            if ($currentKKIdOfPenduduk && (!$oldKK || $currentKKIdOfPenduduk != $oldKK->id)) $this->kkService->recalculate($currentKKIdOfPenduduk);
+
+            $mutasi->forceDelete();
+            return true;
+        });
+    }
 }

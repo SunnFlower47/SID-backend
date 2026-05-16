@@ -32,7 +32,7 @@ class AiController extends Controller
             $villageInfo .= "- Nama: " . ($allSettings['nama_desa'] ?? 'Cibatu') . "\n";
             $villageInfo .= "- Kecamatan: " . ($allSettings['kecamatan'] ?? 'Cibatu') . "\n";
             $villageInfo .= "- Kabupaten: " . ($allSettings['kabupaten'] ?? 'Purwakarta') . "\n";
-            $villageInfo .= "- Alamat Kantor: " . ($allSettings['alamat_kantor'] ?? 'Jl. Raya Cibatu No. 1') . "\n";
+            $villageInfo .= "- Alamat Kantor: " . ($allSettings['alamat_kantor'] ?? 'Jl. Raya Cibatu No. 15') . "\n";
             $villageInfo .= "- Jam Operasional: Senin sampai Jumat jam 08:00 sampai jam 16:00 (Sabtu-Minggu Libur)\n\n";
 
             $letterContext = "Layanan Surat Digital:\n";

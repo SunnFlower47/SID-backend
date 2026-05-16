@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Tenant\Admin\ImportController;
+use App\Http\Controllers\Tenant\Admin\ImportConflictController;
 use App\Http\Controllers\Tenant\Admin\SettingsController;
 use App\Http\Controllers\Tenant\Kependudukan\TrashPendudukController;
 use App\Http\Controllers\Tenant\Kependudukan\WilayahController;
@@ -43,12 +44,13 @@ Route::middleware('can:admin_sistem')->group(function () {
     Route::prefix('settings/wilayah')->name('settings.wilayah.')->controller(WilayahController::class)->group(function () {
         Route::get('/', 'index')->name('index');
         Route::get('/rt/{rt}/penduduk', 'detailRtPenduduk')->name('rt.penduduk');
-        Route::get('/import-conflicts', 'importConflicts')->name('import-conflicts.index');
         Route::post('/dusun', 'storeDusun')->name('dusun.store');
         Route::put('/dusun/{dusun}', 'updateDusun')->name('dusun.update');
+        Route::delete('/dusun/{dusun}', 'destroyDusun')->name('dusun.destroy');
         Route::post('/dusun/{dusun}/preview-impact', 'previewImpactDusun')->name('dusun.preview-impact');
         Route::post('/rw', 'storeRw')->name('rw.store');
         Route::put('/rw/{rw}', 'updateRw')->name('rw.update');
+        Route::delete('/rw/{rw}', 'destroyRw')->name('rw.destroy');
         Route::post('/rw/{rw}/preview-impact', 'previewImpactRw')->name('rw.preview-impact');
         Route::post('/rt', 'storeRt')->name('rt.store');
         Route::put('/rt/{rt}', 'updateRt')->name('rt.update');
@@ -56,9 +58,14 @@ Route::middleware('can:admin_sistem')->group(function () {
         Route::match(['post','put'], '/rt/{rt}/preview-impact', 'previewImpactRt')->name('rt.preview-impact');
         Route::post('/rt/{rt}/apply-update', 'applyRtUpdate')->name('rt.apply-update');
         Route::post('/change-log/{log}/rollback', 'rollbackWilayahChange')->name('change-log.rollback');
-        Route::post('/import-conflicts/{conflict}/resolve', 'resolveImportConflict')->name('import-conflicts.resolve');
-        Route::post('/import-conflicts/{conflict}/reset', 'resetImportConflict')->name('import-conflicts.reset');
-        Route::post('/import-conflicts/{conflict}/reprocess', 'reprocessImportIssue')->name('import-conflicts.reprocess');
+    });
+
+    // Import Conflicts
+    Route::prefix('import-conflicts')->name('import-conflicts.')->controller(ImportConflictController::class)->group(function () {
+        Route::get('/', 'importConflicts')->name('index');
+        Route::post('/{conflict}/resolve', 'resolveImportConflict')->name('resolve');
+        Route::post('/{conflict}/reset', 'resetImportConflict')->name('reset');
+        Route::post('/{conflict}/reprocess', 'reprocessImportIssue')->name('reprocess');
     });
 
     // Export/Import/Backup

@@ -3,11 +3,54 @@
 namespace App\Services;
 
 use App\Models\Penduduk;
+use App\Models\KartuKeluarga;
+use App\Models\Rw;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class PendudukService
 {
+    /**
+     * Get list of existing NKKs for dropdowns
+     */
+    public function getExistingNKKs()
+    {
+        return KartuKeluarga::withWilayah()
+            ->orderBy('nkk')
+            ->get()
+            ->map(function($kk) {
+                return [
+                    'nkk' => $kk->nkk,
+                    'kepala_keluarga' => $kk->nama_kepala_keluarga,
+                    'alamat' => $kk->alamat,
+                    'rt' => $kk->rt_label,
+                    'rw' => $kk->rw_label,
+                ];
+            });
+    }
+
+    /**
+     * Get Master RW Options with nested RTs
+     */
+    public function getMasterRwOptions()
+    {
+        $rws = Rw::with(['rts.dusun'])->orderBy('kode')->get();
+        return $rws->map(function ($rw) {
+            return [
+                'id' => $rw->id,
+                'kode' => $rw->kode,
+                'nama' => $rw->nama,
+                'rts' => $rw->rts->map(function ($rt) {
+                    return [
+                        'id' => $rt->id,
+                        'kode' => $rt->kode,
+                        'dusun_id' => $rt->dusun_id,
+                        'dusun' => optional($rt->dusun)->nama,
+                    ];
+                })->values(),
+            ];
+        })->values();
+    }
     /**
      * Create a new inhabitants with optional family members
      */

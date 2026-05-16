@@ -31,10 +31,9 @@ class MutasiController extends Controller
         Gate::authorize('kependudukan');
 
         $query = Mutasi::with(['penduduk' => function($q) {
-            $q->withTrashed(); // Include soft deleted penduduk
+            $q->withTrashed();
         }]);
 
-        // Search (wrapped in closure to prevent OR leak bypassing other filters)
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($main) use ($search) {
@@ -45,29 +44,21 @@ class MutasiController extends Controller
             });
         }
 
-        // Filter jenis mutasi
         if ($request->filled('jenis_mutasi')) {
             $query->where('jenis_mutasi', $request->jenis_mutasi);
         }
 
-        // Filter kategori mutasi
         if ($request->filled('kategori_mutasi')) {
             $query->where('kategori_mutasi', $request->kategori_mutasi);
         }
 
         $mutasis = $query->orderBy('tanggal_mutasi', 'desc')->paginate(15);
 
-        $stats = [
-            'kelahiran' => Mutasi::where('jenis_mutasi', 'kelahiran')->count(),
-            'kematian' => Mutasi::where('jenis_mutasi', 'kematian')->count(),
-            'pindahan' => Mutasi::whereIn('jenis_mutasi', ['pindah_masuk', 'pindah_keluar', 'pindah_rt_rw'])->count(),
-            'pisah_kk' => Mutasi::where('jenis_mutasi', 'pisah_kk')->count(),
-        ];
-
+        // Optimization: Use once() to avoid redundant service calls in deferred props
         return Inertia::render('Tenant/Mutasi/Index', [
             'mutasis' => Inertia::defer(fn() => $mutasis),
             'filters' => $request->only(['search', 'jenis_mutasi', 'kategori_mutasi']),
-            'stats' => Inertia::defer(fn() => $stats)
+            'stats' => Inertia::defer(fn() => once(fn() => app(\App\Services\VillageStatisticsService::class)->getDashboardStats())['mutasi'])
         ]);
     }
 
@@ -78,34 +69,8 @@ class MutasiController extends Controller
     {
         Gate::authorize('kependudukan');
 
-        // Build a hierarchical tree of Wilayah: Dusun -> RW -> RT
-        $dusuns = \App\Models\Dusun::orderBy('nama')->get();
-        $rws = \App\Models\Rw::with('rts')->orderBy('kode')->get();
-
-        $wilayahTree = $dusuns->map(function($dusun) use ($rws) {
-            return [
-                'id' => $dusun->id,
-                'nama' => $dusun->nama,
-                'rws' => $rws->filter(function($rw) use ($dusun) {
-                    // Assuming RTs have dusun_id, we link RW to Dusun if it has any RT in that Dusun
-                    return $rw->rts->where('dusun_id', $dusun->id)->count() > 0;
-                })->map(function($rw) use ($dusun) {
-                    return [
-                        'id' => $rw->id,
-                        'kode' => $rw->kode,
-                        'rts' => $rw->rts->where('dusun_id', $dusun->id)->map(function($rt) {
-                            return [
-                                'id' => $rt->id,
-                                'kode' => $rt->kode
-                            ];
-                        })->values()
-                    ];
-                })->values()
-            ];
-        })->values();
-
         return Inertia::render('Tenant/Mutasi/Create', [
-            'wilayahTree' => $wilayahTree
+            'wilayahTree' => $this->mutasiService->getWilayahTree()
         ]);
     }
 
@@ -218,50 +183,10 @@ class MutasiController extends Controller
     {
         Gate::authorize('kependudukan');
 
-        $rws = \App\Models\Rw::with(['rts.dusun'])->orderBy('kode')->get();
-        $masterRwOptions = $rws->map(function ($rw) {
-            return [
-                'id' => $rw->id,
-                'kode' => $rw->kode,
-                'nama' => $rw->nama,
-                'rts' => $rw->rts->map(function ($rt) {
-                    return [
-                        'id' => $rt->id,
-                        'kode' => $rt->kode,
-                        'dusun_id' => $rt->dusun_id,
-                        'dusun' => optional($rt->dusun)->nama,
-                    ];
-                })->values(),
-            ];
-        })->values();
-        
-        // Build a hierarchical tree of Wilayah: Dusun -> RW -> RT
-        $dusuns = \App\Models\Dusun::orderBy('nama')->get();
-        $wilayahTree = $dusuns->map(function($dusun) use ($rws) {
-            return [
-                'id' => $dusun->id,
-                'nama' => $dusun->nama,
-                'rws' => $rws->filter(function($rw) use ($dusun) {
-                    return $rw->rts->where('dusun_id', $dusun->id)->count() > 0;
-                })->map(function($rw) use ($dusun) {
-                    return [
-                        'id' => $rw->id,
-                        'kode' => $rw->kode,
-                        'rts' => $rw->rts->where('dusun_id', $dusun->id)->map(function($rt) {
-                            return [
-                                'id' => $rt->id,
-                                'kode' => $rt->kode
-                            ];
-                        })->values()
-                    ];
-                })->values()
-            ];
-        })->values();
-        
         return \Inertia\Inertia::render('Tenant/Mutasi/Edit', [
             'mutasi' => $mutasi->load(['penduduk' => fn($q) => $q->withWilayah()]),
-            'masterRwOptions' => $masterRwOptions,
-            'wilayahTree' => $wilayahTree
+            'masterRwOptions' => $this->mutasiService->getMasterRwOptions(),
+            'wilayahTree' => $this->mutasiService->getWilayahTree()
         ]);
     }
 
@@ -273,7 +198,7 @@ class MutasiController extends Controller
     {
         Gate::authorize('kependudukan');
 
-        // Base validation
+        // Validation logic remains in Controller for clarity
         $rules = [
             'tanggal_mutasi' => 'required|date',
             'alasan' => 'nullable|string|max:500',
@@ -282,7 +207,6 @@ class MutasiController extends Controller
             'asal_tujuan' => 'nullable|string',
         ];
 
-        // Conditional rules based on type
         switch ($mutasi->jenis_mutasi) {
             case 'kematian':
                 $rules += [
@@ -317,78 +241,9 @@ class MutasiController extends Controller
         $validated = $request->validate($rules);
 
         try {
-            DB::beginTransaction();
-
-            $detailTambahan = $mutasi->detail_tambahan ?? [];
-
-            // Update specific metadata based on type
-            if ($mutasi->jenis_mutasi === 'kematian') {
-                $detailTambahan['kematian'] = [
-                    'hari' => $validated['hari_meninggal'],
-                    'jam' => $validated['jam_meninggal'],
-                    'bertempat_di' => $validated['bertempat_di'],
-                    'tanggal' => $validated['tanggal_mutasi'],
-                ];
-                $detailTambahan['pemakaman'] = [
-                    'hari' => $validated['hari_pemakaman'],
-                    'tanggal' => $validated['tanggal_pemakaman'],
-                    'jam' => $validated['jam_pemakaman'],
-                    'lokasi' => $validated['lokasi_pemakaman'],
-                ];
-                $mutasi->asal_tujuan = $validated['bertempat_di'];
-            } 
-            elseif ($mutasi->jenis_mutasi === 'kelahiran') {
-                // Update the resident (baby) record
-                if ($mutasi->penduduk) {
-                    $mutasi->penduduk->update([
-                        'nama' => $validated['nama_bayi'],
-                        'nik' => $validated['nik_bayi'],
-                        'jenis_kelamin' => $validated['jenis_kelamin_bayi'],
-                        'tanggal_lahir' => $validated['tanggal_lahir'],
-                        'tempat_lahir' => $validated['tempat_lahir'],
-                    ]);
-                }
-            }
-            elseif ($mutasi->jenis_mutasi === 'pisah_kk' || $mutasi->jenis_mutasi === 'pindah_keluar') {
-                $snapshot = $detailTambahan['snapshot_asal'] ?? [];
-                if (isset($validated['anggota_pisah_data'])) {
-                    $snapshot['anggota_pindah'] = $validated['anggota_pisah_data'];
-                }
-                if (isset($validated['anggota_pindah'])) {
-                    // Fetch member details for snapshot
-                    $members = Penduduk::whereIn('id', $validated['anggota_pindah'])->get()->map(function($m) {
-                        return [
-                            'id' => $m->id,
-                            'nama' => $m->nama,
-                            'nik' => $m->nik,
-                            'kedudukan' => $m->kedudukan_keluarga
-                        ];
-                    });
-                    $snapshot['anggota_pindah'] = $members;
-                }
-                $detailTambahan['snapshot_asal'] = $snapshot;
-            }
-
-            // Handle file upload
-            if ($request->hasFile('dokumen_pendukung')) {
-                if ($mutasi->dokumen_pendukung) {
-                    Storage::delete($mutasi->dokumen_pendukung);
-                }
-                $mutasi->dokumen_pendukung = $request->file('dokumen_pendukung')->store('mutasi-documents');
-            }
-
-            $mutasi->tanggal_mutasi = $validated['tanggal_mutasi'];
-            $mutasi->alasan = $validated['alasan'];
-            $mutasi->kategori_mutasi = $validated['kategori_mutasi'] ?? $mutasi->kategori_mutasi;
-            $mutasi->asal_tujuan = $validated['asal_tujuan'] ?? $mutasi->asal_tujuan;
-            $mutasi->detail_tambahan = $detailTambahan;
-            $mutasi->save();
-
-            DB::commit();
+            $this->mutasiService->updateMutasi($mutasi, $validated, $request->file('dokumen_pendukung'));
             return redirect()->route('mutasi.data.index')->with('success', 'Data berhasil diperbarui.');
-
         } catch (\Exception $e) {
-            DB::rollBack();
             return redirect()->back()->with('error', 'Gagal memperbarui data: ' . $e->getMessage());
         }
     }
@@ -402,101 +257,15 @@ class MutasiController extends Controller
 
         $wantsJson = ($request->expectsJson() || $request->wantsJson() || $request->ajax()) && !$request->header('X-Inertia');
 
-        // Pisah KK hanya bisa cancel jika dalam_desa
-        if ($mutasi->jenis_mutasi == 'pisah_kk' && !in_array($mutasi->kategori_mutasi, ['dalam_desa'])) {
-            $message = 'Mutasi ini tidak bisa dibatalkan. Gunakan tombol Undo untuk mengembalikan data.';
-            return $wantsJson
-                ? response()->json(['success' => false, 'message' => $message], 422)
-                : redirect()->route('mutasi.data.index')->with('error', $message);
-        }
-
-        if (in_array($mutasi->jenis_mutasi, ['kematian', 'pindah_keluar'])) {
-            $message = 'Mutasi ini tidak bisa dibatalkan. Gunakan tombol Undo untuk mengembalikan data.';
-            return $wantsJson
-                ? response()->json(['success' => false, 'message' => $message], 422)
-                : redirect()->route('mutasi.data.index')->with('error', $message);
-        }
-
-        // Pembaruan KK tidak boleh di-cancel dari sini, harus lewat Undo
-        if ($mutasi->jenis_mutasi === 'pembaruan_kk') {
-            $message = 'Mutasi pembaruan KK tidak bisa dibatalkan dengan cara ini. Gunakan tombol Undo untuk mengembalikan status KK.';
-            return $wantsJson
-                ? response()->json(['success' => false, 'message' => $message], 422)
-                : redirect()->route('mutasi.data.index')->with('error', $message);
-        }
-
         try {
-            DB::beginTransaction();
-
-            if ($mutasi->jenis_mutasi == 'pindah_masuk' || $mutasi->jenis_mutasi == 'kelahiran') {
-                $penduduk = $mutasi->penduduk;
-                if ($penduduk) {
-                    $penduduk->forceDelete();
-                }
-            }
-
-            // Revert data Pindah RT/RW dari snapshot
-            if ($mutasi->jenis_mutasi == 'pindah_rt_rw') {
-                $snapshot = $mutasi->detail_tambahan['snapshot_asal'] ?? null;
-                if ($snapshot && !empty($snapshot['nkk'])) {
-                    $kk = \App\Models\KartuKeluarga::where('nkk', $snapshot['nkk'])->first();
-                    if ($kk) {
-                        $kk->update([
-                            'rt_id' => $snapshot['rt_id_asal'] ?? $kk->rt_id,
-                            'rw_id' => $snapshot['rw_id_asal'] ?? $kk->rw_id,
-                            'dusun_id' => $snapshot['dusun_id_asal'] ?? $kk->dusun_id,
-                            'alamat' => $snapshot['alamat_asal'] ?? $kk->alamat,
-                        ]);
-                    }
-                }
-            }
-
-            // Revert data Pisah KK dalam_desa dari snapshot
-            if ($mutasi->jenis_mutasi == 'pisah_kk' && $mutasi->kategori_mutasi === 'dalam_desa') {
-                $snapshot = $mutasi->detail_tambahan['snapshot_asal'] ?? null;
-                if ($snapshot) {
-                    // Revert penduduk utama (back to original KK)
-                    $penduduk = Penduduk::find($mutasi->penduduk_id);
-                    if ($penduduk && !empty($snapshot['nkk_asal'])) {
-                        $originalKk = \App\Models\KartuKeluarga::where('nkk', $snapshot['nkk_asal'])->first();
-                        if ($originalKk) {
-                            $penduduk->update([
-                                'kartu_keluarga_id' => $originalKk->id,
-                                'kedudukan_keluarga' => $snapshot['kedudukan_asal'] ?? $penduduk->kedudukan_keluarga,
-                            ]);
-                        }
-                    }
-                    // Revert anggota yang ikut pindah
-                    if (!empty($snapshot['anggota_pindah'])) {
-                        foreach ($snapshot['anggota_pindah'] as $anggotaData) {
-                            $anggota = Penduduk::find($anggotaData['id']);
-                            if ($anggota && !empty($anggotaData['nkk_asal'])) {
-                                $originalKk = \App\Models\KartuKeluarga::where('nkk', $anggotaData['nkk_asal'])->first();
-                                if ($originalKk) {
-                                    $anggota->update([
-                                        'kartu_keluarga_id' => $originalKk->id,
-                                    ]);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Delete mutasi record (forceDelete karena Mutasi model pakai SoftDeletes)
-            $mutasi->forceDelete();
-
-            DB::commit();
-
+            $this->mutasiService->cancelMutasi($mutasi);
             return $wantsJson
                 ? response()->json(['success' => true, 'message' => 'Mutasi berhasil dibatalkan.'])
                 : redirect()->route('mutasi.data.index')->with('success', 'Mutasi berhasil dibatalkan.');
-
         } catch (\Exception $e) {
-            DB::rollBack();
             $message = 'Gagal membatalkan mutasi: ' . $e->getMessage();
             return $wantsJson
-                ? response()->json(['success' => false, 'message' => $message], 500)
+                ? response()->json(['success' => false, 'message' => $message], 422)
                 : redirect()->route('mutasi.data.index')->with('error', $message);
         }
     }
@@ -613,232 +382,12 @@ class MutasiController extends Controller
 
         $wantsJson = ($request->expectsJson() || $request->wantsJson() || $request->ajax()) && !$request->header('X-Inertia');
 
-        // Guard: Blokir Undo jika KK sudah diselesaikan secara PERMANEN.
-        if ($mutasi->detail_tambahan['kk_sudah_diselesaikan'] ?? false) {
-            $msg = 'Undo tidak dapat dilakukan. KK dari mutasi ini sudah diselesaikan secara permanen.';
-            return $wantsJson
-                ? response()->json(['success' => false, 'message' => $msg], 422)
-                : redirect()->back()->with('error', $msg);
-        }
-
         try {
-            DB::beginTransaction();
-
-            // ============================================================
-            // Rollback KK Sementara jika ada (HARUS di dalam transaction!)
-            // Ini terjadi saat undo mutasi kematian/pindah_keluar yang
-            // sudah ada KK sementara ditunjuk → harus rollback semua.
-            // ============================================================
-            $kkSementaraId = $mutasi->detail_tambahan['kk_sementara_id'] ?? null;
-            $kkSementaraAsal = $mutasi->detail_tambahan['kk_sementara_kedudukan_asal'] ?? null;
-            if ($kkSementaraId && $kkSementaraAsal) {
-                // 1. Rollback kedudukan penduduk KK sementara
-                $kkSementara = Penduduk::find($kkSementaraId);
-                if ($kkSementara) {
-                    $kkSementara->update(['kedudukan_keluarga' => $kkSementaraAsal]);
-                }
-
-                // 2. Hapus mutasi pembaruan_kk sementara yang terkait (sinkron dengan batalkanSementara)
-                $pembaruanKkMutasi = Mutasi::where('penduduk_id', $kkSementaraId)
-                    ->where('jenis_mutasi', 'pembaruan_kk')
-                    ->latest('id')
-                    ->first();
-
-                if ($pembaruanKkMutasi) {
-                    $detPem = $pembaruanKkMutasi->detail_tambahan ?? [];
-                    if (($detPem['tipe'] ?? null) === 'sementara') {
-                        $pembaruanKkMutasi->forceDelete();
-                    }
-                }
-
-                // 3. Reset KK record: kembali ke normal (bukan bermasalah, karena penyebab bermasalah-nya di-undo)
-                $pendudukKk = $kkSementara?->kartuKeluarga;
-                if ($pendudukKk && in_array($pendudukKk->status_kk, ['bermasalah', 'bermasalah_sementara'])) {
-                    $pendudukKk->update([
-                        'kk_sementara_id' => null,
-                    ]);
-                    // Status KK akan otomatis ter-recalculate di bawah via KartuKeluargaService
-                }
-            }
-
-            $snapshot = $mutasi->detail_tambahan['snapshot_asal'] ?? null;
-            $oldKK = null;
-            if ($snapshot && !empty($snapshot['nkk_asal'])) {
-                $oldKK = \App\Models\KartuKeluarga::where('nkk', $snapshot['nkk_asal'])->first();
-            }
-
-            // Capture the current KK ID before moving them back
-            $currentKKIdOfPenduduk = null;
-            $pendudukForRecalc = Penduduk::find($mutasi->penduduk_id);
-            if ($pendudukForRecalc) {
-                $currentKKIdOfPenduduk = $pendudukForRecalc->kartu_keluarga_id;
-            }
-
-            // ============================================================
-            // HANDLER: Pembaruan KK (Resolusi KK Bermasalah)
-            // Mutasi ini TIDAK melakukan soft-delete. Dia hanya mengubah
-            // kedudukan penduduk. Jadi undo = kembalikan kedudukan.
-            // ============================================================
-            if ($mutasi->jenis_mutasi === 'pembaruan_kk') {
-                $penduduk = Penduduk::find($mutasi->penduduk_id);
-                if ($penduduk) {
-                    // Ambil kedudukan asal dari detail_tambahan
-                    $kedudukanAsal = $mutasi->detail_tambahan['kedudukan_asal'] ?? null;
-                    if ($kedudukanAsal) {
-                        $penduduk->update(['kedudukan_keluarga' => $kedudukanAsal]);
-                    } else {
-                        // Safety fallback: kalau kedudukan_asal tidak ada, set ke ANGGOTA
-                        $penduduk->update(['kedudukan_keluarga' => 'ANGGOTA']);
-                    }
-                }
-
-                // Reset status KK kembali ke bermasalah
-                $nkk = $mutasi->detail_tambahan['nkk'] ?? null;
-                if ($nkk) {
-                    $kk = \App\Models\KartuKeluarga::where('nkk', $nkk)->first();
-                    if ($kk) {
-                        $kk->update([
-                            'status_kk' => 'bermasalah',
-                            'kk_sementara_id' => null,
-                            'catatan_bermasalah' => 'Dikembalikan via Undo mutasi pembaruan KK',
-                            'kk_bermasalah_sejak' => now(),
-                        ]);
-
-                        // Bersihkan info kk_sementara dari mutasi penyebab (sinkron dengan batalkanSementara)
-                        if ($kk->mutasi_penyebab_id) {
-                            $mutasiPenyebab = Mutasi::find($kk->mutasi_penyebab_id);
-                            if ($mutasiPenyebab) {
-                                $detail = $mutasiPenyebab->detail_tambahan;
-                                if (!is_array($detail)) {
-                                    $detail = json_decode($detail, true) ?: [];
-                                }
-                                unset($detail['kk_sementara_id'], $detail['kk_sementara_kedudukan_asal']);
-                                $mutasiPenyebab->update(['detail_tambahan' => $detail]);
-                            }
-                        }
-
-                        // Recalculate stats for this KK
-                        app(\App\Services\KartuKeluargaService::class)->recalculate($kk->id);
-                    }
-                }
-
-                // Hapus record mutasi (forceDelete karena Mutasi model pakai SoftDeletes)
-                $mutasi->forceDelete();
-                DB::commit();
-
-                return $wantsJson
-                    ? response()->json(['success' => true, 'message' => 'Undo pembaruan KK berhasil. Status KK dikembalikan ke bermasalah.'])
-                    : redirect()->route('mutasi.data.index')->with('success', 'Undo pembaruan KK berhasil. Status KK dikembalikan ke bermasalah.');
-            }
-
-            // ============================================================
-            // HANDLER: Kematian / Pindah Keluar / Pisah KK
-            // Restore penduduk yang di-soft-delete & kembalikan ke KK asal
-            // ============================================================
-            if (in_array($mutasi->jenis_mutasi, ['kematian', 'pindah_keluar', 'pisah_kk'])) {
-                // Handle associated SuratPengajuan (Special for Death)
-                $suratId = $mutasi->detail_tambahan['surat_pengajuan_id'] ?? null;
-                
-                if ($mutasi->jenis_mutasi === 'kematian') {
-                    $surat = null;
-                    if ($suratId) {
-                        $surat = \App\Models\SuratPengajuan::find($suratId);
-                    }
-                    
-                    // FALLBACK: Jika ID tidak ada (data lama), cari berdasarkan penduduk_id & jenis
-                    if (!$surat) {
-                        $surat = \App\Models\SuratPengajuan::where('penduduk_id', $mutasi->penduduk_id)
-                                    ->where('jenis_surat', 'kematian')
-                                    ->whereIn('status', ['SELESAI', 'selesai', 'completed'])
-                                    ->latest()
-                                    ->first();
-                    }
-
-                    if ($surat) {
-                        $surat->delete();
-                    }
-                }
-
-                // Main Resident
-                $penduduk = Penduduk::withTrashed()->find($mutasi->penduduk_id);
-                if ($penduduk) {
-                    if ($penduduk->trashed()) {
-                        $penduduk->restore();
-                    }
-                    
-                    // Kembalikan kedudukan asal jika ada snapshot
-                    $kedudukanRestore = $snapshot['kedudukan_asal'] ?? $penduduk->kedudukan_keluarga;
-                    
-                    // If it was a move within village, move them back
-                    if ($oldKK && $penduduk->kartu_keluarga_id != $oldKK->id) {
-                        $penduduk->update([
-                            'kartu_keluarga_id' => $oldKK->id,
-                            'kedudukan_keluarga' => $kedudukanRestore,
-                        ]);
-                    } else {
-                        // Tetap kembalikan kedudukan meskipun KK sama
-                        $penduduk->update([
-                            'kedudukan_keluarga' => $kedudukanRestore,
-                        ]);
-                    }
-                }
-
-                // Accompanying Members
-                if ($snapshot && !empty($snapshot['anggota_pindah'])) {
-                    foreach ($snapshot['anggota_pindah'] as $anggotaData) {
-                        $anggota = Penduduk::withTrashed()->find($anggotaData['id']);
-                        if ($anggota) {
-                            if ($anggota->trashed()) {
-                                $anggota->restore();
-                            }
-                            
-                            if ($oldKK && $anggota->kartu_keluarga_id != $oldKK->id) {
-                                $anggota->update([
-                                    'kartu_keluarga_id' => $oldKK->id,
-                                    'kedudukan_keluarga' => $anggotaData['kedudukan_asal'] ?? $anggota->kedudukan_keluarga
-                                ]);
-                            }
-                        }
-                    }
-                }
-            }
-
-            // ============================================================
-            // HANDLER: Pindah RT/RW — Kembalikan alamat KK
-            // ============================================================
-            if ($mutasi->jenis_mutasi == 'pindah_rt_rw') {
-                if ($snapshot && $oldKK) {
-                    $oldKK->update([
-                        'rt_id' => $snapshot['rt_id_asal'] ?? $oldKK->rt_id,
-                        'rw_id' => $snapshot['rw_id_asal'] ?? $oldKK->rw_id,
-                        'dusun_id' => $snapshot['dusun_id_asal'] ?? $oldKK->dusun_id,
-                        'alamat' => $snapshot['alamat_asal'] ?? $oldKK->alamat,
-                    ]);
-                }
-            }
-
-            // ============================================================
-            // Recalculate Stats for affected KKs
-            // ============================================================
-            $kkService = app(\App\Services\KartuKeluargaService::class);
-            if ($oldKK) {
-                $kkService->recalculate($oldKK->id);
-            }
-            if ($currentKKIdOfPenduduk && (!$oldKK || $currentKKIdOfPenduduk != $oldKK->id)) {
-                $kkService->recalculate($currentKKIdOfPenduduk);
-            }
-
-            // Hapus record mutasi (forceDelete karena Mutasi model pakai SoftDeletes)
-            $mutasi->forceDelete();
-
-            DB::commit();
-
+            $this->mutasiService->undoMutasi($mutasi);
             return $wantsJson
                 ? response()->json(['success' => true, 'message' => 'Undo mutasi berhasil.'])
                 : redirect()->route('mutasi.data.index')->with('success', 'Undo mutasi berhasil.');
-
         } catch (\Exception $e) {
-            DB::rollBack();
             $message = 'Gagal undo mutasi: ' . $e->getMessage();
             return $wantsJson
                 ? response()->json(['success' => false, 'message' => $message], 500)
@@ -866,7 +415,7 @@ class MutasiController extends Controller
         $data = [
             'mutasi' => $mutasi,
             'penduduk' => $penduduk,
-            'nomor_surat' => $this->generateNomorSuratKematian(),
+            'nomor_surat' => $this->generateNomorSuratKematian(),   
             'kepala_desa' => $kadesInfo,
             'desa' => DesaSetting::getDesaInfo(),
             'logos' => DesaSetting::getLogos(),

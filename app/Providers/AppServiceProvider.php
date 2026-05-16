@@ -19,6 +19,12 @@ class AppServiceProvider extends ServiceProvider
         // Register KK Sync Observers
         \App\Models\Penduduk::observe(\App\Observers\PendudukObserver::class);
         \App\Models\Mutasi::observe(\App\Observers\MutasiObserver::class);
+        \App\Models\KartuKeluarga::observe(\App\Observers\VillageDataObserver::class);
+        \App\Models\SuratPengajuan::observe(\App\Observers\VillageDataObserver::class);
+        \App\Models\Dusun::observe(\App\Observers\VillageDataObserver::class);
+        \App\Models\Rw::observe(\App\Observers\VillageDataObserver::class);
+        \App\Models\Rt::observe(\App\Observers\VillageDataObserver::class);
+        \App\Models\WilayahChangeLog::observe(\App\Observers\VillageDataObserver::class);
 
         // View Composer for sidebar unread count (cached)
         \Illuminate\Support\Facades\View::composer('layouts.components.sidebar', function ($view) {

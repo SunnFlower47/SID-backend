@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class WilayahImportConflict extends Model
+class ImportConflict extends Model
 {
     protected $fillable = [
         'batch_id',

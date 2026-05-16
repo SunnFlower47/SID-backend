@@ -6,17 +6,23 @@ use App\Models\Penduduk;
 use App\Models\KartuKeluarga;
 use App\Console\Commands\SyncKartuKeluarga;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Cache;
+use App\Services\VillageStatisticsService;
 
 class PendudukObserver
 {
+    protected $statsService;
+
+    public function __construct(VillageStatisticsService $statsService)
+    {
+        $this->statsService = $statsService;
+    }
     /**
      * Handle the Penduduk "created" event.
      */
     public function created(Penduduk $penduduk): void
     {
         $this->recalculateKK($penduduk->kartu_keluarga_id);
-        $this->clearCache();
+        $this->statsService->clearStats();
     }
 
     /**
@@ -31,7 +37,7 @@ class PendudukObserver
         } else {
             $this->recalculateKK($penduduk->kartu_keluarga_id);
         }
-        $this->clearCache();
+        $this->statsService->clearStats();
     }
 
     /**
@@ -40,7 +46,7 @@ class PendudukObserver
     public function deleted(Penduduk $penduduk): void
     {
         $this->recalculateKK($penduduk->kartu_keluarga_id);
-        $this->clearCache();
+        $this->statsService->clearStats();
     }
 
     /**
@@ -60,7 +66,7 @@ class PendudukObserver
                 'catatan_bermasalah'  => null,
             ]);
         }
-        $this->clearCache();
+        $this->statsService->clearStats();
     }
 
     /**
@@ -70,14 +76,5 @@ class PendudukObserver
     {
         if (empty($kkId)) return;
         app(\App\Services\KartuKeluargaService::class)->recalculate($kkId);
-    }
-
-    /**
-     * Clear all relevant caches for real-time statistics
-     */
-    private function clearCache()
-    {
-        Cache::forget('api_penduduk_age_statistics');
-        Cache::forget('api_penduduk_filter_options_v2');
     }
 }

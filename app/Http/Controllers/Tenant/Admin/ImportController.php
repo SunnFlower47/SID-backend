@@ -15,7 +15,7 @@ use App\Models\Mutasi;
 use App\Models\Penduduk;
 use App\Models\Rt;
 use App\Models\Rw;
-use App\Models\WilayahImportConflict;
+use App\Models\ImportConflict;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -595,7 +595,7 @@ class ImportController extends Controller
 
             // ── Batch Insert Issues ───────────────────────────────────────
             foreach (array_chunk($issuesBatch, 200) as $chunk) {
-                WilayahImportConflict::insert($chunk);
+                ImportConflict::insert($chunk);
             }
 
             DB::commit();
@@ -705,7 +705,7 @@ class ImportController extends Controller
 
     private function storeWebImportIssue(string $batchId, string $sourceFile, string $issueType, string $reason, int $rowNumber, string $nik, string $nama, string $nkk, string $rwRaw, string $rtRaw, string $dusunRaw, array $meta = [], array $payloadRaw = []): void
     {
-        WilayahImportConflict::create([
+        ImportConflict::create([
             'batch_id' => $batchId,
             'source_file' => $sourceFile,
             'sheet_name' => 'Sheet1',
