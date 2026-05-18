@@ -42,19 +42,19 @@ class StatisticsController extends Controller
             ]),
             'genderStats' => Inertia::defer(fn() => once(fn() => $this->statsService->getDetailedStats())['gender']),
             'ageGroups' => Inertia::defer(fn() => once(fn() => $this->statsService->getDashboardStats())['age_groups']),
-            'religionStats' => Inertia::defer(fn() => Cache::tags(['statistics'])->remember('agama_stats_v2', 3600, function() {
+            'religionStats' => Inertia::defer(fn() => Cache::remember('agama_stats_v2', 3600, function() {
                 return DB::table('penduduks')->select('agama', DB::raw('count(*) as total'))->whereNull('deleted_at')->groupBy('agama')->orderByDesc('total')->get();
             })),
-            'educationStats' => Inertia::defer(fn() => Cache::tags(['statistics'])->remember('pendidikan_stats_v2', 3600, function() {
+            'educationStats' => Inertia::defer(fn() => Cache::remember('pendidikan_stats_v2', 3600, function() {
                 return DB::table('penduduks')->select('pendidikan', DB::raw('count(*) as total'))->whereNull('deleted_at')->groupBy('pendidikan')->orderByDesc('total')->get();
             })),
-            'jobStats' => Inertia::defer(fn() => Cache::tags(['statistics'])->remember('pekerjaan_stats_v2', 3600, function() {
+            'jobStats' => Inertia::defer(fn() => Cache::remember('pekerjaan_stats_v2', 3600, function() {
                 return DB::table('penduduks')->select('pekerjaan', DB::raw('count(*) as total'))->whereNull('deleted_at')->groupBy('pekerjaan')->orderByDesc('total')->limit(10)->get();
             })),
             'rtStats' => Inertia::defer(fn() => once(fn() => $this->statsService->getDetailedStats())['rt_distribution']),
             'rwStats' => Inertia::defer(fn() => once(fn() => $this->statsService->getDetailedStats())['rw_distribution']),
             'mutationStats' => Inertia::defer(fn() => once(fn() => $this->statsService->getDashboardStats())['mutasi']),
-            'recentMutations' => Inertia::defer(fn() => Cache::tags(['statistics'])->remember('recent_mutasi_detailed_v2', 600, function() {
+            'recentMutations' => Inertia::defer(fn() => Cache::remember('recent_mutasi_detailed_v2', 600, function() {
                 return Mutasi::with(['penduduk' => fn($q) => $q->withTrashed()])->orderBy('created_at', 'desc')->limit(10)->get();
             })),
         ]);

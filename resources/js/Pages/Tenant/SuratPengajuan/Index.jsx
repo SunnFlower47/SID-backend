@@ -13,6 +13,10 @@ import Swal from 'sweetalert2';
 import { cn } from '@/lib/utils';
 import dayjs from 'dayjs';
 import 'dayjs/locale/id';
+import Lottie from 'lottie-react';
+import noDataAnimation from '@/assets/lottie/no-data-animation.json';
+
+const LottieComponent = Lottie?.default || Lottie;
 
 dayjs.locale('id');
 
@@ -268,9 +272,9 @@ export default function Index({ auth, pengajuans, statusList, suratTypes, filter
                     </table>
                     
                     {pengajuans.data.length === 0 && (
-                        <div className="p-20 text-center">
-                            <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-100">
-                                <Search className="w-10 h-10 text-gray-300" />
+                        <div className="p-12 text-center">
+                            <div className="w-48 h-48 mx-auto">
+                                <LottieComponent animationData={noDataAnimation} loop={true} />
                             </div>
                             <h3 className="text-xl font-black text-gray-900 uppercase italic tracking-tighter">Tidak Ada Pengajuan</h3>
                             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-2">Gunakan tombol "Buat Surat" untuk memulai</p>

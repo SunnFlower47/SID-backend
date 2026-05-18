@@ -198,19 +198,19 @@ export default function Index({ auth, berita, stats, filters }) {
                                 })}
                             </div>
                         ) : (
-                            <div className="p-20 text-center text-left">
-                                <div className="w-72 h-72 mx-auto mb-6 text-left">
+                            <div className="p-20 text-center flex flex-col items-center justify-center">
+                                <div className="w-72 h-72 mx-auto mb-6">
                                     <LottieComponent animationData={noDataAnimation} loop={true} />
                                 </div>
-                                <h3 className="text-2xl font-black text-gray-900 uppercase italic tracking-tighter text-left">Belum Ada Informasi</h3>
-                                <p className="text-sm text-gray-500 mt-3 max-w-sm mx-auto font-bold uppercase tracking-widest text-[10px] text-left">
+                                <h3 className="text-2xl font-black text-gray-900 uppercase italic tracking-tighter text-center">Belum Ada Informasi</h3>
+                                <p className="text-sm text-gray-500 mt-3 max-w-sm mx-auto font-bold uppercase tracking-widest text-[10px] text-center">
                                     Pusat berita masih kosong. Mulai publikasikan informasi penting untuk masyarakat desa.
                                 </p>
                                 <Link 
                                     href={route('berita.create')}
-                                    className="inline-flex items-center px-10 py-5 bg-green-600 text-white rounded-[2rem] text-xs font-black shadow-2xl shadow-green-200 hover:bg-green-700 transition-all mt-8 uppercase tracking-widest text-left"
+                                    className="inline-flex items-center px-10 py-5 bg-green-600 text-white rounded-[2rem] text-xs font-black shadow-2xl shadow-green-200 hover:bg-green-700 transition-all mt-8 uppercase tracking-widest"
                                 >
-                                    <Plus className="w-5 h-5 mr-3 text-left" />
+                                    <Plus className="w-5 h-5 mr-3" />
                                     TERBITKAN BERITA PERTAMA
                                 </Link>
                             </div>

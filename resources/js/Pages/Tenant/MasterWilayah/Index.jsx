@@ -170,7 +170,7 @@ export default function Index({ auth, mapping, summary, recentChangeLogs }) {
     };
 
     return (
-        <AuthenticatedLayout user={auth.user}>
+        <AuthenticatedLayout user={auth.user} title="Master Wilayah">
             <Head title="Master Wilayah - Admin Panel" />
 
             <div className="space-y-6 animate-in fade-in duration-700 pb-20">
@@ -178,28 +178,28 @@ export default function Index({ auth, mapping, summary, recentChangeLogs }) {
                 {/* ── Header ── */}
                 <div className="bg-gradient-to-r from-green-600 via-green-700 to-green-800 rounded-3xl shadow-xl p-6 sm:p-8 relative overflow-hidden">
                     <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl pointer-events-none" />
-                    <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                        <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20">
-                                <Map className="w-5 h-5 text-yellow-300" />
+                    <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+                        <div className="flex items-center space-x-4">
+                            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-inner shrink-0">
+                                <Map className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-300" />
                             </div>
                             <div>
                                 <h1 className="text-xl sm:text-3xl font-black text-white tracking-tight uppercase italic leading-none">Master Wilayah</h1>
-                                <p className="text-green-100 font-bold text-[10px] uppercase tracking-widest mt-0.5 opacity-80">Data Administratif Desa Cibatu</p>
+                                <p className="text-green-100 font-bold text-[10px] sm:text-xs uppercase tracking-widest mt-1 opacity-80">Data Administratif Desa Cibatu</p>
                             </div>
                         </div>
-                        <div className="flex gap-2 flex-wrap">
+                        <div className="flex flex-wrap gap-2 sm:gap-3">
                             <button 
                                 onClick={() => router.get(route('import-conflicts.index'))}
-                                className="flex items-center px-4 py-2.5 bg-white/10 text-white rounded-xl text-[10px] font-black uppercase tracking-widest border border-white/10 hover:bg-white/20 transition-all"
+                                className="flex items-center px-4 py-3 bg-green-500/30 hover:bg-green-500/50 backdrop-blur-md border border-green-400/30 text-white rounded-xl text-[10px] sm:text-xs font-black transition-all uppercase tracking-widest"
                             >
-                                <History className="w-3.5 h-3.5 mr-1.5" /> Conflicts
+                                <History className="w-3.5 h-3.5 mr-2" /> Conflicts
                             </button>
                             <button 
                                 onClick={() => openCrudModal(activeTab, 'create')}
-                                className="flex items-center px-4 py-2.5 bg-white text-green-700 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-green-50 transition-all shadow-md"
+                                className="flex items-center px-6 py-3 bg-white text-green-700 hover:bg-green-50 rounded-xl text-[10px] sm:text-xs font-black shadow-lg shadow-black/10 transition-all hover:scale-105 uppercase tracking-widest"
                             >
-                                <Plus className="w-3.5 h-3.5 mr-1.5" /> Tambah Data
+                                <Plus className="w-3.5 h-3.5 mr-2" /> TAMBAH DATA
                             </button>
                         </div>
                     </div>
@@ -300,20 +300,26 @@ export default function Index({ auth, mapping, summary, recentChangeLogs }) {
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4 text-right">
-                                                    <div className="flex items-center justify-end gap-1.5">
+                                                    <div className="flex items-center justify-end gap-2">
                                                         {activeTab === 'rt' && (
-                                                            <button onClick={() => router.get(route('settings.wilayah.detail-rt', item.id))} className="w-8 h-8 flex items-center justify-center bg-gray-50 text-gray-400 rounded-lg hover:bg-blue-50 hover:text-blue-600 border border-gray-100 transition-all">
-                                                                <Eye className="w-3.5 h-3.5" />
+                                                            <button
+                                                                onClick={() => router.get(route('settings.wilayah.detail-rt', item.id))}
+                                                                title="Lihat Detail Penduduk"
+                                                                className="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-colors">
+                                                                <Eye className="w-4 h-4" />
                                                             </button>
                                                         )}
-                                                        <button title="Edit Basic Info" onClick={() => openCrudModal(activeTab, 'edit', item)} className="w-8 h-8 flex items-center justify-center bg-gray-50 text-gray-400 rounded-lg hover:bg-blue-50 hover:text-blue-600 border border-gray-100 transition-all">
-                                                            <Edit2 className="w-3.5 h-3.5" />
+                                                        <button
+                                                            title="Edit"
+                                                            onClick={() => openCrudModal(activeTab, 'edit', item)}
+                                                            className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 text-gray-600 hover:bg-gray-800 hover:text-white transition-colors">
+                                                            <Edit2 className="w-4 h-4" />
                                                         </button>
-                                                        <button title="Pindah Hierarki / Impact" onClick={() => openCrudModal(activeTab, 'edit', item)} className="w-8 h-8 flex items-center justify-center bg-gray-50 text-gray-400 rounded-lg hover:bg-indigo-50 hover:text-indigo-600 border border-gray-100 transition-all">
-                                                            <MapPin className="w-3.5 h-3.5" />
-                                                        </button>
-                                                        <button onClick={() => handleDelete(activeTab, item.id)} className="w-8 h-8 flex items-center justify-center bg-gray-50 text-gray-400 rounded-lg hover:bg-red-50 hover:text-red-600 border border-gray-100 transition-all">
-                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                        <button
+                                                            title="Hapus"
+                                                            onClick={() => handleDelete(activeTab, item.id)}
+                                                            className="w-8 h-8 flex items-center justify-center rounded-lg bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition-colors">
+                                                            <Trash2 className="w-4 h-4" />
                                                         </button>
                                                     </div>
                                                 </td>

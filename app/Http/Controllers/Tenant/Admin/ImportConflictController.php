@@ -22,7 +22,7 @@ class ImportConflictController extends Controller
     {
         Gate::authorize('admin_sistem');
 
-        return Inertia::render('Tenant/Import/Conflicts', [
+        return Inertia::render('Tenant/Import/Index', [
             'conflicts' => Inertia::defer(function() use ($request) {
                 $query = ImportConflict::query()->latest('id');
 
@@ -51,6 +51,12 @@ class ImportConflictController extends Controller
                 }
                 return $conflicts;
             }),
+            'stats' => [
+                'total' => ImportConflict::count(),
+                'pending' => ImportConflict::where('status', 'pending')->count(),
+                'resolved' => ImportConflict::where('status', 'resolved')->count(),
+                'success' => ImportConflict::where('reprocess_status', 'success')->count(),
+            ],
             'rws' => Rw::with('rts')->orderBy('kode')->get(),
             'filters' => $request->only(['status', 'batch_id', 'issue_type'])
         ]);
@@ -96,11 +102,11 @@ public function resolveImportConflict(Request $request, ImportConflict $conflict
 
         $meta = $conflict->meta ?? [];
         $payloadFixed = $conflict->payload_fixed ?? [];
-        
+
         // Always capture field improvements if provided
-        if ($request->filled('nik_new')) $payloadFixed['nik'] = $data['nik_new'];
+        if ($request->filled('nik_new')) $payloadFixed['nik'] = preg_replace('/\D+/', '', $data['nik_new']);
         if ($request->filled('nama_new')) $payloadFixed['nama'] = $data['nama_new'];
-        if ($request->filled('nkk_new')) $payloadFixed['nkk'] = $data['nkk_new'];
+        if ($request->filled('nkk_new')) $payloadFixed['nkk'] = preg_replace('/\D+/', '', $data['nkk_new']);
         if ($request->filled('alamat_new')) $payloadFixed['alamat'] = $data['alamat_new'];
         if ($request->filled('rt_new')) $payloadFixed['rt_raw'] = $data['rt_new'];
         if ($request->filled('rw_new')) $payloadFixed['rw_raw'] = $data['rw_new'];
@@ -113,12 +119,10 @@ public function resolveImportConflict(Request $request, ImportConflict $conflict
             if (empty($data['rw_id']) || empty($data['rt_id'])) {
                 return back()->with('error', 'RW dan RT existing wajib dipilih untuk aksi ini.');
             }
-
             $rt = Rt::find($data['rt_id']);
             if (!$rt || (int)$rt->rw_id !== (int)$data['rw_id']) {
                 return back()->with('error', 'RT tidak sesuai dengan RW yang dipilih.');
             }
-
             $meta['resolution'] = [
                 'action' => 'use_existing',
                 'rw_id' => (int)$data['rw_id'],
@@ -132,20 +136,16 @@ public function resolveImportConflict(Request $request, ImportConflict $conflict
             if ($conflict->issue_type !== 'wilayah_conflict') {
                 return back()->with('error', 'Aksi create_override hanya untuk issue konflik wilayah.');
             }
-            // Use manually typed codes or raw codes from excel
             $rwKode = $this->normalizeKodeWilayah($data['rw_new'] ?? $conflict->rw_raw, '001');
             $rtKode = $this->normalizeKodeWilayah($data['rt_new'] ?? $conflict->rt_raw, '001');
-
             $rw = Rw::firstOrCreate(
                 ['kode' => $rwKode],
                 ['nama' => "RW {$rwKode}", 'is_active' => true, 'is_auto_generated' => true, 'needs_review' => true]
             );
-
             $rt = Rt::firstOrCreate(
                 ['kode' => $rtKode, 'rw_id' => $rw->id],
                 ['nama' => "RT {$rtKode}", 'is_active' => true, 'is_auto_generated' => true, 'needs_review' => true]
             );
-
             $meta['resolution'] = [
                 'action' => 'create_override',
                 'rw_id' => $rw->id,
@@ -174,8 +174,11 @@ public function resolveImportConflict(Request $request, ImportConflict $conflict
                 return back()->with('error', 'Aksi ini hanya untuk issue nik_conflict.');
             }
             $newNik = preg_replace('/[^0-9]/', '', (string)($data['nik_new'] ?? ''));
-            if (!$newNik) {
-                return back()->with('error', 'NIK baru wajib diisi untuk aksi change_incoming_nik.');
+            if (strlen($newNik) !== 16) {
+                return back()->with('error', 'NIK baru wajib tepat 16 digit untuk aksi ini.');
+            }
+            if (Penduduk::withTrashed()->where('nik', $newNik)->exists()) {
+                return back()->with('error', 'NIK baru ini sudah terdaftar di sistem. Gunakan NIK lain.');
             }
             $payloadFixed['nik'] = $newNik;
             $meta['resolution'] = ['action' => 'change_incoming_nik', 'nik_new' => $newNik];
@@ -189,6 +192,14 @@ public function resolveImportConflict(Request $request, ImportConflict $conflict
             $meta['resolution'] = ['action' => 'fix_fields'];
         }
 
+        // Tentukan apakah issue ini bisa langsung di-reprocess otomatis
+        $autoReprocess = $this->shouldAutoReprocess($conflict->issue_type, $data['action']);
+        $reprocessStatus = match(true) {
+            in_array($data['action'], ['skip', 'keep_existing_nik']) => 'skipped',
+            $autoReprocess => 'pending', // akan diupdate setelah reprocess
+            default => 'pending',
+        };
+
         $conflict->update([
             'status' => 'resolved',
             'meta' => $meta,
@@ -196,11 +207,62 @@ public function resolveImportConflict(Request $request, ImportConflict $conflict
             'resolution_action' => $data['action'],
             'resolved_by' => optional($request->user())->id,
             'resolved_at' => now(),
-            'reprocess_status' => in_array($data['action'], ['skip', 'keep_existing_nik']) ? 'skipped' : 'pending',
-            'reprocess_message' => in_array($data['action'], ['skip', 'keep_existing_nik']) ? 'Tidak perlu reprocess untuk aksi ini.' : null,
+            'reprocess_status' => $reprocessStatus,
+            'reprocess_message' => in_array($data['action'], ['skip', 'keep_existing_nik'])
+                ? 'Tidak perlu reprocess untuk aksi ini.'
+                : null,
         ]);
 
-        return back()->with('success', 'Issue import berhasil diproses. Silakan jalankan Reprocess jika diperlukan.');
+        // Auto-reprocess untuk issue tipe sederhana (invalid_nik, invalid_nkk, wilayah_conflict)
+        if ($autoReprocess) {
+            try {
+                DB::transaction(function () use ($conflict) {
+                    $row = $this->buildReprocessRowData($conflict->fresh());
+                    $action = (string)($conflict->fresh()->resolution_action ?? '');
+
+                    $existing = Penduduk::withTrashed()->where('nik', $row['nik'])->first();
+                    if ($existing) {
+                        if ($existing->trashed()) $existing->restore();
+                        $existing->update($row);
+                    } else {
+                        Penduduk::create($row);
+                    }
+
+                    $conflict->update([
+                        'reprocessed_at' => now(),
+                        'reprocess_status' => 'success',
+                        'reprocess_message' => 'Auto-reprocess berhasil. Data penduduk langsung diterapkan.',
+                    ]);
+                });
+
+                $namaInfo = $conflict->fresh()->nama ? " untuk {$conflict->fresh()->nama}" : '';
+                return back()->with('success', "✅ Berhasil! Data{$namaInfo} sudah diperbaiki dan langsung diimport.");
+            } catch (\Throwable $e) {
+                $conflict->update([
+                    'reprocessed_at' => now(),
+                    'reprocess_status' => 'failed',
+                    'reprocess_message' => 'Auto-reprocess gagal: ' . $e->getMessage(),
+                ]);
+                return back()->with('error', 'Data tersimpan tapi gagal diimport otomatis: ' . $e->getMessage() . '. Gunakan tombol Reprocess manual.');
+            }
+        }
+
+        // Untuk nik_conflict: resolve dulu, reprocess manual nanti
+        $namaInfo = $conflict->nama ? " untuk {$conflict->nama}" : '';
+        return back()->with('success', "Keputusan{$namaInfo} berhasil disimpan. Klik tombol \"Konfirmasi Import\" untuk menerapkan data.");
+    }
+
+    /**
+     * Menentukan apakah issue type ini bisa langsung di-reprocess otomatis setelah resolve.
+     * Hanya issue sederhana yang tidak perlu konfirmasi manual admin.
+     */
+    private function shouldAutoReprocess(string $issueType, string $action): bool
+    {
+        // Aksi skip/keep tidak perlu reprocess
+        if (in_array($action, ['skip', 'keep_existing_nik'])) return false;
+
+        // Issue sederhana: perbaiki format atau petakan wilayah → langsung import
+        return in_array($issueType, ['invalid_nik', 'invalid_nkk', 'wilayah_conflict', 'fix_fields']);
     }
 
     public function resetImportConflict(Request $request, ImportConflict $conflict)

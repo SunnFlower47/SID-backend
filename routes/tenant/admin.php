@@ -43,7 +43,7 @@ Route::middleware('can:admin_sistem')->group(function () {
     // Wilayah
     Route::prefix('settings/wilayah')->name('settings.wilayah.')->controller(WilayahController::class)->group(function () {
         Route::get('/', 'index')->name('index');
-        Route::get('/rt/{rt}/penduduk', 'detailRtPenduduk')->name('rt.penduduk');
+        Route::get('/rt/{rt}/penduduk', 'detailRtPenduduk')->name('detail-rt');
         Route::post('/dusun', 'storeDusun')->name('dusun.store');
         Route::put('/dusun/{dusun}', 'updateDusun')->name('dusun.update');
         Route::delete('/dusun/{dusun}', 'destroyDusun')->name('dusun.destroy');

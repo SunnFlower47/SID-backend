@@ -7,6 +7,10 @@ import SkeletonStats from '@/Components/Shared/Skeleton/SkeletonStats';
 import SkeletonTable from '@/Components/Shared/Skeleton/SkeletonTable';
 import { MessageSquare, Plus, Edit, Eye, Trash2, AlertTriangle, CheckCircle, Clock, XCircle, FileText } from 'lucide-react';
 import Swal from 'sweetalert2';
+import Lottie from 'lottie-react';
+import noDataAnimation from '@/assets/lottie/no-data-animation.json';
+
+const LottieComponent = Lottie?.default || Lottie;
 
 const PRIORITY_COLORS = {
     rendah: 'bg-green-100 text-green-800',
@@ -186,10 +190,11 @@ export default function Index({ auth, pengaduans, stats, filters }) {
                                 ) : (
                                     <tr>
                                         <td colSpan="5" className="px-6 py-12 text-center">
-                                            <div className="flex flex-col items-center justify-center">
-                                                <FileText className="w-12 h-12 text-gray-200 mb-3" />
-                                                <p className="text-sm font-bold text-gray-400">Belum ada aduan yang masuk.</p>
+                                            <div className="w-48 h-48 mx-auto">
+                                                <LottieComponent animationData={noDataAnimation} loop={true} />
                                             </div>
+                                            <p className="text-sm font-black text-gray-900 mt-2">Belum Ada Aduan</p>
+                                            <p className="text-xs text-gray-500 mt-1">Belum ada pengaduan warga yang masuk.</p>
                                         </td>
                                     </tr>
                                 )}
@@ -222,8 +227,11 @@ export default function Index({ auth, pengaduans, stats, filters }) {
                                 </div>
                             ))
                         ) : (
-                            <div className="text-center py-10 bg-white rounded-2xl">
-                                <p className="text-sm font-bold text-gray-400">Belum ada aduan.</p>
+                            <div className="text-center py-8 bg-white rounded-2xl">
+                                <div className="w-40 h-40 mx-auto">
+                                    <LottieComponent animationData={noDataAnimation} loop={true} />
+                                </div>
+                                <p className="text-sm font-black text-gray-900">Belum Ada Aduan</p>
                             </div>
                         )}
                     </div>

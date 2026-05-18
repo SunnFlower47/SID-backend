@@ -8,6 +8,10 @@ import SkeletonStats from '@/Components/Shared/Skeleton/SkeletonStats';
 import SkeletonTable from '@/Components/Shared/Skeleton/SkeletonTable';
 import { MessageSquare, Plus, Star, Edit2, Trash2, Eye, CheckCircle } from 'lucide-react';
 import Swal from 'sweetalert2';
+import Lottie from 'lottie-react';
+import noDataAnimation from '@/assets/lottie/no-data-animation.json';
+
+const LottieComponent = Lottie?.default || Lottie;
 
 export default function Index({ auth, testimonis, stats, filters }) {
     const handleDelete = (id, nama) => {
@@ -176,7 +180,13 @@ export default function Index({ auth, testimonis, stats, filters }) {
                                         </tr>
                                     )) : (
                                         <tr>
-                                            <td colSpan="5" className="px-6 py-20 text-center uppercase font-black text-gray-300 italic tracking-widest">Tidak ada data ditemukan</td>
+                                            <td colSpan="5" className="px-6 py-12 text-center">
+                                                <div className="w-48 h-48 mx-auto">
+                                                    <LottieComponent animationData={noDataAnimation} loop={true} />
+                                                </div>
+                                                <p className="text-sm font-black text-gray-900 mt-2">Belum Ada Testimoni</p>
+                                                <p className="text-xs text-gray-500 mt-1">Belum ada testimoni warga yang masuk.</p>
+                                            </td>
                                         </tr>
                                     )}
                                 </tbody>

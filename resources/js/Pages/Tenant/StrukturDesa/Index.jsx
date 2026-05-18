@@ -8,6 +8,10 @@ import SkeletonStats from '@/Components/Shared/Skeleton/SkeletonStats';
 import SkeletonTable from '@/Components/Shared/Skeleton/SkeletonTable';
 import { Users, Plus, Edit2, Trash2, Eye, Phone, Mail, MapPin, CheckCircle, XCircle, Settings } from 'lucide-react';
 import Swal from 'sweetalert2';
+import Lottie from 'lottie-react';
+import noDataAnimation from '@/assets/lottie/no-data-animation.json';
+
+const LottieComponent = Lottie?.default || Lottie;
 
 export default function Index({ auth, struktur, stats, filters, kategoriOptions }) {
     const handleDelete = (id, nama) => {
@@ -179,14 +183,14 @@ export default function Index({ auth, struktur, stats, filters, kategoriOptions 
                                                 )}
                                             </td>
                                             <td className="px-6 py-4 text-right">
-                                                <div className="flex justify-end gap-1.5">
-                                                    <Link href={route('struktur-desa.show', item.id)} className="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all shadow-sm shadow-blue-100 border border-blue-100" title="Detail">
+                                                <div className="flex justify-end gap-2">
+                                                    <Link href={route('struktur-desa.show', item.id)} className="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-colors" title="Detail">
                                                         <Eye className="w-4 h-4" />
                                                     </Link>
-                                                    <Link href={route('struktur-desa.edit', item.id)} className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 text-gray-600 hover:bg-gray-800 hover:text-white transition-all shadow-sm border border-gray-200" title="Edit">
+                                                    <Link href={route('struktur-desa.edit', item.id)} className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 text-gray-600 hover:bg-gray-800 hover:text-white transition-colors" title="Edit">
                                                         <Edit2 className="w-4 h-4" />
                                                     </Link>
-                                                    <button onClick={() => handleDelete(item.id, item.nama)} className="w-8 h-8 flex items-center justify-center rounded-lg bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition-all shadow-sm shadow-red-100 border border-red-100" title="Hapus">
+                                                    <button onClick={() => handleDelete(item.id, item.nama)} className="w-8 h-8 flex items-center justify-center rounded-lg bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition-colors" title="Hapus">
                                                         <Trash2 className="w-4 h-4" />
                                                     </button>
                                                 </div>
@@ -194,7 +198,13 @@ export default function Index({ auth, struktur, stats, filters, kategoriOptions 
                                         </tr>
                                     )) : (
                                         <tr>
-                                            <td colSpan="6" className="px-6 py-20 text-center uppercase font-black text-gray-300 italic tracking-widest">Tidak ada data ditemukan</td>
+                                            <td colSpan="6" className="px-6 py-12 text-center">
+                                                <div className="w-48 h-48 mx-auto">
+                                                    <LottieComponent animationData={noDataAnimation} loop={true} />
+                                                </div>
+                                                <p className="text-sm font-black text-gray-900 mt-2">Belum Ada Perangkat Desa</p>
+                                                <p className="text-xs text-gray-500 mt-1">Tambahkan perangkat atau aparatur desa melalui tombol di atas.</p>
+                                            </td>
                                         </tr>
                                     )}
                                 </tbody>

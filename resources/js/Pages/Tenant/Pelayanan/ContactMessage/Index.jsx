@@ -10,6 +10,10 @@ import { Mailbox, Eye, Trash2, MailWarning, MailCheck, MailOpen, Archive, CheckC
 import Swal from 'sweetalert2';
 import { format } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
+import Lottie from 'lottie-react';
+import noDataAnimation from '@/assets/lottie/no-data-animation.json';
+
+const LottieComponent = Lottie?.default || Lottie;
 
 const STATUS_COLORS = {
     unread: { bg: 'bg-red-100', text: 'text-red-800', icon: MailWarning, label: 'Belum Dibaca' },
@@ -169,7 +173,13 @@ export default function Index({ auth, messages, stats, filters }) {
                                         </tr>
                                     )) : (
                                         <tr>
-                                            <td colSpan="4" className="px-6 py-20 text-center uppercase font-black text-gray-300 italic tracking-widest">Tidak ada pesan ditemukan</td>
+                                            <td colSpan="4" className="px-6 py-12 text-center">
+                                                <div className="w-48 h-48 mx-auto">
+                                                    <LottieComponent animationData={noDataAnimation} loop={true} />
+                                                </div>
+                                                <p className="text-sm font-black text-gray-900 mt-2">Tidak Ada Pesan</p>
+                                                <p className="text-xs text-gray-500 mt-1">Belum ada pesan masuk dari warga.</p>
+                                            </td>
                                         </tr>
                                     )}
                                 </tbody>

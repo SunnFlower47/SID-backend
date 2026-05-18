@@ -390,11 +390,17 @@ class WilayahController extends Controller
     {
         Gate::authorize('admin_sistem');
 
-        return Inertia::render('Tenant/Master/Wilayah/RtDetail', [
+        return Inertia::render('Tenant/MasterWilayah/RtDetail', [
             'rt' => $rt->load(['rw', 'dusun']),
             'penduduks' => Inertia::defer(fn() => Penduduk::query()
                 ->withWilayah()
                 ->whereHas('kartuKeluarga', fn($q) => $q->where('rt_id', $rt->id))
+                ->when($request->search, function ($query, $search) {
+                    $query->where(function ($q) use ($search) {
+                        $q->where('nama', 'like', "%{$search}%")
+                          ->orWhere('nik', 'like', "%{$search}%");
+                    });
+                })
                 ->orderBy('nama')
                 ->paginate(50)
                 ->withQueryString())

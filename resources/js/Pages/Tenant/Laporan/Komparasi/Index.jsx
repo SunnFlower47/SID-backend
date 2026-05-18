@@ -3,6 +3,7 @@ import { Head, Link, router, Deferred } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import KomparasiLineChart from '@/Components/Laporan/KomparasiLineChart';
 import SkeletonChart from '@/Components/Shared/Skeleton/SkeletonChart';
+import SkeletonStats from '@/Components/Shared/Skeleton/SkeletonStats';
 import { 
     Activity, ChevronLeft, Calendar, ArrowRight, 
     TrendingUp, TrendingDown, Minus, Users, GitBranch, FileText
@@ -84,7 +85,7 @@ export default function KomparasiIndex({ auth, comparison, trends, filters }) {
                 </div>
 
                 {/* ── Comparison Boxes ── */}
-                <Deferred data="comparison" fallback={<div className="grid grid-cols-1 md:grid-cols-3 gap-6">{[...Array(3)].map((_,i)=><div key={i} className="h-32 bg-white rounded-2xl animate-pulse"/>)}</div>}>
+                <Deferred data="comparison" fallback={<SkeletonStats count={3} />}>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <ComparisonBox 
                             label={`Pertumbuhan Penduduk (${comparison?.period2?.label})`}

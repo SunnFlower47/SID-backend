@@ -3,6 +3,10 @@ import { Head, Link, router } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { FileText, Plus, Edit, Trash2, Search, CheckCircle2, XCircle, Layout, Palette, Type, Info, Users, Briefcase, MapPin, Heart, Baby, Ghost, ShieldAlert, School, Wallet, Home, Truck, Building, Skull, ClipboardList, Footprints } from 'lucide-react';
 import Swal from 'sweetalert2';
+import Lottie from 'lottie-react';
+import noDataAnimation from '@/assets/lottie/no-data-animation.json';
+
+const LottieComponent = Lottie?.default || Lottie;
 
 export default function Index({ auth, suratTypes }) {
     const [searchQuery, setSearchQuery] = useState('');
@@ -205,9 +209,9 @@ export default function Index({ auth, suratTypes }) {
                 </div>
 
                 {filteredSuratTypes.length === 0 && (
-                    <div className="bg-white rounded-3xl border-2 border-dashed border-gray-200 p-12 text-center">
-                        <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <Search className="w-10 h-10 text-gray-300" />
+                    <div className="bg-white rounded-3xl border border-gray-100 p-12 text-center shadow-sm">
+                        <div className="w-48 h-48 mx-auto">
+                            <LottieComponent animationData={noDataAnimation} loop={true} />
                         </div>
                         <h3 className="text-xl font-black text-gray-900 uppercase italic">Data Tidak Ditemukan</h3>
                         <p className="text-gray-400 font-bold text-xs uppercase tracking-widest mt-2">Coba kata kunci pencarian lain atau tambah jenis surat baru</p>
