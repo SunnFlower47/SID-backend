@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\Apbdes;
 use App\Models\ProyekDesa;
 use App\Models\HistoriPengeluaran;
+use App\Models\PeraturanDesa;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
 class AnggaranController extends Controller
@@ -36,14 +38,23 @@ class AnggaranController extends Controller
      */
     public function storeAnggaranTahunan(Request $request)
     {
+        if (PeraturanDesa::isLocked($request->tahun)) {
+            return redirect()->back()->withErrors(['error' => 'Gagal: APBDes Tahun ' . $request->tahun . ' sudah disahkan oleh BPD (Terkunci).'])->withInput();
+        }
+
+        $sumberDanaValues = implode(',', array_keys(\App\Models\Apbdes::SUMBER_DANA));
+
         $validator = Validator::make($request->all(), [
-            'tahun' => 'required|integer|min:2020|max:2030',
-            'jenis' => 'required|in:pendapatan,belanja,pembiayaan',
-            'sumber_dana' => 'required|in:dana_desa_ad,dana_desa_af,dana_desa_ak,dau,dak,dbh,did,pad',
-            'kode_rekening' => 'required|string|max:20',
-            'nama_rekening' => 'required|string|max:255',
-            'anggaran' => 'required|numeric|min:0',
-            'keterangan' => 'nullable|string|max:500',
+            'tahun'          => 'required|integer|min:2020|max:2035',
+            'bidang'         => 'required|integer|in:1,2,3,4,5',
+            'sub_bidang'     => 'nullable|string|max:10',
+            'kegiatan'       => 'nullable|string|max:200',
+            'jenis'          => 'required|in:pendapatan,belanja,pembiayaan',
+            'sumber_dana'    => 'required|in:' . $sumberDanaValues,
+            'kode_rekening'  => 'required|string|max:20',
+            'nama_rekening'  => 'required|string|max:255',
+            'anggaran'       => 'required|numeric|min:0',
+            'keterangan'     => 'nullable|string|max:500',
         ]);
 
         if ($validator->fails()) {
@@ -52,10 +63,14 @@ class AnggaranController extends Controller
                 ->withInput();
         }
 
-        $data = $request->all();
-        $data['realisasi'] = 0; // Default realisasi 0
+        $data = $request->only([
+            'tahun', 'bidang', 'sub_bidang', 'kegiatan',
+            'jenis', 'sumber_dana', 'kode_rekening', 'nama_rekening',
+            'anggaran', 'keterangan',
+        ]);
+        $data['realisasi']     = 0;
         $data['sisa_anggaran'] = $data['anggaran'];
-        $data['status'] = 'disetujui';
+        $data['status']        = 'disetujui';
 
         Apbdes::create($data);
 
@@ -94,55 +109,71 @@ class AnggaranController extends Controller
     public function storePengeluaran(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'apbdes_id' => 'required|exists:apbdes,id',
-            'nama_pengeluaran' => 'required|string|max:255',
-            'jumlah' => 'required|numeric|min:0',
-            'keterangan' => 'nullable|string|max:500',
+            'apbdes_id'           => 'required|exists:apbdes,id',
+            'nama_pengeluaran'    => 'required|string|max:255',
+            'jumlah'              => 'required|numeric|min:0',
             'tanggal_pengeluaran' => 'required|date',
+            'keterangan'          => 'nullable|string|max:500',
+            'no_bukti'            => 'nullable|string|max:50',
+            'jenis_bukti'         => 'nullable|in:kwitansi,nota,spj,transfer,lainnya',
+            'file_bukti'          => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120', // max 5MB
         ]);
 
         if ($validator->fails()) {
-            return redirect()->back()
-                ->withErrors($validator)
-                ->withInput();
+            return redirect()->back()->withErrors($validator)->withInput();
         }
 
         try {
             DB::beginTransaction();
 
-            $apbdes = Apbdes::findOrFail($request->apbdes_id);
-
-            // Check if expenditure exceeds remaining budget
+            $apbdes       = Apbdes::findOrFail($request->apbdes_id);
             $sisaAnggaran = $apbdes->anggaran - $apbdes->realisasi;
+
             if ($request->jumlah > $sisaAnggaran) {
                 return redirect()->back()
-                    ->withErrors(['jumlah' => 'Jumlah pengeluaran melebihi sisa anggaran yang tersedia (Rp ' . number_format($sisaAnggaran, 0, ',', '.') . ')'])
+                    ->withErrors(['jumlah' => 'Jumlah pengeluaran melebihi sisa anggaran (Rp ' . number_format($sisaAnggaran, 0, ',', '.') . ')'])
                     ->withInput();
             }
 
-            // Create expenditure history record
+            // Upload bukti file
+            $filePath     = null;
+            $namaFileBukti = null;
+            if ($request->hasFile('file_bukti')) {
+                $file          = $request->file('file_bukti');
+                $namaFileBukti = $file->getClientOriginalName();
+                $filePath      = $file->store('keuangan/bukti', 'public');
+            }
+
+            // Auto-generate no_bukti jika tidak diisi
+            $tahunPengeluaran = (int) date('Y', strtotime($request->tanggal_pengeluaran));
+            $noBukti = $request->no_bukti ?: HistoriPengeluaran::generateNoBukti($tahunPengeluaran);
+
             HistoriPengeluaran::create([
-                'nama_pengeluaran' => $request->nama_pengeluaran,
-                'apbdes_id' => $apbdes->id,
-                'jumlah' => $request->jumlah,
+                'nama_pengeluaran'    => $request->nama_pengeluaran,
+                'apbdes_id'           => $apbdes->id,
+                'jumlah'              => $request->jumlah,
                 'tanggal_pengeluaran' => $request->tanggal_pengeluaran,
-                'keterangan' => $request->keterangan,
-                'user_id' => 1, // Default admin user
+                'keterangan'          => $request->keterangan,
+                'user_id'             => auth()->id() ?? 1,
+                'no_bukti'            => $noBukti,
+                'jenis_bukti'         => $request->jenis_bukti ?? 'kwitansi',
+                'file_bukti'          => $filePath,
+                'nama_file_bukti'     => $namaFileBukti,
+                'spj_status'          => 'belum',
             ]);
 
-            // Update realisasi
-            $apbdes->realisasi += $request->jumlah;
-            $apbdes->sisa_anggaran = $apbdes->anggaran - $apbdes->realisasi;
+            // Update realisasi APBDes
+            $apbdes->realisasi      += $request->jumlah;
+            $apbdes->sisa_anggaran   = $apbdes->anggaran - $apbdes->realisasi;
             $apbdes->save();
 
             DB::commit();
 
             return redirect()->route('transparansi-desa.apbdes', ['tahun' => $apbdes->tahun])
-                ->with('success', 'Pengeluaran "' . $request->nama_pengeluaran . '" berhasil ditambahkan. Realisasi: Rp ' . number_format((float)$apbdes->realisasi, 0, ',', '.') . ', Sisa: Rp ' . number_format((float)$apbdes->sisa_anggaran, 0, ',', '.') . '.');
+                ->with('success', 'Pengeluaran "' . $request->nama_pengeluaran . '" berhasil ditambahkan. No. Bukti: ' . $noBukti);
 
         } catch (\Exception $e) {
             DB::rollBack();
-
             return redirect()->back()
                 ->withErrors(['error' => 'Terjadi kesalahan: ' . $e->getMessage()])
                 ->withInput();
@@ -326,8 +357,12 @@ class AnggaranController extends Controller
             $q->orderBy('tanggal_pengeluaran', 'desc');
         }])->findOrFail($id);
 
+        // Append file URL accessor for each histori item
+        $apbdes->historiPengeluarans->each(fn ($h) => $h->append('file_bukti_url', 'has_dokumen', 'jenis_bukti_label'));
+
         return Inertia::render('Tenant/Keuangan/APBDes/History', [
-            'apbdes' => $apbdes,
+            'apbdes'          => $apbdes,
+            'jenisBuktiOptions' => HistoriPengeluaran::JENIS_BUKTI,
         ]);
     }
 
@@ -337,9 +372,11 @@ class AnggaranController extends Controller
     public function editPengeluaran($id)
     {
         $pengeluaran = HistoriPengeluaran::with('apbdes')->findOrFail($id);
+        $pengeluaran->append('file_bukti_url');
 
         return Inertia::render('Tenant/Keuangan/APBDes/EditExpenditure', [
-            'pengeluaran' => $pengeluaran,
+            'pengeluaran'       => $pengeluaran,
+            'jenisBuktiOptions' => HistoriPengeluaran::JENIS_BUKTI,
         ]);
     }
 
@@ -349,48 +386,69 @@ class AnggaranController extends Controller
     public function updatePengeluaran(Request $request, $id)
     {
         $pengeluaran = HistoriPengeluaran::with('apbdes')->findOrFail($id);
-        $apbdes = $pengeluaran->apbdes;
+        $apbdes      = $pengeluaran->apbdes;
 
         $validator = Validator::make($request->all(), [
-            'nama_pengeluaran' => 'required|string|max:255',
-            'jumlah' => 'required|numeric|min:0',
-            'keterangan' => 'nullable|string|max:500',
+            'nama_pengeluaran'    => 'required|string|max:255',
+            'jumlah'              => 'required|numeric|min:0',
+            'keterangan'          => 'nullable|string|max:500',
             'tanggal_pengeluaran' => 'required|date',
+            'no_bukti'            => 'nullable|string|max:50',
+            'jenis_bukti'         => 'nullable|in:kwitansi,nota,spj,transfer,lainnya',
+            'file_bukti'          => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'hapus_file'          => 'nullable|boolean',
         ]);
 
         if ($validator->fails()) {
-            return redirect()->back()
-                ->withErrors($validator)
-                ->withInput();
+            return redirect()->back()->withErrors($validator)->withInput();
         }
 
         try {
             DB::beginTransaction();
 
-            // Calculate the difference in amount
-            $oldJumlah = $pengeluaran->jumlah;
-            $newJumlah = $request->jumlah;
-            $selisih = $newJumlah - $oldJumlah;
-
-            // Check if new amount exceeds remaining budget
+            // Calculate amount difference
+            $oldJumlah    = $pengeluaran->jumlah;
+            $newJumlah    = $request->jumlah;
+            $selisih      = $newJumlah - $oldJumlah;
             $sisaAnggaran = $apbdes->anggaran - $apbdes->realisasi;
+
             if ($selisih > $sisaAnggaran) {
                 return redirect()->back()
-                    ->withErrors(['jumlah' => 'Jumlah pengeluaran melebihi sisa anggaran yang tersedia (Rp ' . number_format((float)$sisaAnggaran, 0, ',', '.') . ')'])
+                    ->withErrors(['jumlah' => 'Jumlah pengeluaran melebihi sisa anggaran (Rp ' . number_format((float)$sisaAnggaran, 0, ',', '.') . ')'])
                     ->withInput();
             }
 
-            // Update expenditure record
+            // Handle file update
+            $filePath      = $pengeluaran->file_bukti;
+            $namaFileBukti = $pengeluaran->nama_file_bukti;
+
+            if ($request->boolean('hapus_file') && $filePath) {
+                Storage::disk('public')->delete($filePath);
+                $filePath = $namaFileBukti = null;
+            }
+
+            if ($request->hasFile('file_bukti')) {
+                // Delete old file
+                if ($filePath) Storage::disk('public')->delete($filePath);
+                $file          = $request->file('file_bukti');
+                $namaFileBukti = $file->getClientOriginalName();
+                $filePath      = $file->store('keuangan/bukti', 'public');
+            }
+
             $pengeluaran->update([
-                'nama_pengeluaran' => $request->nama_pengeluaran,
-                'jumlah' => $request->jumlah,
+                'nama_pengeluaran'    => $request->nama_pengeluaran,
+                'jumlah'              => $newJumlah,
                 'tanggal_pengeluaran' => $request->tanggal_pengeluaran,
-                'keterangan' => $request->keterangan,
+                'keterangan'          => $request->keterangan,
+                'no_bukti'            => $request->no_bukti ?? $pengeluaran->no_bukti,
+                'jenis_bukti'         => $request->jenis_bukti ?? $pengeluaran->jenis_bukti,
+                'file_bukti'          => $filePath,
+                'nama_file_bukti'     => $namaFileBukti,
             ]);
 
             // Update APBDes realisasi
-            $apbdes->realisasi = $apbdes->realisasi + $selisih;
-            $apbdes->sisa_anggaran = $apbdes->anggaran - $apbdes->realisasi;
+            $apbdes->realisasi      = $apbdes->realisasi + $selisih;
+            $apbdes->sisa_anggaran  = $apbdes->anggaran - $apbdes->realisasi;
             $apbdes->save();
 
             DB::commit();
@@ -400,7 +458,6 @@ class AnggaranController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-
             return redirect()->back()
                 ->withErrors(['error' => 'Terjadi kesalahan: ' . $e->getMessage()])
                 ->withInput();
@@ -413,23 +470,28 @@ class AnggaranController extends Controller
     public function deletePengeluaran($id)
     {
         $pengeluaran = HistoriPengeluaran::with('apbdes')->findOrFail($id);
-        $apbdes = $pengeluaran->apbdes;
+        $apbdes      = $pengeluaran->apbdes;
 
         try {
             DB::beginTransaction();
 
-            // Update APBDes realisasi (add back the amount)
-            $apbdes->realisasi = $apbdes->realisasi - $pengeluaran->jumlah;
-            $apbdes->sisa_anggaran = $apbdes->anggaran - $apbdes->realisasi;
+            // Rollback realisasi APBDes
+            $apbdes->realisasi      = $apbdes->realisasi - $pengeluaran->jumlah;
+            $apbdes->sisa_anggaran  = $apbdes->anggaran - $apbdes->realisasi;
             $apbdes->save();
 
-            // Delete expenditure record
+            // Delete bukti file from storage
+            if ($pengeluaran->file_bukti) {
+                Storage::disk('public')->delete($pengeluaran->file_bukti);
+            }
+
+            $nama = $pengeluaran->nama_pengeluaran;
             $pengeluaran->delete();
 
             DB::commit();
 
             return redirect()->route('anggaran.histori-pengeluaran', $apbdes->id)
-                ->with('success', 'Pengeluaran "' . $pengeluaran->nama_pengeluaran . '" berhasil dihapus.');
+                ->with('success', 'Pengeluaran "' . $nama . '" berhasil dihapus.');
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -460,6 +522,10 @@ class AnggaranController extends Controller
         $this->authorize('anggaran.edit');
 
         $apbdes = Apbdes::findOrFail($id);
+
+        if (PeraturanDesa::isLocked($apbdes->tahun)) {
+            return redirect()->back()->withErrors(['error' => 'Gagal: APBDes Tahun ' . $apbdes->tahun . ' sudah disahkan oleh BPD (Terkunci).']);
+        }
 
         $validator = Validator::make($request->all(), [
             'kode_rekening' => 'required|string|max:50',
@@ -519,6 +585,10 @@ class AnggaranController extends Controller
         $this->authorize('anggaran.delete');
 
         $apbdes = Apbdes::findOrFail($id);
+
+        if (PeraturanDesa::isLocked($apbdes->tahun)) {
+            return redirect()->back()->withErrors(['error' => 'Gagal: APBDes Tahun ' . $apbdes->tahun . ' sudah disahkan oleh BPD (Terkunci).']);
+        }
 
         try {
             DB::beginTransaction();

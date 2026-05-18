@@ -9,7 +9,7 @@ import SkeletonChart from '@/Components/Shared/Skeleton/SkeletonChart';
 import {
     TrendingUp, ChevronRight, BarChart3, PieChart,
     Wallet, Building2, ArrowRight, Calendar,
-    CheckCircle2, Clock, AlertCircle, XCircle
+    CheckCircle2, Clock, AlertCircle, XCircle, FileText
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -81,6 +81,10 @@ export default function Dashboard({ auth, tahun, tahunList = [], stats, apbdesBy
                             <Link href={route('transparansi-desa.proyek')} className="flex items-center px-4 py-3 bg-white text-green-700 hover:bg-green-50 rounded-xl text-[10px] sm:text-xs font-black shadow-lg shadow-black/10 transition-all hover:scale-105 uppercase tracking-widest">
                                 <Building2 className="w-3.5 h-3.5 mr-2" />
                                 Proyek
+                            </Link>
+                            <Link href={route('laporan-keuangan.index')} className="flex items-center px-4 py-3 bg-yellow-300 text-yellow-900 hover:bg-yellow-200 rounded-xl text-[10px] sm:text-xs font-black shadow-lg shadow-black/10 transition-all hover:scale-105 uppercase tracking-widest">
+                                <FileText className="w-3.5 h-3.5 mr-2" />
+                                Laporan
                             </Link>
                         </div>
                     </div>
@@ -266,11 +270,13 @@ export default function Dashboard({ auth, tahun, tahunList = [], stats, apbdesBy
                 </div>
 
                 {/* ── Quick Actions ────────────────────────── */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                     {[
-                        { label: 'Tambah Anggaran', desc: 'Input rekening APBDes baru', href: route('anggaran.create-tahunan'), color: 'green' },
-                        { label: 'Catat Pengeluaran', desc: 'Realisasi rekening anggaran', href: route('anggaran.create-pengeluaran'), color: 'blue' },
-                        { label: 'Buat Proyek', desc: 'Tambah proyek desa baru', href: route('anggaran.create-proyek'), color: 'orange' },
+                        { label: 'Tambah Anggaran',  desc: 'Input rekening APBDes baru',      href: route('anggaran.create-tahunan'),       color: 'green'  },
+                        { label: 'Catat Pengeluaran',desc: 'Realisasi rekening anggaran',      href: route('anggaran.create-pengeluaran'),   color: 'blue'   },
+                        { label: 'Buat Proyek',      desc: 'Tambah proyek desa baru',          href: route('anggaran.create-proyek'),        color: 'orange' },
+                        { label: 'Persetujuan BPD',  desc: 'Pengesahan Perdes APBDes',         href: route('peraturan-desa.index'),          color: 'teal'   },
+                        { label: 'Cetak Laporan',    desc: 'PDF Realisasi & Buku Kas',         href: route('laporan-keuangan.index'),        color: 'purple' },
                     ].map((action) => (
                         <Link key={action.label} href={action.href}
                             className="flex items-center justify-between p-5 bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all group"

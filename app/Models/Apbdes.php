@@ -10,8 +10,45 @@ class Apbdes extends Model
 {
     use LogsActivity;
 
+    /**
+     * 5 Bidang APBDes sesuai Permendagri No. 20 Tahun 2018
+     */
+    const BIDANG = [
+        1 => 'Penyelenggaraan Pemerintahan Desa',
+        2 => 'Pelaksanaan Pembangunan Desa',
+        3 => 'Pembinaan Kemasyarakatan Desa',
+        4 => 'Pemberdayaan Masyarakat Desa',
+        5 => 'Penanggulangan Bencana, Kedaruratan & Mendesak',
+    ];
+
+    /**
+     * Sumber Dana APBDes sesuai Permendagri No. 20 Tahun 2018
+     */
+    const SUMBER_DANA = [
+        // Dana Transfer Pusat
+        'dana_desa_ad'        => 'Dana Desa - Alokasi Dasar (AD)',
+        'dana_desa_af'        => 'Dana Desa - Alokasi Formula (AF)',
+        'dana_desa_ak'        => 'Dana Desa - Alokasi Kinerja (AK)',
+        // Dana Transfer Daerah
+        'add'                 => 'Alokasi Dana Desa (ADD)',
+        'bhpr'                => 'Bagi Hasil Pajak & Retribusi (BHPR)',
+        'bantuan_keuangan'    => 'Bantuan Keuangan APBD Prov/Kab',
+        // Dana Lain
+        'dau'                 => 'Dana Alokasi Umum (DAU)',
+        'dak'                 => 'Dana Alokasi Khusus (DAK)',
+        'dbh'                 => 'Dana Bagi Hasil (DBH)',
+        'did'                 => 'Dana Insentif Daerah (DID)',
+        // Pendapatan Desa
+        'pad'                 => 'Pendapatan Asli Desa (PAD)',
+        'hibah'               => 'Hibah & Sumbangan Pihak Ketiga',
+        'lain_lain'           => 'Lain-Lain PADes yang Sah',
+    ];
+
     protected $fillable = [
         'tahun',
+        'bidang',
+        'sub_bidang',
+        'kegiatan',
         'jenis',
         'sumber_dana',
         'kode_rekening',
@@ -24,10 +61,11 @@ class Apbdes extends Model
     ];
 
     protected $casts = [
-        'tahun' => 'integer',
-        'anggaran' => 'decimal:2',
-        'realisasi' => 'decimal:2',
-        'sisa_anggaran' => 'decimal:2',
+        'tahun'        => 'integer',
+        'bidang'       => 'integer',
+        'anggaran'     => 'decimal:2',
+        'realisasi'    => 'decimal:2',
+        'sisa_anggaran'=> 'decimal:2',
     ];
 
     /**
@@ -49,18 +87,15 @@ class Apbdes extends Model
      */
     public function getSumberDanaLabelAttribute()
     {
-        $labels = [
-            'dana_desa_ad' => 'Dana Desa - Alokasi Dasar (AD)',
-            'dana_desa_af' => 'Dana Desa - Alokasi Formula (AF)',
-            'dana_desa_ak' => 'Dana Desa - Alokasi Kinerja (AK)',
-            'dau' => 'Dana Alokasi Umum (DAU)',
-            'dak' => 'Dana Alokasi Khusus (DAK)',
-            'dbh' => 'Dana Bagi Hasil (DBH)',
-            'did' => 'Dana Insentif Daerah (DID)',
-            'pad' => 'Pendapatan Asli Desa (PAD)',
-        ];
+        return self::SUMBER_DANA[$this->sumber_dana] ?? $this->sumber_dana;
+    }
 
-        return $labels[$this->sumber_dana] ?? $this->sumber_dana;
+    /**
+     * Get the bidang label (Permendagri 20/2018)
+     */
+    public function getBidangLabelAttribute()
+    {
+        return self::BIDANG[$this->bidang] ?? 'Bidang ' . $this->bidang;
     }
 
     /**
@@ -117,6 +152,14 @@ class Apbdes extends Model
     }
 
     /**
+     * Scope for specific bidang (1-5)
+     */
+    public function scopeBidang($query, $bidang)
+    {
+        return $query->where('bidang', $bidang);
+    }
+
+    /**
      * Scope for approved status
      */
     public function scopeDisetujui($query)
@@ -146,7 +189,7 @@ class Apbdes extends Model
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['tahun', 'jenis', 'sumber_dana', 'kode_rekening', 'nama_rekening', 'anggaran', 'realisasi', 'sisa_anggaran', 'keterangan', 'status'])
+            ->logOnly(['tahun', 'bidang', 'sub_bidang', 'kegiatan', 'jenis', 'sumber_dana', 'kode_rekening', 'nama_rekening', 'anggaran', 'realisasi', 'sisa_anggaran', 'keterangan', 'status'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
     }

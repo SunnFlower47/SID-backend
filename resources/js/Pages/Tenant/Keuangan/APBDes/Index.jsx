@@ -6,6 +6,7 @@ import AnggaranProgressBar from '@/Components/Keuangan/AnggaranProgressBar';
 import Pagination from '@/Components/Shared/Pagination';
 import SkeletonTable from '@/Components/Shared/Skeleton/SkeletonTable';
 import SkeletonStats from '@/Components/Shared/Skeleton/SkeletonStats';
+import { BIDANG_MAP, BIDANG_COLOR } from '@/Constants/keuangan';
 import { BarChart3, Plus, Edit2, Trash2, History, Wallet, ArrowLeft, TrendingUp, ArrowDownCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Swal from 'sweetalert2';
@@ -31,7 +32,7 @@ const STATUS_CONFIG = {
     ditolak:   { color: 'text-red-700',   bg: 'bg-red-50'   },
 };
 
-export default function Index({ auth, filters = {}, tahunList = [], apbdes, stats }) {
+export default function Index({ auth, filters = {}, tahunList = [], apbdes, stats, is_locked }) {
 
     const handleDelete = (id, nama) => {
         Swal.fire({
@@ -81,12 +82,27 @@ export default function Index({ auth, filters = {}, tahunList = [], apbdes, stat
                             <Link href={route('anggaran.create-pengeluaran')} className="flex items-center px-4 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl text-[10px] sm:text-xs font-black transition-all uppercase tracking-widest backdrop-blur-md border border-white/10">
                                 <ArrowDownCircle className="w-3.5 h-3.5 mr-2" /> PENGELUARAN
                             </Link>
-                            <Link href={route('anggaran.create-tahunan')} className="flex items-center px-4 py-3 bg-white text-green-700 hover:bg-green-50 rounded-xl text-[10px] sm:text-xs font-black shadow-lg shadow-black/10 transition-all hover:scale-105 uppercase tracking-widest">
-                                <Plus className="w-3.5 h-3.5 mr-2" /> TAMBAH REKENING
-                            </Link>
+                            {!is_locked && (
+                                <Link href={route('anggaran.create-tahunan')} className="flex items-center px-4 py-3 bg-white text-green-700 hover:bg-green-50 rounded-xl text-[10px] sm:text-xs font-black shadow-lg shadow-black/10 transition-all hover:scale-105 uppercase tracking-widest">
+                                    <Plus className="w-3.5 h-3.5 mr-2" /> TAMBAH REKENING
+                                </Link>
+                            )}
                         </div>
                     </div>
                 </div>
+
+                {/* Lock Banner */}
+                {is_locked && (
+                    <div className="bg-green-50 border border-green-200 rounded-2xl p-5 flex items-start gap-3">
+                        <AlertTriangle className="w-5 h-5 text-green-600 shrink-0 mt-0.5" />
+                        <div>
+                            <p className="text-xs font-black text-green-800 uppercase tracking-tighter italic">APBDes Telah Disahkan (Terkunci)</p>
+                            <p className="text-[10px] font-bold text-green-700 uppercase tracking-wider mt-0.5">
+                                APBDes untuk tahun aktif telah disahkan melalui Badan Permusyawaratan Desa. Rekening anggaran dikunci dan tidak dapat diubah kembali.
+                            </p>
+                        </div>
+                    </div>
+                )}
 
                 {/* Stats */}
                 <Deferred data="stats" fallback={<SkeletonStats />}>
@@ -116,7 +132,7 @@ export default function Index({ auth, filters = {}, tahunList = [], apbdes, stat
                 </Deferred>
 
                 {/* Filters */}
-                <KeuanganFilters filters={filters} tahunList={tahunList} routeName="transparansi-desa.apbdes" />
+                <KeuanganFilters filters={filters} tahunList={tahunList} routeName="transparansi-desa.apbdes" showBidang={true} />
 
                 {/* Table */}
                 <Deferred data="apbdes" fallback={<SkeletonTable columns={5} rows={8} />}>
@@ -136,23 +152,27 @@ export default function Index({ auth, filters = {}, tahunList = [], apbdes, stat
                                 <table className="w-full">
                                     <thead>
                                         <tr className="bg-gray-50/80 border-b border-gray-100">
-                                            {['Kode', 'Nama Rekening', 'Jenis', 'Sumber Dana', 'Anggaran / Realisasi', 'Aksi'].map(h => (
+                                            {['Kode', 'Bidang/Kegiatan', 'Nama Rekening', 'Jenis', 'Sumber Dana', 'Anggaran / Realisasi', 'Aksi'].map(h => (
                                                 <th key={h} className="px-4 py-3 text-left text-[9px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">{h}</th>
                                             ))}
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-50">
                                         {apbdes.data.map((item) => {
-                                            const jenisCfg = JENIS_CONFIG[item.jenis] ?? JENIS_CONFIG.belanja;
-                                            const statusCfg = STATUS_CONFIG[item.status] ?? STATUS_CONFIG.draft;
+                                            const jenisCfg  = JENIS_CONFIG[item.jenis]  ?? JENIS_CONFIG.belanja;
+                                            const bidangCfg = BIDANG_COLOR[item.bidang] ?? {};
                                             return (
                                                 <tr key={item.id} className="hover:bg-gray-50/50 transition-all group">
                                                     <td className="px-4 py-4 whitespace-nowrap">
                                                         <span className="text-[10px] font-black text-gray-500 uppercase tracking-wider font-mono">{item.kode_rekening}</span>
                                                     </td>
-                                                    <td className="px-4 py-4 max-w-[220px]">
-                                                        <p className="text-xs font-black text-gray-900 line-clamp-2">{item.nama_rekening}</p>
-                                                        {item.keterangan && <p className="text-[9px] text-gray-400 font-bold mt-0.5 truncate">{item.keterangan}</p>}
+                                                    <td className="px-4 py-4 max-w-[140px]">
+                                                        {item.bidang ? (
+                                                            <span className={cn('px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest whitespace-nowrap', bidangCfg.bg, bidangCfg.text)}>
+                                                                Bid. {item.bidang} — {BIDANG_MAP[item.bidang]}
+                                                            </span>
+                                                        ) : <span className="text-[9px] text-gray-300">—</span>}
+                                                        {item.kegiatan && <p className="text-[8px] text-gray-400 font-bold mt-1 truncate">{item.kegiatan}</p>}
                                                     </td>
                                                     <td className="px-4 py-4 whitespace-nowrap">
                                                         <span className={cn('px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest', jenisCfg.bg, jenisCfg.color)}>
@@ -174,20 +194,24 @@ export default function Index({ auth, filters = {}, tahunList = [], apbdes, stat
                                                             >
                                                                 <History className="w-4 h-4" />
                                                             </Link>
-                                                            <Link
-                                                                href={route('anggaran.edit-apbdes', item.id)}
-                                                                className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
-                                                                title="Edit Rekening"
-                                                            >
-                                                                <Edit2 className="w-4 h-4" />
-                                                            </Link>
-                                                            <button
-                                                                onClick={() => handleDelete(item.id, item.nama_rekening)}
-                                                                className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
-                                                                title="Hapus Rekening"
-                                                            >
-                                                                <Trash2 className="w-4 h-4" />
-                                                            </button>
+                                                            {!is_locked && (
+                                                                <>
+                                                                    <Link
+                                                                        href={route('anggaran.edit-apbdes', item.id)}
+                                                                        className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
+                                                                        title="Edit Rekening"
+                                                                    >
+                                                                        <Edit2 className="w-4 h-4" />
+                                                                    </Link>
+                                                                    <button
+                                                                        onClick={() => handleDelete(item.id, item.nama_rekening)}
+                                                                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                                                                        title="Hapus Rekening"
+                                                                    >
+                                                                        <Trash2 className="w-4 h-4" />
+                                                                    </button>
+                                                                </>
+                                                            )}
                                                         </div>
                                                     </td>
                                                 </tr>
