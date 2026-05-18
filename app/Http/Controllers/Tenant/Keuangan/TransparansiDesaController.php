@@ -90,22 +90,27 @@ class TransparansiDesaController extends Controller
         $jenis   = $request->get('jenis', '');
         $search  = $request->get('search', '');
         $sumber  = $request->get('sumber_dana', '');
+        $bidang  = $request->get('bidang', '');
 
         $tahunList = Apbdes::select('tahun')->distinct()->orderBy('tahun', 'desc')->pluck('tahun');
+        $isLocked  = \App\Models\PeraturanDesa::isLocked($tahun);
 
         return Inertia::render('Tenant/Keuangan/APBDes/Index', [
-            'filters'   => $request->only(['tahun', 'jenis', 'search', 'sumber_dana']),
+            'filters'   => $request->only(['tahun', 'jenis', 'search', 'sumber_dana', 'bidang']),
             'tahunList' => $tahunList,
+            'is_locked' => $isLocked,
 
             'apbdes' => Inertia::defer(fn () =>
                 Apbdes::query()
                     ->tahun($tahun)
                     ->when($jenis,  fn ($q) => $q->jenis($jenis))
                     ->when($sumber, fn ($q) => $q->where('sumber_dana', $sumber))
+                    ->when($bidang, fn ($q) => $q->bidang((int) $bidang))
                     ->when($search, fn ($q) => $q->where(function ($q2) use ($search) {
                         $q2->where('nama_rekening', 'like', "%{$search}%")
                            ->orWhere('kode_rekening', 'like', "%{$search}%");
                     }))
+                    ->orderBy('bidang')
                     ->orderBy('kode_rekening')
                     ->paginate(15)
                     ->withQueryString()

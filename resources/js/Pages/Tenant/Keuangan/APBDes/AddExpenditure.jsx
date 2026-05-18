@@ -7,6 +7,14 @@ import { cn } from '@/lib/utils';
 const formatRupiah = (v) => `Rp ${Number(v || 0).toLocaleString('id-ID')}`;
 const formatDate   = (d) => d ? new Date(d).toISOString().split('T')[0] : '';
 
+const InputField = ({ label, error, children }) => (
+    <div className="space-y-1.5">
+        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{label}</label>
+        {children}
+        {error && <p className="text-[10px] font-bold text-red-500 uppercase tracking-wider italic ml-1">{error}</p>}
+    </div>
+);
+
 export default function AddExpenditure({ auth, apbdesList = [], tahunList = [], tahun, jenis }) {
     const { data, setData, post, processing, errors } = useForm({
         apbdes_id:           '',
@@ -23,14 +31,6 @@ export default function AddExpenditure({ auth, apbdesList = [], tahunList = [], 
         e.preventDefault();
         post(route('anggaran.store-pengeluaran'));
     };
-
-    const InputField = ({ label, error, children }) => (
-        <div className="space-y-1.5">
-            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{label}</label>
-            {children}
-            {error && <p className="text-[10px] font-bold text-red-500 uppercase tracking-wider italic ml-1">{error}</p>}
-        </div>
-    );
 
     return (
         <AuthenticatedLayout user={auth.user} title="Tambah Pengeluaran">
@@ -129,7 +129,7 @@ export default function AddExpenditure({ auth, apbdesList = [], tahunList = [], 
                             </InputField>
                         </div>
 
-                        <div>
+                        <div className="sticky top-6 self-start">
                             <button type="submit" disabled={processing || apbdesList.length === 0}
                                 className="w-full flex items-center justify-center gap-3 px-8 py-5 bg-green-600 text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-green-200 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed">
                                 <Save className="w-4 h-4" />

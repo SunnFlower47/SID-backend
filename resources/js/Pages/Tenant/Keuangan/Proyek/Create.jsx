@@ -16,6 +16,14 @@ const JENIS_OPTIONS = [
 
 const formatRupiah = (v) => `Rp ${Number(v || 0).toLocaleString('id-ID')}`;
 
+const InputField = ({ label, error, children, className = '' }) => (
+    <div className={cn('space-y-1.5', className)}>
+        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{label}</label>
+        {children}
+        {error && <p className="text-[10px] font-bold text-red-500 uppercase tracking-wider italic ml-1">{error}</p>}
+    </div>
+);
+
 export default function Create({ auth, tahunList = [], currentYear, apbdesList = [] }) {
     const { data, setData, post, processing, errors } = useForm({
         nama_proyek:       '',
@@ -43,14 +51,6 @@ export default function Create({ auth, tahunList = [], currentYear, apbdesList =
         }
         post(route('anggaran.store-proyek'));
     };
-
-    const InputField = ({ label, error, children, className = '' }) => (
-        <div className={cn('space-y-1.5', className)}>
-            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{label}</label>
-            {children}
-            {error && <p className="text-[10px] font-bold text-red-500 uppercase tracking-wider italic ml-1">{error}</p>}
-        </div>
-    );
 
     return (
         <AuthenticatedLayout user={auth.user} title="Tambah Proyek Desa">
@@ -196,7 +196,7 @@ export default function Create({ auth, tahunList = [], currentYear, apbdesList =
                         </div>
 
                         {/* Sidebar */}
-                        <div className="space-y-4">
+                        <div className="space-y-4 sticky top-6 self-start">
                             <div className="bg-green-50 rounded-2xl border border-green-100 p-6">
                                 <div className="flex items-center gap-3 mb-4">
                                     <div className="w-8 h-8 bg-green-100 rounded-xl flex items-center justify-center">

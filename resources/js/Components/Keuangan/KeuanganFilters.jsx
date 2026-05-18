@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Search, Filter, RefreshCw } from 'lucide-react';
 import { router } from '@inertiajs/react';
 import { cn } from '@/lib/utils';
+import { BIDANG_MAP } from '@/Constants/keuangan';
 
 const SUMBER_DANA_OPTIONS = [
     { value: 'dana_desa_ad', label: 'Dana Desa - Alokasi Dasar (AD)' },
@@ -14,7 +15,7 @@ const SUMBER_DANA_OPTIONS = [
     { value: 'pad',          label: 'Pendapatan Asli Desa (PAD)' },
 ];
 
-export default function KeuanganFilters({ filters = {}, tahunList = [], routeName = 'transparansi-desa.apbdes', showSumberDana = true, showJenis = true, showStatus = false }) {
+export default function KeuanganFilters({ filters = {}, tahunList = [], routeName = 'transparansi-desa.apbdes', showSumberDana = true, showJenis = true, showStatus = false, showBidang = false }) {
     const [showFilters, setShowFilters] = useState(
         !!(filters.search || filters.jenis || filters.sumber_dana || filters.status)
     );
@@ -25,6 +26,7 @@ export default function KeuanganFilters({ filters = {}, tahunList = [], routeNam
         jenis:       filters.jenis       ?? '',
         sumber_dana: filters.sumber_dana ?? '',
         status:      filters.status      ?? '',
+        bidang:      filters.bidang      ?? '',
     });
 
     const update = (key, value) => setLocal(prev => ({ ...prev, [key]: value }));
@@ -107,6 +109,20 @@ export default function KeuanganFilters({ filters = {}, tahunList = [], routeNam
                                 <option value="pendapatan">Pendapatan</option>
                                 <option value="belanja">Belanja</option>
                                 <option value="pembiayaan">Pembiayaan</option>
+                            </select>
+                        )}
+
+                        {/* Bidang filter */}
+                        {showBidang && (
+                            <select
+                                value={local.bidang}
+                                onChange={e => update('bidang', e.target.value)}
+                                className="w-full border border-gray-200 rounded-xl px-4 py-2 text-sm font-bold focus:ring-2 focus:ring-green-500 appearance-none cursor-pointer"
+                            >
+                                <option value="">Semua Bidang</option>
+                                {[1,2,3,4,5].map(b => (
+                                    <option key={b} value={b}>Bidang {b} — {BIDANG_MAP[b]}</option>
+                                ))}
                             </select>
                         )}
 

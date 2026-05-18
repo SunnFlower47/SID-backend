@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Tenant\Keuangan\TransparansiDesaController;
 use App\Http\Controllers\Tenant\Keuangan\AnggaranController;
+use App\Http\Controllers\Tenant\Keuangan\LaporanKeuanganController;
+use App\Http\Controllers\Tenant\Keuangan\PeraturanDesaController;
 
 // MODULE 3: Keuangan
 Route::middleware('can:keuangan')->group(function () {
@@ -27,5 +29,22 @@ Route::middleware('can:keuangan')->group(function () {
         Route::get('create-proyek', 'createProyek')->name('create-proyek');
         Route::post('store-proyek', 'storeProyek')->name('store-proyek');
         Route::post('update-realisasi-proyek/{proyek}', 'updateRealisasiProyek')->name('update-realisasi-proyek');
+    });
+
+    // ── Laporan Keuangan Desa ────────────────────────────────────
+    Route::prefix('laporan-keuangan')->name('laporan-keuangan.')->controller(LaporanKeuanganController::class)->group(function () {
+        Route::get('/',               'index')         ->name('index');
+        Route::get('/pdf-realisasi',  'pdfRealisasi')  ->name('pdf-realisasi');
+        Route::get('/pdf-buku-kas',   'pdfBukuKas')    ->name('pdf-buku-kas');
+        Route::get('/pdf-proyek',     'pdfProyek')     ->name('pdf-proyek');
+    });
+
+    // ── Persetujuan BPD (Peraturan Desa) ──────────────────────────
+    Route::prefix('peraturan-desa')->name('peraturan-desa.')->controller(PeraturanDesaController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/', 'store')->name('store');
+        Route::put('/{id}/status', 'updateStatus')->name('update-status');
+        Route::post('/{id}/dokumen', 'uploadDokumen')->name('upload-dokumen');
+        Route::delete('/{id}', 'destroy')->name('destroy');
     });
 });
