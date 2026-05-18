@@ -2,9 +2,9 @@
 
 > **Platform Digital Terintegrasi untuk Administrasi dan Layanan Desa**
 
-[![Laravel](https://img.shields.io/badge/Laravel-11.x-red.svg)](https://laravel.com)
+[![Laravel](https://img.shields.io/badge/Laravel-12.x-red.svg)](https://laravel.com)
 [![React](https://img.shields.io/badge/React-18.x-blue.svg)](https://reactjs.org)
-[![PHP](https://img.shields.io/badge/PHP-8.2+-purple.svg)](https://php.net)
+[![PHP](https://img.shields.io/badge/PHP-8.3+-purple.svg)](https://php.net)
 [![MySQL](https://img.shields.io/badge/MySQL-8.0+-orange.svg)](https://mysql.com)
 
 ## 📋 DAFTAR ISI
