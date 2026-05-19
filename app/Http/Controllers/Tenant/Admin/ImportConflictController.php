@@ -22,7 +22,7 @@ class ImportConflictController extends Controller
     {
         Gate::authorize('admin_sistem');
 
-        return Inertia::render('Tenant/Import/Index', [
+        return Inertia::render('Tenant/ImportConflict/Index', [
             'conflicts' => Inertia::defer(function() use ($request) {
                 $query = ImportConflict::query()->latest('id');
 

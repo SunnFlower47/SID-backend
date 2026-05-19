@@ -37,7 +37,7 @@ class ImportController extends Controller
     public function index()
     {
         Gate::authorize('kependudukan');
-        return view('import.index');
+        return \Inertia\Inertia::render('Tenant/Import/Import');
     }
 
     /**

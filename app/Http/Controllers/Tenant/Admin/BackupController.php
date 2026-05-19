@@ -12,9 +12,17 @@ use Carbon\Carbon;
 
 class BackupController extends Controller
 {
-        public function __construct()
+    public function __construct()
     {
         $this->middleware(['auth', 'can:admin_sistem']);
+    }
+
+    /**
+     * Get backup directory path relative to local disk
+     */
+    private function getBackupDir()
+    {
+        return config('backup.backup.name');
     }
 
     /**
@@ -22,28 +30,29 @@ class BackupController extends Controller
      */
     public function index()
     {
-        // Get backup files from storage
+        $backupDir = $this->getBackupDir();
         $backupFiles = collect();
 
-        // Check if directory exists using direct path
-        $backupDir = storage_path('app/private/admin-panel-desa-cibatu');
-        if (is_dir($backupDir)) {
-            $files = glob($backupDir . '/*.zip');
+        if (Storage::disk('local')->exists($backupDir)) {
+            $files = Storage::disk('local')->files($backupDir);
 
-            $backupFiles = collect($files)->map(function ($file) {
-                return [
-                    'name' => basename($file),
-                    'path' => 'private/admin-panel-desa-cibatu/' . basename($file),
-                    'size' => file_exists($file) ? filesize($file) : 0,
-                    'created_at' => file_exists($file) ? Carbon::createFromTimestamp(filemtime($file)) : null,
-                ];
-            })->sortByDesc('created_at');
+            $backupFiles = collect($files)
+                ->filter(function ($file) {
+                    return str_ends_with($file, '.zip');
+                })
+                ->map(function ($file) {
+                    $path = Storage::disk('local')->path($file);
+                    return [
+                        'name' => basename($file),
+                        'path' => $file,
+                        'size' => file_exists($path) ? filesize($path) : 0,
+                        'created_at' => file_exists($path) ? Carbon::createFromTimestamp(filemtime($path)) : null,
+                    ];
+                })->sortByDesc('created_at')->values();
         }
 
-        // Get disk space information
         $diskSpace = $this->getDiskSpaceInfo();
 
-        // Get backup statistics
         $stats = [
             'total_files' => $backupFiles->count(),
             'total_size' => $backupFiles->sum('size'),
@@ -51,7 +60,11 @@ class BackupController extends Controller
             'oldest_backup' => $backupFiles->last()['created_at'] ?? null,
         ];
 
-        return view('backup.index', compact('backupFiles', 'diskSpace', 'stats'));
+        return \Inertia\Inertia::render('Tenant/Backup/Index', [
+            'backupFiles' => $backupFiles,
+            'diskSpace' => $diskSpace,
+            'stats' => $stats
+        ]);
     }
 
     /**
@@ -89,9 +102,9 @@ class BackupController extends Controller
                     break;
             }
 
-            return redirect()->back()->with('success', 'Backup berhasil dibuat!');
+            return back()->with('success', 'Backup berhasil dibuat!');
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Gagal membuat backup: ' . $e->getMessage());
+            return back()->with('error', 'Gagal membuat backup: ' . $e->getMessage());
         }
     }
 
@@ -100,13 +113,14 @@ class BackupController extends Controller
      */
     public function download($filename)
     {
-        $filePath = storage_path('app/private/admin-panel-desa-cibatu/' . $filename);
+        $file = $this->getBackupDir() . '/' . $filename;
 
-        if (!file_exists($filePath)) {
+        if (!Storage::disk('local')->exists($file)) {
             abort(404, 'File backup tidak ditemukan');
         }
 
-        // Set headers untuk download file
+        $filePath = Storage::disk('local')->path($file);
+
         $headers = [
             'Content-Type' => 'application/zip',
             'Content-Disposition' => 'attachment; filename="' . $filename . '"',
@@ -121,15 +135,15 @@ class BackupController extends Controller
      */
     public function destroy($filename)
     {
-        $filePath = storage_path('app/private/admin-panel-desa-cibatu/' . $filename);
+        $file = $this->getBackupDir() . '/' . $filename;
 
-        if (!file_exists($filePath)) {
-            return redirect()->back()->with('error', 'File backup tidak ditemukan');
+        if (!Storage::disk('local')->exists($file)) {
+            return back()->with('error', 'File backup tidak ditemukan');
         }
 
-        unlink($filePath);
+        Storage::disk('local')->delete($file);
 
-        return redirect()->back()->with('success', 'File backup berhasil dihapus');
+        return back()->with('success', 'File backup berhasil dihapus');
     }
 
     /**
@@ -141,7 +155,7 @@ class BackupController extends Controller
     }
 
     /**
-     * Restore from backup
+     * Restore from backup (Database Only)
      */
     public function restore(Request $request)
     {
@@ -151,18 +165,49 @@ class BackupController extends Controller
         ]);
 
         try {
-            $filePath = 'private/admin-panel-desa-cibatu/' . $request->filename;
+            $file = $this->getBackupDir() . '/' . $request->filename;
 
-            if (!Storage::disk('local')->exists($filePath)) {
-                return redirect()->back()->with('error', 'File backup tidak ditemukan');
+            if (!Storage::disk('local')->exists($file)) {
+                return back()->with('error', 'File backup tidak ditemukan');
             }
 
-            // This would require a custom restore command
-            // Artisan::call('backup:restore', ['filename' => $request->filename]);
+            $zipPath = Storage::disk('local')->path($file);
+            $extractPath = Storage::disk('local')->path('temp_restore_' . time());
 
-            return redirect()->back()->with('success', 'Restore berhasil dilakukan!');
+            // Extract the zip file
+            $zip = new \ZipArchive;
+            if ($zip->open($zipPath) === TRUE) {
+                $zip->extractTo($extractPath);
+                $zip->close();
+            } else {
+                throw new \Exception('Gagal membuka file backup .zip');
+            }
+
+            // Find the SQL file
+            $sqlFiles = glob($extractPath . '/db-dumps/*.sql');
+            
+            if (empty($sqlFiles)) {
+                // Clean up
+                Storage::disk('local')->deleteDirectory(basename($extractPath));
+                throw new \Exception('File SQL tidak ditemukan di dalam backup. Apakah ini backup database?');
+            }
+
+            $sqlPath = $sqlFiles[0];
+
+            // Execute the SQL
+            // Warning: This will drop tables and recreate them if it's a full dump
+            \Illuminate\Support\Facades\DB::unprepared(file_get_contents($sqlPath));
+
+            // Clean up
+            Storage::disk('local')->deleteDirectory(basename($extractPath));
+
+            return back()->with('success', 'Database berhasil direstore dari backup!');
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Gagal melakukan restore: ' . $e->getMessage());
+            // Attempt to clean up on error
+            if (isset($extractPath) && Storage::disk('local')->exists(basename($extractPath))) {
+                Storage::disk('local')->deleteDirectory(basename($extractPath));
+            }
+            return back()->with('error', 'Gagal melakukan restore: ' . $e->getMessage());
         }
     }
 
@@ -176,24 +221,10 @@ class BackupController extends Controller
         ]);
 
         try {
-            $cutoffDate = now()->subDays($request->days);
-            $deletedCount = 0;
-
-            if (Storage::disk('local')->exists('private/admin-panel-desa-cibatu')) {
-                $files = Storage::disk('local')->files('private/admin-panel-desa-cibatu');
-
-                foreach ($files as $file) {
-                    $path = storage_path('app/' . $file);
-                    if (file_exists($path) && Carbon::createFromTimestamp(filemtime($path))->lt($cutoffDate)) {
-                        Storage::disk('local')->delete($file);
-                        $deletedCount++;
-                    }
-                }
-            }
-
-            return redirect()->back()->with('success', "Berhasil menghapus {$deletedCount} file backup yang lebih dari {$request->days} hari.");
+            Artisan::call('backup:clean');
+            return back()->with('success', "Proses pembersihan file backup lama berhasil dijalankan sesuai konfigurasi (spatie/laravel-backup).");
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Gagal membersihkan backup: ' . $e->getMessage());
+            return back()->with('error', 'Gagal membersihkan backup: ' . $e->getMessage());
         }
     }
 
@@ -202,15 +233,8 @@ class BackupController extends Controller
      */
     public function exportData()
     {
-        try {
-            $filename = 'data_export_' . now()->format('Y-m-d_H-i-s') . '.xlsx';
-
-            // This would typically export all data to Excel
-            // For now, just return a message
-            return redirect()->back()->with('success', 'Export data berhasil! File: ' . $filename);
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Gagal export data: ' . $e->getMessage());
-        }
+        // Not implemented in backup controller anymore, moved to ExportController
+        return back()->with('error', 'Fitur export data dipindahkan ke menu Export Data.');
     }
 
     /**
@@ -218,13 +242,14 @@ class BackupController extends Controller
      */
     public function statistics()
     {
+        $backupDir = $this->getBackupDir();
         $backupFiles = collect();
 
-        if (Storage::disk('local')->exists('private/admin-panel-desa-cibatu')) {
-            $files = Storage::disk('local')->files('private/admin-panel-desa-cibatu');
+        if (Storage::disk('local')->exists($backupDir)) {
+            $files = Storage::disk('local')->files($backupDir);
 
             $backupFiles = collect($files)->map(function ($file) {
-                $path = storage_path('app/' . $file);
+                $path = Storage::disk('local')->path($file);
                 return [
                     'name' => basename($file),
                     'size' => file_exists($path) ? filesize($path) : 0,

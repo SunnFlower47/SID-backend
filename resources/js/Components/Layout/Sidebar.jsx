@@ -95,8 +95,8 @@ const menuGroups = [
             { name: 'Master Wilayah', href: 'settings.wilayah.index', icon: 'Map' },
             { name: 'Issue Queue', href: 'import-conflicts.index', icon: 'AlertTriangle' },
             { name: 'Import Data', href: 'import.index', icon: 'Download' },
-            { name: 'Export Data', href: 'export-import.index', icon: 'Upload' },
-            { name: 'Sampah Penduduk', href: 'settings.trash.penduduk.index', icon: 'Trash2' },
+            { name: 'Export Data', href: 'export.index', icon: 'Upload' },
+            { name: 'Sampah Data Penduduk', href: 'settings.trash.penduduk.index', icon: 'Trash2' },
             { name: 'Backup', href: 'backup.index', icon: 'Database' },
         ]
     },
