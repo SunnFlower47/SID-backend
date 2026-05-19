@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 class ImportConflict extends Model
 {
+    use LogsActivity;
     protected $fillable = [
         'batch_id',
         'source_file',
@@ -38,4 +41,15 @@ class ImportConflict extends Model
         'resolved_at' => 'datetime',
         'reprocessed_at' => 'datetime',
     ];
+
+    /**
+     * Get the activity log options for the model.
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logFillable()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
 }

@@ -8,10 +8,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Traits\HasWilayahLabels;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 class KartuKeluarga extends Model
 {
-    use HasWilayahLabels, SoftDeletes, HasFactory;
+    use HasWilayahLabels, SoftDeletes, HasFactory, LogsActivity;
 
     protected $fillable = [
         'nkk',
@@ -167,5 +169,16 @@ class KartuKeluarga extends Model
     public function isBermasalah(): bool
     {
         return in_array($this->status_kk, ['bermasalah', 'bermasalah_sementara']);
+    }
+
+    /**
+     * Get the activity log options for the model.
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logFillable()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
     }
 }

@@ -7,10 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 use App\Traits\HasWilayahLabels;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 class StrukturDesa extends Model
 {
-    use HasWilayahLabels;
+    use HasWilayahLabels, LogsActivity;
 
     protected $fillable = [
         'nama',
@@ -135,5 +137,16 @@ class StrukturDesa extends Model
     public function scopeByHierarchy($query)
     {
         return $query->orderBy('urutan')->orderBy('kategori')->orderBy('nama');
+    }
+
+    /**
+     * Get the activity log options for the model.
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logFillable()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
     }
 }

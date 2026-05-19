@@ -7,10 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 use App\Traits\HasWilayahLabels;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 class KontakDesa extends Model
 {
-    use HasWilayahLabels;
+    use HasWilayahLabels, LogsActivity;
 
     protected $fillable = [
         'nama',
@@ -155,5 +157,16 @@ class KontakDesa extends Model
     public function scopeByOrder($query)
     {
         return $query->orderBy('urutan')->orderBy('jenis')->orderBy('nama');
+    }
+
+    /**
+     * Get the activity log options for the model.
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logFillable()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
     }
 }

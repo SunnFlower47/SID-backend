@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 class ProyekDesa extends Model
 {
+    use LogsActivity;
 
     protected $fillable = [
         'nama_proyek',
@@ -126,11 +129,19 @@ class ProyekDesa extends Model
         return $query->whereIn('status', ['perencanaan', 'pelaksanaan']);
     }
 
-    /**
-     * Get the APBDes that this project is linked to
-     */
     public function apbdes()
     {
         return $this->belongsTo(Apbdes::class);
+    }
+
+    /**
+     * Get the activity log options for the model.
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logFillable()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
     }
 }

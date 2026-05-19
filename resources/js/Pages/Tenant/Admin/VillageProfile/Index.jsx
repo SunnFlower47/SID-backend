@@ -43,6 +43,12 @@ export default function Index({ auth, profile }) {
         link_youtube: profile.additional.youtube || '',
     });
 
+    const [previews, setPreviews] = useState({
+        logo_desa: null,
+        logo_kabupaten: null,
+        logo_provinsi: null
+    });
+
     // Form for Logos
     const { data: logoData, setData: setLogoData, post: postLogos, processing: logoProcessing } = useForm({
         logo_desa: null,
@@ -50,6 +56,39 @@ export default function Index({ auth, profile }) {
         logo_provinsi: null,
         _method: 'POST'
     });
+
+    const handleLogoChange = (key, file) => {
+        if (!file) return;
+        
+        const maxSize = 2 * 1024 * 1024; // 2MB
+        if (file.size > maxSize) {
+            Swal.fire({
+                title: 'FILE TERLALU BESAR!',
+                text: 'Ukuran file logo maksimal adalah 2 MB. Silakan kompres gambar Anda terlebih dahulu.',
+                icon: 'error',
+                confirmButtonColor: '#ef4444',
+                confirmButtonText: 'OKE',
+                customClass: {
+                    popup: 'rounded-[2.5rem] border-none shadow-2xl',
+                    title: 'font-black tracking-tighter uppercase italic text-red-600',
+                    confirmButton: 'rounded-2xl px-6 py-3 font-black uppercase tracking-widest text-[10px]'
+                }
+            });
+            return;
+        }
+        
+        setLogoData(key, file);
+
+        // Generate Instant Preview
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setPreviews(prev => ({
+                ...prev,
+                [key]: reader.result
+            }));
+        };
+        reader.readAsDataURL(file);
+    };
 
     const submitGeneral = (e) => {
         e.preventDefault();
@@ -213,28 +252,31 @@ export default function Index({ auth, profile }) {
                                     { key: 'logo_desa', label: 'Logo Desa', current: profile.branding.desa },
                                     { key: 'logo_kabupaten', label: 'Logo Kabupaten', current: profile.branding.kabupaten },
                                     { key: 'logo_provinsi', label: 'Logo Provinsi', current: profile.branding.provinsi },
-                                ].map((logo) => (
-                                    <div key={logo.key} className="flex flex-col items-center p-6 bg-gray-50 rounded-3xl border border-dashed border-gray-300">
-                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">{logo.label}</label>
-                                        <div className="relative group">
-                                            <div className="w-32 h-32 rounded-3xl bg-white shadow-inner flex items-center justify-center p-4 overflow-hidden border border-gray-100">
-                                                {logo.current ? (
-                                                    <img src={logo.current} alt={logo.label} className="w-full h-full object-contain" />
-                                                ) : (
-                                                    <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-gray-300 font-black">?</div>
-                                                )}
-                                            </div>
+                                ].map((logo) => {
+                                    const displayImage = previews[logo.key] || logo.current;
+                                    return (
+                                        <div key={logo.key} className="flex flex-col items-center p-6 bg-gray-50 rounded-3xl border border-dashed border-gray-300">
+                                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">{logo.label}</label>
+                                            <div className="relative group">
+                                                <div className="w-32 h-32 rounded-3xl bg-white shadow-inner flex items-center justify-center p-4 overflow-hidden border border-gray-100">
+                                                    {displayImage ? (
+                                                        <img src={displayImage} alt={logo.label} className="w-full h-full object-contain" />
+                                                    ) : (
+                                                        <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-gray-300 font-black">?</div>
+                                                    )}
+                                                </div>
                                             <label className="absolute inset-0 flex items-center justify-center bg-emerald-600/80 text-white rounded-3xl opacity-0 group-hover:opacity-100 cursor-pointer transition-all duration-300">
                                                 <span className="text-[10px] font-black uppercase tracking-widest">GANTI</span>
                                                 <input 
                                                     type="file" 
                                                     className="hidden" 
-                                                    onChange={e => setLogoData(logo.key, e.target.files[0])}
+                                                    onChange={e => handleLogoChange(logo.key, e.target.files[0])}
                                                 />
                                             </label>
                                         </div>
                                     </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         )}
 

@@ -8,10 +8,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 use App\Traits\HasWilayahLabels;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 class Testimoni extends Model
 {
-    use HasFactory, HasWilayahLabels;
+    use HasFactory, HasWilayahLabels, LogsActivity;
 
     protected $fillable = [
         'nama',
@@ -112,5 +114,16 @@ class Testimoni extends Model
             $stars .= $i <= $this->rating ? '★' : '☆';
         }
         return $stars;
+    }
+
+    /**
+     * Get the activity log options for the model.
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logFillable()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
     }
 }

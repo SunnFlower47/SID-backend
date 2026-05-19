@@ -2,6 +2,18 @@ import React from 'react';
 import { Link } from '@inertiajs/react';
 import { cn } from '@/lib/utils';
 
+const cleanLabel = (label) => {
+    if (!label) return '';
+    const lower = label.toLowerCase();
+    if (lower.includes('previous') || lower.includes('prev') || lower.includes('laquo')) {
+        return '&laquo;';
+    }
+    if (lower.includes('next') || lower.includes('raquo')) {
+        return '&raquo;';
+    }
+    return label;
+};
+
 export default function Pagination({ links, from, to, total }) {
     if (!links || links.length <= 3) return null;
 
@@ -21,7 +33,7 @@ export default function Pagination({ links, from, to, total }) {
                             link.url ? 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-100' : 
                             'bg-transparent text-gray-300 cursor-not-allowed'
                         )}
-                        dangerouslySetInnerHTML={{ __html: link.label }}
+                        dangerouslySetInnerHTML={{ __html: cleanLabel(link.label) }}
                         preserveScroll
                         preserveState
                     />

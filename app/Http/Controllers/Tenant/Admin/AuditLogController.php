@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Gate;
 use Spatie\Activitylog\Models\Activity;
 use App\Models\User;
 use Carbon\Carbon;
+use Inertia\Inertia;
 
 class AuditLogController extends Controller
 {
@@ -68,13 +69,17 @@ class AuditLogController extends Controller
             'this_month' => Activity::whereMonth('created_at', now()->month)->count(),
         ];
 
-        return view('audit-log.index', compact(
-            'activities',
-            'users',
-            'events',
-            'subjectTypes',
-            'stats'
-        ));
+        // Filters to pass back
+        $filters = $request->only(['start_date', 'end_date', 'user_id', 'event', 'subject_type', 'search']);
+
+        return Inertia::render('Tenant/AuditLog/Index', [
+            'activities' => $activities,
+            'users' => $users,
+            'events' => $events,
+            'subjectTypes' => $subjectTypes,
+            'stats' => $stats,
+            'filters' => $filters,
+        ]);
     }
 
     /**
@@ -84,7 +89,9 @@ class AuditLogController extends Controller
     {
         $activity->load(['causer', 'subject']);
 
-        return view('audit-log.show', compact('activity'));
+        return Inertia::render('Tenant/AuditLog/Show', [
+            'activity' => $activity
+        ]);
     }
 
     /**

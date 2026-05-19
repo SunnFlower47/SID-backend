@@ -7,10 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 use App\Traits\HasWilayahLabels;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 class FasilitasDesa extends Model
 {
-    use HasWilayahLabels;
+    use HasWilayahLabels, LogsActivity;
 
     protected $fillable = [
         'nama',
@@ -100,12 +102,19 @@ class FasilitasDesa extends Model
         return $labels[$this->jenis] ?? $this->jenis;
     }
 
-    /**
-     * Get the full address
-     */
     public function getAlamatLengkapAttribute()
     {
         return "{$this->alamat}, RT {$this->rt_label}/RW {$this->rw_label}, {$this->dusun_label}";
     }
 
+    /**
+     * Get the activity log options for the model.
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logFillable()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
 }
