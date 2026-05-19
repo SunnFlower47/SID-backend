@@ -68,13 +68,19 @@ Route::middleware('can:admin_sistem')->group(function () {
         Route::post('/{conflict}/reprocess', 'reprocessImportIssue')->name('reprocess');
     });
 
-    // Export/Import/Backup
-    Route::prefix('export-import')->name('export-import.')->controller(ImportController::class)->group(function () {
+    // Import & Export Data
+    Route::prefix('import')->name('import.')->controller(ImportController::class)->group(function () {
         Route::get('/', 'index')->name('index');
         Route::get('/template/{type}', 'downloadTemplate')->name('template');
+        Route::post('/penduduk/preview', 'previewPenduduk')->name('penduduk.preview');
+        Route::post('/penduduk/preview-invalid-report', 'downloadPendudukInvalidReport')->name('penduduk.preview-invalid-report');
+        Route::post('/penduduk', 'importPenduduk')->name('penduduk');
+        Route::post('/bantuan-sosial', 'importBantuanSosial')->name('bantuan-sosial');
+        Route::post('/umkm', 'importUmkm')->name('umkm');
     });
 
     Route::prefix('export')->name('export.')->controller(ExportController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
         Route::get('/penduduk', 'exportPenduduk')->name('penduduk');
         Route::get('/kartu-keluarga', 'exportKartuKeluarga')->name('kartu-keluarga');
         Route::get('/bantuan-sosial', 'exportBantuanSosial')->name('bantuan-sosial');
@@ -82,14 +88,6 @@ Route::middleware('can:admin_sistem')->group(function () {
         Route::get('/pengaduan', 'exportPengaduan')->name('pengaduan');
         Route::get('/umkm', 'exportUmkm')->name('umkm');
         Route::get('/surat-pengajuan', 'exportSuratPengajuan')->name('surat-pengajuan');
-    });
-
-    Route::prefix('import')->name('import.')->controller(ImportController::class)->group(function () {
-        Route::post('/penduduk/preview', 'previewPenduduk')->name('penduduk.preview');
-        Route::post('/penduduk/preview-invalid-report', 'downloadPendudukInvalidReport')->name('penduduk.preview-invalid-report');
-        Route::post('/penduduk', 'importPenduduk')->name('penduduk');
-        Route::post('/bantuan-sosial', 'importBantuanSosial')->name('bantuan-sosial');
-        Route::post('/umkm', 'importUmkm')->name('umkm');
     });
 
     Route::prefix('audit-log')->name('audit-log.')->controller(AuditLogController::class)->group(function () {

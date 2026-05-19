@@ -33,9 +33,10 @@ class TrashPendudukController extends Controller
             });
         }
 
-        $penduduks = $query->latest('deleted_at')->paginate(10);
-
-        return view('settings.trash.penduduk.index', compact('penduduks'));
+        return \Inertia\Inertia::render('Tenant/Trash/Penduduk/Index', [
+            'penduduks' => \Inertia\Inertia::defer(fn() => $query->latest('deleted_at')->paginate(10)->withQueryString()),
+            'filters' => $request->only(['search'])
+        ]);
     }
 
     /**
@@ -48,8 +49,7 @@ class TrashPendudukController extends Controller
         $penduduk = Penduduk::onlyTrashed()->findOrFail($id);
         $penduduk->restore();
 
-        return redirect()->route('settings.trash.penduduk.index')
-            ->with('success', "Data penduduk {$penduduk->nama} berhasil dipulihkan.");
+        return back()->with('success', "Data penduduk {$penduduk->nama} berhasil dipulihkan.");
     }
 
     /**
@@ -67,12 +67,10 @@ class TrashPendudukController extends Controller
             $penduduk->forceDelete();
             DB::commit();
 
-            return redirect()->route('settings.trash.penduduk.index')
-                ->with('success', "Data penduduk {$nama} telah dihapus permanen dari sistem.");
+            return back()->with('success', "Data penduduk {$nama} telah dihapus permanen dari sistem.");
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->route('settings.trash.penduduk.index')
-                ->with('error', "Gagal menghapus data: " . $e->getMessage());
+            return back()->with('error', "Gagal menghapus data: " . $e->getMessage());
         }
     }
 }

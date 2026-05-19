@@ -95,6 +95,6 @@ class ExportController extends Controller
      */
     public function index()
     {
-        return view('export-import.index');
+        return \Inertia\Inertia::render('Tenant/Export/Index');
     }
 }
