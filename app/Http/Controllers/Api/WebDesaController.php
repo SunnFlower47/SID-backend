@@ -379,12 +379,63 @@ class WebDesaController extends Controller
                 return response()->json([
                     'success' => true,
                     'data' => $stats
+                ])->withHeaders([
+                    'Cache-Control' => 'public, max-age=300',
+                    'X-Content-Type-Options' => 'nosniff',
                 ]);
             } catch (\Exception $e) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Gagal mengambil statistik penduduk',
-                    'error' => $e->getMessage()
+                ], 500);
+            }
+        });
+    }
+
+    /**
+     * Get public desa info (nama desa + sosial media) for welcome page footer
+     * No API key required — returns only non-sensitive public info
+     */
+    public function getPublicDesaInfo()
+    {
+        // Cache 10 menit — sosmed jarang berubah
+        return Cache::remember('api_public_desa_info', 600, function () {
+            try {
+                $desaInfo = DesaSetting::getDesaInfo();
+
+                // Sanitize & validate URLs sebelum dikembalikan
+                $sanitizeUrl = function($url) {
+                    if (empty($url)) return null;
+                    $parsed = parse_url($url);
+                    // Hanya izinkan http/https scheme
+                    if (!isset($parsed['scheme']) || !in_array($parsed['scheme'], ['http', 'https'])) {
+                        return null;
+                    }
+                    return filter_var($url, FILTER_SANITIZE_URL);
+                };
+
+                return response()->json([
+                    'success' => true,
+                    'data' => [
+                        'nama_desa' => $desaInfo['nama_desa'] ?? 'Desa Cibatu',
+                        'email' => $desaInfo['email'] ?? null,
+                        'telepon' => $desaInfo['telepon'] ?? null,
+                        'alamat' => $desaInfo['alamat_lengkap'] ?? null,
+                        'social' => [
+                            'facebook' => $sanitizeUrl(DesaSetting::getValue('link_facebook', '')),
+                            'instagram' => $sanitizeUrl(DesaSetting::getValue('link_instagram', '')),
+                            'whatsapp' => $sanitizeUrl(DesaSetting::getValue('link_whatsapp', '')),
+                            'youtube' => $sanitizeUrl(DesaSetting::getValue('link_youtube', '')),
+                        ],
+                    ]
+                ])->withHeaders([
+                    'Cache-Control' => 'public, max-age=600',
+                    'X-Content-Type-Options' => 'nosniff',
+                ]);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal mengambil info desa',
                 ], 500);
             }
         });

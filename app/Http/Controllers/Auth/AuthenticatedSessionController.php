@@ -15,12 +15,12 @@ class AuthenticatedSessionController extends Controller
     /**
      * Display the login view.
      */
-    public function create(Request $request): View
+    public function create(Request $request): \Inertia\Response
     {
         // Fallback defensive: pastikan csp_nonce selalu tersedia walau middleware tidak terpasang
         $nonce = $request->attributes->get('csp_nonce') ?? base64_encode(random_bytes(16));
 
-        return view('auth.login', [
+        return \Inertia\Inertia::render('Auth/Login', [
             'csp_nonce' => $nonce,
         ]);
     }
@@ -44,7 +44,7 @@ class AuthenticatedSessionController extends Controller
     /**
      * Destroy an authenticated session.
      */
-    public function destroy(Request $request): RedirectResponse
+    public function destroy(Request $request): \Symfony\Component\HttpFoundation\Response
     {
         try {
             Log::info('Logout attempt', [
@@ -64,7 +64,8 @@ class AuthenticatedSessionController extends Controller
             $request->session()->regenerateToken();
 
             Log::info('Logout successful');
-            return redirect('/')->with('success', 'Anda telah berhasil logout');
+            session()->flash('success', 'Anda telah berhasil logout');
+            return redirect('/');
 
         } catch (\Exception $e) {
             Log::error('Logout error: ' . $e->getMessage());

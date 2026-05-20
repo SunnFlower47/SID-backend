@@ -12,8 +12,16 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 
 Route::get('/', function () {
-    return view('welcome');
+    return \Inertia\Inertia::render('Welcome');
 })->name('welcome');
+
+Route::get('/kebijakan-privasi', function () {
+    return \Inertia\Inertia::render('PrivacyPolicy');
+})->name('privacy-policy');
+
+Route::get('/ketentuan-layanan', function () {
+    return \Inertia\Inertia::render('TermsOfService');
+})->name('terms-of-service');
 
 Route::get('/react-test', function () {
     return inertia('Tenant/Test');
@@ -33,12 +41,7 @@ Route::post('/clear-session-message', function(Request $request) {
 
 Route::middleware('auth')->group(function () {
     // Logout route for all users
-    Route::post('/logout', function (Request $request) {
-        Auth::logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-        return redirect('/')->with('success', 'Anda telah berhasil logout');
-    })->name('logout');
+    Route::post('/logout', [\App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'destroy'])->name('logout');
 
     // Dashboard 
     Route::controller(DashboardController::class)->group(function () {

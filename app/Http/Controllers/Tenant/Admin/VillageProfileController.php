@@ -57,6 +57,7 @@ class VillageProfileController extends Controller
             'link_facebook' => 'nullable|url|max:255',
             'link_instagram' => 'nullable|url|max:255',
             'link_youtube' => 'nullable|url|max:255',
+            'link_whatsapp' => 'nullable|url|max:255',
         ]);
 
         // Mapping keys to groups
@@ -79,6 +80,7 @@ class VillageProfileController extends Controller
             'link_facebook' => DesaSetting::GROUP_SOCIAL,
             'link_instagram' => DesaSetting::GROUP_SOCIAL,
             'link_youtube' => DesaSetting::GROUP_SOCIAL,
+            'link_whatsapp' => DesaSetting::GROUP_SOCIAL,
         ];
 
         foreach ($validated as $key => $value) {

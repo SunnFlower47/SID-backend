@@ -133,6 +133,8 @@ export default function Index({ auth, users, roles, permissions, stats }) {
     // ==========================================
     const [isUserModalOpen, setIsUserModalOpen] = useState(false);
     const [editUserId, setEditUserId] = useState(null);
+    const [showUserPassword, setShowUserPassword] = useState(false);
+    const [showUserConfirmPassword, setShowUserConfirmPassword] = useState(false);
 
     const userForm = useForm({
         name: '',
@@ -146,6 +148,8 @@ export default function Index({ auth, users, roles, permissions, stats }) {
         userForm.reset();
         userForm.clearErrors();
         setEditUserId(null);
+        setShowUserPassword(false);
+        setShowUserConfirmPassword(false);
         setIsUserModalOpen(true);
     };
 
@@ -159,6 +163,8 @@ export default function Index({ auth, users, roles, permissions, stats }) {
             role: user.roles[0]?.id || '',
         });
         setEditUserId(user.id);
+        setShowUserPassword(false);
+        setShowUserConfirmPassword(false);
         setIsUserModalOpen(true);
     };
 
@@ -929,25 +935,43 @@ export default function Index({ auth, users, roles, permissions, stats }) {
                                             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
                                                 {editUserId ? 'Kata Sandi Baru (Kosongkan jika tidak diganti)' : 'Kata Sandi'}
                                             </label>
-                                            <input
-                                                type="password"
-                                                value={userForm.data.password}
-                                                onChange={e => userForm.setData('password', e.target.value)}
-                                                className={`w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold text-gray-700 focus:ring-4 ${userForm.errors.password ? 'focus:ring-red-500/10' : 'focus:ring-green-500/10'} transition-all`}
-                                                required={!editUserId}
-                                            />
+                                            <div className="relative">
+                                                <input
+                                                    type={showUserPassword ? "text" : "password"}
+                                                    value={userForm.data.password}
+                                                    onChange={e => userForm.setData('password', e.target.value)}
+                                                    className={`w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold text-gray-700 focus:ring-4 ${userForm.errors.password ? 'focus:ring-red-500/10' : 'focus:ring-green-500/10'} transition-all pr-12`}
+                                                    required={!editUserId}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowUserPassword(!showUserPassword)}
+                                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                                                >
+                                                    {showUserPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                                </button>
+                                            </div>
                                             {userForm.errors.password && <p className="text-[10px] font-bold text-red-500 uppercase tracking-widest ml-1 italic">{userForm.errors.password}</p>}
                                         </div>
 
                                         <div className="space-y-2">
                                             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Konfirmasi Kata Sandi</label>
-                                            <input
-                                                type="password"
-                                                value={userForm.data.password_confirmation}
-                                                onChange={e => userForm.setData('password_confirmation', e.target.value)}
-                                                className={`w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold text-gray-700 focus:ring-4 ${userForm.errors.password_confirmation ? 'focus:ring-red-500/10' : 'focus:ring-green-500/10'} transition-all`}
-                                                required={!editUserId}
-                                            />
+                                            <div className="relative">
+                                                <input
+                                                    type={showUserConfirmPassword ? "text" : "password"}
+                                                    value={userForm.data.password_confirmation}
+                                                    onChange={e => userForm.setData('password_confirmation', e.target.value)}
+                                                    className={`w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold text-gray-700 focus:ring-4 ${userForm.errors.password_confirmation ? 'focus:ring-red-500/10' : 'focus:ring-green-500/10'} transition-all pr-12`}
+                                                    required={!editUserId}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowUserConfirmPassword(!showUserConfirmPassword)}
+                                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                                                >
+                                                    {showUserConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                                </button>
+                                            </div>
                                             {userForm.errors.password_confirmation && <p className="text-[10px] font-bold text-red-500 uppercase tracking-widest ml-1 italic">{userForm.errors.password_confirmation}</p>}
                                         </div>
                                     </div>

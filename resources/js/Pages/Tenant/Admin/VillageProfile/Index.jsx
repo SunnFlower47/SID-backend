@@ -41,6 +41,7 @@ export default function Index({ auth, profile }) {
         link_facebook: profile.additional.facebook || '',
         link_instagram: profile.additional.instagram || '',
         link_youtube: profile.additional.youtube || '',
+        link_whatsapp: profile.additional.whatsapp || '',
     });
 
     const [previews, setPreviews] = useState({
@@ -342,9 +343,10 @@ export default function Index({ auth, profile }) {
                         {activeTab === 'sosmed' && (
                             <div className="space-y-6 animate-in slide-in-from-right duration-300">
                                 {[
-                                    { key: 'link_facebook', label: 'Facebook', icon: <Share2 className="w-5 h-5 text-blue-600" />, color: 'bg-blue-50 border-blue-100' },
-                                    { key: 'link_instagram', label: 'Instagram', icon: <Share2 className="w-5 h-5 text-pink-600" />, color: 'bg-pink-50 border-pink-100' },
-                                    { key: 'link_youtube', label: 'YouTube', icon: <Share2 className="w-5 h-5 text-red-600" />, color: 'bg-red-50 border-red-100' },
+                                    { key: 'link_facebook', label: 'Facebook', icon: <Share2 className="w-5 h-5 text-blue-600" />, color: 'bg-blue-50 border-blue-100', placeholder: 'https://facebook.com/desacibatu' },
+                                    { key: 'link_instagram', label: 'Instagram', icon: <Share2 className="w-5 h-5 text-pink-600" />, color: 'bg-pink-50 border-pink-100', placeholder: 'https://instagram.com/desacibatu' },
+                                    { key: 'link_youtube', label: 'YouTube', icon: <Share2 className="w-5 h-5 text-red-600" />, color: 'bg-red-50 border-red-100', placeholder: 'https://youtube.com/@desacibatu' },
+                                    { key: 'link_whatsapp', label: 'WhatsApp', icon: <Share2 className="w-5 h-5 text-green-600" />, color: 'bg-green-50 border-green-100', placeholder: 'https://wa.me/628xxxxxxxxxx' },
                                 ].map((item) => (
                                     <div key={item.key} className={cn("flex items-center gap-4 p-4 rounded-3xl border", item.color)}>
                                         <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm shrink-0">
@@ -355,8 +357,9 @@ export default function Index({ auth, profile }) {
                                             <input 
                                                 type="url" 
                                                 value={data[item.key]}
+                                                placeholder={item.placeholder}
                                                 onChange={e => setData(item.key, e.target.value)}
-                                                className="w-full bg-transparent border-none p-0 font-bold text-gray-900 focus:ring-0 text-sm"
+                                                className="w-full bg-transparent border-none p-0 font-bold text-gray-900 focus:ring-0 text-sm placeholder:text-gray-300"
                                             />
                                         </div>
                                     </div>
