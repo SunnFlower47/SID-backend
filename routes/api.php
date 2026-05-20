@@ -26,6 +26,17 @@ use App\Http\Controllers\Api\ApiProxyController;
 // ========================================
 // PRIVATE API ONLY (Hanya untuk Internal/Admin)
 // ========================================
+// ========================================
+// PUBLIC API (No API Key Required)
+// ========================================
+Route::prefix('v1/public-statistics')->middleware(['throttle:10,1'])->group(function () {
+    // Statistik umum untuk halaman welcome (tidak butuh API key)
+    Route::get('/', [WebDesaController::class, 'getPublicStatistics']);
+    Route::get('/penduduk', [WebDesaController::class, 'getPublicPendudukStats']);
+    // Info desa publik: nama, sosmed, kontak (tidak ada data sensitif)
+    Route::get('/info-desa', [WebDesaController::class, 'getPublicDesaInfo']);
+});
+
 Route::prefix('v1')->group(function () {
 
     // ========================================

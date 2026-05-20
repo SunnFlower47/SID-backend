@@ -111,6 +111,7 @@ class DesaSetting extends Model
                 'facebook' => static::getValue('link_facebook', ''),
                 'instagram' => static::getValue('link_instagram', ''),
                 'youtube' => static::getValue('link_youtube', ''),
+                'whatsapp' => static::getValue('link_whatsapp', ''),
             ]
         ];
     }

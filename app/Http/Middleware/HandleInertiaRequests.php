@@ -44,6 +44,11 @@ class HandleInertiaRequests extends Middleware
                 'error' => $request->session()->get('error'),
                 'timestamp' => now()->getTimestamp(),
             ],
+            'recaptcha' => [
+                'enabled' => (bool) config('services.recaptcha.enabled'),
+                'v2_site_key' => config('services.recaptcha.v2_site_key'),
+                'v3_site_key' => config('services.recaptcha.v3_site_key'),
+            ],
         ]);
     }
 }

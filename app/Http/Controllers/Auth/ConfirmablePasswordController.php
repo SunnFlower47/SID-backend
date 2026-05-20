@@ -14,9 +14,9 @@ class ConfirmablePasswordController extends Controller
     /**
      * Show the confirm password view.
      */
-    public function show(): View
+    public function show(): \Inertia\Response
     {
-        return view('auth.confirm-password');
+        return \Inertia\Inertia::render('Auth/ConfirmPassword');
     }
 
     /**

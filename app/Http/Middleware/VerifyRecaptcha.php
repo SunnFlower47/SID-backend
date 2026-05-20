@@ -17,6 +17,10 @@ class VerifyRecaptcha
      */
     public function handle(Request $request, Closure $next, $version = null): Response
     {
+        if (!config('services.recaptcha.enabled')) {
+            return $next($request);
+        }
+
         // 1. Cek reCAPTCHA v2 (Checkbox) - Biasanya dikirim via Header X-Recaptcha-Token
         $v2Token = $request->header('X-Recaptcha-Token') ?? $request->input('g-recaptcha-response');
         
@@ -27,6 +31,12 @@ class VerifyRecaptcha
         // Jika rute mewajibkan V2 secara spesifik
         if ($version === 'v2') {
             if (!$v2Token || !RecaptchaHelper::verifyV2($v2Token)) {
+                if ($request->header('X-Inertia')) {
+                    return back()->withInput()->withErrors([
+                        'g-recaptcha-response' => 'Verifikasi reCAPTCHA v2 gagal atau token kadaluwarsa.',
+                        'recaptcha_token' => 'Verifikasi reCAPTCHA v2 gagal atau token kadaluwarsa.'
+                    ]);
+                }
                 return response()->json([
                     'success' => false,
                     'message' => 'Verifikasi reCAPTCHA v2 gagal atau token kadaluwarsa.',
@@ -39,6 +49,12 @@ class VerifyRecaptcha
         // Jika rute mewajibkan V3 secara spesifik
         if ($version === 'v3') {
             if (!$v3Token || !RecaptchaHelper::verifyV3($v3Token)) {
+                if ($request->header('X-Inertia')) {
+                    return back()->withInput()->withErrors([
+                        'recaptcha_token' => 'Verifikasi keamanan (v3) gagal.',
+                        'g-recaptcha-response' => 'Verifikasi keamanan (v3) gagal.'
+                    ]);
+                }
                 return response()->json([
                     'success' => false,
                     'message' => 'Verifikasi keamanan (v3) gagal.',
@@ -69,6 +85,14 @@ class VerifyRecaptcha
         }
 
         if ($errorMsg) {
+            // Jika request adalah Inertia
+            if ($request->header('X-Inertia')) {
+                return back()->withInput()->withErrors([
+                    'recaptcha_token' => $errorMsg,
+                    'g-recaptcha-response' => $errorMsg,
+                ]);
+            }
+
             // Jika request meminta JSON (API/AJAX)
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json([
