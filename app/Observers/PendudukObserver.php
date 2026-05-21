@@ -6,7 +6,7 @@ use App\Models\Penduduk;
 use App\Models\KartuKeluarga;
 use App\Console\Commands\SyncKartuKeluarga;
 use Illuminate\Support\Facades\Artisan;
-use App\Services\VillageStatisticsService;
+use App\Services\Kependudukan\VillageStatisticsService;
 
 class PendudukObserver
 {
@@ -75,6 +75,6 @@ class PendudukObserver
     private function recalculateKK($kkId)
     {
         if (empty($kkId)) return;
-        app(\App\Services\KartuKeluargaService::class)->recalculate($kkId);
+        app(\App\Services\Kependudukan\KartuKeluargaService::class)->recalculate($kkId);
     }
 }

@@ -4,6 +4,7 @@ import { Save, X, Phone, Mail, Globe, Share2, MessageSquare, MapPin, Clock, File
 
 export default function KontakDesaForm({ kontak = null, jenisOptions, wilayah, isEdit = false }) {
     const { data, setData, post, put, processing, errors } = useForm({
+        _method: isEdit ? 'PUT' : 'POST',
         nama: kontak?.nama || '',
         jenis: kontak?.jenis || '',
         jabatan: kontak?.jabatan || '',
@@ -41,14 +42,6 @@ export default function KontakDesaForm({ kontak = null, jenisOptions, wilayah, i
     const handleSubmit = (e) => {
         e.preventDefault();
         if (isEdit) {
-            // Use POST with _method PUT for file uploads in Laravel
-            const formData = new FormData();
-            Object.keys(data).forEach(key => {
-                if (data[key] !== null) {
-                    formData.append(key, data[key]);
-                }
-            });
-            formData.append('_method', 'PUT');
             post(route('kontak-desa.update', kontak.id));
         } else {
             post(route('kontak-desa.store'));

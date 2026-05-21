@@ -3,19 +3,22 @@
 namespace App\Http\Controllers\Tenant\Konten;
 
 use App\Http\Controllers\Controller;
-
 use Illuminate\Http\Request;
 use App\Models\Umkm;
 use App\Models\Rw;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
+use App\Http\Requests\Konten\StoreUmkmRequest;
+use App\Http\Requests\Konten\UpdateUmkmRequest;
+use App\Services\System\FileUploadService;
 
 class UmkmController extends Controller
 {
-        public function __construct()
+    protected $fileUploadService;
+
+    public function __construct(FileUploadService $fileUploadService)
     {
         $this->middleware(['auth', 'can:pelayanan_informasi']);
+        $this->fileUploadService = $fileUploadService;
     }
 
     /**
@@ -74,62 +77,18 @@ class UmkmController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreUmkmRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-            'nama_usaha' => 'required|string|max:255',
-            'nama_pemilik' => 'required|string|max:255',
-            'nik_pemilik' => 'nullable|string|size:16',
-            'alamat_usaha' => 'required|string|max:500',
-            'rt_id' => 'nullable|exists:rts,id',
-            'rw_id' => 'nullable|exists:rws,id',
-            'dusun_id' => 'nullable|exists:dusuns,id',
-            'no_telepon' => 'nullable|string|max:20',
-            'email' => 'nullable|email|max:255',
-            'jenis_usaha' => 'required|in:makanan,minuman,kerajinan,jasa,perdagangan,pertanian,peternakan,lainnya',
-            'deskripsi_usaha' => 'nullable|string',
-            'jumlah_karyawan' => 'required|integer|min:0',
-            'status_usaha' => 'required|in:aktif,tutup,pindah',
-            'tanggal_berdiri' => 'nullable|date',
-            'produk_unggulan' => 'nullable|array',
-            'foto_usaha' => 'nullable|array',
-            'foto_usaha.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
-            'latitude' => 'nullable|string|max:50',
-            'longitude' => 'nullable|string|max:50',
-            'is_unggulan' => 'boolean',
-            'is_verified' => 'boolean',
-        ], [
-            'nama_usaha.required' => 'Nama usaha harus diisi.',
-            'nama_pemilik.required' => 'Nama pemilik harus diisi.',
-            'alamat_usaha.required' => 'Alamat usaha harus diisi.',
-            'jenis_usaha.required' => 'Jenis usaha harus dipilih.',
-            'jumlah_karyawan.required' => 'Jumlah karyawan harus diisi.',
-            'jumlah_karyawan.integer' => 'Jumlah karyawan harus berupa angka.',
-            'jumlah_karyawan.min' => 'Jumlah karyawan minimal 0.',
-            'status_usaha.required' => 'Status usaha harus dipilih.',
-            'nik_pemilik.size' => 'NIK harus 16 digit.',
-            'email.email' => 'Format email tidak valid.',
-        ]);
-
-        if ($validator->fails()) {
-            return redirect()->back()
-                ->withErrors($validator)
-                ->withInput();
-        }
-
-        $data = $request->all();
-
-        // Set default value for jumlah_karyawan if empty
-        if (empty($data['jumlah_karyawan'])) {
-            $data['jumlah_karyawan'] = 0;
-        }
+        $data = $request->validated();
 
         // Handle file uploads
         if ($request->hasFile('foto_usaha')) {
             $fotoPaths = [];
             foreach ($request->file('foto_usaha') as $file) {
-                $path = $file->store('umkm/fotos', 'public');
-                $fotoPaths[] = $path;
+                $path = $this->fileUploadService->upload($file, 'umkm/fotos');
+                if ($path) {
+                    $fotoPaths[] = $path;
+                }
             }
             $data['foto_usaha'] = $fotoPaths;
         }
@@ -171,69 +130,25 @@ class UmkmController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Umkm $umkm)
+    public function update(UpdateUmkmRequest $request, Umkm $umkm)
     {
-        $validator = Validator::make($request->all(), [
-            'nama_usaha' => 'required|string|max:255',
-            'nama_pemilik' => 'required|string|max:255',
-            'nik_pemilik' => 'nullable|string|size:16',
-            'alamat_usaha' => 'required|string|max:500',
-            'rt_id' => 'nullable|exists:rts,id',
-            'rw_id' => 'nullable|exists:rws,id',
-            'dusun_id' => 'nullable|exists:dusuns,id',
-            'no_telepon' => 'nullable|string|max:20',
-            'email' => 'nullable|email|max:255',
-            'jenis_usaha' => 'required|in:makanan,minuman,kerajinan,jasa,perdagangan,pertanian,peternakan,lainnya',
-            'deskripsi_usaha' => 'nullable|string',
-            'jumlah_karyawan' => 'required|integer|min:0',
-            'status_usaha' => 'required|in:aktif,tutup,pindah',
-            'tanggal_berdiri' => 'nullable|date',
-            'produk_unggulan' => 'nullable|array',
-            'foto_usaha' => 'nullable|array',
-            'foto_usaha.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
-            'latitude' => 'nullable|string|max:50',
-            'longitude' => 'nullable|string|max:50',
-            'is_unggulan' => 'boolean',
-            'is_verified' => 'boolean',
-        ], [
-            'nama_usaha.required' => 'Nama usaha harus diisi.',
-            'nama_pemilik.required' => 'Nama pemilik harus diisi.',
-            'alamat_usaha.required' => 'Alamat usaha harus diisi.',
-            'jenis_usaha.required' => 'Jenis usaha harus dipilih.',
-            'jumlah_karyawan.required' => 'Jumlah karyawan harus diisi.',
-            'jumlah_karyawan.integer' => 'Jumlah karyawan harus berupa angka.',
-            'jumlah_karyawan.min' => 'Jumlah karyawan minimal 0.',
-            'status_usaha.required' => 'Status usaha harus dipilih.',
-            'nik_pemilik.size' => 'NIK harus 16 digit.',
-            'email.email' => 'Format email tidak valid.',
-        ]);
-
-        if ($validator->fails()) {
-            return redirect()->back()
-                ->withErrors($validator)
-                ->withInput();
-        }
-
-        $data = $request->all();
-
-        // Set default value for jumlah_karyawan if empty
-        if (empty($data['jumlah_karyawan'])) {
-            $data['jumlah_karyawan'] = 0;
-        }
+        $data = $request->validated();
 
         // Handle file uploads
         if ($request->hasFile('foto_usaha')) {
             // Delete old photos
             if ($umkm->foto_usaha) {
                 foreach ($umkm->foto_usaha as $foto) {
-                    Storage::disk('public')->delete($foto);
+                    $this->fileUploadService->delete($foto);
                 }
             }
 
             $fotoPaths = [];
             foreach ($request->file('foto_usaha') as $file) {
-                $path = $file->store('umkm/fotos', 'public');
-                $fotoPaths[] = $path;
+                $path = $this->fileUploadService->upload($file, 'umkm/fotos');
+                if ($path) {
+                    $fotoPaths[] = $path;
+                }
             }
             $data['foto_usaha'] = $fotoPaths;
         }
@@ -250,7 +165,7 @@ class UmkmController extends Controller
         // Delete photos
         if ($umkm->foto_usaha) {
             foreach ($umkm->foto_usaha as $foto) {
-                Storage::disk('public')->delete($foto);
+                $this->fileUploadService->delete($foto);
             }
         }
 

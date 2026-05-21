@@ -8,7 +8,7 @@ use App\Models\Mutasi;
 use App\Models\Penduduk;
 use App\Models\KartuKeluarga;
 use App\Exports\KartuKeluargaExport;
-use App\Services\KartuKeluargaService;
+use App\Services\Kependudukan\KartuKeluargaService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;

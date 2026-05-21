@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Kependudukan;
 
 use App\Models\ImportConflict;
 use App\Models\Rt;
@@ -35,7 +35,6 @@ class ImportConflictService
 
         $conflicts = $query->paginate(30)->withQueryString();
 
-        // Load existing resident data for comparison in NIK conflicts
         foreach ($conflicts->items() as $conflict) {
             if ($conflict->issue_type === 'nik_conflict' && $conflict->nik) {
                 $conflict->existing_resident = Penduduk::withTrashed()
@@ -66,7 +65,6 @@ class ImportConflictService
      */
     public function resolveConflict(ImportConflict $conflict, array $data, $userId): array
     {
-        // Biarkan re-edit jika belum sukses reprocess
         $canReEdit = $conflict->status === 'pending' || ($conflict->status === 'resolved' && ($conflict->reprocess_status ?? '') !== 'success');
         if (!$canReEdit) {
             throw new \Exception('Konflik ini sudah sukses di-import dan tidak dapat diubah lagi.');
@@ -75,7 +73,6 @@ class ImportConflictService
         $meta = $conflict->meta ?? [];
         $payloadFixed = $conflict->payload_fixed ?? [];
 
-        // Always capture field improvements if provided
         if (!empty($data['nik_new'])) $payloadFixed['nik'] = preg_replace('/\D+/', '', $data['nik_new']);
         if (!empty($data['nama_new'])) $payloadFixed['nama'] = $data['nama_new'];
         if (!empty($data['nkk_new'])) $payloadFixed['nkk'] = preg_replace('/\D+/', '', $data['nkk_new']);
@@ -164,11 +161,10 @@ class ImportConflictService
             $meta['resolution'] = ['action' => 'fix_fields'];
         }
 
-        // Tentukan apakah issue ini bisa langsung di-reprocess otomatis
         $autoReprocess = $this->shouldAutoReprocess($conflict->issue_type, $data['action']);
         $reprocessStatus = match(true) {
             in_array($data['action'], ['skip', 'keep_existing_nik']) => 'skipped',
-            $autoReprocess => 'pending', // akan diupdate setelah reprocess
+            $autoReprocess => 'pending',
             default => 'pending',
         };
 
@@ -185,7 +181,6 @@ class ImportConflictService
                 : null,
         ]);
 
-        // Auto-reprocess untuk issue tipe sederhana
         if ($autoReprocess) {
             try {
                 DB::transaction(function () use ($conflict) {
@@ -264,7 +259,7 @@ class ImportConflictService
         }
 
         if (in_array((string)$conflict->reprocess_status, ['success', 'skipped'])) {
-            return; // Already processed
+            return;
         }
 
         $action = (string)($conflict->resolution_action ?? '');

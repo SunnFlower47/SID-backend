@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Pelayanan;
 
 use PhpOffice\PhpWord\TemplateProcessor;
 use Illuminate\Support\Facades\Storage;

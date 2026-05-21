@@ -7,7 +7,7 @@ use App\Models\Penduduk;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\DB;
-use App\Services\MutasiService;
+use App\Services\Kependudukan\MutasiService;
 use Illuminate\Http\JsonResponse;
 
 class MutasiController extends Controller

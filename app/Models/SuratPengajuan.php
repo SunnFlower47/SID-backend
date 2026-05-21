@@ -11,6 +11,13 @@ class SuratPengajuan extends Model
 {
     use HasFactory, LogsActivity;
 
+    const STATUS_LIST = [
+        'pending'  => 'Menunggu Persetujuan',
+        'diproses' => 'Diproses',
+        'ditolak'  => 'Ditolak',
+        'selesai'  => 'Selesai',
+    ];
+
     /**
      * Boot the model.
      */

@@ -3,8 +3,8 @@
 namespace App\Actions\Surat;
 
 use App\Models\SuratPengajuan;
-use App\Services\PendudukDomisiliService;
-use App\Services\MutasiService;
+use App\Services\Kependudukan\PendudukDomisiliService;
+use App\Services\Kependudukan\MutasiService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 

@@ -2,7 +2,7 @@
 
 namespace App\Observers;
 
-use App\Services\VillageStatisticsService;
+use App\Services\Kependudukan\VillageStatisticsService;
 
 class VillageDataObserver
 {

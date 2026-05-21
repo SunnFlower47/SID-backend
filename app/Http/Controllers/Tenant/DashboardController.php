@@ -9,7 +9,7 @@ use App\Models\KartuKeluarga;
 use App\Models\Mutasi;
 use App\Models\SuratType;
 use App\Models\SuratPengajuan;
-use App\Services\VillageStatisticsService;
+use App\Services\Kependudukan\VillageStatisticsService;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 

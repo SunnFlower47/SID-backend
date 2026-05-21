@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Tenant\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Services\BackupService;
+use App\Services\System\BackupService;
 use Illuminate\Support\Facades\Gate;
 
 class BackupController extends Controller

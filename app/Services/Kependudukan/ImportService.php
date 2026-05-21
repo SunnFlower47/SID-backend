@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Kependudukan;
 
 use App\Models\Rt;
 use App\Models\Rw;
@@ -100,7 +100,7 @@ class ImportService
         ];
 
         foreach (array_slice($rows, 1) as $i => $row) {
-            $rowNumber = $i + 2; 
+            $rowNumber = $i + 2;
 
             $nikRaw = isset($row[$nikIndex]) ? trim((string) $row[$nikIndex]) : '';
             $nik = preg_replace('/\D+/', '', $nikRaw);
@@ -492,8 +492,8 @@ class ImportService
 
             DB::commit();
 
-            // Batch Recalculate
-            $kkService = app(\App\Services\KartuKeluargaService::class);
+            // Batch Recalculate — gunakan namespace baru
+            $kkService = app(\App\Services\Kependudukan\KartuKeluargaService::class);
             foreach (array_unique($affectedKkIds) as $kkId) {
                 $kkService->recalculate($kkId);
             }

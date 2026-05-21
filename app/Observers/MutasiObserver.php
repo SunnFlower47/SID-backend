@@ -5,7 +5,7 @@ namespace App\Observers;
 use App\Models\Mutasi;
 use App\Models\Penduduk;
 use App\Models\KartuKeluarga;
-use App\Services\VillageStatisticsService;
+use App\Services\Kependudukan\VillageStatisticsService;
 
 class MutasiObserver
 {
@@ -118,7 +118,7 @@ class MutasiObserver
     {
         $penduduk = Penduduk::withTrashed()->find($pendudukId);
         if ($penduduk && $penduduk->kartu_keluarga_id) {
-            app(\App\Services\KartuKeluargaService::class)->recalculate($penduduk->kartu_keluarga_id);
+            app(\App\Services\Kependudukan\KartuKeluargaService::class)->recalculate($penduduk->kartu_keluarga_id);
         }
     }
 }

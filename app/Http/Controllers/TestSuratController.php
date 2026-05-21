@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Services\SuratService;
+use App\Services\Pelayanan\SuratService;
 
 class TestSuratController extends Controller
 {

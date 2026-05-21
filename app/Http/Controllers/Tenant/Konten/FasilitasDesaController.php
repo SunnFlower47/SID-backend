@@ -3,18 +3,21 @@
 namespace App\Http\Controllers\Tenant\Konten;
 
 use App\Http\Controllers\Controller;
-
 use Illuminate\Http\Request;
 use App\Models\FasilitasDesa;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
+use App\Http\Requests\Konten\StoreFasilitasDesaRequest;
+use App\Http\Requests\Konten\UpdateFasilitasDesaRequest;
+use App\Services\System\FileUploadService;
 
 class FasilitasDesaController extends Controller
 {
-        public function __construct()
+    protected $fileUploadService;
+
+    public function __construct(FileUploadService $fileUploadService)
     {
         $this->middleware(['auth', 'can:pelayanan_informasi']);
+        $this->fileUploadService = $fileUploadService;
     }
 
     /**
@@ -70,35 +73,15 @@ class FasilitasDesaController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreFasilitasDesaRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-            'nama' => 'required|string|max:255',
-            'jenis' => 'required|in:sekolah,posyandu,masjid,gereja,puskesmas,pos_ronda,balai_desa,lapangan,pasar,lainnya',
-            'alamat' => 'required|string',
-            'rt_id' => 'nullable|exists:rts,id',
-            'rw_id' => 'nullable|exists:rws,id',
-            'dusun_id' => 'nullable|exists:dusuns,id',
-            'latitude' => 'nullable|numeric|between:-90,90',
-            'longitude' => 'nullable|numeric|between:-180,180',
-            'deskripsi' => 'nullable|string',
-            'kontak' => 'nullable|string|max:50',
-            'jam_operasional' => 'nullable|string|max:100',
-            'status_aktif' => 'boolean',
-            'foto' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-        ]);
-
-        if ($validator->fails()) {
-            return redirect()->back()
-                ->withErrors($validator)
-                ->withInput();
-        }
-
-        $data = $request->all();
-        $data['status_aktif'] = $request->has('status_aktif');
+        $data = $request->validated();
 
         if ($request->hasFile('foto')) {
-            $data['foto'] = $request->file('foto')->store('fasilitas-desa', 'public');
+            $uploadPath = $this->fileUploadService->upload($request->file('foto'), 'fasilitas-desa');
+            if ($uploadPath) {
+                $data['foto'] = $uploadPath;
+            }
         }
 
         FasilitasDesa::create($data);
@@ -138,39 +121,15 @@ class FasilitasDesaController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, FasilitasDesa $fasilitasDesa)
+    public function update(UpdateFasilitasDesaRequest $request, FasilitasDesa $fasilitasDesa)
     {
-        $validator = Validator::make($request->all(), [
-            'nama' => 'required|string|max:255',
-            'jenis' => 'required|in:sekolah,posyandu,masjid,gereja,puskesmas,pos_ronda,balai_desa,lapangan,pasar,lainnya',
-            'alamat' => 'required|string',
-            'rt_id' => 'nullable|exists:rts,id',
-            'rw_id' => 'nullable|exists:rws,id',
-            'dusun_id' => 'nullable|exists:dusuns,id',
-            'latitude' => 'nullable|numeric|between:-90,90',
-            'longitude' => 'nullable|numeric|between:-180,180',
-            'deskripsi' => 'nullable|string',
-            'kontak' => 'nullable|string|max:50',
-            'jam_operasional' => 'nullable|string|max:100',
-            'status_aktif' => 'boolean',
-            'foto' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-        ]);
-
-        if ($validator->fails()) {
-            return redirect()->back()
-                ->withErrors($validator)
-                ->withInput();
-        }
-
-        $data = $request->all();
-        $data['status_aktif'] = $request->has('status_aktif');
+        $data = $request->validated();
 
         if ($request->hasFile('foto')) {
-            // Delete old photo
-            if ($fasilitasDesa->foto) {
-                Storage::disk('public')->delete($fasilitasDesa->foto);
+            $uploadPath = $this->fileUploadService->replace($request->file('foto'), $fasilitasDesa->foto, 'fasilitas-desa');
+            if ($uploadPath) {
+                $data['foto'] = $uploadPath;
             }
-            $data['foto'] = $request->file('foto')->store('fasilitas-desa', 'public');
         }
 
         $fasilitasDesa->update($data);
@@ -182,7 +141,7 @@ class FasilitasDesaController extends Controller
     public function destroy(FasilitasDesa $fasilitasDesa)
     {
         if ($fasilitasDesa->foto) {
-            Storage::disk('public')->delete($fasilitasDesa->foto);
+            $this->fileUploadService->delete($fasilitasDesa->foto);
         }
 
         $fasilitasDesa->delete();

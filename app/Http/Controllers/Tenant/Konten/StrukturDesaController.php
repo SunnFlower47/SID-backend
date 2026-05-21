@@ -3,20 +3,22 @@
 namespace App\Http\Controllers\Tenant\Konten;
 
 use App\Http\Controllers\Controller;
-
 use Illuminate\Http\Request;
 use App\Models\StrukturDesa;
 use App\Models\MasterJabatan;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
 use Inertia\Inertia;
+use App\Http\Requests\Konten\StoreStrukturDesaRequest;
+use App\Http\Requests\Konten\UpdateStrukturDesaRequest;
+use App\Services\System\FileUploadService;
 
 class StrukturDesaController extends Controller
 {
-    public function __construct()
+    protected $fileUploadService;
+
+    public function __construct(FileUploadService $fileUploadService)
     {
         $this->middleware(['auth', 'can:pelayanan_informasi']);
+        $this->fileUploadService = $fileUploadService;
     }
 
     /**
@@ -67,44 +69,15 @@ class StrukturDesaController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreStrukturDesaRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-            'nama' => 'required|string|max:255',
-            'jabatan' => 'required|string|max:255',
-            'kategori' => 'required|string', // Validasi diperlonggar di backend, dicek di logic
-            'nik' => [
-                'nullable',
-                'string',
-                'max:16',
-                Rule::unique('struktur_desas', 'nik')
-            ],
-            'no_hp' => 'nullable|string|max:15',
-            'email' => 'nullable|email|max:255',
-            'alamat' => 'nullable|string',
-            'rt_id' => 'nullable|exists:rts,id',
-            'rw_id' => 'nullable|exists:rws,id',
-            'dusun_id' => 'nullable|exists:dusuns,id',
-            'tugas_wewenang' => 'nullable|string',
-            'tanggal_pengangkatan' => 'nullable|date',
-            'tanggal_berakhir' => 'nullable|date|after_or_equal:tanggal_pengangkatan',
-            'status_aktif' => 'boolean',
-            'urutan' => 'nullable|integer|min:0',
-            'foto' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-        ]);
-
-        if ($validator->fails()) {
-            return redirect()->back()
-                ->withErrors($validator)
-                ->withInput();
-        }
-
         $data = $request->except('foto');
-        $data['status_aktif'] = $request->boolean('status_aktif');
-        $data['urutan'] = $request->urutan ?? 0;
 
         if ($request->hasFile('foto')) {
-            $data['foto'] = $request->file('foto')->store('struktur-desa', 'public');
+            $uploadPath = $this->fileUploadService->upload($request->file('foto'), 'struktur-desa');
+            if ($uploadPath) {
+                $data['foto'] = $uploadPath;
+            }
         }
 
         StrukturDesa::create($data);
@@ -141,47 +114,15 @@ class StrukturDesaController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, StrukturDesa $strukturDesa)
+    public function update(UpdateStrukturDesaRequest $request, StrukturDesa $strukturDesa)
     {
-        $validator = Validator::make($request->all(), [
-            'nama' => 'required|string|max:255',
-            'jabatan' => 'required|string|max:255',
-            'kategori' => 'required|string',
-            'nik' => [
-                'nullable',
-                'string',
-                'max:16',
-                Rule::unique('struktur_desas', 'nik')->ignore($strukturDesa->id)
-            ],
-            'no_hp' => 'nullable|string|max:15',
-            'email' => 'nullable|email|max:255',
-            'alamat' => 'nullable|string',
-            'rt_id' => 'nullable|exists:rts,id',
-            'rw_id' => 'nullable|exists:rws,id',
-            'dusun_id' => 'nullable|exists:dusuns,id',
-            'tugas_wewenang' => 'nullable|string',
-            'tanggal_pengangkatan' => 'nullable|date',
-            'tanggal_berakhir' => 'nullable|date|after_or_equal:tanggal_pengangkatan',
-            'status_aktif' => 'boolean',
-            'urutan' => 'nullable|integer|min:0',
-            'foto' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-        ]);
-
-        if ($validator->fails()) {
-            return redirect()->back()
-                ->withErrors($validator)
-                ->withInput();
-        }
-
         $data = $request->except('foto');
-        $data['status_aktif'] = $request->boolean('status_aktif');
-        $data['urutan'] = $request->urutan ?? 0;
 
         if ($request->hasFile('foto')) {
-            if ($strukturDesa->foto) {
-                Storage::disk('public')->delete($strukturDesa->foto);
+            $uploadPath = $this->fileUploadService->replace($request->file('foto'), $strukturDesa->foto, 'struktur-desa');
+            if ($uploadPath) {
+                $data['foto'] = $uploadPath;
             }
-            $data['foto'] = $request->file('foto')->store('struktur-desa', 'public');
         }
 
         $strukturDesa->update($data);
@@ -196,7 +137,7 @@ class StrukturDesaController extends Controller
     public function destroy(StrukturDesa $strukturDesa)
     {
         if ($strukturDesa->foto) {
-            Storage::disk('public')->delete($strukturDesa->foto);
+            $this->fileUploadService->delete($strukturDesa->foto);
         }
 
         $strukturDesa->delete();

@@ -74,8 +74,8 @@ Route::prefix('v1')->group(function () {
     Route::get('/berita-combined', [\App\Http\Controllers\Api\BeritaEksternalController::class, 'internalExternalCombined'])->middleware(['throttle:300,1', 'private.api']);
 
     // Desa Info & Services - Frontend routes (dengan API key untuk keamanan)
-    Route::get('/desa-info', [\App\Http\Controllers\Api\WebDesaController::class, 'desaInfo'])->middleware(['throttle:100,1', 'private.api']);
-    Route::get('/contact-info', [\App\Http\Controllers\Api\WebDesaController::class, 'contactInfo'])->middleware(['throttle:100,1', 'private.api']);
+    Route::get('/desa-info', [WebDesaController::class, 'desaInfo'])->middleware(['throttle:100,1', 'private.api']);
+    Route::get('/contact-info', [WebDesaController::class, 'contactInfo'])->middleware(['throttle:100,1', 'private.api']);
     Route::get('/contact/info', [ContactController::class, 'info'])->middleware(['throttle:100,1', 'private.api']);
     Route::get('/kontak-desa', [\App\Http\Controllers\Api\KontakDesaController::class, 'index'])->middleware(['throttle:100,1', 'private.api']);
 
@@ -180,7 +180,7 @@ Route::prefix('proxy/v1')->middleware(['throttle:300,1'])->group(function () {
 //     // Protected (Token required)
 //     Route::middleware(['auth:sanctum', 'throttle:100,1'])->group(function () {
 //         Route::post('/logout', [\App\Http\Controllers\ApiAdminPanel\Auth\AuthenticatedSessionController::class, 'destroy']);
-        
+
 //         // Target pertama: Dashboard Statistics
 //         Route::get('/statistics', [\App\Http\Controllers\ApiAdminPanel\StatisticsController::class, 'index']);
 
@@ -254,7 +254,7 @@ Route::prefix('proxy/v1')->middleware(['throttle:300,1'])->group(function () {
 //         Route::apiResource('fasilitas-desa', \App\Http\Controllers\ApiAdminPanel\FasilitasDesaController::class);
 //         Route::apiResource('struktur-desa', \App\Http\Controllers\ApiAdminPanel\StrukturDesaController::class);
 //         Route::apiResource('kontak-desa', \App\Http\Controllers\ApiAdminPanel\KontakDesaController::class);
-        
+
 //         Route::get('/testimoni', [\App\Http\Controllers\ApiAdminPanel\TestimoniController::class, 'index']);
 //         Route::post('/testimoni', [\App\Http\Controllers\ApiAdminPanel\TestimoniController::class, 'store']);
 //         Route::patch('/testimoni/{testimoni}/status', [\App\Http\Controllers\ApiAdminPanel\TestimoniController::class, 'updateStatus']);
@@ -262,7 +262,7 @@ Route::prefix('proxy/v1')->middleware(['throttle:300,1'])->group(function () {
 
 //         // Target kedua belas: Interaksi & Komunikasi
 //         Route::apiResource('pengaduan', \App\Http\Controllers\ApiAdminPanel\PengaduanController::class);
-        
+
 //         Route::prefix('contact-messages')->group(function() {
 //             Route::get('/', [\App\Http\Controllers\ApiAdminPanel\ContactMessageController::class, 'index']);
 //             Route::get('/notifications', [\App\Http\Controllers\ApiAdminPanel\ContactMessageController::class, 'notifications']);
@@ -308,7 +308,7 @@ Route::prefix('proxy/v1')->middleware(['throttle:300,1'])->group(function () {
 
 //         // Target terakhir: Statistik & Profil
 //         Route::get('/comparison', [\App\Http\Controllers\ApiAdminPanel\ComparisonController::class, 'index']);
-        
+
 //         Route::prefix('profile')->group(function() {
 //             Route::get('/', [\App\Http\Controllers\ApiAdminPanel\ProfileController::class, 'show']);
 //             Route::put('/', [\App\Http\Controllers\ApiAdminPanel\ProfileController::class, 'update']);

@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
-use App\Services\MutasiService;
+use App\Services\Kependudukan\MutasiService;
 use Inertia\Inertia;
 
 class MutasiController extends Controller
@@ -58,7 +58,7 @@ class MutasiController extends Controller
         return Inertia::render('Tenant/Mutasi/Index', [
             'mutasis' => Inertia::defer(fn() => $mutasis),
             'filters' => $request->only(['search', 'jenis_mutasi', 'kategori_mutasi']),
-            'stats' => Inertia::defer(fn() => once(fn() => app(\App\Services\VillageStatisticsService::class)->getDashboardStats())['mutasi'])
+            'stats' => Inertia::defer(fn() => once(fn() => app(\App\Services\Kependudukan\VillageStatisticsService::class)->getDashboardStats())['mutasi'])
         ]);
     }
 

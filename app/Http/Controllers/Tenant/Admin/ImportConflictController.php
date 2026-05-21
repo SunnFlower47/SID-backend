@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\ImportConflict;
 use App\Models\Rw;
 use App\Models\Rt;
-use App\Services\ImportConflictService;
+use App\Services\Kependudukan\ImportConflictService;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 

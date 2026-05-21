@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Tenant\Kependudukan;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StorePendudukDomisiliRequest;
+use App\Http\Requests\Kependudukan\StorePendudukDomisiliRequest;
 use App\Models\PendudukDomisili;
-use App\Services\PendudukDomisiliService;
+use App\Services\Kependudukan\PendudukDomisiliService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;

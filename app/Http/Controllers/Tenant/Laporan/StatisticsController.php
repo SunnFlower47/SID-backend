@@ -12,7 +12,7 @@ use App\Models\PendudukDomisili;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
-use App\Services\VillageStatisticsService;
+use App\Services\Kependudukan\VillageStatisticsService;
 
 class StatisticsController extends Controller
 {

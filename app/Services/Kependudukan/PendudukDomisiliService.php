@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Kependudukan;
 
 use App\Models\Penduduk;
 use App\Models\PendudukDomisili;

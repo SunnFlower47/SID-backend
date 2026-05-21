@@ -1,6 +1,6 @@
 <?php
 
-namespace App\\Http\\Controllers\\ApiAdminPanel\\Auth;
+namespace App\Http\Controllers\ApiAdminPanel\Auth;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;

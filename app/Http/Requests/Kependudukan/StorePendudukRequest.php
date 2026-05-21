@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Kependudukan;
 
 use Illuminate\Foundation\Http\FormRequest;
 use App\Rules\NikValidation;
@@ -8,7 +8,7 @@ use App\Rules\DataConsistencyValidation;
 use App\Models\Rt;
 use App\Rules\RtValidation;
 
-class UpdatePendudukRequest extends FormRequest
+class StorePendudukRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -25,14 +25,12 @@ class UpdatePendudukRequest extends FormRequest
      */
     public function rules(): array
     {
-        $pendudukId = $this->route('penduduk')->id ?? null;
-
         return [
             'nik' => [
                 'required',
                 'string',
                 'size:16',
-                new NikValidation($pendudukId),
+                new NikValidation(),
                 new DataConsistencyValidation($this->all())
             ],
             'nama' => 'required|string|max:255|min:2',
@@ -62,12 +60,31 @@ class UpdatePendudukRequest extends FormRequest
             'pekerjaan' => 'nullable|string|max:100',
             'nama_ayah' => 'nullable|string|max:255',
             'nama_ibu' => 'nullable|string|max:255',
-            'alamat' => 'nullable|string|max:500',
-            'rt_id' => 'nullable|exists:rts,id',
-            'rw_id' => 'nullable|exists:rws,id',
+            'alamat' => 'required_if:kk_option,manual|nullable|string|max:500',
+            'rt_id' => 'required_if:kk_option,manual|nullable|exists:rts,id',
+            'rw_id' => 'required_if:kk_option,manual|nullable|exists:rws,id',
             'dusun_id' => 'nullable|exists:dusuns,id',
             'keterangan' => 'nullable|string|max:500',
-            'nkk' => 'nullable|string|size:16'
+            'kk_option' => 'required|in:existing,manual',
+            'nkk_existing' => 'nullable|string|size:16|required_if:kk_option,existing',
+            'nkk' => 'nullable|string|size:16|required_if:kk_option,manual',
+            'family_members' => 'nullable|array',
+            'family_members.*.nik' => 'required|string|size:16',
+            'family_members.*.nama' => 'required|string|max:255|min:2',
+            'family_members.*.jenis_kelamin' => 'required|in:LAKI-LAKI,PEREMPUAN',
+            'family_members.*.tempat_lahir' => 'required|string|max:100',
+            'family_members.*.tanggal_lahir' => 'nullable|date|before:today|after:1900-01-01',
+            'family_members.*.agama' => 'required|string|max:50',
+            'family_members.*.kedudukan_keluarga' => 'required|string|max:50',
+            'family_members.*.status_perkawinan' => 'nullable|string|max:50',
+            'family_members.*.pendidikan' => 'required|string|max:100',
+            'family_members.*.pekerjaan' => 'required|string|max:100',
+            'family_members.*.nama_ayah' => 'nullable|string|max:255',
+            'family_members.*.nama_ibu' => 'nullable|string|max:255',
+            'family_members.*.alamat' => 'nullable|string|max:500',
+            'family_members.*.rt_id' => 'nullable|exists:rts,id',
+            'family_members.*.rw_id' => 'nullable|exists:rws,id',
+            'family_members.*.dusun_id' => 'nullable|exists:dusuns,id'
         ];
     }
 
@@ -100,18 +117,39 @@ class UpdatePendudukRequest extends FormRequest
             'pekerjaan.max' => 'Pekerjaan maksimal 100 karakter.',
             'nama_ayah.max' => 'Nama ayah maksimal 255 karakter.',
             'nama_ibu.max' => 'Nama ibu maksimal 255 karakter.',
-            'alamat.required' => 'Alamat wajib diisi.',
+            'alamat.required_if' => 'Alamat wajib diisi untuk keluarga baru.',
             'alamat.max' => 'Alamat maksimal 500 karakter.',
-            'rt.required' => 'RT wajib diisi.',
-            'rt.size' => 'RT harus terdiri dari 3 digit angka.',
-            'rt.regex' => 'RT harus berupa angka.',
-            'rw.required' => 'RW wajib diisi.',
-            'rw.regex' => 'RW harus berupa angka.',
-            'rw.max' => 'RW maksimal 3 digit.',
+            'rt_id.required_if' => 'RT wajib dipilih untuk keluarga baru.',
+            'rw_id.required_if' => 'RW wajib dipilih untuk keluarga baru.',
             'dusun.max' => 'Dusun maksimal 100 karakter.',
             'keterangan.max' => 'Keterangan maksimal 500 karakter.',
-
-            'nkk.size' => 'Nomor KK harus 16 digit.'
+            'kk_option.required' => 'Pilihan KK wajib dipilih.',
+            'kk_option.in' => 'Pilihan KK tidak valid.',
+            'nkk_existing.required_if' => 'No KK wajib dipilih jika menggunakan KK yang sudah ada.',
+            'nkk.size' => 'Nomor KK harus 16 digit.',
+            'nkk.required_if' => 'Nomor KK wajib diisi jika input manual.',
+            'family_members.array' => 'Data anggota keluarga harus berupa array.',
+            'family_members.*.nik.required' => 'NIK anggota keluarga harus diisi.',
+            'family_members.*.nik.size' => 'NIK anggota keluarga harus 16 digit.',
+            'family_members.*.nama.required' => 'Nama anggota keluarga harus diisi.',
+            'family_members.*.nama.min' => 'Nama anggota keluarga minimal 2 karakter.',
+            'family_members.*.nama.max' => 'Nama anggota keluarga maksimal 255 karakter.',
+            'family_members.*.jenis_kelamin.required' => 'Jenis kelamin anggota keluarga harus diisi.',
+            'family_members.*.jenis_kelamin.in' => 'Jenis kelamin anggota keluarga harus Laki-laki atau Perempuan.',
+            'family_members.*.tempat_lahir.required' => 'Tempat lahir anggota keluarga harus diisi.',
+            'family_members.*.tempat_lahir.max' => 'Tempat lahir anggota keluarga maksimal 100 karakter.',
+            'family_members.*.tanggal_lahir.date' => 'Format tanggal lahir anggota keluarga tidak valid.',
+            'family_members.*.tanggal_lahir.before' => 'Tanggal lahir anggota keluarga tidak boleh di masa depan.',
+            'family_members.*.tanggal_lahir.after' => 'Tanggal lahir anggota keluarga tidak boleh sebelum tahun 1900.',
+            'family_members.*.agama.required' => 'Agama anggota keluarga harus diisi.',
+            'family_members.*.kedudukan_keluarga.required' => 'Kedudukan keluarga anggota harus diisi.',
+            'family_members.*.kedudukan_keluarga.in' => 'Kedudukan keluarga anggota tidak valid.',
+            'family_members.*.status_perkawinan.in' => 'Status perkawinan anggota keluarga tidak valid.',
+            'family_members.*.pendidikan.required' => 'Pendidikan anggota keluarga harus diisi.',
+            'family_members.*.pekerjaan.required' => 'Pekerjaan anggota keluarga harus diisi.',
+            'family_members.*.pekerjaan.max' => 'Pekerjaan anggota keluarga maksimal 100 karakter.',
+            'family_members.*.nama_ayah.max' => 'Nama ayah anggota keluarga maksimal 255 karakter.',
+            'family_members.*.nama_ibu.max' => 'Nama ibu anggota keluarga maksimal 255 karakter.'
         ];
     }
 
@@ -134,11 +172,12 @@ class UpdatePendudukRequest extends FormRequest
             'nama_ayah' => 'Nama Ayah',
             'nama_ibu' => 'Nama Ibu',
             'alamat' => 'Alamat',
-            'rt' => 'RT',
-            'rw' => 'RW',
+            'rt_id' => 'RT',
+            'rw_id' => 'RW',
             'dusun' => 'Dusun',
             'keterangan' => 'Keterangan',
-
+            'kk_option' => 'Pilihan KK',
+            'nkk_existing' => 'No KK yang Dipilih',
             'nkk' => 'Nomor KK'
         ];
     }
@@ -152,7 +191,7 @@ class UpdatePendudukRequest extends FormRequest
             $rtId = $this->input('rt_id');
             $rwId = $this->input('rw_id');
 
-            if ($rtId && $rwId) {
+            if ($this->input('kk_option') === 'manual' && $rtId && $rwId) {
                 $rt = Rt::find($rtId);
                 if (!$rt || (int)$rt->rw_id !== (int)$rwId) {
                     $validator->errors()->add('rt_id', 'RT tidak sesuai dengan RW yang dipilih.');
@@ -163,16 +202,14 @@ class UpdatePendudukRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        // Auto-format NIK (hapus spasi dan karakter non-digit)
+        // Auto-format NIK
         if ($this->has('nik')) {
             $this->merge([
                 'nik' => preg_replace('/[^0-9]/', '', $this->nik)
             ]);
         }
 
-        // RT/RW processing handled via rt_id and rw_id
-
-        // Auto-format nama (trim dan title case)
+        // Auto-format nama
         if ($this->has('nama')) {
             $this->merge([
                 'nama' => ucwords(strtolower(trim($this->nama)))
@@ -196,20 +233,31 @@ class UpdatePendudukRequest extends FormRequest
         // Auto-format tanggal_lahir
         if ($this->has('tanggal_lahir') && !empty($this->tanggal_lahir)) {
             try {
-                // Jika input mengandung '/', asumsikan format Indonesia d/m/Y
                 if (strpos($this->tanggal_lahir, '/') !== false) {
                     $this->merge([
                         'tanggal_lahir' => \Carbon\Carbon::createFromFormat('d/m/Y', $this->tanggal_lahir)->format('Y-m-d')
                     ]);
                 } else {
-                    // Coba parse otomatis (biasanya Y-m-d dari browser)
                     $this->merge([
                         'tanggal_lahir' => \Carbon\Carbon::parse($this->tanggal_lahir)->format('Y-m-d')
                     ]);
                 }
             } catch (\Exception $e) {
-                // Biarkan validator menangkap error format
+                // Ignore
             }
+        }
+
+        // Auto-format family members
+        if ($this->has('family_members') && is_array($this->family_members)) {
+            $formattedMembers = [];
+            foreach ($this->family_members as $index => $member) {
+                $formattedMember = $member;
+                if (isset($member['nik'])) $formattedMember['nik'] = preg_replace('/[^0-9]/', '', $member['nik']);
+                if (isset($member['nama'])) $formattedMember['nama'] = ucwords(strtolower(trim($member['nama'])));
+                if (isset($member['tempat_lahir'])) $formattedMember['tempat_lahir'] = ucwords(strtolower(trim($member['tempat_lahir'])));
+                $formattedMembers[$index] = $formattedMember;
+            }
+            $this->merge(['family_members' => $formattedMembers]);
         }
     }
 }

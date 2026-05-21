@@ -6,18 +6,23 @@ use App\Http\Controllers\Controller;
 
 use Illuminate\Http\Request;
 use App\Models\Berita;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Database\QueryException;
 use Inertia\Inertia;
+use App\Http\Requests\Konten\StoreBeritaRequest;
+use App\Http\Requests\Konten\UpdateBeritaRequest;
+use App\Services\System\FileUploadService;
 
 class BeritaController extends Controller
 {
-        public function __construct()
+    protected $fileUploadService;
+
+    public function __construct(FileUploadService $fileUploadService)
     {
         $this->middleware(['auth', 'can:pelayanan_informasi']);
+        $this->fileUploadService = $fileUploadService;
     }
 
     /**
@@ -62,20 +67,10 @@ class BeritaController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreBeritaRequest $request)
     {
         try {
-            $request->validate([
-                'judul' => 'required|string|max:255',
-                'konten' => 'required|string',
-                'gambar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120', // 5MB = 5120KB
-                'status' => 'required|in:draft,published',
-                'kategori' => 'required|string|max:100',
-                'excerpt' => 'nullable|string|max:500',
-                'featured' => 'boolean'
-            ]);
-
-            $data = $request->all();
+            $data = $request->validated();
 
             // Generate unique slug
             $baseSlug = Str::slug($request->judul);
@@ -91,13 +86,13 @@ class BeritaController extends Controller
             $data['featured'] = $request->has('featured');
 
             if ($request->hasFile('gambar')) {
-                try {
-                    $data['gambar'] = $request->file('gambar')->store('berita', 'public');
-                } catch (\Exception $e) {
+                $uploadPath = $this->fileUploadService->upload($request->file('gambar'), 'berita');
+                if (!$uploadPath) {
                     return redirect()->back()
-                        ->withErrors(['gambar' => 'Gagal mengupload gambar: ' . $e->getMessage()])
+                        ->withErrors(['gambar' => 'Gagal mengupload gambar.'])
                         ->withInput();
                 }
+                $data['gambar'] = $uploadPath;
             }
 
             if ($request->status === 'published') {
@@ -169,27 +164,17 @@ class BeritaController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Berita $berita)
+    public function update(UpdateBeritaRequest $request, Berita $berita)
     {
-        $request->validate([
-            'judul' => 'required|string|max:255',
-            'konten' => 'required|string',
-            'gambar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120', // 5MB = 5120KB
-            'status' => 'required|in:draft,published',
-            'kategori' => 'required|string|max:100',
-            'excerpt' => 'nullable|string|max:500',
-            'featured' => 'boolean'
-        ]);
-
-        $data = $request->all();
+        $data = $request->validated();
         $data['slug'] = Str::slug($request->judul);
         $data['featured'] = $request->has('featured');
 
         if ($request->hasFile('gambar')) {
-            if ($berita->gambar) {
-                Storage::disk('public')->delete($berita->gambar);
+            $uploadPath = $this->fileUploadService->replace($request->file('gambar'), $berita->gambar, 'berita');
+            if ($uploadPath) {
+                $data['gambar'] = $uploadPath;
             }
-            $data['gambar'] = $request->file('gambar')->store('berita', 'public');
         }
 
         if ($request->status === 'published' && !$berita->published_at) {
@@ -209,7 +194,7 @@ class BeritaController extends Controller
     public function destroy(Berita $berita)
     {
         if ($berita->gambar) {
-            Storage::disk('public')->delete($berita->gambar);
+            $this->fileUploadService->delete($berita->gambar);
         }
 
         $berita->delete();

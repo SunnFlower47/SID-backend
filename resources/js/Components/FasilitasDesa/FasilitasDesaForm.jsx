@@ -1,5 +1,5 @@
 import React from 'react';
-import { useForm } from '@inertiajs/react';
+import { useForm, Link } from '@inertiajs/react';
 import { 
     Building2, MapPin, Phone, Clock, 
     Save, X, Image as ImageIcon,

@@ -15,10 +15,6 @@ use Illuminate\Support\Facades\Artisan;
 
 // MODULE 5: Admin Sistem
 Route::middleware('can:admin_sistem')->group(function () {
-    // Import
-    Route::get('/import', [ImportController::class, 'index'])->name('import.index');
-    Route::post('/import/excel', [ImportController::class, 'excel'])->name('import.excel');
-
     // Settings
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
     Route::get('/settings/users', [SettingsController::class, 'users'])->name('settings.users.index');

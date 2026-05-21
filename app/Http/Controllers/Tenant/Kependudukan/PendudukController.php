@@ -7,9 +7,9 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use App\Models\Penduduk;
-use App\Http\Requests\StorePendudukRequest;
-use App\Http\Requests\UpdatePendudukRequest;
-use App\Services\PendudukService;
+use App\Http\Requests\Kependudukan\StorePendudukRequest;
+use App\Http\Requests\Kependudukan\UpdatePendudukRequest;
+use App\Services\Kependudukan\PendudukService;
 use App\Exports\PendudukExport;
 use App\Models\Rt;
 use App\Models\Rw;
@@ -41,7 +41,7 @@ class PendudukController extends Controller
 
         $penduduks = $query->paginate(50);
         
-        $statsService = app(\App\Services\VillageStatisticsService::class);
+        $statsService = app(\App\Services\Kependudukan\VillageStatisticsService::class);
         $stats = once(fn() => $statsService->getDashboardStats())['basic'];
 
         // Filter Lists (Fetched from Master Tables)
@@ -222,7 +222,7 @@ class PendudukController extends Controller
                 'dusun_id' => $validated['dusun_id'],
             ]);
 
-            app(\App\Services\KartuKeluargaService::class)->recalculate($kk->id);
+            app(\App\Services\Kependudukan\KartuKeluargaService::class)->recalculate($kk->id);
 
             return redirect()->route('penduduk.index', $this->getFilterRedirect($request))
                 ->with('success', "Alamat keluarga berhasil diperbarui lewat tabel Kartu Keluarga!");

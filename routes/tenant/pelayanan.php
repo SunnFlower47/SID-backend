@@ -62,8 +62,10 @@ Route::middleware('can:pelayanan_informasi')->group(function () {
     Route::resource('fasilitas-desa', FasilitasDesaController::class);
     Route::resource('struktur-desa', StrukturDesaController::class);
     Route::resource('kontak-desa', KontakDesaController::class);
-    Route::resource('master-jabatan', MasterJabatanController::class);
-    Route::post('master-jabatan/reorder', [MasterJabatanController::class, 'reorder'])->name('master-jabatan.reorder');
+    Route::prefix('master-jabatan')->name('master-jabatan.')->controller(MasterJabatanController::class)->group(function () {
+        Route::post('reorder', 'reorder')->name('reorder');
+        Route::resource('/', MasterJabatanController::class)->parameters(['' => 'master_jabatan'])->names('master-jabatan');
+    });
     Route::resource('umkm', UmkmController::class);
     
     // Contact Messages

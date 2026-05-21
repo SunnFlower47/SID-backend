@@ -86,7 +86,7 @@ class PendudukImport implements ToCollection, WithHeadingRow, WithValidation, Wi
         // 5. Batch Recalculate Statistics (The Magic Performance Fix) ⚡
         $uniqueKkIds = array_unique($affectedKkIds);
         if (!empty($uniqueKkIds)) {
-            $kkService = app(\App\Services\KartuKeluargaService::class);
+            $kkService = app(\App\Services\Kependudukan\KartuKeluargaService::class);
             foreach ($uniqueKkIds as $kkId) {
                 $kkService->recalculate($kkId);
             }
