@@ -43,3 +43,6 @@ storage/framework/cache/*
 storage/framework/sessions/*
 storage/framework/views/*
 /memory/
+
+# Windows debug dumps
+*.stackdump
