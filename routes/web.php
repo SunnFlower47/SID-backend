@@ -82,6 +82,7 @@ Route::middleware('auth')->group(function () {
     require __DIR__ . '/tenant/keuangan.php';
     require __DIR__ . '/tenant/laporan.php';
     require __DIR__ . '/tenant/admin.php';
+    require __DIR__ . '/tenant/aset.php';
 
     // Web Desa redirect shortcut
     Route::prefix('web-desa')->name('web-desa.')->group(function () {

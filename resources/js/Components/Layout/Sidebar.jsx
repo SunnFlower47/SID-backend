@@ -76,6 +76,16 @@ const menuGroups = [
         ]
     },
     {
+        name: 'Aset Desa',
+        icon: 'Archive',
+        color: 'from-teal-600 to-teal-700',
+        hoverBg: 'hover:from-teal-50 hover:to-teal-100 hover:text-teal-700',
+        items: [
+            { name: 'Buku Inventaris', href: 'aset.inventaris.index', icon: 'BookOpen' },
+            { name: 'Master Kode Barang', href: 'aset.barang.index', icon: 'Package' },
+        ]
+    },
+    {
         name: 'Laporan & Analisis',
         icon: 'TrendingUp',
         color: 'from-indigo-600 to-indigo-700',
