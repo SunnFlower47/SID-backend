@@ -1,9 +1,9 @@
 import React from 'react';
 import { Head, Link, router, Deferred } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { PageHeader, TableCard } from '@/Components/Shared';
 import KontakDesaStats from '@/Components/KontakDesa/KontakDesaStats';
 import KontakDesaFilters from '@/Components/KontakDesa/KontakDesaFilters';
-import Pagination from '@/Components/Shared/Pagination';
 import SkeletonStats from '@/Components/Shared/Skeleton/SkeletonStats';
 import SkeletonTable from '@/Components/Shared/Skeleton/SkeletonTable';
 import { Phone, Plus, Edit2, Trash2, Eye, Mail, MapPin, CheckCircle, XCircle, Users } from 'lucide-react';
@@ -56,29 +56,20 @@ export default function Index({ auth, kontak, stats, filters, jenisOptions }) {
 
             <div className="space-y-6 animate-in fade-in duration-700 pb-20 text-left">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-green-600 via-green-700 to-green-800 rounded-3xl shadow-xl p-6 sm:p-8 relative overflow-hidden text-left">
-                    <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl pointer-events-none"></div>
-                    <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                        <div className="flex items-center space-x-4 text-left">
-                            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-inner shrink-0">
-                                <Phone className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-300" />
-                            </div>
-                            <div>
-                                <h1 className="text-xl sm:text-3xl font-black text-white tracking-tight uppercase italic leading-none text-left">Kontak Desa</h1>
-                                <p className="text-green-100 font-bold text-[10px] sm:text-xs uppercase tracking-widest mt-1 opacity-80 italic text-left">Manajemen Informasi Komunikasi & Kontak Desa</p>
-                            </div>
-                        </div>
-                        <div className="flex flex-wrap gap-2 sm:gap-3">
-                            <Link 
-                                href={route('kontak-desa.create')}
-                                className="flex items-center px-6 py-3 bg-white text-green-700 hover:bg-green-50 rounded-xl text-[10px] sm:text-xs font-black shadow-lg shadow-black/10 transition-all hover:scale-105 uppercase tracking-widest"
-                            >
-                                <Plus className="w-3.5 h-3.5 mr-2" />
-                                TAMBAH KONTAK
-                            </Link>
-                        </div>
-                    </div>
-                </div>
+                <PageHeader 
+                    title="Kontak Desa"
+                    subtitle="Manajemen Informasi Komunikasi & Kontak Desa"
+                    icon={Phone}
+                    actions={
+                        <Link 
+                            href={route('kontak-desa.create')}
+                            className="flex items-center px-6 py-3 bg-green-600 text-white hover:bg-green-700 rounded-xl text-[10px] sm:text-xs font-black shadow-lg shadow-green-200 transition-all hover:scale-105 uppercase tracking-widest"
+                        >
+                            <Plus className="w-3.5 h-3.5 mr-2" />
+                            TAMBAH KONTAK
+                        </Link>
+                    }
+                />
 
                 {/* Stats */}
                 <Deferred data="stats" fallback={<SkeletonStats />}>
@@ -90,16 +81,18 @@ export default function Index({ auth, kontak, stats, filters, jenisOptions }) {
 
                 {/* Data Table */}
                 <Deferred data="kontak" fallback={<SkeletonTable columns={6} rows={10} />}>
-                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden text-left">
-                        <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-gray-50 to-white">
-                            <h3 className="text-lg font-black text-gray-900 flex items-center gap-3 uppercase italic tracking-tighter text-left">
-                                <Phone className="w-6 h-6 text-green-600" />
-                                Daftar Kontak Desa
-                            </h3>
-                            <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-[10px] font-black uppercase tracking-widest italic">
-                                Total: {kontak?.total || 0}
-                            </span>
-                        </div>
+                    <TableCard 
+                        title="Daftar Kontak Desa"
+                        icon={Phone}
+                        total={kontak?.total || 0}
+                        noPadding
+                        pagination={{
+                            links: kontak?.links,
+                            from: kontak?.from,
+                            to: kontak?.to,
+                            total: kontak?.total
+                        }}
+                    >
 
                         {kontak?.data?.length > 0 ? (
                             <>
@@ -269,10 +262,7 @@ export default function Index({ auth, kontak, stats, filters, jenisOptions }) {
                             </div>
                         )}
 
-                        <div className="p-4 border-t border-gray-100 bg-gray-50/50">
-                            <Pagination links={kontak?.links} from={kontak?.from} to={kontak?.to} total={kontak?.total} />
-                        </div>
-                    </div>
+                    </TableCard>
                 </Deferred>
             </div>
         </AuthenticatedLayout>

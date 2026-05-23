@@ -7,11 +7,12 @@ import Pagination from '@/Components/Shared/Pagination';
 import SkeletonTable from '@/Components/Shared/Skeleton/SkeletonTable';
 import SkeletonStats from '@/Components/Shared/Skeleton/SkeletonStats';
 import { BIDANG_MAP, BIDANG_COLOR } from '@/Constants/keuangan';
-import { BarChart3, Plus, Edit2, Trash2, History, Wallet, ArrowLeft, TrendingUp, ArrowDownCircle } from 'lucide-react';
+import { BarChart3, Plus, Edit2, Trash2, History, Wallet, ArrowLeft, TrendingUp, ArrowDownCircle, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Swal from 'sweetalert2';
 import Lottie from 'lottie-react';
 import noDataAnimation from '@/assets/lottie/no-data-animation.json';
+import { PageHeader, TableCard, Badge } from '@/Components/Shared';
 
 const LottieComponent = Lottie?.default || Lottie;
 
@@ -63,33 +64,31 @@ export default function Index({ auth, filters = {}, tahunList = [], apbdes, stat
             <div className="space-y-6 animate-in fade-in duration-700 pb-20">
 
                 {/* Header */}
-                <div className="bg-gradient-to-r from-green-600 via-green-700 to-green-800 rounded-3xl shadow-xl p-6 sm:p-8 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl pointer-events-none" />
-                    <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                        <div className="flex items-center space-x-4">
-                            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-inner shrink-0">
-                                <BarChart3 className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-300" />
-                            </div>
-                            <div>
-                                <h1 className="text-xl sm:text-3xl font-black text-white tracking-tight uppercase italic leading-none">Data APBDes</h1>
-                                <p className="text-green-100 font-bold text-[10px] sm:text-xs uppercase tracking-widest mt-1 opacity-80 italic">Rekening Anggaran Pendapatan & Belanja Desa</p>
-                            </div>
-                        </div>
-                        <div className="flex flex-wrap gap-2 sm:gap-3">
-                            <Link href={route('transparansi-desa.index')} className="flex items-center px-4 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl text-[10px] sm:text-xs font-black transition-all uppercase tracking-widest backdrop-blur-md border border-white/10">
-                                <ArrowLeft className="w-3.5 h-3.5 mr-2" /> DASHBOARD
-                            </Link>
-                            <Link href={route('anggaran.create-pengeluaran')} className="flex items-center px-4 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl text-[10px] sm:text-xs font-black transition-all uppercase tracking-widest backdrop-blur-md border border-white/10">
-                                <ArrowDownCircle className="w-3.5 h-3.5 mr-2" /> PENGELUARAN
-                            </Link>
-                            {!is_locked && (
-                                <Link href={route('anggaran.create-tahunan')} className="flex items-center px-4 py-3 bg-white text-green-700 hover:bg-green-50 rounded-xl text-[10px] sm:text-xs font-black shadow-lg shadow-black/10 transition-all hover:scale-105 uppercase tracking-widest">
-                                    <Plus className="w-3.5 h-3.5 mr-2" /> TAMBAH REKENING
-                                </Link>
-                            )}
-                        </div>
-                    </div>
-                </div>
+                <PageHeader
+                    title="Data APBDes"
+                    subtitle="Rekening Anggaran Pendapatan & Belanja Desa"
+                    icon={BarChart3}
+                    actions={[
+                        {
+                            label: 'DASHBOARD',
+                            icon: ArrowLeft,
+                            href: route('transparansi-desa.index'),
+                            variant: 'ghost'
+                        },
+                        {
+                            label: 'PENGELUARAN',
+                            icon: ArrowDownCircle,
+                            href: route('anggaran.create-pengeluaran'),
+                            variant: 'ghost'
+                        },
+                        ...(!is_locked ? [{
+                            label: 'TAMBAH REKENING',
+                            icon: Plus,
+                            href: route('anggaran.create-tahunan'),
+                            variant: 'white'
+                        }] : [])
+                    ]}
+                />
 
                 {/* Lock Banner */}
                 {is_locked && (
@@ -136,16 +135,14 @@ export default function Index({ auth, filters = {}, tahunList = [], apbdes, stat
 
                 {/* Table */}
                 <Deferred data="apbdes" fallback={<SkeletonTable columns={5} rows={8} />}>
-                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                        <div className="p-5 sm:p-6 border-b border-gray-50 flex items-center justify-between">
-                            <h3 className="text-base font-black text-gray-900 uppercase italic tracking-tighter flex items-center gap-3">
-                                <BarChart3 className="w-5 h-5 text-green-600" />
-                                Daftar Rekening APBDes
-                            </h3>
-                            <span className="px-4 py-1.5 bg-green-50 text-green-700 rounded-full text-[10px] font-black uppercase tracking-widest border border-green-100">
-                                {apbdes?.total ?? 0} Rekening
-                            </span>
-                        </div>
+                    <TableCard
+                        title="Daftar Rekening APBDes"
+                        icon={BarChart3}
+                        total={apbdes?.total ?? 0}
+                        totalLabel="Rekening"
+                        pagination={apbdes}
+                        noPadding={true}
+                    >
 
                         {apbdes?.data?.length > 0 ? (
                             <div className="overflow-x-auto">
@@ -175,9 +172,12 @@ export default function Index({ auth, filters = {}, tahunList = [], apbdes, stat
                                                         {item.kegiatan && <p className="text-[8px] text-gray-400 font-bold mt-1 truncate">{item.kegiatan}</p>}
                                                     </td>
                                                     <td className="px-4 py-4 whitespace-nowrap">
-                                                        <span className={cn('px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest', jenisCfg.bg, jenisCfg.color)}>
+                                                        <Badge
+                                                            variant="custom"
+                                                            customColors={jenisCfg}
+                                                        >
                                                             {item.jenis}
-                                                        </span>
+                                                        </Badge>
                                                     </td>
                                                     <td className="px-4 py-4 max-w-[140px]">
                                                         <p className="text-[9px] font-bold text-gray-500 uppercase tracking-wide line-clamp-2">{item.sumber_dana?.replace(/_/g, ' ') ?? '-'}</p>
@@ -233,10 +233,7 @@ export default function Index({ auth, filters = {}, tahunList = [], apbdes, stat
                             </div>
                         )}
 
-                        <div className="p-5 border-t border-gray-50 bg-gray-50/30">
-                            <Pagination links={apbdes?.links} from={apbdes?.from} to={apbdes?.to} total={apbdes?.total} />
-                        </div>
-                    </div>
+                    </TableCard>
                 </Deferred>
             </div>
         </AuthenticatedLayout>

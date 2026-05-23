@@ -4,8 +4,8 @@ import { Head, Link, router, Deferred } from '@inertiajs/react';
 import * as Icons from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Swal from 'sweetalert2';
-import Pagination from '@/Components/Shared/Pagination';
 import SkeletonTable from '@/Components/Shared/Skeleton/SkeletonTable';
+import { PageHeader, TableCard } from '@/Components/Shared';
 
 export default function TrashPendudukIndex({ penduduks, filters }) {
     const [search, setSearch] = useState(filters?.search || '');
@@ -65,28 +65,13 @@ export default function TrashPendudukIndex({ penduduks, filters }) {
 
             <div className="space-y-6">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-red-600 via-red-700 to-red-800 rounded-3xl shadow-xl p-6 sm:p-8 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl"></div>
-                    <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                        <div className="flex items-center space-x-4">
-                            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-inner shrink-0">
-                                <Icons.Trash2 className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-300" />
-                            </div>
-                            <div>
-                                <h1 className="text-xl sm:text-3xl font-black text-white tracking-tight uppercase italic leading-none">Sampah Data Penduduk</h1>
-                                <p className="text-red-100 font-bold text-[10px] sm:text-xs uppercase tracking-widest mt-1 opacity-80">
-                                    Manajemen data penduduk yang terhapus tanpa mutasi resmi
-                                </p>
-                            </div>
-                        </div>
-                        <div className="flex flex-wrap gap-3">
-                            <Link href={route('penduduk.index')} className="inline-flex items-center px-4 py-2.5 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white rounded-xl transition-all shadow-lg text-sm font-bold uppercase tracking-wider">
-                                <Icons.ArrowLeft className="w-4 h-4 mr-2" />
-                                Kembali ke Penduduk
-                            </Link>
-                        </div>
-                    </div>
-                </div>
+                <PageHeader
+                    title="Sampah Data Penduduk"
+                    subtitle="Manajemen data penduduk yang terhapus tanpa mutasi resmi"
+                    icon={Icons.Trash2}
+                    gradient="from-red-600 via-red-700 to-red-800"
+                    backHref={route('penduduk.index')}
+                />
 
                 {/* Filter & Search */}
                 <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
@@ -107,19 +92,13 @@ export default function TrashPendudukIndex({ penduduks, filters }) {
                 </div>
 
                 {/* Data Table */}
-                <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div className="bg-gray-50/50 px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-                        <h3 className="text-lg font-bold text-gray-800 flex items-center uppercase italic tracking-tighter">
-                            <Icons.List className="w-5 h-5 text-red-600 mr-3" />
-                            Daftar Antrean Penghapusan
-                        </h3>
-                        {penduduks && (
-                            <span className="bg-red-100 text-red-800 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest">
-                                Total: {penduduks.total} Data
-                            </span>
-                        )}
-                    </div>
-
+                <TableCard
+                    title="Daftar Antrean Penghapusan"
+                    icon={Icons.List}
+                    total={penduduks?.total}
+                    noPadding
+                    pagination={penduduks ? { links: penduduks.links, from: penduduks.from, to: penduduks.to, total: penduduks.total } : undefined}
+                >
                     <Deferred data="penduduks" fallback={<SkeletonTable rows={5} />}>
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm text-left">
@@ -198,14 +177,8 @@ export default function TrashPendudukIndex({ penduduks, filters }) {
                                 </tbody>
                             </table>
                         </div>
-                        {/* Pagination */}
-                        {penduduks && penduduks.data.length > 0 && (
-                            <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/50">
-                                <Pagination links={penduduks.links} from={penduduks.from} to={penduduks.to} total={penduduks.total} />
-                            </div>
-                        )}
                     </Deferred>
-                </div>
+                </TableCard>
             </div>
         </AuthenticatedLayout>
     );

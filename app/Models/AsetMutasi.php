@@ -18,6 +18,8 @@ class AsetMutasi extends Model
         'kwantitas',
         'nilai',
         'keterangan',
+        'berita_acara_surat_id',
+        'sk_surat_id',
     ];
 
     protected $casts = [
@@ -33,6 +35,16 @@ class AsetMutasi extends Model
     public function inventaris(): BelongsTo
     {
         return $this->belongsTo(AsetInventaris::class, 'aset_inventaris_id');
+    }
+
+    public function beritaAcaraSurat(): BelongsTo
+    {
+        return $this->belongsTo(SuratPengajuan::class, 'berita_acara_surat_id');
+    }
+
+    public function skSurat(): BelongsTo
+    {
+        return $this->belongsTo(SuratPengajuan::class, 'sk_surat_id');
     }
 
     // ── Scope ────────────────────────────────────────────────────────────────

@@ -1,9 +1,10 @@
 import React from 'react';
 import { Head, Link, router, Deferred } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Users, Search, Filter, Download, ChevronLeft, ChevronRight as ChevronRightIcon, X } from 'lucide-react';
+import { Users, Search, Filter, Download, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import SkeletonTable from '@/Components/Shared/Skeleton/SkeletonTable';
+import { PageHeader, TableCard } from '@/Components/Shared';
 
 export default function PendudukIndex({ auth, penduduks, totalPenduduk, filters, dusunOptions, rtOptions, jenisKelaminOptions, statusPerkawinanOptions }) {
 
@@ -28,32 +29,26 @@ export default function PendudukIndex({ auth, penduduks, totalPenduduk, filters,
             <div className="space-y-6 animate-in fade-in duration-700 pb-20">
 
                 {/* ── Header ── */}
-                <div className="bg-gradient-to-r from-green-600 via-green-700 to-green-800 rounded-3xl shadow-xl p-6 sm:p-8 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl pointer-events-none" />
-                    <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                        <div className="flex items-center gap-4">
-                            <Link href={route('laporan.index')} className="w-9 h-9 bg-white/10 rounded-xl flex items-center justify-center hover:bg-white/20 transition-all border border-white/10">
-                                <ChevronLeft className="w-4 h-4 text-white" />
-                            </Link>
-                            <div className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20">
-                                <Users className="w-5 h-5 text-yellow-300" />
-                            </div>
-                            <div>
-                                <h1 className="text-lg sm:text-2xl font-black text-white tracking-tight uppercase italic leading-none">Laporan Penduduk</h1>
-                                <p className="text-green-100 font-bold text-[10px] uppercase tracking-widest mt-0.5 opacity-80">Total {totalPenduduk?.toLocaleString('id-ID')} jiwa terdaftar</p>
-                            </div>
-                        </div>
-                        <div className="flex gap-2 flex-wrap">
-                            <button onClick={() => setShowFilter(!showFilter)} className={cn('flex items-center px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all', showFilter ? 'bg-white text-green-700' : 'bg-white/10 text-white border-white/10 hover:bg-white/20')}>
-                                <Filter className="w-3.5 h-3.5 mr-1.5" /> Filter {activeFilters > 0 && <span className="ml-1 bg-orange-400 text-white rounded-full px-1.5 py-0.5 text-[8px]">{activeFilters}</span>}
-                            </button>
-                            <a href={route('laporan.generate') + '?type=penduduk&format=pdf&start_date=2020-01-01&end_date=' + new Date().toISOString().slice(0,10)}
-                                className="flex items-center px-4 py-2.5 bg-white text-green-700 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-green-50 transition-all shadow-md">
-                                <Download className="w-3.5 h-3.5 mr-1.5" /> Export PDF
-                            </a>
-                        </div>
-                    </div>
-                </div>
+                <PageHeader
+                    title="Laporan Penduduk"
+                    subtitle={`Total ${totalPenduduk?.toLocaleString('id-ID')} jiwa terdaftar`}
+                    icon={Users}
+                    backHref={route('laporan.index')}
+                    actions={[
+                        {
+                            label: activeFilters > 0 ? `Filter (${activeFilters})` : 'Filter',
+                            icon: Filter,
+                            onClick: () => setShowFilter(!showFilter),
+                            variant: showFilter ? 'white' : 'outline',
+                        },
+                        {
+                            label: 'Export PDF',
+                            icon: Download,
+                            href: route('laporan.generate') + '?type=penduduk&format=pdf&start_date=2020-01-01&end_date=' + new Date().toISOString().slice(0, 10),
+                            variant: 'white',
+                        }
+                    ]}
+                />
 
                 {/* ── Filter Panel ── */}
                 {showFilter && (
@@ -102,12 +97,14 @@ export default function PendudukIndex({ auth, penduduks, totalPenduduk, filters,
 
                 {/* ── Table ── */}
                 <Deferred data="penduduks" fallback={<SkeletonTable columns={7} rows={10} />}>
-                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                        <div className="p-4 border-b border-gray-50 flex items-center justify-between">
-                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                                Menampilkan {penduduks?.from ?? 0}–{penduduks?.to ?? 0} dari {penduduks?.total ?? 0} data
-                            </p>
-                        </div>
+                    <TableCard
+                        icon={Users}
+                        title="Data Penduduk"
+                        total={penduduks?.total}
+                        totalLabel="Jiwa"
+                        pagination={penduduks}
+                        noPadding
+                    >
                         <div className="overflow-x-auto">
                             <table className="w-full">
                                 <thead className="bg-gray-50">
@@ -136,26 +133,7 @@ export default function PendudukIndex({ auth, penduduks, totalPenduduk, filters,
                                 </tbody>
                             </table>
                         </div>
-
-                        {/* Pagination */}
-                        {penduduks?.last_page > 1 && (
-                            <div className="p-4 border-t border-gray-50 flex items-center justify-between">
-                                <p className="text-[9px] font-bold text-gray-400">Halaman {penduduks.current_page} dari {penduduks.last_page}</p>
-                                <div className="flex gap-1">
-                                    {penduduks.prev_page_url && (
-                                        <Link href={penduduks.prev_page_url} className="w-8 h-8 flex items-center justify-center bg-gray-50 rounded-lg hover:bg-green-50 hover:text-green-600 transition-all">
-                                            <ChevronLeft className="w-4 h-4" />
-                                        </Link>
-                                    )}
-                                    {penduduks.next_page_url && (
-                                        <Link href={penduduks.next_page_url} className="w-8 h-8 flex items-center justify-center bg-gray-50 rounded-lg hover:bg-green-50 hover:text-green-600 transition-all">
-                                            <ChevronRightIcon className="w-4 h-4" />
-                                        </Link>
-                                    )}
-                                </div>
-                            </div>
-                        )}
-                    </div>
+                    </TableCard>
                 </Deferred>
             </div>
         </AuthenticatedLayout>

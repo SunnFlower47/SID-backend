@@ -3,16 +3,11 @@ import { Head, Link, router, Deferred } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import UmkmStats from '@/Components/Umkm/UmkmStats';
 import UmkmFilters from '@/Components/Umkm/UmkmFilters';
-import Pagination from '@/Components/Shared/Pagination';
+import { PageHeader, TableCard, Badge, EmptyState } from '@/Components/Shared';
 import SkeletonStats from '@/Components/Shared/Skeleton/SkeletonStats';
 import SkeletonTable from '@/Components/Shared/Skeleton/SkeletonTable';
 import { Store, Plus, Edit2, Trash2, Eye, MapPin, CheckCircle, XCircle, Star, ShieldCheck, User } from 'lucide-react';
 import Swal from 'sweetalert2';
-import { cn } from '@/lib/utils';
-import Lottie from 'lottie-react';
-import noDataAnimation from '@/assets/lottie/no-data-animation.json';
-
-const LottieComponent = Lottie?.default || Lottie;
 
 export default function Index({ auth, umkm, stats, filters, jenisOptions }) {
     const handleDelete = (id, nama) => {
@@ -56,29 +51,14 @@ export default function Index({ auth, umkm, stats, filters, jenisOptions }) {
 
             <div className="space-y-6 animate-in fade-in duration-700 pb-20 text-left">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-green-600 via-green-700 to-green-800 rounded-3xl shadow-xl p-6 sm:p-8 relative overflow-hidden text-left">
-                    <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl pointer-events-none"></div>
-                    <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 text-left">
-                        <div className="flex items-center space-x-4 text-left">
-                            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-inner shrink-0 text-left">
-                                <Store className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-300" />
-                            </div>
-                            <div className="text-left">
-                                <h1 className="text-xl sm:text-3xl font-black text-white tracking-tight uppercase italic leading-none text-left">Data UMKM</h1>
-                                <p className="text-green-100 font-bold text-[10px] sm:text-xs uppercase tracking-widest mt-1 opacity-80 italic text-left">Manajemen Usaha Mikro, Kecil & Menengah Desa</p>
-                            </div>
-                        </div>
-                        <div className="flex flex-wrap gap-2 sm:gap-3 text-left">
-                            <Link 
-                                href={route('umkm.create')}
-                                className="flex items-center px-6 py-3 bg-white text-green-700 hover:bg-green-50 rounded-xl text-[10px] sm:text-xs font-black shadow-lg shadow-black/10 transition-all hover:scale-105 uppercase tracking-widest text-left"
-                            >
-                                <Plus className="w-3.5 h-3.5 mr-2" />
-                                TAMBAH UMKM
-                            </Link>
-                        </div>
-                    </div>
-                </div>
+                <PageHeader
+                    icon={Store}
+                    title="Data UMKM"
+                    subtitle="Manajemen Usaha Mikro, Kecil & Menengah Desa"
+                    actions={[
+                        { label: 'Tambah UMKM', icon: Plus, href: route('umkm.create') }
+                    ]}
+                />
 
                 {/* Stats */}
                 <Deferred data="stats" fallback={<SkeletonStats />}>
@@ -90,23 +70,20 @@ export default function Index({ auth, umkm, stats, filters, jenisOptions }) {
 
                 {/* Data Table */}
                 <Deferred data="umkm" fallback={<SkeletonTable columns={6} rows={10} />}>
-                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden text-left">
-                        <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-gray-50 to-white text-left">
-                            <h3 className="text-lg font-black text-gray-900 flex items-center gap-3 uppercase italic tracking-tighter text-left">
-                                <Store className="w-6 h-6 text-green-600" />
-                                Daftar UMKM Desa
-                            </h3>
-                            <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-[10px] font-black uppercase tracking-widest italic text-left">
-                                Total: {umkm?.total || 0}
-                            </span>
-                        </div>
-
+                    <TableCard
+                        icon={Store}
+                        title="Daftar UMKM Desa"
+                        total={umkm?.total || 0}
+                        totalLabel="UMKM"
+                        pagination={umkm}
+                        noPadding
+                    >
                         {umkm?.data?.length > 0 ? (
                             <>
                                 {/* Desktop View */}
                                 <div className="hidden lg:block overflow-x-auto text-left">
                                     <table className="w-full text-left text-sm text-gray-600">
-                                        <thead className="bg-gray-50/50 text-gray-900 font-bold uppercase text-xs tracking-wider border-b border-gray-100">
+                                        <thead className="bg-gray-50/50 text-gray-900 font-bold uppercase text-[10px] tracking-wider border-b border-gray-100">
                                             <tr>
                                                 <th className="px-6 py-4">Usaha / Pemilik</th>
                                                 <th className="px-6 py-4">Kategori</th>
@@ -140,9 +117,9 @@ export default function Index({ auth, umkm, stats, filters, jenisOptions }) {
                                                         </div>
                                                     </td>
                                                     <td className="px-6 py-4">
-                                                        <span className="text-[10px] font-black text-green-600 bg-green-50 px-2 py-1 rounded uppercase tracking-widest border border-green-100">
-                                                            {item.jenis_usaha}
-                                                        </span>
+                                                        <Badge color="emerald">
+                                                            {item.jenis_usaha.replace('_', ' ')}
+                                                        </Badge>
                                                     </td>
                                                     <td className="px-6 py-4">
                                                         <div className="flex items-center gap-2 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
@@ -152,15 +129,13 @@ export default function Index({ auth, umkm, stats, filters, jenisOptions }) {
                                                     </td>
                                                     <td className="px-6 py-4 text-center">
                                                         {item.status_usaha === 'aktif' ? (
-                                                            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-green-100 text-green-700 rounded-full text-[9px] font-black uppercase tracking-widest">
-                                                                <CheckCircle className="w-3 h-3" />
-                                                                AKTIF
-                                                            </div>
+                                                            <Badge color="green">
+                                                                <CheckCircle className="w-3 h-3 mr-1 inline" /> AKTIF
+                                                            </Badge>
                                                         ) : (
-                                                            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 text-gray-500 rounded-full text-[9px] font-black uppercase tracking-widest">
-                                                                <XCircle className="w-3 h-3" />
-                                                                {item.status_usaha.toUpperCase()}
-                                                            </div>
+                                                            <Badge color="gray">
+                                                                <XCircle className="w-3 h-3 mr-1 inline" /> {item.status_usaha.toUpperCase()}
+                                                            </Badge>
                                                         )}
                                                     </td>
                                                     <td className="px-6 py-4">
@@ -227,15 +202,18 @@ export default function Index({ auth, umkm, stats, filters, jenisOptions }) {
                                                     <MapPin className="w-3.5 h-3.5 text-red-400" />
                                                     {item.dusun?.nama || 'PUSAT'}
                                                 </div>
-                                                <span className="inline-flex px-2 py-0.5 rounded bg-green-50 text-green-600 text-[9px] font-black uppercase tracking-widest border border-green-100 justify-center">
+                                                <Badge color="emerald" className="justify-center text-center">
                                                     {item.jenis_usaha}
-                                                </span>
-                                                <span className={cn(
-                                                    "inline-flex px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest border justify-center",
-                                                    item.status_usaha === 'aktif' ? "bg-green-50 text-green-600 border-green-100" : "bg-gray-50 text-gray-400 border-gray-100"
-                                                )}>
-                                                    {item.status_usaha}
-                                                </span>
+                                                </Badge>
+                                                {item.status_usaha === 'aktif' ? (
+                                                    <Badge color="green" className="justify-center text-center">
+                                                        AKTIF
+                                                    </Badge>
+                                                ) : (
+                                                    <Badge color="gray" className="justify-center text-center">
+                                                        {item.status_usaha.toUpperCase()}
+                                                    </Badge>
+                                                )}
                                             </div>
 
                                             <div className="flex gap-2 text-left">
@@ -254,28 +232,14 @@ export default function Index({ auth, umkm, stats, filters, jenisOptions }) {
                                 </div>
                             </>
                         ) : (
-                            <div className="p-12 text-center">
-                                <div className="w-64 h-64 mx-auto mb-4">
-                                    <LottieComponent animationData={noDataAnimation} loop={true} />
-                                </div>
-                                <h3 className="text-xl font-black text-gray-900 uppercase italic tracking-tighter">Belum Ada Data UMKM</h3>
-                                <p className="text-sm text-gray-500 mt-2 max-w-xs mx-auto font-bold uppercase tracking-widest text-[10px]">
-                                    Silakan tambah data UMKM baru untuk mulai mendata potensi ekonomi desa.
-                                </p>
-                                <Link 
-                                    href={route('umkm.create')}
-                                    className="inline-flex items-center px-6 py-3 bg-green-600 text-white rounded-xl text-xs font-black shadow-lg shadow-green-200 hover:bg-green-700 transition-all mt-6 uppercase tracking-widest"
-                                >
-                                    <Plus className="w-4 h-4 mr-2" />
-                                    TAMBAH UMKM SEKARANG
-                                </Link>
-                            </div>
+                            <EmptyState
+                                icon={Store}
+                                title="Belum Ada Data UMKM"
+                                message="Silakan tambah data UMKM baru untuk mulai mendata potensi ekonomi desa."
+                                action={{ label: 'Tambah UMKM Sekarang', icon: Plus, href: route('umkm.create') }}
+                            />
                         )}
-
-                        <div className="p-4 border-t border-gray-100 bg-gray-50/50">
-                            <Pagination links={umkm?.links} from={umkm?.from} to={umkm?.to} total={umkm?.total} />
-                        </div>
-                    </div>
+                    </TableCard>
                 </Deferred>
             </div>
         </AuthenticatedLayout>

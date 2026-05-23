@@ -2,9 +2,10 @@ import React from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { BIDANG_LIST, SUB_BIDANG, SUMBER_DANA_LIST, BIDANG_COLOR, BIDANG_MAP } from '@/Constants/keuangan';
-import { BarChart3, ArrowLeft, Save, Info, ChevronDown } from 'lucide-react';
+import { BarChart3, ArrowLeft, Save, Info, FolderOpen, Wallet } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Swal from 'sweetalert2';
+import { PageHeader, FormField, FormCard } from '@/Components/Shared';
 
 // Panduan kode rekening per Bidang/Jenis
 const KODE_PANDUAN = {
@@ -12,15 +13,6 @@ const KODE_PANDUAN = {
     belanja:    { prefix: '5', contoh: '5.1.1.001', deskripsi: 'Format: 5.x.x.xxx (Belanja)' },
     pembiayaan: { prefix: '6', contoh: '6.1.1.001', deskripsi: 'Format: 6.x.x.xxx (Pembiayaan)' },
 };
-
-const InputField = ({ label, error, hint, children }) => (
-    <div className="space-y-1.5">
-        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{label}</label>
-        {children}
-        {hint && !error && <p className="text-[9px] font-bold text-gray-400 ml-1">{hint}</p>}
-        {error && <p className="text-[10px] font-bold text-red-500 uppercase tracking-wider italic ml-1">{error}</p>}
-    </div>
-);
 
 export default function Create({ auth, tahunList = [], currentYear }) {
     const { data, setData, post, processing, errors } = useForm({
@@ -66,23 +58,19 @@ export default function Create({ auth, tahunList = [], currentYear }) {
 
             <div className="space-y-6 animate-in fade-in duration-700 pb-20">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-green-600 via-green-700 to-green-800 rounded-3xl shadow-xl p-6 sm:p-8 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl pointer-events-none" />
-                    <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                        <div className="flex items-center space-x-4">
-                            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-inner shrink-0">
-                                <BarChart3 className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-300" />
-                            </div>
-                            <div>
-                                <h1 className="text-xl sm:text-3xl font-black text-white tracking-tight uppercase italic leading-none">Tambah Rekening APBDes</h1>
-                                <p className="text-green-100 font-bold text-[10px] sm:text-xs uppercase tracking-widest mt-1 opacity-80 italic">Sesuai Permendagri No. 20 Tahun 2018</p>
-                            </div>
-                        </div>
-                        <Link href={route('transparansi-desa.apbdes')} className="flex items-center px-4 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl text-[10px] sm:text-xs font-black transition-all uppercase tracking-widest backdrop-blur-md border border-white/10">
-                            <ArrowLeft className="w-3.5 h-3.5 mr-2" /> KEMBALI
-                        </Link>
-                    </div>
-                </div>
+                <PageHeader
+                    title="Tambah Rekening APBDes"
+                    subtitle="Sesuai Permendagri No. 20 Tahun 2018"
+                    icon={BarChart3}
+                    actions={[
+                        {
+                            label: 'KEMBALI',
+                            icon: ArrowLeft,
+                            href: route('transparansi-desa.apbdes'),
+                            variant: 'ghost'
+                        }
+                    ]}
+                />
 
                 <form onSubmit={handleSubmit}>
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -90,14 +78,10 @@ export default function Create({ auth, tahunList = [], currentYear }) {
                         <div className="lg:col-span-2 space-y-6">
 
                             {/* Seksi 1: Klasifikasi APBDes */}
-                            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-8 space-y-5">
-                                <h3 className="text-xs font-black text-gray-900 uppercase italic tracking-tighter border-b border-gray-100 pb-3 flex items-center gap-2">
-                                    <span className="w-5 h-5 bg-green-600 text-white rounded-lg flex items-center justify-center text-[9px] font-black shrink-0">1</span>
-                                    Klasifikasi APBDes (Permendagri 20/2018)
-                                </h3>
+                            <FormCard title="Klasifikasi APBDes (Permendagri 20/2018)" icon={FolderOpen} bodyClass="p-6 sm:p-8 space-y-5">
 
                                 {/* Bidang */}
-                                <InputField label="Bidang *" error={errors.bidang} hint="5 Bidang sesuai Permendagri No. 20 Tahun 2018">
+                                <FormField label="Bidang" required error={errors.bidang}>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                                         {BIDANG_LIST.map(b => {
                                             const cfg = BIDANG_COLOR[b.value];
@@ -120,72 +104,73 @@ export default function Create({ auth, tahunList = [], currentYear }) {
                                             );
                                         })}
                                     </div>
-                                </InputField>
+                                    {!errors.bidang && <p className="text-[9px] font-bold text-gray-400 mt-1 ml-1">5 Bidang sesuai Permendagri No. 20 Tahun 2018</p>}
+                                </FormField>
 
                                 {/* Sub-Bidang — muncul setelah Bidang dipilih */}
                                 {data.bidang && (
                                     <div className="animate-in slide-in-from-top-2 duration-200">
-                                        <InputField label="Sub-Bidang" error={errors.sub_bidang} hint="Opsional — pilih sub-bidang sesuai kegiatan">
-                                            <select
-                                                value={data.sub_bidang}
-                                                onChange={e => setData('sub_bidang', e.target.value)}
-                                                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-green-500 appearance-none cursor-pointer"
-                                            >
-                                                <option value="">-- Pilih Sub-Bidang (Opsional) --</option>
-                                                {subBidangOptions.map(sb => (
-                                                    <option key={sb.value} value={sb.value}>{sb.label}</option>
-                                                ))}
-                                            </select>
-                                        </InputField>
+                                        <FormField.Select 
+                                            label="Sub-Bidang" 
+                                            error={errors.sub_bidang}
+                                            value={data.sub_bidang}
+                                            onChange={e => setData('sub_bidang', e.target.value)}
+                                            options={subBidangOptions}
+                                            placeholder="-- Pilih Sub-Bidang (Opsional) --"
+                                        />
+                                        {!errors.sub_bidang && <p className="text-[9px] font-bold text-gray-400 mt-1 ml-1">Opsional — pilih sub-bidang sesuai kegiatan</p>}
                                     </div>
                                 )}
 
                                 {/* Nama Kegiatan */}
-                                <InputField label="Nama Kegiatan" error={errors.kegiatan} hint="Opsional — spesifikasi kegiatan dalam sub-bidang">
-                                    <input
-                                        type="text"
-                                        value={data.kegiatan}
-                                        onChange={e => setData('kegiatan', e.target.value)}
-                                        placeholder="Contoh: Penyediaan Penghasilan Tetap Perangkat Desa"
-                                        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-green-500"
-                                    />
-                                </InputField>
-                            </div>
+                                <FormField.Input 
+                                    label="Nama Kegiatan" 
+                                    error={errors.kegiatan} 
+                                    value={data.kegiatan}
+                                    onChange={e => setData('kegiatan', e.target.value)}
+                                    placeholder="Contoh: Penyediaan Penghasilan Tetap Perangkat Desa"
+                                />
+                                {!errors.kegiatan && <p className="-mt-3 text-[9px] font-bold text-gray-400 ml-1">Opsional — spesifikasi kegiatan dalam sub-bidang</p>}
+
+                            </FormCard>
 
                             {/* Seksi 2: Detail Rekening */}
-                            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-8 space-y-5">
-                                <h3 className="text-xs font-black text-gray-900 uppercase italic tracking-tighter border-b border-gray-100 pb-3 flex items-center gap-2">
-                                    <span className="w-5 h-5 bg-green-600 text-white rounded-lg flex items-center justify-center text-[9px] font-black shrink-0">2</span>
-                                    Detail Rekening & Anggaran
-                                </h3>
+                            <FormCard title="Detail Rekening & Anggaran" icon={Wallet} bodyClass="p-6 sm:p-8 space-y-5">
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                                    <InputField label="Tahun Anggaran *" error={errors.tahun}>
-                                        <select value={data.tahun} onChange={e => setData('tahun', e.target.value)}
-                                            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-green-500 appearance-none">
-                                            {(tahunList.length ? tahunList : [currentYear]).map(t => (
-                                                <option key={t} value={t}>{t}</option>
-                                            ))}
-                                            {!tahunList.includes(currentYear) && (
-                                                <option value={currentYear}>{currentYear} (Baru)</option>
-                                            )}
-                                        </select>
-                                    </InputField>
+                                    <FormField.Select 
+                                        label="Tahun Anggaran" 
+                                        required 
+                                        error={errors.tahun}
+                                        value={data.tahun} 
+                                        onChange={e => setData('tahun', e.target.value)}
+                                    >
+                                        {(tahunList.length ? tahunList : [currentYear]).map(t => (
+                                            <option key={t} value={t}>{t}</option>
+                                        ))}
+                                        {!tahunList.includes(currentYear) && (
+                                            <option value={currentYear}>{currentYear} (Baru)</option>
+                                        )}
+                                    </FormField.Select>
 
-                                    <InputField label="Jenis Rekening *" error={errors.jenis}>
-                                        <select value={data.jenis} onChange={e => setData('jenis', e.target.value)}
-                                            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-green-500 appearance-none">
-                                            <option value="pendapatan">Pendapatan</option>
-                                            <option value="belanja">Belanja</option>
-                                            <option value="pembiayaan">Pembiayaan</option>
-                                        </select>
-                                    </InputField>
+                                    <FormField.Select 
+                                        label="Jenis Rekening" 
+                                        required 
+                                        error={errors.jenis}
+                                        value={data.jenis} 
+                                        onChange={e => setData('jenis', e.target.value)}
+                                        options={[
+                                            { value: 'pendapatan', label: 'Pendapatan' },
+                                            { value: 'belanja', label: 'Belanja' },
+                                            { value: 'pembiayaan', label: 'Pembiayaan' }
+                                        ]}
+                                    />
                                 </div>
 
                                 {/* Sumber Dana — grouped optgroup */}
-                                <InputField label="Sumber Dana *" error={errors.sumber_dana}>
+                                <FormField label="Sumber Dana" required error={errors.sumber_dana}>
                                     <select value={data.sumber_dana} onChange={e => setData('sumber_dana', e.target.value)}
-                                        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-green-500 appearance-none cursor-pointer">
+                                        className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-bold outline-none focus:ring-4 focus:ring-green-500/10 focus:border-green-500 transition-all appearance-none cursor-pointer">
                                         <option value="">-- Pilih Sumber Dana --</option>
                                         {SUMBER_DANA_LIST.map(group => (
                                             <optgroup key={group.group} label={group.group}>
@@ -195,36 +180,51 @@ export default function Create({ auth, tahunList = [], currentYear }) {
                                             </optgroup>
                                         ))}
                                     </select>
-                                </InputField>
+                                </FormField>
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                                    <InputField label="Kode Rekening *" error={errors.kode_rekening} hint={kodePanduan.deskripsi}>
-                                        <input type="text" value={data.kode_rekening}
+                                    <div className="space-y-1.5">
+                                        <FormField.Input 
+                                            label="Kode Rekening" 
+                                            required 
+                                            error={errors.kode_rekening}
+                                            value={data.kode_rekening}
                                             onChange={e => setData('kode_rekening', e.target.value)}
                                             placeholder={kodePanduan.contoh ?? '5.1.1.001'}
-                                            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-green-500 font-mono" />
-                                    </InputField>
+                                            inputClassName="font-mono"
+                                        />
+                                        {!errors.kode_rekening && <p className="text-[9px] font-bold text-gray-400 ml-1">{kodePanduan.deskripsi}</p>}
+                                    </div>
 
-                                    <InputField label="Jumlah Anggaran (Rp) *" error={errors.anggaran}>
-                                        <input type="number" value={data.anggaran}
-                                            onChange={e => setData('anggaran', e.target.value)}
-                                            placeholder="0" min="0"
-                                            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-green-500" />
-                                    </InputField>
+                                    <FormField.Input 
+                                        label="Jumlah Anggaran (Rp)" 
+                                        required 
+                                        type="number"
+                                        error={errors.anggaran}
+                                        value={data.anggaran}
+                                        onChange={e => setData('anggaran', e.target.value)}
+                                        placeholder="0" 
+                                        min="0"
+                                    />
                                 </div>
 
-                                <InputField label="Nama / Uraian Rekening *" error={errors.nama_rekening}>
-                                    <input type="text" value={data.nama_rekening}
-                                        onChange={e => setData('nama_rekening', e.target.value)}
-                                        placeholder="Contoh: Belanja Pegawai"
-                                        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-green-500" />
-                                </InputField>
+                                <FormField.Input 
+                                    label="Nama / Uraian Rekening" 
+                                    required 
+                                    error={errors.nama_rekening}
+                                    value={data.nama_rekening}
+                                    onChange={e => setData('nama_rekening', e.target.value)}
+                                    placeholder="Contoh: Belanja Pegawai"
+                                />
 
-                                <InputField label="Keterangan (Opsional)" error={errors.keterangan}>
-                                    <textarea value={data.keterangan} onChange={e => setData('keterangan', e.target.value)}
-                                        rows={2} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-green-500 resize-none" />
-                                </InputField>
-                            </div>
+                                <FormField.Textarea 
+                                    label="Keterangan (Opsional)" 
+                                    error={errors.keterangan}
+                                    value={data.keterangan} 
+                                    onChange={e => setData('keterangan', e.target.value)}
+                                    rows={2} 
+                                />
+                            </FormCard>
                         </div>
 
                         {/* ── Sidebar ────────────────────────── */}

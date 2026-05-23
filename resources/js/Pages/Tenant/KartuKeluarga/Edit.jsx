@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Home, ArrowLeft, Save, MapPin, Crown, Info, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Home, Save, MapPin, Crown, Info } from 'lucide-react';
 import Swal from 'sweetalert2';
+import { PageHeader, FormCard } from '@/Components/Shared';
 
 export default function Edit({ auth, kk, nkk, masterRwOptions }) {
     const { data, setData, put, processing, errors } = useForm({
@@ -47,38 +48,18 @@ export default function Edit({ auth, kk, nkk, masterRwOptions }) {
 
             <div className="max-w-7xl mx-auto space-y-6 animate-in fade-in duration-500 pb-12">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-green-600 via-green-700 to-green-800 rounded-3xl shadow-xl p-6 sm:p-8 text-white relative overflow-hidden">
-                    <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl"></div>
-                    <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                        <div className="flex items-center space-x-4">
-                            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-inner shrink-0">
-                                <Home className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-300" />
-                            </div>
-                            <div>
-                                <h1 className="text-xl sm:text-3xl font-black tracking-tight uppercase italic leading-none text-left">Edit Kartu Keluarga</h1>
-                                <p className="text-green-100 font-bold text-[10px] sm:text-xs uppercase tracking-widest mt-1 opacity-80 italic text-left">NKK: {kk.nkk}</p>
-                            </div>
-                        </div>
-                        <Link 
-                            href={route('kk.index')}
-                            className="flex items-center px-6 py-3 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all w-fit"
-                        >
-                            <ArrowLeft className="w-4 h-4 mr-2" /> KEMBALI
-                        </Link>
-                    </div>
-                </div>
+                <PageHeader
+                    title="Edit Kartu Keluarga"
+                    subtitle={`NKK: ${kk.nkk}`}
+                    icon={Home}
+                    backHref={route('kk.index')}
+                    titleSize="lg"
+                />
                 <div className="w-full">
                     <form onSubmit={handleSubmit} className="space-y-6">
                         {/* Main Form Card */}
-                        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-                            <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white flex items-center justify-between">
-                                <h3 className="text-sm font-black text-gray-900 flex items-center uppercase italic tracking-tighter">
-                                    <Crown className="w-5 h-5 text-yellow-500 mr-2" />
-                                    Informasi Utama KK
-                                </h3>
-                            </div>
-                            
-                            <div className="p-8 space-y-8">
+                        <FormCard title="Informasi Utama KK" icon={Crown}>
+                            <div className="space-y-8">
                                 {/* Alert Info */}
                             <div className="p-4 bg-blue-50 border border-blue-100 rounded-2xl flex gap-4">
                                 <Info className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
@@ -159,7 +140,7 @@ export default function Edit({ auth, kk, nkk, masterRwOptions }) {
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </FormCard>
 
                     {/* Action Buttons */}
                     <div className="flex flex-col sm:flex-row items-center gap-4 pt-4 pb-12">

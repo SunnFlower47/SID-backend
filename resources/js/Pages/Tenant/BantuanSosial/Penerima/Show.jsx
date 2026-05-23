@@ -1,23 +1,17 @@
 import React from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Users, ArrowLeft, Edit, Trash2, CheckCircle, Clock, XCircle, Calendar, DollarSign } from 'lucide-react';
+import { Users, ArrowLeft, Edit, Trash2, CheckCircle, Clock, XCircle, Calendar, DollarSign, User, Shield, MapPin, FileText } from 'lucide-react';
 import Swal from 'sweetalert2';
 
-const STATUS_CONFIG = {
-    aktif:        { label: 'Aktif',        cls: 'bg-green-100 text-green-800',  icon: CheckCircle },
-    ditangguhkan: { label: 'Ditangguhkan', cls: 'bg-yellow-100 text-yellow-800', icon: Clock },
-    berhenti:     { label: 'Berhenti',     cls: 'bg-red-100 text-red-800',      icon: XCircle },
-};
+// Shared Components
+import { PageHeader, Badge, InfoRow } from '@/Components/Shared';
 
-function InfoRow({ label, value, highlight }) {
-    return (
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between py-3 border-b border-gray-50 last:border-b-0">
-            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 sm:mb-0">{label}</span>
-            <span className={`text-sm font-bold ${highlight ?? 'text-gray-900'}`}>{value ?? '—'}</span>
-        </div>
-    );
-}
+const STATUS_CONFIG = {
+    aktif:        { label: 'Aktif',        color: 'green',  icon: CheckCircle },
+    ditangguhkan: { label: 'Ditangguhkan', color: 'yellow', icon: Clock },
+    berhenti:     { label: 'Berhenti',     color: 'red',    icon: XCircle },
+};
 
 export default function Show({ auth, bantuanSosial, penerima }) {
     const statusCfg = STATUS_CONFIG[penerima.status_penerimaan] ?? STATUS_CONFIG.ditangguhkan;
@@ -63,47 +57,26 @@ export default function Show({ auth, bantuanSosial, penerima }) {
             <div className="space-y-5 animate-in fade-in duration-700 pb-20">
 
                 {/* Header */}
-                <div className="bg-gradient-to-r from-green-600 via-green-700 to-green-800 rounded-3xl shadow-xl p-6 sm:p-8 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl pointer-events-none" />
-                    <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-                        <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-inner shrink-0">
-                                <Users className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-300" />
-                            </div>
-                            <div>
-                                <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight uppercase italic leading-none">
-                                    {penerima.penduduk?.nama ?? 'Detail Penerima'}
-                                </h1>
-                                <p className="text-green-100 font-bold text-[10px] sm:text-xs uppercase tracking-widest mt-1 opacity-80">
-                                    {bantuanSosial.nama_program}
-                                </p>
-                            </div>
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                            <Link
-                                href={route('bantuan-sosial.penerima.index', bantuanSosial.id)}
-                                className="flex items-center px-4 py-2.5 bg-white/20 hover:bg-white/30 backdrop-blur-md border border-white/20 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
-                            >
-                                <ArrowLeft className="w-3.5 h-3.5 mr-2" />
-                                KEMBALI
-                            </Link>
-                            <Link
-                                href={route('bantuan-sosial.penerima.edit', [bantuanSosial.id, penerima.id])}
-                                className="flex items-center px-4 py-2.5 bg-white/20 hover:bg-white/30 backdrop-blur-md border border-white/20 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
-                            >
-                                <Edit className="w-3.5 h-3.5 mr-2" />
-                                EDIT
-                            </Link>
-                            <button
-                                onClick={handleDelete}
-                                className="flex items-center px-4 py-2.5 bg-red-500/30 hover:bg-red-500/50 backdrop-blur-md border border-red-400/30 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
-                            >
-                                <Trash2 className="w-3.5 h-3.5 mr-2" />
-                                HAPUS
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <PageHeader 
+                    title={penerima.penduduk?.nama ?? 'Detail Penerima'}
+                    subtitle={bantuanSosial.nama_program}
+                    icon={Users}
+                    backHref={route('bantuan-sosial.penerima.index', bantuanSosial.id)}
+                    actions={[
+                        {
+                            label: 'EDIT',
+                            icon: Edit,
+                            href: route('bantuan-sosial.penerima.edit', [bantuanSosial.id, penerima.id]),
+                            variant: 'white'
+                        },
+                        {
+                            label: 'HAPUS',
+                            icon: Trash2,
+                            onClick: handleDelete,
+                            variant: 'danger'
+                        }
+                    ]}
+                />
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
                     {/* Data Penerima */}
@@ -114,16 +87,17 @@ export default function Show({ auth, bantuanSosial, penerima }) {
                                 <h3 className="text-sm font-black text-gray-900 uppercase italic tracking-tighter">Data Penerima</h3>
                             </div>
                             <div className="p-6">
-                                <div className="mb-4">
-                                    <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${statusCfg.cls}`}>
-                                        <StatusIcon className="w-3 h-3" />
+                                <div className="mb-6">
+                                    <Badge color={statusCfg.color} icon={StatusIcon}>
                                         {statusCfg.label}
-                                    </span>
+                                    </Badge>
                                 </div>
-                                <InfoRow label="Nama Lengkap" value={penerima.penduduk?.nama} />
-                                <InfoRow label="NIK" value={penerima.penduduk?.nik} />
-                                <InfoRow label="Alamat" value={penerima.penduduk?.alamat} />
-                                {penerima.keterangan && <InfoRow label="Keterangan" value={penerima.keterangan} />}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <InfoRow label="Nama Lengkap" value={penerima.penduduk?.nama} icon={User} color="blue" />
+                                    <InfoRow label="NIK" value={penerima.penduduk?.nik} icon={Shield} color="purple" />
+                                    <InfoRow label="Alamat" value={penerima.penduduk?.alamat} icon={MapPin} color="orange" />
+                                    {penerima.keterangan && <InfoRow label="Keterangan" value={penerima.keterangan} icon={FileText} color="gray" />}
+                                </div>
                             </div>
                         </div>
 
@@ -133,40 +107,45 @@ export default function Show({ auth, bantuanSosial, penerima }) {
                                 <h3 className="text-sm font-black text-gray-900 uppercase italic tracking-tighter">Detail Penerimaan</h3>
                             </div>
                             <div className="p-6">
-                                <InfoRow
-                                    label="Sistem Pembayaran"
-                                    value={isBerkala ? 'Berkala (4 Tahap per Tahun)' : 'Sekali Bayar'}
-                                />
-                                <InfoRow
-                                    label="Total Nilai Bantuan"
-                                    value={fmtRp(penerima.nilai_diterima)}
-                                    highlight="text-green-700"
-                                />
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <InfoRow
+                                        label="Sistem Pembayaran"
+                                        value={isBerkala ? 'Berkala (4 Tahap per Tahun)' : 'Sekali Bayar'}
+                                        icon={Calendar} color="blue"
+                                    />
+                                    <InfoRow
+                                        label="Total Nilai Bantuan"
+                                        value={fmtRp(penerima.nilai_diterima)}
+                                        icon={DollarSign} color="green"
+                                    />
 
-                                {!isBerkala && (
-                                    <InfoRow label="Tanggal Penerimaan" value={fmt(penerima.tanggal_penerimaan)} />
-                                )}
+                                    {!isBerkala && (
+                                        <InfoRow label="Tanggal Penerimaan" value={fmt(penerima.tanggal_penerimaan)} icon={Calendar} color="blue" />
+                                    )}
+                                </div>
 
                                 {isBerkala && (
-                                    <div className="mt-4 space-y-3">
-                                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Jadwal Penyaluran Berkala</p>
-                                        {[1, 2, 3, 4].map((q) => {
-                                            const tw = dataTambahan?.[`tahap_${q}`] || dataTambahan?.[`triwulan_${q}`];
-                                            return tw ? (
-                                                <div key={q} className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-xl">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="w-7 h-7 bg-blue-100 rounded-lg flex items-center justify-center">
-                                                            <span className="text-[10px] font-black text-blue-700">T{q}</span>
+                                    <div className="mt-6 space-y-3">
+                                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-2 border-l-4 border-blue-500">Jadwal Penyaluran Berkala</p>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {[1, 2, 3, 4].map((q) => {
+                                                const tw = dataTambahan?.[`tahap_${q}`] || dataTambahan?.[`triwulan_${q}`];
+                                                return tw ? (
+                                                    <div key={q} className="flex items-center justify-between p-4 bg-blue-50/50 border border-blue-100 rounded-2xl hover:bg-white hover:shadow-md transition-all">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center border border-blue-200">
+                                                                <span className="text-xs font-black text-blue-700">T{q}</span>
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-xs font-black text-blue-900">Tahap {q}</p>
+                                                                <p className="text-[10px] font-bold text-blue-500 mt-1 uppercase tracking-widest">{fmt(tw.tanggal)}</p>
+                                                            </div>
                                                         </div>
-                                                        <div>
-                                                            <p className="text-xs font-bold text-blue-900">Tahap {q}</p>
-                                                            <p className="text-[10px] font-bold text-blue-500">{fmt(tw.tanggal)}</p>
-                                                        </div>
+                                                        <span className="text-sm font-black text-blue-800 italic">{fmtRp(tw.jumlah)}</span>
                                                     </div>
-                                                    <span className="text-sm font-black text-blue-800">{fmtRp(tw.jumlah)}</span>
-                                                </div>
-                                            ) : null;
-                                        })}
+                                                ) : null;
+                                            })}
+                                        </div>
                                     </div>
                                 )}
                             </div>
@@ -179,25 +158,25 @@ export default function Show({ auth, bantuanSosial, penerima }) {
                             <div className="px-5 py-4 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
                                 <h3 className="text-sm font-black text-gray-900 uppercase italic tracking-tighter">Info Program</h3>
                             </div>
-                            <div className="p-5 space-y-3">
+                            <div className="p-5 space-y-4">
                                 <div>
-                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Nama Program</p>
-                                    <p className="text-sm font-bold text-gray-900 mt-1">{bantuanSosial.nama_program}</p>
+                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Nama Program</p>
+                                    <p className="text-sm font-bold text-gray-900">{bantuanSosial.nama_program}</p>
                                 </div>
                                 <div>
-                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Jenis</p>
-                                    <p className="text-sm font-bold text-gray-900 mt-1">{bantuanSosial.jenis_bantuan}</p>
+                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Jenis</p>
+                                    <p className="text-sm font-bold text-gray-900">{bantuanSosial.jenis_bantuan}</p>
                                 </div>
                                 <div>
-                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Periode</p>
-                                    <p className="text-sm font-bold text-gray-900 mt-1">{bantuanSosial.periode}</p>
+                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Periode</p>
+                                    <p className="text-sm font-bold text-gray-900">{bantuanSosial.periode}</p>
                                 </div>
-                                <div className="pt-3 border-t border-gray-100">
+                                <div className="pt-4 border-t border-gray-100">
                                     <Link
                                         href={route('bantuan-sosial.penerima.index', bantuanSosial.id)}
-                                        className="w-full flex items-center justify-center px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all"
+                                        className="w-full flex items-center justify-center px-4 py-3 bg-green-50 hover:bg-green-600 text-green-700 hover:text-white border border-green-200 hover:border-transparent rounded-xl text-xs font-black uppercase tracking-widest transition-all"
                                     >
-                                        <Users className="w-3.5 h-3.5 mr-2" />
+                                        <Users className="w-4 h-4 mr-2" />
                                         SEMUA PENERIMA
                                     </Link>
                                 </div>

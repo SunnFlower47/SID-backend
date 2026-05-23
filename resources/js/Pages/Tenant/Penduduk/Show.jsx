@@ -3,7 +3,7 @@ import { Head, Link } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { 
     User, IdCard, Calendar, MapPin, Briefcase, 
-    ArrowLeft, Edit, GraduationCap, Heart, 
+    Edit, GraduationCap, Heart, 
     Users, Clock, ShieldCheck, Map,
     ChevronRight, FileText, History, Activity, Info
 } from 'lucide-react';
@@ -11,12 +11,10 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
 
-export default function Show({ auth, penduduk }) {
-    const handleBack = (e) => {
-        e.preventDefault();
-        window.history.back();
-    };
+// Shared Components
+import { PageHeader, InfoRow, Badge } from '@/Components/Shared';
 
+export default function Show({ auth, penduduk }) {
     const formatDate = (dateString, formatStr = 'dd MMMM yyyy') => {
         if (!dateString) return '-';
         try {
@@ -26,24 +24,6 @@ export default function Show({ auth, penduduk }) {
         }
     };
 
-    const InfoRow = ({ label, value, icon: Icon, color = "blue" }) => (
-        <div className="flex items-center gap-4 p-4 bg-gray-50/50 rounded-2xl border border-gray-100 hover:bg-white hover:shadow-md transition-all group">
-            <div className={cn(
-                "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border transition-all group-hover:scale-110",
-                color === "blue" && "bg-blue-50 text-blue-600 border-blue-100",
-                color === "green" && "bg-green-50 text-green-600 border-green-100",
-                color === "purple" && "bg-purple-50 text-purple-600 border-purple-100",
-                color === "orange" && "bg-orange-50 text-orange-600 border-orange-100"
-            )}>
-                <Icon className="w-5 h-5" />
-            </div>
-            <div className="min-w-0 flex-1">
-                <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1.5">{label}</p>
-                <p className="text-sm font-black text-gray-900 truncate leading-tight uppercase italic">{value || '-'}</p>
-            </div>
-        </div>
-    );
-
     return (
         <AuthenticatedLayout user={auth.user} title={`Detail - ${penduduk.nama}`}>
             <Head title={`Detail Penduduk - ${penduduk.nama}`} />
@@ -51,39 +31,26 @@ export default function Show({ auth, penduduk }) {
             <div className="max-w-7xl mx-auto space-y-6 animate-in fade-in duration-700 pb-12">
                 
                 {/* 1. CONSISTENT HEADER */}
-                <div className="bg-gradient-to-r from-green-600 via-green-700 to-green-800 rounded-3xl shadow-xl p-6 sm:p-8 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl"></div>
-                    <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                        <div className="flex items-center space-x-4">
-                            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-inner shrink-0">
-                                <User className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-300" />
-                            </div>
-                            <div>
-                                <h1 className="text-xl sm:text-3xl font-black text-white tracking-tight uppercase italic leading-none text-left">Detail Penduduk</h1>
-                                <p className="text-green-100 font-bold text-[10px] sm:text-xs uppercase tracking-widest mt-1 opacity-80 flex items-center gap-2 text-left">
-                                    <ShieldCheck className="w-3 h-3 text-yellow-300" />
-                                    Profil Terverifikasi Sistem
-                                </p>
-                            </div>
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                            <button 
-                                onClick={handleBack}
-                                className="flex items-center px-4 py-3 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white rounded-xl text-[10px] sm:text-xs font-black transition-all active:scale-95 uppercase tracking-widest group"
-                            >
-                                <ArrowLeft className="w-4 h-4 mr-2 transition-transform group-hover:-translate-x-1" />
-                                KEMBALI
-                            </button>
-                            <Link 
-                                href={route('penduduk.edit', penduduk.id)}
-                                className="flex items-center px-6 py-3 bg-white text-green-700 hover:bg-green-50 rounded-xl text-[10px] sm:text-xs font-black shadow-lg shadow-black/10 transition-all hover:scale-105 active:scale-95 uppercase tracking-widest"
-                            >
-                                <Edit className="w-4 h-4 mr-2" />
-                                EDIT PROFIL
-                            </Link>
-                        </div>
-                    </div>
-                </div>
+                <PageHeader 
+                    title="Detail Penduduk"
+                    titleSize="sm"
+                    subtitle={
+                        <span className="flex items-center gap-2">
+                            <ShieldCheck className="w-3 h-3 text-yellow-300" />
+                            Profil Terverifikasi Sistem
+                        </span>
+                    }
+                    icon={User}
+                    backHref={route('penduduk.index')}
+                    actions={[
+                        {
+                            label: 'EDIT PROFIL',
+                            icon: Edit,
+                            href: route('penduduk.edit', penduduk.id),
+                            variant: 'white'
+                        }
+                    ]}
+                />
 
                 {/* 2. MAIN GRID LAYOUT */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 items-start">
@@ -104,8 +71,8 @@ export default function Show({ auth, penduduk }) {
                             <div className="pt-14 pb-8 px-6 text-center">
                                 <h2 className="text-lg font-black text-gray-900 uppercase tracking-tight italic mb-1">{penduduk.nama}</h2>
                                 <div className="flex justify-center gap-2 mb-8">
-                                    <span className="px-3 py-1 bg-blue-50 text-blue-600 border border-blue-100 rounded-full text-[9px] font-black uppercase tracking-widest">{penduduk.jenis_kelamin}</span>
-                                    <span className="px-3 py-1 bg-green-50 text-green-700 border border-green-100 rounded-full text-[9px] font-black uppercase tracking-widest">{penduduk.kedudukan_keluarga}</span>
+                                    <Badge color="blue">{penduduk.jenis_kelamin}</Badge>
+                                    <Badge color="green">{penduduk.kedudukan_keluarga}</Badge>
                                 </div>
 
                                 <div className="grid grid-cols-1 gap-4">
@@ -171,7 +138,7 @@ export default function Show({ auth, penduduk }) {
                                     <Users className="w-5 h-5 text-blue-600" />
                                     Anggota Keluarga
                                 </h3>
-                                <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-[9px] font-black uppercase tracking-widest border border-blue-100">{penduduk.kartu_keluarga?.penduduks?.length || 0} Jiwa</span>
+                                <Badge color="blue">{penduduk.kartu_keluarga?.penduduks?.length || 0} Jiwa</Badge>
                             </div>
                             <div className="overflow-x-auto">
                                 <table className="w-full text-left">

@@ -3,6 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, router, usePage } from '@inertiajs/react';
 import * as Icons from 'lucide-react';
 import Swal from 'sweetalert2';
+import { PageHeader, TableCard } from '@/Components/Shared';
 
 export default function BackupIndex({ backupFiles, diskSpace, stats }) {
     const handleCreateBackup = (type) => {
@@ -106,22 +107,11 @@ export default function BackupIndex({ backupFiles, diskSpace, stats }) {
 
             <div className="space-y-6">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-green-600 via-green-700 to-green-800 rounded-3xl shadow-xl p-6 sm:p-8 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl"></div>
-                    <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                        <div className="flex items-center space-x-4">
-                            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-inner shrink-0">
-                                <Icons.Database className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-300" />
-                            </div>
-                            <div>
-                                <h1 className="text-xl sm:text-3xl font-black text-white tracking-tight uppercase italic leading-none">Backup & Restore</h1>
-                                <p className="text-green-100 font-bold text-[10px] sm:text-xs uppercase tracking-widest mt-1 opacity-80">
-                                    Amankan dan Kelola Data Sistem Desa
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <PageHeader
+                    title="Backup & Restore"
+                    subtitle="Amankan dan Kelola Data Sistem Desa"
+                    icon={Icons.Database}
+                />
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Left Column: Stats & Storage */}
@@ -221,14 +211,13 @@ export default function BackupIndex({ backupFiles, diskSpace, stats }) {
                         </div>
 
                         {/* List */}
-                        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-                            <div className="px-6 py-5 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
-                                <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider flex items-center">
-                                    <Icons.History className="w-4 h-4 mr-2 text-gray-500" />
-                                    Riwayat Backup
-                                </h3>
-                            </div>
-                            
+                        <TableCard
+                            title="Riwayat Backup"
+                            icon={Icons.History}
+                            total={backupFiles.length}
+                            totalLabel="File"
+                            noPadding
+                        >
                             <div className="overflow-x-auto">
                                 <table className="w-full text-sm text-left">
                                     <thead className="bg-gray-50/50 text-gray-500 text-xs uppercase font-bold tracking-wider">
@@ -320,7 +309,7 @@ export default function BackupIndex({ backupFiles, diskSpace, stats }) {
                                     </tbody>
                                 </table>
                             </div>
-                        </div>
+                        </TableCard>
                     </div>
                 </div>
             </div>

@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Head, Link, useForm, router } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { FileText, ArrowLeft, Plus, Upload, CheckCircle2, XCircle, Clock, AlertTriangle, ChevronRight, Download } from 'lucide-react';
+import { FileText, Plus, Upload, CheckCircle2, XCircle, Clock, AlertTriangle, ChevronRight, Download } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Swal from 'sweetalert2';
+import { PageHeader } from '@/Components/Shared';
 
 const STATUS_CONFIG = {
     draft: { label: 'Draft', color: 'text-gray-600', bg: 'bg-gray-100', icon: Clock },
@@ -98,28 +99,26 @@ export default function Index({ auth, peraturans, filters }) {
 
             <div className="space-y-6 animate-in fade-in duration-700 pb-20">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-teal-600 via-teal-700 to-teal-800 rounded-3xl shadow-xl p-6 sm:p-8 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl pointer-events-none" />
-                    <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                        <div className="flex items-center space-x-4">
-                            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-inner shrink-0">
-                                <FileText className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-300" />
-                            </div>
-                            <div>
-                                <h1 className="text-xl sm:text-3xl font-black text-white tracking-tight uppercase italic leading-none">Persetujuan BPD</h1>
-                                <p className="text-teal-100 font-bold text-[10px] sm:text-xs uppercase tracking-widest mt-1 opacity-80 italic">Manajemen Pengesahan Peraturan Desa</p>
-                            </div>
-                        </div>
-                        <div className="flex flex-wrap gap-2 sm:gap-3">
-                            <Link href={route('transparansi-desa.index')} className="flex items-center px-4 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl text-[10px] sm:text-xs font-black transition-all uppercase tracking-widest backdrop-blur-md border border-white/10">
-                                <ArrowLeft className="w-3.5 h-3.5 mr-2" /> DASHBOARD
-                            </Link>
-                            <button onClick={() => setShowCreateModal(true)} className="flex items-center px-4 py-3 bg-white text-teal-700 hover:bg-teal-50 rounded-xl text-[10px] sm:text-xs font-black shadow-lg shadow-black/10 transition-all hover:scale-105 uppercase tracking-widest">
-                                <Plus className="w-3.5 h-3.5 mr-2" /> BUAT PENGAJUAN
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <PageHeader
+                    title="Persetujuan BPD"
+                    subtitle="Manajemen Pengesahan Peraturan Desa"
+                    icon={FileText}
+                    gradient="from-teal-600 via-teal-700 to-teal-800"
+                    titleSize="lg"
+                    actions={[
+                        {
+                            label: 'DASHBOARD',
+                            href: route('transparansi-desa.index'),
+                            variant: 'ghost',
+                        },
+                        {
+                            label: 'BUAT PENGAJUAN',
+                            icon: Plus,
+                            onClick: () => setShowCreateModal(true),
+                            variant: 'white',
+                        },
+                    ]}
+                />
 
                 {/* Info Banner */}
                 <div className="bg-blue-50 border border-blue-100 rounded-2xl p-5 flex items-start gap-3">

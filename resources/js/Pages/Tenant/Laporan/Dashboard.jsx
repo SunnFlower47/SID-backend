@@ -1,6 +1,7 @@
 import React from 'react';
 import { Head, Link, Deferred } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { PageHeader, StatCard } from '@/Components/Shared';
 import {
     BarChart3, Users, Home, RefreshCw, FileText, Newspaper,
     ArrowRight, TrendingUp, TrendingDown, Activity, ChevronRight,
@@ -10,34 +11,7 @@ import { cn } from '@/lib/utils';
 import SkeletonStats from '@/Components/Shared/Skeleton/SkeletonStats';
 import SkeletonActivity from '@/Components/Shared/Skeleton/SkeletonActivity';
 
-const StatCard = ({ icon: Icon, label, value, sub, color = 'green', trend }) => {
-    const colors = {
-        green:  { bg: 'bg-green-50',  icon: 'text-green-600',  border: 'border-green-100' },
-        blue:   { bg: 'bg-blue-50',   icon: 'text-blue-600',   border: 'border-blue-100'  },
-        purple: { bg: 'bg-purple-50', icon: 'text-purple-600', border: 'border-purple-100'},
-        orange: { bg: 'bg-orange-50', icon: 'text-orange-600', border: 'border-orange-100'},
-        rose:   { bg: 'bg-rose-50',   icon: 'text-rose-600',   border: 'border-rose-100'  },
-    };
-    const c = colors[color] ?? colors.green;
-    return (
-        <div className={cn('bg-white rounded-2xl border shadow-sm p-5', c.border)}>
-            <div className="flex items-start justify-between">
-                <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center', c.bg)}>
-                    <Icon className={cn('w-5 h-5', c.icon)} />
-                </div>
-                {trend != null && (
-                    <span className={cn('text-[9px] font-black uppercase tracking-widest flex items-center gap-0.5', trend > 0 ? 'text-green-500' : trend < 0 ? 'text-red-400' : 'text-gray-400')}>
-                        {trend > 0 ? <TrendingUp className="w-3 h-3"/> : trend < 0 ? <TrendingDown className="w-3 h-3"/> : null}
-                        {trend !== 0 ? `${Math.abs(trend)} hari ini` : 'Tidak ada hari ini'}
-                    </span>
-                )}
-            </div>
-            <p className="text-2xl font-black text-gray-900 italic tracking-tighter mt-3">{value ?? '—'}</p>
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-0.5">{label}</p>
-            {sub && <p className="text-[9px] text-gray-400 font-bold mt-0.5">{sub}</p>}
-        </div>
-    );
-};
+
 
 const MENU_ITEMS = [
     { label: 'Laporan Penduduk',  desc: 'Data lengkap warga + filter lanjutan', route: 'laporan.penduduk', icon: Users,      color: 'green'  },
@@ -57,28 +31,15 @@ export default function Dashboard({ auth, stats, recentMutasi }) {
             <div className="space-y-6 animate-in fade-in duration-700 pb-20">
 
                 {/* ── Header ── */}
-                <div className="bg-gradient-to-r from-green-600 via-green-700 to-green-800 rounded-3xl shadow-xl p-6 sm:p-8 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl pointer-events-none" />
-                    <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                        <div className="flex items-center space-x-4">
-                            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-inner shrink-0">
-                                <BarChart3 className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-300" />
-                            </div>
-                            <div>
-                                <h1 className="text-xl sm:text-3xl font-black text-white tracking-tight uppercase italic leading-none">Laporan & Analisis</h1>
-                                <p className="text-green-100 font-bold text-[10px] sm:text-xs uppercase tracking-widest mt-1 opacity-80 italic">Pusat Data & Statistik Desa</p>
-                            </div>
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                            <Link href={route('statistics.index')} className="flex items-center px-4 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl text-[10px] font-black uppercase tracking-widest backdrop-blur-md border border-white/10 transition-all hover:scale-105">
-                                <BarChart3 className="w-3.5 h-3.5 mr-2" />Statistik
-                            </Link>
-                            <Link href={route('comparison.index')} className="flex items-center px-4 py-3 bg-white text-green-700 hover:bg-green-50 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg transition-all hover:scale-105">
-                                <Activity className="w-3.5 h-3.5 mr-2" />Komparasi
-                            </Link>
-                        </div>
-                    </div>
-                </div>
+                <PageHeader
+                    title="Laporan & Analisis"
+                    subtitle="Pusat Data & Statistik Desa"
+                    icon={BarChart3}
+                    actions={[
+                        { label: 'STATISTIK', icon: BarChart3, href: route('statistics.index'), variant: 'ghost' },
+                        { label: 'KOMPARASI', icon: Activity, href: route('comparison.index'), variant: 'white' },
+                    ]}
+                />
 
                 {/* ── Stat Cards ── */}
                 <Deferred data="stats" fallback={<SkeletonStats count={4} />}>

@@ -3,17 +3,19 @@ import { Head, Link, router, Deferred } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import ResidentStats from '@/Components/Penduduk/ResidentStats';
 import ResidentFilters from '@/Components/Penduduk/ResidentFilters';
-import Pagination from '@/Components/Shared/Pagination';
 import SkeletonStats from '@/Components/Shared/Skeleton/SkeletonStats';
 import SkeletonTable from '@/Components/Shared/Skeleton/SkeletonTable';
-import { Users, Plus, FileSpreadsheet, Edit, Trash2, Eye, Crown, Heart, User, Briefcase, MapPin, IdCard, Loader2, Search, ChevronRight, Filter } from 'lucide-react';
+import { Users, Plus, FileSpreadsheet, Crown, Heart, User, Trash2 } from 'lucide-react';
 import Swal from 'sweetalert2';
 import axios from 'axios';
 import { cn } from '@/lib/utils';
 import Lottie from 'lottie-react';
 import loadingAnimation from '@/assets/lottie/loading-circle-animation.json';
-import noDataAnimation from '@/assets/lottie/no-data-animation.json';
 import successAnimation from '@/assets/lottie/success-animation.json';
+
+// Shared Components
+import { PageHeader, TableCard, EmptyState, ActionButtons, Badge } from '@/Components/Shared';
+import { useSwalDelete } from '@/lib/useSwalDelete';
 
 // Kadang di Vite/React 19, import default terbaca sebagai object { default: ... }
 const LottieComponent = Lottie?.default || Lottie;
@@ -21,7 +23,7 @@ const LottieComponent = Lottie?.default || Lottie;
 export default function Index({ auth, penduduks, stats, rtList, rwList, dusunList, filters }) {
     const [isExporting, setIsExporting] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
-    const [showFilters, setShowFilters] = useState(filters.search || filters.rt || filters.rw || filters.dusun ? true : false);
+    const confirmDelete = useSwalDelete();
     
     const handleExport = async () => {
         setIsExporting(true);
@@ -56,40 +58,19 @@ export default function Index({ auth, penduduks, stats, rtList, rwList, dusunLis
     };
 
     const handleDelete = (id, nama) => {
-        Swal.fire({
-            title: 'KONFIRMASI HAPUS',
-            html: `Apakah Anda yakin ingin menghapus data <b class="text-red-600">${nama}</b>?<br><small class="text-gray-400 font-bold uppercase tracking-widest text-[9px]">Tindakan ini tidak dapat dibatalkan</small>`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#ef4444',
-            cancelButtonColor: '#f3f4f6',
-            confirmButtonText: 'YA, HAPUS DATA!',
-            cancelButtonText: 'BATALKAN',
-            background: '#ffffff',
-            customClass: {
-                popup: 'rounded-3xl border-none shadow-2xl',
-                title: 'font-black tracking-tighter uppercase italic text-red-600',
-                confirmButton: 'rounded-2xl px-6 py-3 font-black uppercase tracking-widest text-[10px] shadow-lg shadow-red-200',
-                cancelButton: 'rounded-2xl px-6 py-3 font-black uppercase tracking-widest text-[10px] text-gray-500'
-            }
-        }).then((result) => {
-            if (result.isConfirmed) {
-                router.delete(route('penduduk.destroy', id), {
-                    preserveScroll: true,
-                    onSuccess: () => {
-                        // Let global AuthenticatedLayout handle the success flash
-                    }
-                });
-            }
+        confirmDelete(nama, () => {
+            router.delete(route('penduduk.destroy', id), {
+                preserveScroll: true,
+            });
         });
     };
 
     const getKedudukanStyle = (kedudukan) => {
         const k = (kedudukan || '').toUpperCase();
-        if (k === 'KEPALA KELUARGA') return { bg: 'bg-blue-100', text: 'text-blue-800', icon: <Crown className="w-3 h-3 mr-1" /> };
-        if (k === 'ISTRI') return { bg: 'bg-pink-100', text: 'text-pink-800', icon: <Heart className="w-3 h-3 mr-1" /> };
-        if (k === 'ANAK') return { bg: 'bg-green-100', text: 'text-green-800', icon: <User className="w-3 h-3 mr-1" /> };
-        return { bg: 'bg-gray-100', text: 'text-gray-800', icon: <User className="w-3 h-3 mr-1" /> };
+        if (k === 'KEPALA KELUARGA') return { color: 'blue', icon: Crown };
+        if (k === 'ISTRI') return { color: 'pink', icon: Heart };
+        if (k === 'ANAK') return { color: 'green', icon: User };
+        return { color: 'gray', icon: User };
     };
 
     let currentKK = null;
@@ -113,42 +94,27 @@ export default function Index({ auth, penduduks, stats, rtList, rwList, dusunLis
             )}
 
             <div className="space-y-6 animate-in fade-in duration-700 pb-20">
-                {/* Header */}
-                <div className="bg-gradient-to-r from-green-600 via-green-700 to-green-800 rounded-3xl shadow-xl p-6 sm:p-8 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl"></div>
-                    <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                        <div className="flex items-center space-x-4">
-                            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-inner shrink-0">
-                                <Users className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-300" />
-                            </div>
-                            <div>
-                                <h1 className="text-xl sm:text-3xl font-black text-white tracking-tight uppercase italic leading-none">Data Penduduk</h1>
-                                <p className="text-green-100 font-bold text-[10px] sm:text-xs uppercase tracking-widest mt-1 opacity-80">Kelola data warga Desa Cibatu</p>
-                            </div>
-                        </div>
-                        <div className="flex flex-wrap gap-2 sm:gap-3">
-                            <button 
-                                onClick={handleExport}
-                                disabled={isExporting}
-                                className="flex items-center px-4 py-3 bg-green-500/30 hover:bg-green-500/50 disabled:opacity-50 backdrop-blur-md border border-green-400/30 text-white rounded-xl text-[10px] sm:text-xs font-black transition-all uppercase tracking-widest"
-                            >
-                                {isExporting ? (
-                                    <Loader2 className="w-3.5 h-3.5 mr-2 animate-spin" />
-                                ) : (
-                                    <FileSpreadsheet className="w-3.5 h-3.5 mr-2" />
-                                )}
-                                EXCEL
-                            </button>
-                            <Link 
-                                href={route('penduduk.create')}
-                                className="flex items-center px-6 py-3 bg-white text-green-700 hover:bg-green-50 rounded-xl text-[10px] sm:text-xs font-black shadow-lg shadow-black/10 transition-all hover:scale-105 uppercase tracking-widest"
-                            >
-                                <Plus className="w-3.5 h-3.5 mr-2" />
-                                TAMBAH
-                            </Link>
-                        </div>
-                    </div>
-                </div>
+                {/* Header (Refactored) */}
+                <PageHeader 
+                    title="Data Penduduk"
+                    subtitle="Kelola data warga Desa Cibatu"
+                    icon={Users}
+                    actions={[
+                        {
+                            label: 'EXCEL',
+                            icon: FileSpreadsheet,
+                            onClick: handleExport,
+                            loading: isExporting,
+                            variant: 'ghost'
+                        },
+                        {
+                            label: 'TAMBAH',
+                            icon: Plus,
+                            href: route('penduduk.create'),
+                            variant: 'white'
+                        }
+                    ]}
+                />
 
                 {/* Statistics */}
                 <Deferred data="stats" fallback={<SkeletonStats />}>
@@ -163,19 +129,16 @@ export default function Index({ auth, penduduks, stats, rtList, rwList, dusunLis
                     dusunList={dusunList} 
                 />
 
-                {/* Data Table */}
+                {/* Data Table (Refactored) */}
                 <Deferred data="penduduks" fallback={<SkeletonTable columns={6} rows={10} />}>
-                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                        <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-gray-50 to-white">
-                            <h3 className="text-lg font-black text-gray-900 flex items-center gap-3 uppercase italic tracking-tighter">
-                                <Users className="w-6 h-6 text-green-600" />
-                                Daftar Warga
-                            </h3>
-                            <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-[10px] font-black uppercase tracking-widest">
-                                Total: {penduduks?.total || 0}
-                            </span>
-                        </div>
-
+                    <TableCard
+                        title="Daftar Warga"
+                        icon={Users}
+                        total={penduduks?.total || 0}
+                        totalLabel=""
+                        pagination={penduduks}
+                        noPadding={true}
+                    >
                         {penduduks?.data?.length > 0 ? (
                         <>
                             {/* Desktop Table */}
@@ -202,7 +165,7 @@ export default function Index({ auth, penduduks, stats, rtList, rwList, dusunLis
                                             return (
                                                 <React.Fragment key={p.id}>
                                                     {isNewFamily && index > 0 && (
-                                                        <tr><td colSpan="6"><div className="h-2 bg-gray-50/50"></div></td></tr>
+                                                        <tr><td colSpan="7"><div className="h-2 bg-gray-50/50"></div></td></tr>
                                                     )}
                                                     <tr className={`hover:bg-blue-50/30 transition-colors ${isNewFamily ? 'bg-green-50/20' : ''} ${isKepala ? 'bg-blue-50/20' : ''}`}>
                                                         <td className="px-6 py-4">
@@ -212,9 +175,11 @@ export default function Index({ auth, penduduks, stats, rtList, rwList, dusunLis
                                                                 </div>
                                                                 <div>
                                                                     <p className="font-bold text-gray-900 leading-tight">{p.nama}</p>
-                                                                    <span className={`inline-flex items-center px-2 py-0.5 mt-1 rounded text-[10px] font-bold tracking-wider ${style.bg} ${style.text}`}>
-                                                                        {style.icon} {p.kedudukan_keluarga}
-                                                                    </span>
+                                                                    <div className="mt-1">
+                                                                        <Badge color={style.color} icon={style.icon} size="sm">
+                                                                            {p.kedudukan_keluarga}
+                                                                        </Badge>
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         </td>
@@ -233,17 +198,11 @@ export default function Index({ auth, penduduks, stats, rtList, rwList, dusunLis
                                                             <p className="text-xs text-gray-500">RT {p.rt_label}/RW {p.rw_label}</p>
                                                         </td>
                                                         <td className="px-6 py-4">
-                                                            <div className="flex justify-end gap-2">
-                                                                <Link href={route('penduduk.show', p.id)} className="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-colors">
-                                                                    <Eye className="w-4 h-4" />
-                                                                </Link>
-                                                                <Link href={route('penduduk.edit', p.id)} className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 text-gray-600 hover:bg-gray-800 hover:text-white transition-colors">
-                                                                    <Edit className="w-4 h-4" />
-                                                                </Link>
-                                                                <button onClick={() => handleDelete(p.id, p.nama)} className="w-8 h-8 flex items-center justify-center rounded-lg bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition-colors">
-                                                                    <Trash2 className="w-4 h-4" />
-                                                                </button>
-                                                            </div>
+                                                            <ActionButtons 
+                                                                viewHref={route('penduduk.show', p.id)}
+                                                                editHref={route('penduduk.edit', p.id)}
+                                                                onDelete={() => handleDelete(p.id, p.nama)}
+                                                            />
                                                         </td>
                                                     </tr>
                                                 </React.Fragment>
@@ -255,7 +214,10 @@ export default function Index({ auth, penduduks, stats, rtList, rwList, dusunLis
 
                             {/* Mobile List View */}
                             <div className="lg:hidden p-4 space-y-4 bg-gray-50/50">
-                                {penduduks.data.map(p => (
+                                {penduduks.data.map(p => {
+                                    const style = getKedudukanStyle(p.kedudukan_keluarga);
+                                    
+                                    return (
                                     <div key={p.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
                                         <div className="flex items-start gap-4 mb-4">
                                             <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
@@ -264,9 +226,9 @@ export default function Index({ auth, penduduks, stats, rtList, rwList, dusunLis
                                             <div className="flex-1 min-w-0">
                                                 <h4 className="font-black text-gray-900 truncate">{p.nama}</h4>
                                                 <div className="flex items-center gap-2 mt-1">
-                                                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800">
+                                                    <Badge color={style.color} size="sm">
                                                         {p.kedudukan_keluarga}
-                                                    </span>
+                                                    </Badge>
                                                     <span className="text-xs font-medium text-gray-500">{p.usia} thn</span>
                                                 </div>
                                             </div>
@@ -300,32 +262,21 @@ export default function Index({ auth, penduduks, stats, rtList, rwList, dusunLis
                                             </button>
                                         </div>
                                     </div>
-                                ))}
+                                )})}
                             </div>
                         </>
-                    ) : (
-                        <div className="p-12 text-center">
-                            <div className="w-64 h-64 mx-auto mb-4">
-                                <LottieComponent animationData={noDataAnimation} loop={true} />
-                            </div>
-                            <h3 className="text-xl font-black text-gray-900">Belum Ada Data Warga</h3>
-                            <p className="text-sm text-gray-500 mt-2 max-w-xs mx-auto">
-                                Daftar penduduk masih kosong. Silakan tambah data warga baru untuk memulai pengelolaan kependudukan.
-                            </p>
-                            <Link 
-                                href={route('penduduk.create')}
-                                className="inline-flex items-center px-6 py-3 bg-green-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-green-200 hover:bg-green-700 transition-all mt-6"
-                            >
-                                <Plus className="w-4 h-4 mr-2" />
-                                TAMBAH WARGA SEKARANG
-                            </Link>
-                        </div>
-                    )}
-                    
-                    <div className="p-4 border-t border-gray-100 bg-gray-50/50">
-                        <Pagination links={penduduks?.links} from={penduduks?.from} to={penduduks?.to} total={penduduks?.total} />
-                    </div>
-                </div>
+                        ) : (
+                            <EmptyState 
+                                title="Belum Ada Data Warga"
+                                message="Daftar penduduk masih kosong. Silakan tambah data warga baru untuk memulai pengelolaan kependudukan."
+                                action={{
+                                    label: "TAMBAH WARGA SEKARANG",
+                                    href: route('penduduk.create'),
+                                    icon: Plus
+                                }}
+                            />
+                        )}
+                    </TableCard>
                 </Deferred>
             </div>
 

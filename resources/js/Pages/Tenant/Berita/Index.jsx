@@ -3,7 +3,7 @@ import { Head, Link, router, Deferred } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import BeritaStats from '@/Components/Berita/BeritaStats';
 import BeritaFilters from '@/Components/Berita/BeritaFilters';
-import Pagination from '@/Components/Shared/Pagination';
+import { Pagination, PageHeader, EmptyState, TableCard, Badge } from '@/Components/Shared';
 import SkeletonStats from '@/Components/Shared/Skeleton/SkeletonStats';
 import SkeletonTable from '@/Components/Shared/Skeleton/SkeletonTable';
 import { 
@@ -13,10 +13,6 @@ import {
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { cn } from '@/lib/utils';
-import Lottie from 'lottie-react';
-import noDataAnimation from '@/assets/lottie/no-data-animation.json';
-
-const LottieComponent = Lottie?.default || Lottie;
 
 export default function Index({ auth, berita, stats, filters }) {
     const handleDelete = (slug, judul) => {
@@ -57,11 +53,11 @@ export default function Index({ auth, berita, stats, filters }) {
     const getCategoryBadge = (category) => {
         switch(category) {
             case 'pengumuman':
-                return "bg-red-50 text-red-600 border-red-100";
+                return "red";
             case 'agenda':
-                return "bg-blue-50 text-blue-600 border-blue-100";
+                return "blue";
             default:
-                return "bg-green-50 text-green-600 border-green-100";
+                return "emerald";
         }
     };
 
@@ -82,29 +78,14 @@ export default function Index({ auth, berita, stats, filters }) {
 
             <div className="space-y-6 animate-in fade-in duration-700 pb-20 text-left">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-green-600 via-green-700 to-green-800 rounded-3xl shadow-xl p-6 sm:p-8 relative overflow-hidden text-left">
-                    <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl pointer-events-none"></div>
-                    <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 text-left">
-                        <div className="flex items-center space-x-4 text-left">
-                            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-inner shrink-0 text-left">
-                                <Newspaper className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-300" />
-                            </div>
-                            <div className="text-left">
-                                <h1 className="text-xl sm:text-3xl font-black text-white tracking-tight uppercase italic leading-none text-left">Berita & Pengumuman</h1>
-                                <p className="text-green-100 font-bold text-[10px] sm:text-xs uppercase tracking-widest mt-1 opacity-80 italic text-left">Pusat Informasi & Kegiatan Masyarakat Desa</p>
-                            </div>
-                        </div>
-                        <div className="flex flex-wrap gap-2 sm:gap-3 text-left">
-                            <Link 
-                                href={route('berita.create')}
-                                className="flex items-center px-4 py-3 bg-white text-green-700 hover:bg-green-50 rounded-xl text-[10px] sm:text-xs font-black shadow-lg shadow-black/10 transition-all hover:scale-105 uppercase tracking-widest text-left"
-                            >
-                                <Plus className="w-3.5 h-3.5 mr-2" />
-                                TAMBAH BERITA
-                            </Link>
-                        </div>
-                    </div>
-                </div>
+                <PageHeader
+                    icon={Newspaper}
+                    title="Berita & Pengumuman"
+                    subtitle="Pusat Informasi & Kegiatan Masyarakat Desa"
+                    actions={[
+                        { label: 'Tambah Berita', icon: Plus, href: route('berita.create') }
+                    ]}
+                />
 
                 {/* Stats */}
                 <Deferred data="stats" fallback={<SkeletonStats />}>
@@ -116,17 +97,14 @@ export default function Index({ auth, berita, stats, filters }) {
 
                 {/* Data Grid / Table */}
                 <Deferred data="berita" fallback={<SkeletonTable columns={5} rows={6} />}>
-                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden text-left">
-                        <div className="p-6 border-b border-gray-50 flex items-center justify-between bg-gradient-to-r from-gray-50/50 to-white text-left">
-                            <h3 className="text-xl font-black text-gray-900 flex items-center gap-4 uppercase italic tracking-tighter text-left">
-                                <Newspaper className="w-7 h-7 text-green-600" />
-                                Arsip Informasi Desa
-                            </h3>
-                            <span className="px-5 py-2 bg-green-100 text-green-700 rounded-full text-[10px] font-black uppercase tracking-widest italic text-left">
-                                Total: {berita?.total || 0}
-                            </span>
-                        </div>
-
+                    <TableCard
+                        icon={Newspaper}
+                        title="Arsip Informasi Desa"
+                        total={berita?.total || 0}
+                        totalLabel="Konten"
+                        pagination={berita}
+                        noPadding
+                    >
                         {berita?.data?.length > 0 ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-0 divide-y md:divide-y-0 md:divide-x divide-gray-50 text-left">
                                 {berita.data.map((item) => {
@@ -134,13 +112,10 @@ export default function Index({ auth, berita, stats, filters }) {
                                     return (
                                         <div key={item.id} className="p-8 hover:bg-green-50/20 transition-all group flex flex-col h-full text-left">
                                             <div className="flex items-start justify-between mb-6 text-left">
-                                                <div className={cn(
-                                                    "px-4 py-1.5 rounded-full border text-[9px] font-black uppercase tracking-[0.2em] flex items-center gap-2",
-                                                    getCategoryBadge(item.kategori)
-                                                )}>
+                                                <Badge color={getCategoryBadge(item.kategori)} className="flex items-center gap-1.5">
                                                     <CategoryIcon className="w-3 h-3" />
                                                     {item.kategori}
-                                                </div>
+                                                </Badge>
                                                 <div className={cn(
                                                     "w-2.5 h-2.5 rounded-full shadow-sm animate-pulse",
                                                     item.status === 'published' ? "bg-green-500 shadow-green-200" : "bg-yellow-400 shadow-yellow-100"
@@ -198,28 +173,18 @@ export default function Index({ auth, berita, stats, filters }) {
                                 })}
                             </div>
                         ) : (
-                            <div className="p-20 text-center flex flex-col items-center justify-center">
-                                <div className="w-72 h-72 mx-auto mb-6">
-                                    <LottieComponent animationData={noDataAnimation} loop={true} />
-                                </div>
-                                <h3 className="text-2xl font-black text-gray-900 uppercase italic tracking-tighter text-center">Belum Ada Informasi</h3>
-                                <p className="text-sm text-gray-500 mt-3 max-w-sm mx-auto font-bold uppercase tracking-widest text-[10px] text-center">
-                                    Pusat berita masih kosong. Mulai publikasikan informasi penting untuk masyarakat desa.
-                                </p>
-                                <Link 
-                                    href={route('berita.create')}
-                                    className="inline-flex items-center px-10 py-5 bg-green-600 text-white rounded-[2rem] text-xs font-black shadow-2xl shadow-green-200 hover:bg-green-700 transition-all mt-8 uppercase tracking-widest"
-                                >
-                                    <Plus className="w-5 h-5 mr-3" />
-                                    TERBITKAN BERITA PERTAMA
-                                </Link>
-                            </div>
+                            <EmptyState
+                                icon={Newspaper}
+                                title="Belum Ada Informasi"
+                                message="Pusat berita masih kosong. Mulai publikasikan informasi penting untuk masyarakat desa."
+                                action={{
+                                    label: "TERBITKAN BERITA PERTAMA",
+                                    href: route('berita.create'),
+                                    icon: Plus
+                                }}
+                            />
                         )}
-
-                        <div className="p-6 border-t border-gray-50 bg-gray-50/30 text-left">
-                            <Pagination links={berita?.links} from={berita?.from} to={berita?.to} total={berita?.total} />
-                        </div>
-                    </div>
+                    </TableCard>
                 </Deferred>
             </div>
         </AuthenticatedLayout>

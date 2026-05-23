@@ -148,6 +148,32 @@ class SuratTypeSeeder extends Seeder
                     ['name' => 'penghasilan_ortu', 'label' => 'Penghasilan Orang Tua', 'type' => 'number'],
                     ['name' => 'jumlah_tanggungan', 'label' => 'Jumlah Tanggungan', 'type' => 'number'],
                 ]
+            ],
+            [
+                'id' => 'berita-acara-penghapusan-aset',
+                'kode' => 'BAPA',
+                'nama' => 'Berita Acara Penghapusan Aset',
+                'deskripsi' => 'Dokumen berita acara atas penghapusan/pengurangan aset desa',
+                'template_code' => 'berita-acara-penghapusan-aset',
+                'icon' => 'fas fa-file-signature',
+                'color' => 'red',
+                'has_template' => true,
+                'is_active' => true,
+                'persyaratan' => "1. Data Aset yang diusulkan dihapus\n2. Alasan Penghapusan (Rusak/Hilang/Dicuri/Dihibahkan)\n3. Dokumen pendukung atau bukti fisik",
+                'form_json' => []
+            ],
+            [
+                'id' => 'sk-penghapusan-aset',
+                'kode' => 'SKPA',
+                'nama' => 'Surat Keputusan (SK) Penghapusan Aset',
+                'deskripsi' => 'Surat Keputusan Kepala Desa tentang penghapusan aset desa',
+                'template_code' => 'sk-penghapusan-aset',
+                'icon' => 'fas fa-gavel',
+                'color' => 'red',
+                'has_template' => true,
+                'is_active' => true,
+                'persyaratan' => "1. Berita Acara Penghapusan Aset\n2. Dokumen Aset",
+                'form_json' => []
             ]
         ];
 

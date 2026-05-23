@@ -12,6 +12,7 @@ import {
     CheckCircle2, Clock, AlertCircle, XCircle, FileText
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { PageHeader } from '@/Components/Shared';
 
 const formatRupiah = (v) => {
     if (!v && v !== 0) return 'Rp 0';
@@ -51,44 +52,41 @@ export default function Dashboard({ auth, tahun, tahunList = [], stats, apbdesBy
             <div className="space-y-6 animate-in fade-in duration-700 pb-20">
 
                 {/* ── Header ──────────────────────────────── */}
-                <div className="bg-gradient-to-r from-green-600 via-green-700 to-green-800 rounded-3xl shadow-xl p-6 sm:p-8 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl pointer-events-none" />
-                    <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                        <div className="flex items-center space-x-4">
-                            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-inner shrink-0">
-                                <TrendingUp className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-300" />
-                            </div>
-                            <div>
-                                <h1 className="text-xl sm:text-3xl font-black text-white tracking-tight uppercase italic leading-none">Keuangan Desa</h1>
-                                <p className="text-green-100 font-bold text-[10px] sm:text-xs uppercase tracking-widest mt-1 opacity-80 italic">Transparansi APBDes & Realisasi Proyek</p>
-                            </div>
-                        </div>
-                        <div className="flex flex-wrap gap-2 sm:gap-3">
-                            {/* Year filter */}
-                            <select
-                                value={tahun}
-                                onChange={handleTahunChange}
-                                className="px-4 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-black uppercase tracking-widest backdrop-blur-md border border-white/10 shadow-lg focus:outline-none focus:ring-2 focus:ring-white/30 appearance-none cursor-pointer"
-                            >
-                                {(tahunList.length ? tahunList : [new Date().getFullYear()]).map((t) => (
-                                    <option key={t} value={t} className="text-gray-900 bg-white">{t}</option>
-                                ))}
-                            </select>
-                            <Link href={route('transparansi-desa.apbdes')} className="flex items-center px-4 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl text-[10px] sm:text-xs font-black transition-all hover:scale-105 uppercase tracking-widest backdrop-blur-md border border-white/10 shadow-lg">
-                                <BarChart3 className="w-3.5 h-3.5 mr-2" />
-                                APBDes
-                            </Link>
-                            <Link href={route('transparansi-desa.proyek')} className="flex items-center px-4 py-3 bg-white text-green-700 hover:bg-green-50 rounded-xl text-[10px] sm:text-xs font-black shadow-lg shadow-black/10 transition-all hover:scale-105 uppercase tracking-widest">
-                                <Building2 className="w-3.5 h-3.5 mr-2" />
-                                Proyek
-                            </Link>
-                            <Link href={route('laporan-keuangan.index')} className="flex items-center px-4 py-3 bg-yellow-300 text-yellow-900 hover:bg-yellow-200 rounded-xl text-[10px] sm:text-xs font-black shadow-lg shadow-black/10 transition-all hover:scale-105 uppercase tracking-widest">
-                                <FileText className="w-3.5 h-3.5 mr-2" />
-                                Laporan
-                            </Link>
-                        </div>
-                    </div>
-                </div>
+                <PageHeader 
+                    title="Keuangan Desa"
+                    subtitle="Transparansi APBDes & Realisasi Proyek"
+                    icon={TrendingUp}
+                    actions={[
+                        {
+                            label: 'APBDes',
+                            icon: BarChart3,
+                            href: route('transparansi-desa.apbdes'),
+                            variant: 'ghost'
+                        },
+                        {
+                            label: 'Proyek',
+                            icon: Building2,
+                            href: route('transparansi-desa.proyek'),
+                            variant: 'white'
+                        },
+                        {
+                            label: 'Laporan',
+                            icon: FileText,
+                            href: route('laporan-keuangan.index'),
+                            variant: 'white'
+                        }
+                    ]}
+                >
+                    <select
+                        value={tahun}
+                        onChange={handleTahunChange}
+                        className="px-4 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-black uppercase tracking-widest backdrop-blur-md border border-white/10 shadow-lg focus:outline-none focus:ring-2 focus:ring-white/30 appearance-none cursor-pointer"
+                    >
+                        {(tahunList.length ? tahunList : [new Date().getFullYear()]).map((t) => (
+                            <option key={t} value={t} className="text-gray-900 bg-white">{t}</option>
+                        ))}
+                    </select>
+                </PageHeader>
 
                 {/* ── Stats Cards ─────────────────────────── */}
                 <Deferred data="stats" fallback={<SkeletonStats />}>

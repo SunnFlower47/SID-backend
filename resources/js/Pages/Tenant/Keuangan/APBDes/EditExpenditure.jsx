@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { ArrowLeft, Save, Edit2, Upload, X, Download, Eye, Trash2 } from 'lucide-react';
+import { ArrowLeft, Save, Edit2, Upload, X, Download, Eye, Trash2, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { PageHeader, FormField, FormCard } from '@/Components/Shared';
 
 const formatRupiah = (v) => `Rp ${Number(v || 0).toLocaleString('id-ID')}`;
 
@@ -66,26 +67,19 @@ export default function EditExpenditure({ auth, pengeluaran, jenisBuktiOptions =
 
             <div className="space-y-6 animate-in fade-in duration-700 pb-20">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-green-600 via-green-700 to-green-800 rounded-3xl shadow-xl p-6 sm:p-8 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl pointer-events-none" />
-                    <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                        <div className="flex items-center space-x-4">
-                            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-inner shrink-0">
-                                <Edit2 className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-300" />
-                            </div>
-                            <div>
-                                <h1 className="text-xl sm:text-3xl font-black text-white tracking-tight uppercase italic leading-none line-clamp-1">{pengeluaran.nama_pengeluaran}</h1>
-                                <p className="text-green-100 font-bold text-[10px] sm:text-xs uppercase tracking-widest mt-1 opacity-80 italic">
-                                    Edit Pengeluaran · {pengeluaran.no_bukti ?? 'Tanpa No. Bukti'} · {apbdes?.kode_rekening}
-                                </p>
-                            </div>
-                        </div>
-                        <Link href={route('anggaran.histori-pengeluaran', apbdes?.id)}
-                            className="flex items-center px-4 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl text-[10px] sm:text-xs font-black transition-all uppercase tracking-widest backdrop-blur-md border border-white/10">
-                            <ArrowLeft className="w-3.5 h-3.5 mr-2" /> KEMBALI
-                        </Link>
-                    </div>
-                </div>
+                <PageHeader
+                    title={pengeluaran.nama_pengeluaran}
+                    subtitle={`Edit Pengeluaran · ${pengeluaran.no_bukti ?? 'Tanpa No. Bukti'} · ${apbdes?.kode_rekening}`}
+                    icon={Edit2}
+                    actions={[
+                        {
+                            label: 'KEMBALI',
+                            icon: ArrowLeft,
+                            href: route('anggaran.histori-pengeluaran', apbdes?.id),
+                            variant: 'ghost'
+                        }
+                    ]}
+                />
 
                 <form onSubmit={handleSubmit} encType="multipart/form-data">
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -93,49 +87,65 @@ export default function EditExpenditure({ auth, pengeluaran, jenisBuktiOptions =
                         {/* Main Form */}
                         <div className="lg:col-span-2 space-y-6">
                             {/* Seksi 1: Informasi Pengeluaran */}
-                            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-8 space-y-5">
-                                <h3 className="text-xs font-black text-gray-900 uppercase italic tracking-tighter border-b border-gray-100 pb-3">Informasi Pengeluaran</h3>
+                            <FormCard title="Informasi Pengeluaran" icon={FileText} bodyClass="p-6 sm:p-8 space-y-5">
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                                    <InputField label="Nama Pengeluaran *" error={errors.nama_pengeluaran}>
-                                        <input type="text" value={data.nama_pengeluaran} onChange={e => setData('nama_pengeluaran', e.target.value)}
-                                            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-green-500" />
-                                    </InputField>
-                                    <InputField label="Tanggal *" error={errors.tanggal_pengeluaran}>
-                                        <input type="date" value={data.tanggal_pengeluaran} onChange={e => setData('tanggal_pengeluaran', e.target.value)}
-                                            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-green-500" />
-                                    </InputField>
+                                    <FormField.Input 
+                                        label="Nama Pengeluaran *" 
+                                        error={errors.nama_pengeluaran}
+                                        value={data.nama_pengeluaran} 
+                                        onChange={e => setData('nama_pengeluaran', e.target.value)}
+                                    />
+                                    
+                                    <FormField.Input 
+                                        label="Tanggal *" 
+                                        error={errors.tanggal_pengeluaran}
+                                        type="date" 
+                                        value={data.tanggal_pengeluaran} 
+                                        onChange={e => setData('tanggal_pengeluaran', e.target.value)}
+                                    />
                                 </div>
 
-                                <InputField label={`Jumlah (Rp)${sisaAnggaran !== null ? ` — Maks: ${formatRupiah(sisaAnggaran)}` : ''}`} error={errors.jumlah}>
-                                    <input type="number" value={data.jumlah} onChange={e => setData('jumlah', e.target.value)}
-                                        max={sisaAnggaran ?? undefined} min="0"
-                                        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-green-500" />
-                                </InputField>
+                                <FormField.Input 
+                                    label={`Jumlah (Rp)${sisaAnggaran !== null ? ` — Maks: ${formatRupiah(sisaAnggaran)}` : ''}`} 
+                                    error={errors.jumlah}
+                                    type="number" 
+                                    value={data.jumlah} 
+                                    onChange={e => setData('jumlah', e.target.value)}
+                                    max={sisaAnggaran ?? undefined} 
+                                    min="0"
+                                />
 
-                                <InputField label="Keterangan (Opsional)" error={errors.keterangan}>
-                                    <textarea value={data.keterangan} onChange={e => setData('keterangan', e.target.value)}
-                                        rows={2} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-green-500 resize-none" />
-                                </InputField>
-                            </div>
+                                <FormField.Textarea 
+                                    label="Keterangan (Opsional)" 
+                                    error={errors.keterangan}
+                                    value={data.keterangan} 
+                                    onChange={e => setData('keterangan', e.target.value)}
+                                    rows={2} 
+                                />
+                            </FormCard>
 
                             {/* Seksi 2: Dokumen Bukti */}
-                            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-8 space-y-5">
-                                <h3 className="text-xs font-black text-gray-900 uppercase italic tracking-tighter border-b border-gray-100 pb-3 flex items-center gap-2">
-                                    <Upload className="w-4 h-4 text-green-600" /> Dokumen Bukti Pembayaran
-                                </h3>
-
+                            <FormCard title="Dokumen Bukti Pembayaran" icon={Upload} bodyClass="p-6 sm:p-8 space-y-5">
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                                    <InputField label="No. Bukti" error={errors.no_bukti} hint="Kosongkan untuk tidak mengubah">
-                                        <input type="text" value={data.no_bukti} onChange={e => setData('no_bukti', e.target.value)}
+                                    <div className="space-y-1.5">
+                                        <FormField.Input 
+                                            label="No. Bukti" 
+                                            error={errors.no_bukti}
+                                            value={data.no_bukti} 
+                                            onChange={e => setData('no_bukti', e.target.value)}
                                             placeholder={pengeluaran.no_bukti ?? 'BKT-YYYY-XXXX'}
-                                            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-green-500 font-mono" />
-                                    </InputField>
-                                    <InputField label="Jenis Bukti" error={errors.jenis_bukti}>
-                                        <select value={data.jenis_bukti} onChange={e => setData('jenis_bukti', e.target.value)}
-                                            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-green-500 appearance-none">
-                                            {Object.entries(jenisBuktiOptions).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-                                        </select>
-                                    </InputField>
+                                            inputClassName="font-mono"
+                                        />
+                                        {!errors.no_bukti && <p className="text-[9px] font-bold text-gray-400 ml-1">Kosongkan untuk tidak mengubah</p>}
+                                    </div>
+                                    
+                                    <FormField.Select 
+                                        label="Jenis Bukti" 
+                                        error={errors.jenis_bukti}
+                                        value={data.jenis_bukti} 
+                                        onChange={e => setData('jenis_bukti', e.target.value)}
+                                        options={Object.entries(jenisBuktiOptions).map(([v, l]) => ({ value: v, label: l }))}
+                                    />
                                 </div>
 
                                 {/* File saat ini */}
@@ -172,12 +182,12 @@ export default function EditExpenditure({ auth, pengeluaran, jenisBuktiOptions =
                                     </div>
                                 )}
 
-                                <InputField label={pengeluaran.file_bukti_url ? 'Ganti File (PDF/JPG, maks 5MB)' : 'Upload Bukti (PDF/JPG, maks 5MB)'} error={errors.file_bukti}>
+                                <FormField label={pengeluaran.file_bukti_url ? 'Ganti File (PDF/JPG, maks 5MB)' : 'Upload Bukti (PDF/JPG, maks 5MB)'} error={errors.file_bukti}>
                                     <input type="file" accept=".pdf,.jpg,.jpeg,.png"
                                         onChange={e => { setData('file_bukti', e.target.files[0]); setData('hapus_file', false); }}
-                                        className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-xs font-bold focus:ring-2 focus:ring-green-500 file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-[9px] file:font-black file:uppercase file:tracking-widest file:bg-green-50 file:text-green-700 hover:file:bg-green-100 cursor-pointer" />
-                                </InputField>
-                            </div>
+                                        className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-xs font-bold focus:ring-2 focus:ring-green-500 file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-[9px] file:font-black file:uppercase file:tracking-widest file:bg-green-50 file:text-green-700 hover:file:bg-green-100 cursor-pointer" />
+                                </FormField>
+                            </FormCard>
                         </div>
 
                         {/* Sidebar */}

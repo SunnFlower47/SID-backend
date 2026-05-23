@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { PageHeader } from '@/Components/Shared';
 import AnggaranProgressBar from '@/Components/Keuangan/AnggaranProgressBar';
-import { Building2, ArrowLeft, Save, Info, AlertTriangle, Calendar } from 'lucide-react';
+import { Building2, Save, Info, AlertTriangle, Calendar } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Swal from 'sweetalert2';
 
@@ -58,23 +59,13 @@ export default function Create({ auth, tahunList = [], currentYear, apbdesList =
 
             <div className="space-y-6 animate-in fade-in duration-700 pb-20">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-green-600 via-green-700 to-green-800 rounded-3xl shadow-xl p-6 sm:p-8 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl pointer-events-none" />
-                    <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                        <div className="flex items-center space-x-4">
-                            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-inner shrink-0">
-                                <Building2 className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-300" />
-                            </div>
-                            <div>
-                                <h1 className="text-xl sm:text-3xl font-black text-white tracking-tight uppercase italic leading-none">Tambah Proyek Desa</h1>
-                                <p className="text-green-100 font-bold text-[10px] sm:text-xs uppercase tracking-widest mt-1 opacity-80 italic">Daftarkan Proyek Pembangunan Baru</p>
-                            </div>
-                        </div>
-                        <Link href={route('transparansi-desa.proyek')} className="flex items-center px-4 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl text-[10px] sm:text-xs font-black transition-all uppercase tracking-widest backdrop-blur-md border border-white/10">
-                            <ArrowLeft className="w-3.5 h-3.5 mr-2" /> KEMBALI
-                        </Link>
-                    </div>
-                </div>
+                <PageHeader
+                    title="Tambah Proyek Desa"
+                    subtitle="Daftarkan Proyek Pembangunan Baru"
+                    icon={Building2}
+                    backHref={route('transparansi-desa.proyek')}
+                    titleSize="lg"
+                />
 
                 {apbdesList.length === 0 && (
                     <div className="bg-yellow-50 border border-yellow-100 rounded-2xl p-5 flex items-start gap-3">

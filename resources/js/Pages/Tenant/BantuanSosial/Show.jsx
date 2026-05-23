@@ -4,28 +4,22 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { HandHeart, Edit, Trash2, Users, ArrowLeft, Calendar, DollarSign, Building2, CheckCircle, Clock, XCircle } from 'lucide-react';
 import Swal from 'sweetalert2';
 
+// Shared Components
+import { PageHeader, Badge, InfoRow } from '@/Components/Shared';
+
 // ── Helpers ────────────────────────────────────────────────────
 const STATUS_CONFIG = {
-    aktif:        { label: 'Aktif',        cls: 'bg-green-100 text-green-800', icon: CheckCircle },
-    selesai:      { label: 'Selesai',      cls: 'bg-gray-100 text-gray-700',   icon: Clock },
-    ditangguhkan: { label: 'Ditangguhkan', cls: 'bg-yellow-100 text-yellow-800', icon: XCircle },
+    aktif:        { label: 'Aktif',        color: 'green',  icon: CheckCircle },
+    selesai:      { label: 'Selesai',      color: 'gray',   icon: Clock },
+    ditangguhkan: { label: 'Ditangguhkan', color: 'yellow', icon: XCircle },
 };
 
 const JENIS_CONFIG = {
-    BLT:           'bg-blue-100 text-blue-800',
-    PKH:           'bg-purple-100 text-purple-800',
-    BPNT:          'bg-teal-100 text-teal-800',
-    'Bansos Lainnya': 'bg-orange-100 text-orange-800',
+    BLT:           'blue',
+    PKH:           'purple',
+    BPNT:          'teal',
+    'Bansos Lainnya': 'orange',
 };
-
-function InfoRow({ label, value, highlight }) {
-    return (
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between py-3 border-b border-gray-50 last:border-b-0">
-            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 sm:mb-0">{label}</span>
-            <span className={`text-sm font-bold ${highlight ?? 'text-gray-900'}`}>{value ?? '—'}</span>
-        </div>
-    );
-}
 
 // ────────────────────────────────────────────────────────────────
 export default function Show({ auth, bantuanSosial }) {
@@ -67,47 +61,26 @@ export default function Show({ auth, bantuanSosial }) {
             <div className="space-y-5 animate-in fade-in duration-700 pb-20">
 
                 {/* ── Header ── */}
-                <div className="bg-gradient-to-r from-green-600 via-green-700 to-green-800 rounded-3xl shadow-xl p-6 sm:p-8 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl pointer-events-none" />
-                    <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-                        <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-inner shrink-0">
-                                <HandHeart className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-300" />
-                            </div>
-                            <div>
-                                <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight uppercase italic leading-none">
-                                    {bantuanSosial.nama_program}
-                                </h1>
-                                <p className="text-green-100 font-bold text-[10px] sm:text-xs uppercase tracking-widest mt-1 opacity-80">
-                                    Detail Program Bantuan Sosial
-                                </p>
-                            </div>
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                            <Link
-                                href={route('bantuan-sosial.index')}
-                                className="flex items-center px-4 py-2.5 bg-white/20 hover:bg-white/30 backdrop-blur-md border border-white/20 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
-                            >
-                                <ArrowLeft className="w-3.5 h-3.5 mr-2" />
-                                KEMBALI
-                            </Link>
-                            <Link
-                                href={route('bantuan-sosial.edit', bantuanSosial.id)}
-                                className="flex items-center px-4 py-2.5 bg-white/20 hover:bg-white/30 backdrop-blur-md border border-white/20 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
-                            >
-                                <Edit className="w-3.5 h-3.5 mr-2" />
-                                EDIT
-                            </Link>
-                            <button
-                                onClick={handleDelete}
-                                className="flex items-center px-4 py-2.5 bg-red-500/30 hover:bg-red-500/50 backdrop-blur-md border border-red-400/30 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
-                            >
-                                <Trash2 className="w-3.5 h-3.5 mr-2" />
-                                HAPUS
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <PageHeader 
+                    title={bantuanSosial.nama_program}
+                    subtitle="Detail Program Bantuan Sosial"
+                    icon={HandHeart}
+                    backHref={route('bantuan-sosial.index')}
+                    actions={[
+                        {
+                            label: 'EDIT',
+                            icon: Edit,
+                            href: route('bantuan-sosial.edit', bantuanSosial.id),
+                            variant: 'white'
+                        },
+                        {
+                            label: 'HAPUS',
+                            icon: Trash2,
+                            onClick: handleDelete,
+                            variant: 'danger'
+                        }
+                    ]}
+                />
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
                     {/* ── Left: Detail Info ── */}
@@ -118,45 +91,53 @@ export default function Show({ auth, bantuanSosial }) {
                                 <h3 className="text-sm font-black text-gray-900 uppercase italic tracking-tighter">Informasi Program</h3>
                             </div>
                             <div className="p-6">
-                                <div className="mb-4 flex flex-wrap gap-2">
-                                    <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${JENIS_CONFIG[bantuanSosial.jenis_bantuan] ?? 'bg-gray-100 text-gray-700'}`}>
+                                <div className="mb-6 flex flex-wrap gap-2">
+                                    <Badge color={JENIS_CONFIG[bantuanSosial.jenis_bantuan] ?? 'gray'}>
                                         {bantuanSosial.jenis_bantuan}
-                                    </span>
-                                    <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${statusCfg.cls}`}>
-                                        <StatusIcon className="w-3 h-3" />
+                                    </Badge>
+                                    <Badge color={statusCfg.color} icon={StatusIcon}>
                                         {statusCfg.label}
-                                    </span>
+                                    </Badge>
                                 </div>
 
-                                <p className="text-sm text-gray-600 leading-relaxed mb-5">{bantuanSosial.deskripsi}</p>
+                                <p className="text-sm text-gray-600 leading-relaxed mb-6 italic">{bantuanSosial.deskripsi}</p>
 
-                                <InfoRow label="Periode" value={bantuanSosial.periode} />
-                                <InfoRow label="Sumber Dana" value={bantuanSosial.sumber_dana} />
-                                <InfoRow
-                                    label="Tanggal Mulai"
-                                    value={bantuanSosial.tanggal_mulai
-                                        ? new Date(bantuanSosial.tanggal_mulai).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
-                                        : null}
-                                />
-                                <InfoRow
-                                    label="Tanggal Selesai"
-                                    value={bantuanSosial.tanggal_selesai
-                                        ? new Date(bantuanSosial.tanggal_selesai).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
-                                        : null}
-                                />
-                                <InfoRow
-                                    label="Nilai Bantuan"
-                                    value={bantuanSosial.nilai_bantuan
-                                        ? `Rp ${Number(bantuanSosial.nilai_bantuan).toLocaleString('id-ID')}`
-                                        : null}
-                                    highlight="text-green-700"
-                                />
-                                <InfoRow
-                                    label="Kuota Penerima"
-                                    value={bantuanSosial.kuota_penerima
-                                        ? `${Number(bantuanSosial.kuota_penerima).toLocaleString('id-ID')} orang`
-                                        : 'Tidak terbatas'}
-                                />
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <InfoRow label="Periode" value={bantuanSosial.periode} icon={Calendar} color="blue" />
+                                    <InfoRow label="Sumber Dana" value={bantuanSosial.sumber_dana} icon={Building2} color="purple" />
+                                    <InfoRow
+                                        label="Tanggal Mulai"
+                                        value={bantuanSosial.tanggal_mulai
+                                            ? new Date(bantuanSosial.tanggal_mulai).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
+                                            : null}
+                                        icon={Calendar} 
+                                        color="blue"
+                                    />
+                                    <InfoRow
+                                        label="Tanggal Selesai"
+                                        value={bantuanSosial.tanggal_selesai
+                                            ? new Date(bantuanSosial.tanggal_selesai).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
+                                            : null}
+                                        icon={Calendar} 
+                                        color="red"
+                                    />
+                                    <InfoRow
+                                        label="Nilai Bantuan"
+                                        value={bantuanSosial.nilai_bantuan
+                                            ? `Rp ${Number(bantuanSosial.nilai_bantuan).toLocaleString('id-ID')}`
+                                            : null}
+                                        icon={DollarSign} 
+                                        color="green"
+                                    />
+                                    <InfoRow
+                                        label="Kuota Penerima"
+                                        value={bantuanSosial.kuota_penerima
+                                            ? `${Number(bantuanSosial.kuota_penerima).toLocaleString('id-ID')} orang`
+                                            : 'Tidak terbatas'}
+                                        icon={Users} 
+                                        color="orange"
+                                    />
+                                </div>
                             </div>
                         </div>
 
@@ -167,13 +148,13 @@ export default function Show({ auth, bantuanSosial }) {
                                     <h3 className="text-sm font-black text-gray-900 uppercase italic tracking-tighter">Kriteria Penerima</h3>
                                 </div>
                                 <div className="p-6">
-                                    <ul className="space-y-2">
+                                    <ul className="space-y-3">
                                         {kriteria.map((k, i) => (
-                                            <li key={i} className="flex items-start gap-3 text-sm text-gray-700">
-                                                <span className="w-5 h-5 bg-green-100 text-green-700 rounded-full flex items-center justify-center text-[10px] font-black shrink-0 mt-0.5">
+                                            <li key={i} className="flex items-start gap-4 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                                                <span className="w-6 h-6 bg-green-100 text-green-700 rounded-lg flex items-center justify-center text-xs font-black shrink-0 mt-0.5 shadow-sm border border-green-200">
                                                     {i + 1}
                                                 </span>
-                                                {k}
+                                                <span className="text-sm text-gray-700 italic">{k}</span>
                                             </li>
                                         ))}
                                     </ul>
@@ -190,21 +171,21 @@ export default function Show({ auth, bantuanSosial }) {
                                 <h3 className="text-sm font-black text-gray-900 uppercase italic tracking-tighter">Statistik Penerima</h3>
                             </div>
                             <div className="p-6 text-center">
-                                <div className="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                                <div className="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-inner border border-purple-200">
                                     <Users className="w-8 h-8 text-purple-600" />
                                 </div>
-                                <p className="text-4xl font-black text-gray-900">{bantuanSosial.penerima_count ?? 0}</p>
+                                <p className="text-4xl font-black text-gray-900 italic tracking-tighter">{bantuanSosial.penerima_count ?? 0}</p>
                                 <p className="text-xs font-black text-gray-400 uppercase tracking-widest mt-1">Total Penerima</p>
                                 {bantuanSosial.kuota_penerima && (
-                                    <div className="mt-4">
-                                        <div className="w-full bg-gray-100 rounded-full h-2">
+                                    <div className="mt-6 p-4 bg-gray-50 rounded-xl border border-gray-100">
+                                        <div className="w-full bg-gray-200 rounded-full h-2 mb-2 overflow-hidden shadow-inner">
                                             <div
-                                                className="bg-green-500 h-2 rounded-full transition-all"
+                                                className="bg-green-500 h-2 rounded-full transition-all duration-1000"
                                                 style={{ width: `${Math.min((bantuanSosial.penerima_count / bantuanSosial.kuota_penerima) * 100, 100)}%` }}
                                             />
                                         </div>
-                                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-1.5">
-                                            {bantuanSosial.penerima_count} / {bantuanSosial.kuota_penerima} kuota
+                                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">
+                                            {bantuanSosial.penerima_count} / {bantuanSosial.kuota_penerima} kuota terisi
                                         </p>
                                     </div>
                                 )}
@@ -214,14 +195,14 @@ export default function Show({ auth, bantuanSosial }) {
                         {/* CTA Kelola Penerima */}
                         <Link
                             href={route('bantuan-sosial.penerima.index', bantuanSosial.id)}
-                            className="flex flex-col items-center justify-center gap-3 p-6 bg-gradient-to-br from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white rounded-2xl shadow-lg shadow-green-200 transition-all hover:scale-[1.02] text-center"
+                            className="flex flex-col items-center justify-center gap-3 p-6 bg-gradient-to-br from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white rounded-2xl shadow-xl shadow-green-200 transition-all hover:scale-[1.02] text-center border border-green-500"
                         >
-                            <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                            <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm border border-white/30 shadow-inner">
                                 <Users className="w-6 h-6 text-white" />
                             </div>
                             <div>
-                                <p className="font-black text-sm uppercase tracking-widest">KELOLA PENERIMA</p>
-                                <p className="text-green-100 text-[10px] font-bold uppercase tracking-wider mt-0.5">Tambah &amp; kelola data penerima</p>
+                                <p className="font-black text-sm uppercase tracking-widest italic">KELOLA PENERIMA</p>
+                                <p className="text-green-100 text-[10px] font-bold uppercase tracking-wider mt-1 opacity-90">Tambah &amp; kelola data penerima</p>
                             </div>
                         </Link>
                     </div>

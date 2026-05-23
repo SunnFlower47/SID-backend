@@ -1,58 +1,26 @@
 import React from 'react';
 import { Users, User, UserCheck, Home } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { StatCard } from '@/Components/Shared';
 
 export default function ResidentStats({ stats }) {
     const statCards = [
-        { title: 'Total Penduduk', value: stats.total, icon: Users, color: 'blue' },
-        { title: 'Laki-Laki', value: stats.laki_laki, icon: User, color: 'cyan' },
-        { title: 'Perempuan', value: stats.perempuan, icon: UserCheck, color: 'pink' },
-        { title: 'Total KK', value: stats.total_kk, icon: Home, color: 'green' }
+        { label: 'Total Penduduk', value: stats.total, icon: Users, color: 'blue' },
+        { label: 'Laki-Laki', value: stats.laki_laki, icon: User, color: 'teal' },
+        { label: 'Perempuan', value: stats.perempuan, icon: UserCheck, color: 'rose' },
+        { label: 'Total KK', value: stats.total_kk, icon: Home, color: 'green' }
     ];
-
-    const colorClasses = {
-        blue: 'border-blue-100 bg-blue-50 text-blue-600 shadow-blue-100/50',
-        cyan: 'border-cyan-100 bg-cyan-50 text-cyan-600 shadow-cyan-100/50',
-        pink: 'border-pink-100 bg-pink-50 text-pink-600 shadow-pink-100/50',
-        green: 'border-green-100 bg-green-50 text-green-600 shadow-green-100/50',
-    };
 
     return (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-            {statCards.map((stat, index) => {
-                const Icon = stat.icon;
-                const colors = colorClasses[stat.color] || colorClasses.blue;
-
-                return (
-                    <div
-                        key={index}
-                        className={cn(
-                            "bg-white rounded-2xl p-3 sm:p-4 border shadow-sm hover:shadow-md transition-all flex items-center gap-3 sm:gap-4",
-                            colors.split(' ')[0], // border class
-                            colors.split(' ')[3]  // shadow class
-                        )}
-                    >
-                        <div className={cn(
-                            "w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0",
-                            colors.split(' ')[1], // bg class
-                            colors.split(' ')[2]  // text class
-                        )}>
-                            <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
-                        </div>
-                        <div className="min-w-0">
-                            <p className="text-[10px] sm:text-xs font-black text-gray-400 uppercase tracking-widest truncate leading-none mb-1">
-                                {stat.title === 'Total Penduduk' ? (
-                                    <>
-                                        <span className="hidden sm:inline">Total Penduduk</span>
-                                        <span className="inline sm:hidden">Warga</span>
-                                    </>
-                                ) : stat.title}
-                            </p>
-                            <h3 className="text-xl sm:text-2xl font-black text-gray-900 leading-none">{stat.value?.toLocaleString('id-ID')}</h3>
-                        </div>
-                    </div>
-                );
-            })}
+            {statCards.map((stat, index) => (
+                <StatCard 
+                    key={index}
+                    icon={stat.icon}
+                    label={stat.label}
+                    value={stat.value?.toLocaleString('id-ID')}
+                    color={stat.color}
+                />
+            ))}
         </div>
     );
 }

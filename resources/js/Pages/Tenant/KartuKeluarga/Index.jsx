@@ -3,17 +3,19 @@ import { Head, Link, router, Deferred } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import KkStats from '@/Components/KartuKeluarga/KkStats';
 import KkFilters from '@/Components/KartuKeluarga/KkFilters';
-import Pagination from '@/Components/Shared/Pagination';
 import SkeletonStats from '@/Components/Shared/Skeleton/SkeletonStats';
 import SkeletonTable from '@/Components/Shared/Skeleton/SkeletonTable';
-import { Home, Plus, FileSpreadsheet, Edit, Trash2, Eye, Download, Search, Filter, RefreshCw, AlertTriangle, CheckCircle, Ban, Loader2 } from 'lucide-react';
+import { Home, Plus, FileSpreadsheet, Search, RefreshCw, AlertTriangle, CheckCircle, Ban } from 'lucide-react';
 import Swal from 'sweetalert2';
 import axios from 'axios';
 import { cn } from '@/lib/utils';
 import Lottie from 'lottie-react';
 import loadingAnimation from '@/assets/lottie/loading-circle-animation.json';
 import successAnimation from '@/assets/lottie/success-animation.json';
-import noDataAnimation from '@/assets/lottie/no-data-animation.json';
+
+// Shared Components
+import { PageHeader, TableCard, EmptyState, ActionButtons, Badge } from '@/Components/Shared';
+import { useSwalDelete } from '@/lib/useSwalDelete';
 
 const LottieComponent = Lottie?.default || Lottie;
 
@@ -21,6 +23,7 @@ export default function Index({ auth, kartuKeluarga, stats, dusunList, rwList, r
     const [isExporting, setIsExporting] = useState(false);
     const [isSyncing, setIsSyncing] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
+    const confirmDelete = useSwalDelete();
 
 
     const handleExport = async () => {
@@ -79,40 +82,21 @@ export default function Index({ auth, kartuKeluarga, stats, dusunList, rwList, r
     };
 
     const handleDelete = (nkk) => {
-        Swal.fire({
-            title: 'KONFIRMASI HAPUS KK',
+        confirmDelete({
             html: `Apakah Anda yakin ingin menghapus KK <b class="text-red-600">${nkk}</b>?<br><small class="text-red-500 font-bold uppercase tracking-widest text-[9px]">Peringatan: Semua anggota keluarga di dalamnya akan ikut terhapus!</small>`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#ef4444',
-            cancelButtonColor: '#f3f4f6',
-            confirmButtonText: 'YA, HAPUS SEMUA!',
-            cancelButtonText: 'BATALKAN',
-            background: '#ffffff',
-            customClass: {
-                popup: 'rounded-3xl border-none shadow-2xl',
-                title: 'font-black tracking-tighter uppercase italic text-red-600',
-                confirmButton: 'rounded-2xl px-6 py-3 font-black uppercase tracking-widest text-[10px] shadow-lg shadow-red-200',
-                cancelButton: 'rounded-2xl px-6 py-3 font-black uppercase tracking-widest text-[10px] text-gray-500'
-            }
-        }).then((result) => {
-            if (result.isConfirmed) {
-                router.delete(route('kk.destroy', nkk), {
-                    onSuccess: () => {
-                        // Let global handle flash
-                    }
-                });
+            onConfirm: () => {
+                router.delete(route('kk.destroy', nkk));
             }
         });
     };
 
     const getStatusBadge = (kk) => {
         const status = kk.status_kk || 'normal';
-        if (kk.anggota_aktif === 0) return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-800"><Ban className="w-3 h-3 mr-1" /> KOSONG</span>;
-        if (status === 'bermasalah') return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-700"><AlertTriangle className="w-3 h-3 mr-1" /> BERMASALAH</span>;
-        if (status === 'bermasalah_sementara') return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-orange-100 text-orange-700"><RefreshCw className="w-3 h-3 mr-1" /> SEMENTARA</span>;
-        if (status === 'resolved') return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-gray-100 text-gray-600">DIARSIP</span>;
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-800"><CheckCircle className="w-3 h-3 mr-1" /> AKTIF</span>;
+        if (kk.anggota_aktif === 0) return <Badge color="red" icon={Ban}>KOSONG</Badge>;
+        if (status === 'bermasalah') return <Badge color="red" icon={AlertTriangle}>BERMASALAH</Badge>;
+        if (status === 'bermasalah_sementara') return <Badge color="orange" icon={RefreshCw}>SEMENTARA</Badge>;
+        if (status === 'resolved') return <Badge color="gray">DIARSIP</Badge>;
+        return <Badge color="green" icon={CheckCircle}>AKTIF</Badge>;
     };
 
     return (
@@ -136,43 +120,32 @@ export default function Index({ auth, kartuKeluarga, stats, dusunList, rwList, r
 
             <div className="space-y-5 sm:space-y-6 animate-in fade-in duration-700 pb-20">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-green-600 via-green-700 to-green-800 rounded-3xl shadow-xl p-6 sm:p-8 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl"></div>
-                    <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                        <div className="flex items-center space-x-4">
-                            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-inner shrink-0">
-                                <Home className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-300" />
-                            </div>
-                            <div>
-                                <h1 className="text-xl sm:text-3xl font-black text-white tracking-tight uppercase italic leading-none">Kartu Keluarga</h1>
-                                <p className="text-emerald-100 font-bold text-[10px] sm:text-xs uppercase tracking-widest mt-1 opacity-80">Manajemen Data Rumah Tangga</p>
-                            </div>
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                            <button
-                                onClick={handleSync}
-                                className="flex items-center px-4 py-3 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white rounded-xl text-[10px] sm:text-xs font-black transition-all uppercase tracking-widest"
-                            >
-                                <RefreshCw className={cn("w-3.5 h-3.5 mr-2", isSyncing && "animate-spin")} />
-                                SYNC
-                            </button>
-                            <button
-                                onClick={handleExport}
-                                className="flex items-center px-4 py-3 bg-emerald-500/30 hover:bg-emerald-500/50 border border-emerald-400/30 text-white rounded-xl text-[10px] sm:text-xs font-black transition-all uppercase tracking-widest"
-                            >
-                                <FileSpreadsheet className="w-3.5 h-3.5 mr-2" />
-                                EXCEL
-                            </button>
-                            <Link
-                                href={route('kk.create')}
-                                className="flex items-center px-6 py-3 bg-white text-emerald-700 hover:bg-emerald-50 rounded-xl text-[10px] sm:text-xs font-black shadow-lg transition-all hover:scale-105 uppercase tracking-widest"
-                            >
-                                <Plus className="w-3.5 h-3.5 mr-2" />
-                                TAMBAH
-                            </Link>
-                        </div>
-                    </div>
-                </div>
+                <PageHeader 
+                    title="Kartu Keluarga"
+                    subtitle="Manajemen Data Rumah Tangga"
+                    icon={Home}
+                    actions={[
+                        {
+                            label: 'SYNC',
+                            icon: RefreshCw,
+                            onClick: handleSync,
+                            variant: 'ghost',
+                            loading: isSyncing
+                        },
+                        {
+                            label: 'EXCEL',
+                            icon: FileSpreadsheet,
+                            onClick: handleExport,
+                            variant: 'ghost'
+                        },
+                        {
+                            label: 'TAMBAH',
+                            icon: Plus,
+                            href: route('kk.create'),
+                            variant: 'white'
+                        }
+                    ]}
+                />
 
                 {/* Statistics */}
                 <Deferred data="stats" fallback={<SkeletonStats />}>
@@ -205,17 +178,13 @@ export default function Index({ auth, kartuKeluarga, stats, dusunList, rwList, r
 
                 {/* Data Table */}
                 <Deferred data="kartuKeluarga" fallback={<SkeletonTable columns={6} rows={10} />}>
-                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                        <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-gray-50/50 to-white">
-                            <h3 className="text-lg font-black text-gray-900 flex items-center gap-2 uppercase italic tracking-tighter">
-                                <Home className="w-5 h-5 text-emerald-600" />
-                                Daftar Kartu Keluarga
-                            </h3>
-                            <span className="px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-[10px] font-black uppercase tracking-widest">
-                                Total: {kartuKeluarga?.total || 0}
-                            </span>
-                        </div>
-
+                    <TableCard 
+                        icon={Home}
+                        title="Daftar Kartu Keluarga"
+                        total={kartuKeluarga?.total}
+                        pagination={kartuKeluarga}
+                        noPadding
+                    >
                         {kartuKeluarga?.data?.length > 0 ? (
                             <>
                                 {/* Desktop Table */}
@@ -254,17 +223,11 @@ export default function Index({ auth, kartuKeluarga, stats, dusunList, rwList, r
                                                         {getStatusBadge(kk)}
                                                     </td>
                                                     <td className="px-6 py-4">
-                                                        <div className="flex justify-end gap-2">
-                                                            <Link href={route('kk.show', kk.nkk)} className="w-9 h-9 flex items-center justify-center rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all">
-                                                                <Eye className="w-4 h-4" />
-                                                            </Link>
-                                                            <Link href={route('kk.edit', kk.nkk)} className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-50 text-gray-600 hover:bg-gray-800 hover:text-white transition-all">
-                                                                <Edit className="w-4 h-4" />
-                                                            </Link>
-                                                            <button onClick={() => handleDelete(kk.nkk)} className="w-9 h-9 flex items-center justify-center rounded-xl bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition-all">
-                                                                <Trash2 className="w-4 h-4" />
-                                                            </button>
-                                                        </div>
+                                                        <ActionButtons 
+                                                            viewHref={route('kk.show', kk.nkk)}
+                                                            editHref={route('kk.edit', kk.nkk)}
+                                                            onDelete={() => handleDelete(kk.nkk)}
+                                                        />
                                                     </td>
                                                 </tr>
                                             ))}
@@ -290,29 +253,23 @@ export default function Index({ auth, kartuKeluarga, stats, dusunList, rwList, r
                                                 </div>
                                             </div>
 
-                                            <div className="flex gap-2">
-                                                <Link href={route('kk.show', kk.nkk)} className="flex-1 py-3 bg-blue-50 text-blue-700 rounded-xl text-[10px] font-black text-center uppercase tracking-widest">DETAIL</Link>
-                                                <Link href={route('kk.edit', kk.nkk)} className="flex-1 py-3 bg-gray-50 text-gray-700 rounded-xl text-[10px] font-black text-center uppercase tracking-widest">EDIT</Link>
-                                                <button onClick={() => handleDelete(kk.nkk)} className="px-4 py-3 bg-red-50 text-red-600 rounded-xl"><Trash2 className="w-4 h-4" /></button>
-                                            </div>
+                                            <ActionButtons 
+                                                viewHref={route('kk.show', kk.nkk)}
+                                                editHref={route('kk.edit', kk.nkk)}
+                                                onDelete={() => handleDelete(kk.nkk)}
+                                                className="justify-start"
+                                            />
                                         </div>
                                     ))}
                                 </div>
                             </>
                         ) : (
-                            <div className="p-16 text-center">
-                                <div className="w-56 h-56 mx-auto mb-4 opacity-80">
-                                    <LottieComponent animationData={noDataAnimation} loop={true} />
-                                </div>
-                                <h3 className="text-xl font-black text-gray-900 uppercase italic">Data KK Kosong</h3>
-                                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-2">Gunakan tombol Tambah KK untuk memulai.</p>
-                            </div>
+                            <EmptyState 
+                                title="Data KK Kosong"
+                                message="Gunakan tombol Tambah KK untuk memulai."
+                            />
                         )}
-
-                        <div className="p-4 border-t border-gray-100 bg-gray-50/50">
-                            <Pagination links={kartuKeluarga?.links} from={kartuKeluarga?.from} to={kartuKeluarga?.to} total={kartuKeluarga?.total} />
-                        </div>
-                    </div>
+                    </TableCard>
                 </Deferred>
             </div>
 

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Head, Link, router, Deferred } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import Pagination from '@/Components/Shared/Pagination';
+import { PageHeader, TableCard } from '@/Components/Shared';
 import SkeletonStats from '@/Components/Shared/Skeleton/SkeletonStats';
 import SkeletonTable from '@/Components/Shared/Skeleton/SkeletonTable';
 import DomisiliStats from '@/Components/Domisili/DomisiliStats';
@@ -126,30 +126,20 @@ export default function Index({ auth, domisilis, stats, filters, rtList, rwList,
             <Head title="Penduduk Domisili" />
 
             <div className="space-y-6 animate-in fade-in duration-700 pb-20">
-                {/* Header */}
-                <div className="bg-gradient-to-r from-green-600 via-green-700 to-green-800 rounded-3xl shadow-xl p-6 sm:p-8 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl"></div>
-                    <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                        <div className="flex items-center space-x-4">
-                            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-inner shrink-0">
-                                <MapPin className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-300" />
-                            </div>
-                            <div>
-                                <h1 className="text-xl sm:text-3xl font-black text-white tracking-tight uppercase italic leading-none text-left">Penduduk Domisili</h1>
-                                <p className="text-green-100 font-bold text-[10px] sm:text-xs uppercase tracking-widest mt-1 opacity-80 text-left">Warga Pendatang Sementara</p>
-                            </div>
-                        </div>
-                        <div className="flex flex-wrap gap-2 sm:gap-3">
-                            <Link
-                                href={route('domisili.create')}
-                                className="flex items-center px-6 py-3 bg-white text-green-700 hover:bg-green-50 rounded-xl text-[10px] sm:text-xs font-black shadow-lg shadow-black/10 transition-all hover:scale-105 uppercase tracking-widest"
-                            >
-                                <Plus className="w-3.5 h-3.5 mr-2" />
-                                TAMBAH
-                            </Link>
-                        </div>
-                    </div>
-                </div>
+                <PageHeader 
+                    title="Penduduk Domisili"
+                    subtitle="Warga Pendatang Sementara"
+                    icon={MapPin}
+                    actions={
+                        <Link
+                            href={route('domisili.create')}
+                            className="flex items-center px-6 py-3 bg-green-600 text-white hover:bg-green-700 rounded-xl text-[10px] sm:text-xs font-black shadow-lg shadow-green-200 transition-all hover:scale-105 uppercase tracking-widest"
+                        >
+                            <Plus className="w-3.5 h-3.5 mr-2" />
+                            TAMBAH
+                        </Link>
+                    }
+                />
 
                 {/* Stats */}
                 <Deferred data="stats" fallback={<SkeletonStats />}>
@@ -161,16 +151,18 @@ export default function Index({ auth, domisilis, stats, filters, rtList, rwList,
 
                 {/* Table */}
                 <Deferred data="domisilis" fallback={<SkeletonTable columns={7} rows={10} />}>
-                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                        <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-gray-50/50 to-white">
-                            <h3 className="text-lg font-black text-gray-900 flex items-center gap-3 uppercase italic tracking-tighter">
-                                <MapPin className="w-6 h-6 text-green-600" /> Daftar Penduduk Domisili
-                                <span className="ml-2 bg-green-100 text-green-700 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-widest">
-                                    Total: {domisilis?.total || 0}
-                                </span>
-                            </h3>
-                        </div>
-
+                    <TableCard 
+                        title="Daftar Penduduk Domisili"
+                        icon={MapPin}
+                        total={domisilis?.total || 0}
+                        noPadding
+                        pagination={{
+                            links: domisilis?.links,
+                            from: domisilis?.from,
+                            to: domisilis?.to,
+                            total: domisilis?.total
+                        }}
+                    >
                         {domisilis?.data?.length > 0 ? (
                             <>
                                 {/* Desktop Table */}
@@ -276,11 +268,7 @@ export default function Index({ auth, domisilis, stats, filters, rtList, rwList,
                                 <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-2">Gunakan tombol Daftar Pendatang untuk mulai mencatat.</p>
                             </div>
                         )}
-
-                        <div className="p-4 border-t border-gray-100 bg-gray-50/50">
-                            <Pagination links={domisilis?.links} from={domisilis?.from} to={domisilis?.to} total={domisilis?.total} />
-                        </div>
-                    </div>
+                    </TableCard>
                 </Deferred>
             </div>
 

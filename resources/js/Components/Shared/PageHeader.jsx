@@ -29,6 +29,7 @@ export default function PageHeader({
     titleSize = 'lg',
     gradient = 'from-green-600 via-green-700 to-green-800',
     className = '',
+    children,
 }) {
     const titleClass = titleSize === 'sm'
         ? 'text-xl sm:text-2xl font-black text-white tracking-tight uppercase italic leading-none'
@@ -77,8 +78,9 @@ export default function PageHeader({
                 </div>
 
                 {/* Kanan: action buttons */}
-                {actions.length > 0 && (
+                {(actions.length > 0 || children) && (
                     <div className="flex flex-wrap gap-2 sm:gap-3 shrink-0">
+                        {children}
                         {actions.map((action, i) => {
                             const ActionIcon = action.icon;
                             const baseClass = 'inline-flex items-center px-4 py-3 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all';

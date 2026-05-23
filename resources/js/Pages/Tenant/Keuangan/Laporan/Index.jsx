@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { PageHeader } from '@/Components/Shared';
 import { BIDANG_MAP, BIDANG_COLOR } from '@/Constants/keuangan';
 import {
     FileText, Download, BarChart3, Layers, BookOpen,
-    TrendingUp, ArrowLeft, ChevronDown, Printer, RefreshCw
+    TrendingUp, ChevronDown, Printer
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -109,53 +110,41 @@ export default function LaporanIndex({ auth, tahunList = [], tahun, summary = []
 
             <div className="space-y-6 animate-in fade-in duration-700 pb-20">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-green-600 via-green-700 to-green-800 rounded-3xl shadow-xl p-6 sm:p-8 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 -mt-4 -mr-4 w-40 h-40 bg-white opacity-10 rounded-full blur-2xl pointer-events-none" />
-                    <div className="absolute bottom-0 left-0 -mb-8 -ml-8 w-40 h-40 bg-white opacity-5 rounded-full blur-3xl pointer-events-none" />
-                    <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                        <div className="flex items-center space-x-4">
-                            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-inner shrink-0">
-                                <Printer className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-300" />
-                            </div>
-                            <div>
-                                <h1 className="text-xl sm:text-3xl font-black text-white tracking-tight uppercase italic leading-none">Laporan Keuangan Desa</h1>
-                                <p className="text-green-100 font-bold text-[10px] sm:text-xs uppercase tracking-widest mt-1 opacity-80 italic">Sesuai Permendagri No. 20 Tahun 2018</p>
-                            </div>
-                        </div>
-                        <div className="flex flex-wrap items-center gap-3">
-                            {/* Tahun Selector */}
-                            <div className="relative">
-                                <select
-                                    value={selectedTahun}
-                                    onChange={e => handleTahunChange(e.target.value)}
-                                    className="appearance-none pl-4 pr-8 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl text-[10px] sm:text-xs font-black transition-all uppercase tracking-widest backdrop-blur-md border border-white/10 cursor-pointer focus:outline-none focus:ring-2 focus:ring-white/30"
-                                >
-                                    {(tahunList.length ? tahunList : [tahun]).map(t => (
-                                        <option key={t} value={t} className="text-gray-900 bg-white">{t}</option>
-                                    ))}
-                                </select>
-                                <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-white pointer-events-none" />
-                            </div>
-                            <Link href={route('transparansi-desa.index')} className="flex items-center px-4 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl text-[10px] sm:text-xs font-black transition-all uppercase tracking-widest backdrop-blur-md border border-white/10">
-                                <ArrowLeft className="w-3.5 h-3.5 mr-2" /> KEMBALI
-                            </Link>
-                        </div>
+                <PageHeader
+                    title="Laporan Keuangan Desa"
+                    subtitle="Sesuai Permendagri No. 20 Tahun 2018"
+                    icon={Printer}
+                    backHref={route('transparansi-desa.index')}
+                    titleSize="lg"
+                >
+                    {/* Tahun Selector */}
+                    <div className="relative">
+                        <select
+                            value={selectedTahun}
+                            onChange={e => handleTahunChange(e.target.value)}
+                            className="appearance-none pl-4 pr-8 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl text-[10px] sm:text-xs font-black transition-all uppercase tracking-widest backdrop-blur-md border border-white/10 cursor-pointer focus:outline-none focus:ring-2 focus:ring-white/30"
+                        >
+                            {(tahunList.length ? tahunList : [tahun]).map(t => (
+                                <option key={t} value={t} className="text-gray-900 bg-white">{t}</option>
+                            ))}
+                        </select>
+                        <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-white pointer-events-none" />
                     </div>
+                </PageHeader>
 
-                    {/* Summary Pills */}
-                    <div className="relative z-10 mt-6 grid grid-cols-3 gap-3">
-                        {[
-                            { label: 'Total Anggaran', value: formatRupiah(totalAnggaran), sub: `Tahun ${selectedTahun}` },
-                            { label: 'Total Realisasi', value: formatRupiah(totalRealisasi), sub: `${persen}% Serapan` },
-                            { label: 'Sisa Anggaran', value: formatRupiah(Number(totalAnggaran) - Number(totalRealisasi)), sub: `${100 - persen}% Belum terserap` },
-                        ].map(s => (
-                            <div key={s.label} className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/10 p-4 text-center">
-                                <p className="text-[8px] font-black text-white/60 uppercase tracking-widest mb-1">{s.label}</p>
-                                <p className="text-sm sm:text-base font-black text-white">{s.value}</p>
-                                <p className="text-[8px] font-bold text-white/50 mt-0.5">{s.sub}</p>
-                            </div>
-                        ))}
-                    </div>
+                {/* Summary Pills */}
+                <div className="grid grid-cols-3 gap-3">
+                    {[
+                        { label: 'Total Anggaran', value: formatRupiah(totalAnggaran), sub: `Tahun ${selectedTahun}` },
+                        { label: 'Total Realisasi', value: formatRupiah(totalRealisasi), sub: `${persen}% Serapan` },
+                        { label: 'Sisa Anggaran', value: formatRupiah(Number(totalAnggaran) - Number(totalRealisasi)), sub: `${100 - persen}% Belum terserap` },
+                    ].map(s => (
+                        <div key={s.label} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 text-center">
+                            <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">{s.label}</p>
+                            <p className="text-sm sm:text-base font-black text-gray-900">{s.value}</p>
+                            <p className="text-[8px] font-bold text-gray-400 mt-0.5">{s.sub}</p>
+                        </div>
+                    ))}
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

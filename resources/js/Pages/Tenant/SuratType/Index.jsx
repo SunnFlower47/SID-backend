@@ -6,6 +6,9 @@ import Swal from 'sweetalert2';
 import Lottie from 'lottie-react';
 import noDataAnimation from '@/assets/lottie/no-data-animation.json';
 
+// Shared Components
+import { PageHeader } from '@/Components/Shared';
+
 const LottieComponent = Lottie?.default || Lottie;
 
 export default function Index({ auth, suratTypes }) {
@@ -83,29 +86,14 @@ export default function Index({ auth, suratTypes }) {
 
             <div className="space-y-6 animate-in fade-in duration-700 pb-20">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-green-600 via-green-700 to-green-800 rounded-3xl shadow-xl p-6 sm:p-8 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl"></div>
-                    <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                        <div className="flex items-center space-x-4">
-                            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-inner shrink-0">
-                                <FileText className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-300" />
-                            </div>
-                            <div>
-                                <h1 className="text-xl sm:text-3xl font-black text-white tracking-tight uppercase italic leading-none">Master Jenis Surat</h1>
-                                <p className="text-green-100 font-bold text-[10px] sm:text-xs uppercase tracking-widest mt-1 opacity-80">Konfigurasi Template & Form Surat Dinamis</p>
-                            </div>
-                        </div>
-                        <div className="flex gap-2 sm:gap-3">
-                            <Link 
-                                href={route('admin.surat-type.create')}
-                                className="flex items-center px-6 py-3 bg-white text-green-700 hover:bg-green-50 rounded-xl text-[10px] sm:text-xs font-black shadow-lg shadow-black/10 transition-all hover:scale-105 uppercase tracking-widest"
-                            >
-                                <Plus className="w-3.5 h-3.5 mr-2" />
-                                TAMBAH JENIS
-                            </Link>
-                        </div>
-                    </div>
-                </div>
+                <PageHeader 
+                    title="Master Jenis Surat"
+                    subtitle="Konfigurasi Template & Form Surat Dinamis"
+                    icon={FileText}
+                    actionLabel="TAMBAH JENIS"
+                    actionHref={route('admin.surat-type.create')}
+                    actionIcon={Plus}
+                />
                 
                 {/* Info Box */}
                 <div className="bg-green-50 border border-green-100 rounded-3xl p-6 flex items-start gap-4">

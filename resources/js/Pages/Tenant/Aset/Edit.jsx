@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, router } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { PageHeader, FormCard, FormField } from '@/Components/Shared';
-import { Package, Save, Info } from 'lucide-react';
+import { Package, Save, Info, TrendingUp, TrendingDown, FileText, Gavel, Trash2 } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 const fmt = (n) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(n ?? 0);
 const fmtQty = (n) => new Intl.NumberFormat('id-ID', { maximumFractionDigits: 2 }).format(n ?? 0);
@@ -41,6 +42,28 @@ export default function Edit({ auth, inventaris, kategoris }) {
     const handleSubmit = (e) => {
         e.preventDefault();
         put(route('aset.inventaris.update', inventaris.id));
+    };
+
+    const handleDeleteMutasi = (mutasi) => {
+        Swal.fire({
+            title: 'Hapus Mutasi?',
+            html: `Hapus mutasi tanggal <b>${mutasi.tanggal ? new Date(mutasi.tanggal).toLocaleDateString('id-ID') : '-'}</b>?<br><small class="text-red-500">Jika mutasi ini berkurang, Berita Acara & SK terkait juga akan dihapus!</small>`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#f3f4f6',
+            confirmButtonText: 'YA, HAPUS',
+            cancelButtonText: 'BATAL',
+            customClass: {
+                popup: 'rounded-3xl',
+                confirmButton: 'rounded-2xl font-black text-xs uppercase tracking-widest',
+                cancelButton: 'rounded-2xl font-black text-xs uppercase tracking-widest text-gray-500'
+            },
+        }).then((res) => {
+            if (res.isConfirmed) {
+                router.delete(route('aset.mutasi.destroy', mutasi.id), { preserveScroll: true });
+            }
+        });
     };
 
     return (
@@ -199,6 +222,115 @@ export default function Edit({ auth, inventaris, kategoris }) {
                         </button>
                     </div>
                 </form>
+
+                {/* ── Riwayat Mutasi Aset ────────────────────────────────── */}
+                <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden p-6 space-y-4">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center text-green-600">
+                                <TrendingUp className="w-5 h-5" />
+                            </div>
+                            <div>
+                                <h3 className="text-sm font-black uppercase tracking-widest text-gray-800">Riwayat Mutasi & Penghapusan</h3>
+                                <p className="text-[10px] font-semibold text-gray-400">Log transaksi penambahan, pengurangan, dan dokumen resmi aset</p>
+                            </div>
+                        </div>
+                        <Link
+                            href={route('aset.mutasi.create', { inventaris: inventaris.id })}
+                            className="px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all"
+                        >
+                            Catat Mutasi Baru
+                        </Link>
+                    </div>
+
+                    {(!inventaris.mutasis || inventaris.mutasis.length === 0) ? (
+                        <p className="text-xs text-gray-400 text-center py-6 font-medium">Belum ada riwayat mutasi untuk aset ini.</p>
+                    ) : (
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-xs min-w-[768px]">
+                                <thead>
+                                    <tr className="bg-gray-50/50 border-b border-gray-100 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                                        <th className="px-4 py-3 text-left">Tanggal</th>
+                                        <th className="px-4 py-3 text-center">Periode</th>
+                                        <th className="px-4 py-3 text-center">Jenis</th>
+                                        <th className="px-4 py-3 text-right">Kwantitas</th>
+                                        <th className="px-4 py-3 text-right">Nilai (Rp)</th>
+                                        <th className="px-4 py-3 text-left">Keterangan / Alasan</th>
+                                        <th className="px-4 py-3 text-center">Dokumen / Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {inventaris.mutasis.map((m) => {
+                                        const isTambah = m.jenis === 'tambah';
+                                        return (
+                                            <tr key={m.id} className="border-b border-gray-50 hover:bg-gray-50/30 transition-colors">
+                                                <td className="px-4 py-3 font-semibold text-gray-700">
+                                                    {m.tanggal ? new Date(m.tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '-'}
+                                                </td>
+                                                <td className="px-4 py-3 text-center font-bold text-gray-500">
+                                                    Tahun {m.tahun} SM {m.semester}
+                                                </td>
+                                                <td className="px-4 py-3 text-center">
+                                                    <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider ${
+                                                        isTambah ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
+                                                    }`}>
+                                                        {isTambah ? '➕ Bertambah' : '➖ Berkurang'}
+                                                    </span>
+                                                </td>
+                                                <td className="px-4 py-3 text-right font-mono font-bold text-gray-700">
+                                                    {isTambah ? '+' : '-'}{fmtQty(m.kwantitas)}
+                                                </td>
+                                                <td className="px-4 py-3 text-right font-mono font-bold text-gray-700">
+                                                    {fmt(m.nilai)}
+                                                </td>
+                                                <td className="px-4 py-3 text-gray-600 max-w-[200px] truncate" title={m.keterangan}>
+                                                    {m.keterangan ?? '-'}
+                                                </td>
+                                                <td className="px-4 py-3 text-center">
+                                                    <div className="flex items-center justify-center gap-2">
+                                                        {/* Dokumen jika berkurang */}
+                                                        {!isTambah && m.berita_acara_surat_id && (
+                                                            <a
+                                                                href={route('admin.surat-pengajuan.pdf', m.berita_acara_surat_id)}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="inline-flex items-center gap-1 px-2.5 py-1 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl text-[9px] font-bold uppercase tracking-wider transition-all"
+                                                                title="Cetak Berita Acara Penghapusan"
+                                                            >
+                                                                <FileText className="w-3.5 h-3.5" /> BAPA
+                                                            </a>
+                                                        )}
+                                                        {!isTambah && m.sk_surat_id && (
+                                                            <a
+                                                                href={route('admin.surat-pengajuan.pdf', m.sk_surat_id)}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="inline-flex items-center gap-1 px-2.5 py-1 bg-purple-50 hover:bg-purple-100 text-purple-600 rounded-xl text-[9px] font-bold uppercase tracking-wider transition-all"
+                                                                title="Cetak SK Penghapusan Aset"
+                                                            >
+                                                                <Gavel className="w-3.5 h-3.5" /> SKPA
+                                                            </a>
+                                                        )}
+                                                        {/* Tombol Hapus Mutasi (hanya jika bukan mutasi pertama/awal) */}
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleDeleteMutasi(m)}
+                                                            className="p-1 hover:bg-red-50 text-gray-400 hover:text-red-500 rounded-lg transition-all"
+                                                            title="Hapus Transaksi Mutasi"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </div>
+
             </div>
         </AuthenticatedLayout>
     );

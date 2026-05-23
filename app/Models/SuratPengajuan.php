@@ -96,7 +96,9 @@ class SuratPengajuan extends Model
             'sku' => 'Surat Keterangan Usaha',
             'sktm_dewasa' => 'Surat Keterangan Tidak Mampu (Dewasa)',
             'sktm_anak' => 'Surat Keterangan Tidak Mampu (Anak)',
-            'domisili' => 'Surat Keterangan Domisili'
+            'domisili' => 'Surat Keterangan Domisili',
+            'berita-acara-penghapusan-aset' => 'Berita Acara Penghapusan Aset',
+            'sk-penghapusan-aset' => 'Surat Keputusan (SK) Penghapusan Aset'
         ];
 
         if (isset($types[$this->jenis_surat])) {

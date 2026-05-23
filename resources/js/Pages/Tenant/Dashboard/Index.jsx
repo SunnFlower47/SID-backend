@@ -1,6 +1,7 @@
 import React from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router, Deferred } from '@inertiajs/react';
+import { PageHeader, StatCard } from '@/Components/Shared';
 import {
     Users,
     UserCheck,
@@ -51,40 +52,29 @@ export default function Dashboard({ auth, stats, mutasiStats, suratStats, recent
         >
             <Head title="Pusat Kendali Desa" />
 
-            <div className="space-y-6 md:space-y-10 animate-in fade-in duration-700 pb-10">
+            <div className="space-y-6 md:space-y-10 animate-in fade-in duration-700 pb-10 text-left">
                 {/* Header Section */}
-                <div className="bg-gradient-to-r from-green-600 via-green-700 to-green-800 rounded-3xl p-6 md:p-8 shadow-xl shadow-green-900/10 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full blur-3xl -mr-10 -mt-10"></div>
-                    <div className="absolute bottom-0 left-0 w-32 h-32 bg-green-400/10 rounded-full blur-2xl -ml-5 -mb-5"></div>
-                    
-                    <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 md:w-14 md:h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-inner shrink-0">
-                                <TrendingUp className="w-6 h-6 md:w-8 md:h-8 text-yellow-300" />
-                            </div>
-                            <div>
-                                <div className="flex items-center gap-2 mb-1">
-                                    <span className="px-2 py-0.5 bg-green-500/30 backdrop-blur-md border border-green-400/30 text-green-100 text-[9px] font-black rounded-full uppercase tracking-widest italic">Live Monitor</span>
-                                    <span className="text-[9px] text-green-100/60 font-bold uppercase tracking-widest flex items-center gap-1">
-                                        <Clock className="w-3 h-3" />
-                                        {new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
-                                    </span>
-                                </div>
-                                <h1 className="text-xl md:text-3xl font-black text-white tracking-tighter leading-none italic uppercase">PUSAT KENDALI DESA</h1>
-                                <p className="text-[10px] md:text-xs font-bold text-green-100/70 mt-1 tracking-tight uppercase opacity-80 italic">Sistem Informasi Desa Cibatu • Monitor & Eksekusi</p>
-                            </div>
-                        </div>
-                        <div className="flex shrink-0">
-                            <button
-                                onClick={handleRefresh}
-                                className="group flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 px-6 py-3 rounded-xl text-[10px] font-black text-white transition-all shadow-lg active:scale-95"
-                            >
-                                <History className="w-3.5 h-3.5 group-hover:rotate-180 transition-all duration-500 text-green-400" />
-                                REFRESH
-                            </button>
+                <PageHeader 
+                    title="PUSAT KENDALI DESA"
+                    subtitle="Sistem Informasi Desa Cibatu • Monitor & Eksekusi"
+                    icon={TrendingUp}
+                    actions={[{
+                        label: 'REFRESH',
+                        icon: History,
+                        onClick: handleRefresh,
+                        variant: 'ghost'
+                    }]}
+                >
+                    <div className="flex flex-col gap-1 items-start">
+                        <div className="flex items-center gap-2 -mt-1 sm:-mt-2 mb-2 sm:mb-0">
+                            <span className="px-2 py-0.5 bg-green-500/30 backdrop-blur-md border border-green-400/30 text-green-100 text-[9px] font-black rounded-full uppercase tracking-widest italic">Live Monitor</span>
+                            <span className="text-[9px] text-green-100/60 font-bold uppercase tracking-widest flex items-center gap-1">
+                                <Clock className="w-3 h-3" />
+                                {new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+                            </span>
                         </div>
                     </div>
-                </div>
+                </PageHeader>
 
                 {/* Quick Access Section */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -146,31 +136,31 @@ export default function Dashboard({ auth, stats, mutasiStats, suratStats, recent
                 <Deferred data={["stats", "suratStats", "mutasiStats"]} fallback={<SkeletonStats />}>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                         <StatCard
-                            title="Total Penduduk"
+                            label="Total Penduduk"
                             value={stats?.total_penduduk}
-                            icon={<Users className="text-green-600" />}
-                            trend="Live"
+                            icon={Users}
+                            badge="Live"
                             color="green"
                         />
                         <StatCard
-                            title="Total KK"
+                            label="Total KK"
                             value={stats?.total_kk}
-                            icon={<UserCheck className="text-blue-600" />}
-                            trend="Aktif"
+                            icon={UserCheck}
+                            badge="Aktif"
                             color="blue"
                         />
                         <StatCard
-                            title="Surat Selesai"
+                            label="Surat Selesai"
                             value={suratStats?.selesai}
-                            icon={<FileText className="text-purple-600" />}
-                            trend="Total"
+                            icon={FileText}
+                            badge="Total"
                             color="purple"
                         />
                         <StatCard
-                            title="Mutasi"
+                            label="Mutasi"
                             value={(mutasiStats?.kelahiran || 0) + (mutasiStats?.kematian || 0) + (mutasiStats?.pindah_masuk || 0) + (mutasiStats?.pindah_keluar || 0)}
-                            icon={<Activity className="text-orange-600" />}
-                            trend="Hari ini"
+                            icon={Activity}
+                            badge="Hari ini"
                             color="orange"
                         />
                     </div>
@@ -353,34 +343,7 @@ export default function Dashboard({ auth, stats, mutasiStats, suratStats, recent
     );
 }
 
-function StatCard({ title, value, icon, trend, color }) {
-    const colors = {
-        green: "bg-green-50/50 border-green-100 text-green-600",
-        blue: "bg-blue-50/50 border-blue-100 text-blue-600",
-        purple: "bg-purple-50/50 border-purple-100 text-purple-600",
-        orange: "bg-orange-50/50 border-orange-100 text-orange-600",
-    };
 
-    return (
-        <div 
-            style={{ borderRadius: '24px' }}
-            className={cn("p-4 sm:p-5 border shadow-sm transition-all hover:scale-[1.02] cursor-default bg-white group overflow-hidden", colors[color])}
-        >
-            <div className="flex items-start justify-between mb-2 sm:mb-3">
-                <div className={cn("p-2 sm:p-2.5 rounded-xl shadow-sm border border-white/50 bg-white group-hover:rotate-12 transition-transform duration-500")}>
-                    {React.cloneElement(icon, { className: "w-4 h-4 sm:w-5 sm:h-5 " + icon.props.className })}
-                </div>
-                <div className="flex items-center gap-1 px-1.5 py-0.5 bg-white border border-gray-50 rounded-lg text-[7px] sm:text-[8px] font-black text-gray-400 uppercase tracking-widest shadow-sm">
-                    {trend}
-                </div>
-            </div>
-            <div>
-                <p className="text-[8px] sm:text-[9px] font-black text-gray-400 uppercase tracking-[0.2em]">{title}</p>
-                <h2 className="text-xl sm:text-2xl font-black text-gray-950 mt-0.5 tracking-tighter leading-none italic">{value?.toLocaleString('id-ID') || 0}</h2>
-            </div>
-        </div>
-    );
-}
 
 function QuickActionCard({ title, desc, href, icon, color }) {
     const iconColors = {

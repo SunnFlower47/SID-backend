@@ -3,33 +3,29 @@ import { Head, Link, router, Deferred } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import ContactMessageStats from '@/Components/ContactMessage/ContactMessageStats';
 import ContactMessageFilters from '@/Components/ContactMessage/ContactMessageFilters';
-import Pagination from '@/Components/Shared/Pagination';
 import SkeletonStats from '@/Components/Shared/Skeleton/SkeletonStats';
 import SkeletonTable from '@/Components/Shared/Skeleton/SkeletonTable';
-import { Mailbox, Eye, Trash2, MailWarning, MailCheck, MailOpen, Archive, CheckCircle } from 'lucide-react';
+import { Mailbox, Eye, Trash2, MailWarning, MailCheck, MailOpen, Archive } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { format } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
-import Lottie from 'lottie-react';
-import noDataAnimation from '@/assets/lottie/no-data-animation.json';
 
-const LottieComponent = Lottie?.default || Lottie;
+// Shared Components
+import { PageHeader, TableCard, Badge, EmptyState } from '@/Components/Shared';
 
 const STATUS_COLORS = {
-    unread: { bg: 'bg-red-100', text: 'text-red-800', icon: MailWarning, label: 'Belum Dibaca' },
-    read: { bg: 'bg-yellow-100', text: 'text-yellow-800', icon: MailOpen, label: 'Sudah Dibaca' },
-    replied: { bg: 'bg-emerald-100', text: 'text-emerald-800', icon: MailCheck, label: 'Sudah Dijawab' },
-    archived: { bg: 'bg-gray-100', text: 'text-gray-600', icon: Archive, label: 'Diarsipkan' },
+    unread: { color: 'red', icon: MailWarning, label: 'Belum Dibaca' },
+    read: { color: 'yellow', icon: MailOpen, label: 'Sudah Dibaca' },
+    replied: { color: 'green', icon: MailCheck, label: 'Sudah Dijawab' },
+    archived: { color: 'gray', icon: Archive, label: 'Diarsipkan' },
 };
 
 function StatusBadge({ status }) {
     const cfg = STATUS_COLORS[status] || STATUS_COLORS.unread;
-    const Icon = cfg.icon;
     return (
-        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-[9px] font-black uppercase tracking-widest ${cfg.bg} ${cfg.text}`}>
-            <Icon className="w-3 h-3" />
+        <Badge color={cfg.color} icon={cfg.icon}>
             {cfg.label}
-        </span>
+        </Badge>
     );
 }
 
@@ -72,24 +68,11 @@ export default function Index({ auth, messages, stats, filters }) {
 
             <div className="space-y-6 animate-in fade-in duration-700 pb-20">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-green-600 via-green-700 to-green-800 rounded-3xl shadow-xl p-6 sm:p-8 relative overflow-hidden text-left text-white">
-                    <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl pointer-events-none" />
-                    <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-                        <div className="flex items-center gap-4 text-left">
-                            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-inner shrink-0">
-                                <Mailbox className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-300" />
-                            </div>
-                            <div>
-                                <h1 className="text-xl sm:text-2xl font-black tracking-tight uppercase italic leading-none">
-                                    Pesan Masuk
-                                </h1>
-                                <p className="text-green-50 font-bold text-[10px] sm:text-xs uppercase tracking-widest mt-1 opacity-80 italic">
-                                    Pusat Komunikasi & Kontak Warga
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <PageHeader 
+                    title="Pesan Masuk"
+                    subtitle="Pusat Komunikasi & Kontak Warga"
+                    icon={Mailbox}
+                />
 
                 {/* Stats */}
                 <Deferred data="stats" fallback={<SkeletonStats />}>
@@ -101,17 +84,13 @@ export default function Index({ auth, messages, stats, filters }) {
 
                 {/* Data Table */}
                 <Deferred data="messages" fallback={<SkeletonTable columns={5} rows={10} />}>
-                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden text-left">
-                        <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-gray-50 to-white">
-                            <h3 className="text-lg font-black text-gray-900 flex items-center gap-3 uppercase italic tracking-tighter">
-                                <Mailbox className="w-6 h-6 text-green-600" />
-                                Daftar Pesan
-                            </h3>
-                            <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-[10px] font-black uppercase tracking-widest italic">
-                                Total: {messages?.total || 0}
-                            </span>
-                        </div>
-
+                    <TableCard 
+                        title="Daftar Pesan"
+                        icon={Mailbox}
+                        total={messages?.total || 0}
+                        pagination={messages}
+                        noPadding
+                    >
                         <div className="overflow-x-auto">
                             <table className="w-full text-left border-collapse">
                                 <thead className="bg-gray-50/50 text-gray-900 font-bold uppercase text-xs tracking-wider border-b border-gray-100">
@@ -173,23 +152,18 @@ export default function Index({ auth, messages, stats, filters }) {
                                         </tr>
                                     )) : (
                                         <tr>
-                                            <td colSpan="4" className="px-6 py-12 text-center">
-                                                <div className="w-48 h-48 mx-auto">
-                                                    <LottieComponent animationData={noDataAnimation} loop={true} />
-                                                </div>
-                                                <p className="text-sm font-black text-gray-900 mt-2">Tidak Ada Pesan</p>
-                                                <p className="text-xs text-gray-500 mt-1">Belum ada pesan masuk dari warga.</p>
+                                            <td colSpan="4">
+                                                <EmptyState 
+                                                    title="Tidak Ada Pesan"
+                                                    message="Belum ada pesan masuk dari warga."
+                                                />
                                             </td>
                                         </tr>
                                     )}
                                 </tbody>
                             </table>
                         </div>
-
-                        <div className="p-4 border-t border-gray-100 bg-gray-50/50">
-                            <Pagination links={messages?.links} from={messages?.from} to={messages?.to} total={messages?.total} />
-                        </div>
-                    </div>
+                    </TableCard>
                 </Deferred>
             </div>
         </AuthenticatedLayout>

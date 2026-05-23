@@ -1,6 +1,7 @@
 import React from 'react';
 import { useForm, Link } from '@inertiajs/react';
 import { HandHeart, Save, ArrowLeft, FileText, Calendar, DollarSign, Users, Tag, Building2 } from 'lucide-react';
+import { FormCard } from '@/Components/Shared';
 
 const JENIS_OPTIONS = [
     { value: 'BLT', label: 'BLT (Bantuan Langsung Tunai)' },
@@ -79,17 +80,8 @@ export default function BantuanSosialForm({ mode = 'create', bantuanSosial = nul
     return (
         <form onSubmit={handleSubmit} className="space-y-6">
             {/* ── Section: Info Program ── */}
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                <div className="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white flex items-center gap-3">
-                    <div className="w-8 h-8 bg-green-100 rounded-xl flex items-center justify-center">
-                        <FileText className="w-4 h-4 text-green-600" />
-                    </div>
-                    <div>
-                        <h3 className="text-sm font-black text-gray-900 uppercase italic tracking-tighter">Informasi Program</h3>
-                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Data dasar program bantuan</p>
-                    </div>
-                </div>
-                <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+            <FormCard icon={FileText} title="Informasi Program">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div className="md:col-span-2">
                         <Field label="Nama Program" required error={errors.nama_program}>
                             <input
@@ -154,20 +146,11 @@ export default function BantuanSosialForm({ mode = 'create', bantuanSosial = nul
                         </Field>
                     </div>
                 </div>
-            </div>
+            </FormCard>
 
             {/* ── Section: Dana & Periode ── */}
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                <div className="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white flex items-center gap-3">
-                    <div className="w-8 h-8 bg-green-100 rounded-xl flex items-center justify-center">
-                        <DollarSign className="w-4 h-4 text-green-600" />
-                    </div>
-                    <div>
-                        <h3 className="text-sm font-black text-gray-900 uppercase italic tracking-tighter">Dana &amp; Periode</h3>
-                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Informasi keuangan dan waktu</p>
-                    </div>
-                </div>
-                <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+            <FormCard icon={DollarSign} title="Dana & Periode">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <Field label="Nilai Bantuan (Rp)" error={errors.nilai_bantuan}>
                         <input
                             type="number"
@@ -232,7 +215,7 @@ export default function BantuanSosialForm({ mode = 'create', bantuanSosial = nul
                         />
                     </Field>
                 </div>
-            </div>
+            </FormCard>
 
             {/* ── Action Buttons ── */}
             <div className="flex flex-col sm:flex-row gap-3 justify-end">

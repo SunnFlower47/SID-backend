@@ -3,15 +3,11 @@ import { Head, Link, router, Deferred } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import FasilitasDesaStats from '@/Components/FasilitasDesa/FasilitasDesaStats';
 import FasilitasDesaFilters from '@/Components/FasilitasDesa/FasilitasDesaFilters';
-import Pagination from '@/Components/Shared/Pagination';
+import { PageHeader, TableCard, Badge, EmptyState } from '@/Components/Shared';
 import SkeletonStats from '@/Components/Shared/Skeleton/SkeletonStats';
 import SkeletonTable from '@/Components/Shared/Skeleton/SkeletonTable';
 import { Building2, Plus, Edit2, Trash2, Eye, MapPin, CheckCircle, XCircle, Clock, Phone } from 'lucide-react';
 import Swal from 'sweetalert2';
-import Lottie from 'lottie-react';
-import noDataAnimation from '@/assets/lottie/no-data-animation.json';
-
-const LottieComponent = Lottie?.default || Lottie;
 
 export default function Index({ auth, fasilitas, stats, filters, jenisOptions }) {
     const handleDelete = (id, nama) => {
@@ -55,29 +51,14 @@ export default function Index({ auth, fasilitas, stats, filters, jenisOptions })
 
             <div className="space-y-6 animate-in fade-in duration-700 pb-20 text-left">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-green-600 via-green-700 to-green-800 rounded-3xl shadow-xl p-6 sm:p-8 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl pointer-events-none"></div>
-                    <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                        <div className="flex items-center space-x-4 text-left">
-                            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-inner shrink-0">
-                                <Building2 className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-300" />
-                            </div>
-                            <div>
-                                <h1 className="text-xl sm:text-3xl font-black text-white tracking-tight uppercase italic leading-none">Fasilitas Desa</h1>
-                                <p className="text-green-100 font-bold text-[10px] sm:text-xs uppercase tracking-widest mt-1 opacity-80 italic">Manajemen Sarana & Prasarana Pelayanan Desa</p>
-                            </div>
-                        </div>
-                        <div className="flex flex-wrap gap-2 sm:gap-3">
-                            <Link 
-                                href={route('fasilitas-desa.create')}
-                                className="flex items-center px-6 py-3 bg-white text-green-700 hover:bg-green-50 rounded-xl text-[10px] sm:text-xs font-black shadow-lg shadow-black/10 transition-all hover:scale-105 uppercase tracking-widest"
-                            >
-                                <Plus className="w-3.5 h-3.5 mr-2" />
-                                TAMBAH FASILITAS
-                            </Link>
-                        </div>
-                    </div>
-                </div>
+                <PageHeader
+                    icon={Building2}
+                    title="Fasilitas Desa"
+                    subtitle="Manajemen Sarana & Prasarana Pelayanan Desa"
+                    actions={[
+                        { label: 'Tambah Fasilitas', icon: Plus, href: route('fasilitas-desa.create') }
+                    ]}
+                />
 
                 {/* Stats */}
                 <Deferred data="stats" fallback={<SkeletonStats />}>
@@ -89,23 +70,20 @@ export default function Index({ auth, fasilitas, stats, filters, jenisOptions })
 
                 {/* Data Table */}
                 <Deferred data="fasilitas" fallback={<SkeletonTable columns={6} rows={10} />}>
-                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden text-left">
-                        <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-gray-50 to-white">
-                            <h3 className="text-lg font-black text-gray-900 flex items-center gap-3 uppercase italic tracking-tighter">
-                                <Building2 className="w-6 h-6 text-green-600" />
-                                Daftar Fasilitas Desa
-                            </h3>
-                            <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-[10px] font-black uppercase tracking-widest italic">
-                                Total: {fasilitas?.total || 0}
-                            </span>
-                        </div>
-
+                    <TableCard
+                        icon={Building2}
+                        title="Daftar Fasilitas Desa"
+                        total={fasilitas?.total || 0}
+                        totalLabel="Fasilitas"
+                        pagination={fasilitas}
+                        noPadding
+                    >
                         {fasilitas?.data?.length > 0 ? (
                             <>
                                 {/* Desktop View */}
                                 <div className="hidden lg:block overflow-x-auto">
                                     <table className="w-full text-left text-sm text-gray-600">
-                                        <thead className="bg-gray-50/50 text-gray-900 font-bold uppercase text-xs tracking-wider border-b border-gray-100">
+                                        <thead className="bg-gray-50/50 text-gray-900 font-bold uppercase text-[10px] tracking-wider border-b border-gray-100">
                                             <tr>
                                                 <th className="px-6 py-4">Fasilitas / Lokasi</th>
                                                 <th className="px-6 py-4">Jenis</th>
@@ -136,9 +114,9 @@ export default function Index({ auth, fasilitas, stats, filters, jenisOptions })
                                                         </div>
                                                     </td>
                                                     <td className="px-6 py-4">
-                                                        <span className="text-[10px] font-black text-green-600 bg-green-50 px-2 py-1 rounded uppercase tracking-widest border border-green-100">
+                                                        <Badge color="emerald">
                                                             {item.jenis.replace('_', ' ')}
-                                                        </span>
+                                                        </Badge>
                                                     </td>
                                                     <td className="px-6 py-4">
                                                         <div className="space-y-1">
@@ -164,15 +142,13 @@ export default function Index({ auth, fasilitas, stats, filters, jenisOptions })
                                                     </td>
                                                     <td className="px-6 py-4 text-center">
                                                         {item.status_aktif ? (
-                                                            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-green-100 text-green-700 rounded-full text-[9px] font-black uppercase tracking-widest">
-                                                                <CheckCircle className="w-3 h-3" />
-                                                                AKTIF
-                                                            </div>
+                                                            <Badge color="green">
+                                                                <CheckCircle className="w-3 h-3 mr-1 inline" /> AKTIF
+                                                            </Badge>
                                                         ) : (
-                                                            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 text-gray-500 rounded-full text-[9px] font-black uppercase tracking-widest">
-                                                                <XCircle className="w-3 h-3" />
-                                                                NONAKTIF
-                                                            </div>
+                                                            <Badge color="gray">
+                                                                <XCircle className="w-3 h-3 mr-1 inline" /> NONAKTIF
+                                                            </Badge>
                                                         )}
                                                     </td>
                                                     <td className="px-6 py-4 text-right">
@@ -208,9 +184,7 @@ export default function Index({ auth, fasilitas, stats, filters, jenisOptions })
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <h4 className="font-black text-gray-900 truncate uppercase italic tracking-tighter leading-none mb-2">{item.nama}</h4>
-                                                    <span className="inline-flex px-2 py-0.5 rounded bg-green-50 text-green-600 text-[9px] font-black uppercase tracking-widest border border-green-100">
-                                                        {item.jenis.replace('_', ' ')}
-                                                    </span>
+                                                    <Badge color="emerald">{item.jenis.replace('_', ' ')}</Badge>
                                                 </div>
                                             </div>
                                             
@@ -241,30 +215,17 @@ export default function Index({ auth, fasilitas, stats, filters, jenisOptions })
                                 </div>
                             </>
                         ) : (
-                            <div className="p-12 text-center">
-                                <div className="w-64 h-64 mx-auto mb-4">
-                                    <LottieComponent animationData={noDataAnimation} loop={true} />
-                                </div>
-                                <h3 className="text-xl font-black text-gray-900 uppercase italic tracking-tighter">Belum Ada Fasilitas</h3>
-                                <p className="text-sm text-gray-500 mt-2 max-w-xs mx-auto font-bold uppercase tracking-widest text-[10px]">
-                                    Silakan tambah fasilitas baru untuk melengkapi sarana prasarana desa.
-                                </p>
-                                <Link 
-                                    href={route('fasilitas-desa.create')}
-                                    className="inline-flex items-center px-6 py-3 bg-green-600 text-white rounded-xl text-xs font-black shadow-lg shadow-green-200 hover:bg-green-700 transition-all mt-6 uppercase tracking-widest"
-                                >
-                                    <Plus className="w-4 h-4 mr-2" />
-                                    TAMBAH FASILITAS SEKARANG
-                                </Link>
-                            </div>
+                            <EmptyState
+                                icon={Building2}
+                                title="Belum Ada Fasilitas"
+                                message="Silakan tambah fasilitas baru untuk melengkapi sarana prasarana desa."
+                                action={{ label: 'Tambah Fasilitas', icon: Plus, href: route('fasilitas-desa.create') }}
+                            />
                         )}
-
-                        <div className="p-4 border-t border-gray-100 bg-gray-50/50">
-                            <Pagination links={fasilitas?.links} from={fasilitas?.from} to={fasilitas?.to} total={fasilitas?.total} />
-                        </div>
-                    </div>
+                    </TableCard>
                 </Deferred>
             </div>
         </AuthenticatedLayout>
     );
 }
+

@@ -2,6 +2,7 @@ import React from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import Pagination from '@/Components/Shared/Pagination';
+import { PageHeader } from '@/Components/Shared';
 import { AlertTriangle, Clock, CheckCircle, ArrowLeft, Search, FileText, Wrench, History, ChevronDown, Filter } from 'lucide-react';
 import Lottie from 'lottie-react';
 import noDataAnimation from '@/assets/lottie/no-data-animation.json';
@@ -35,28 +36,12 @@ export default function Index({ auth, kkList, stats, tab, search, status }) {
 
             <div className="space-y-6 animate-in fade-in duration-700 pb-20">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-green-600 via-green-700 to-green-800 rounded-3xl shadow-xl p-6 sm:p-8 text-white relative overflow-hidden">
-                    <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl"></div>
-                    <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                        <div className="flex items-center space-x-4">
-                            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-inner shrink-0">
-                                <AlertTriangle className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-300" />
-                            </div>
-                            <div>
-                                <h1 className="text-xl sm:text-3xl font-black tracking-tight uppercase italic leading-none text-left">KK Bermasalah</h1>
-                                <p className="text-green-100 font-bold text-[10px] sm:text-xs uppercase tracking-widest mt-1 opacity-80 text-left italic">
-                                    Audit & Pemulihan Data Kartu Keluarga Bermasalah
-                                </p>
-                            </div>
-                        </div>
-                        <Link 
-                            href={route('kk.index')}
-                            className="inline-flex items-center px-6 py-3 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
-                        >
-                            <ArrowLeft className="w-4 h-4 mr-2" /> KEMBALI
-                        </Link>
-                    </div>
-                </div>
+                <PageHeader
+                    title="KK Bermasalah"
+                    subtitle="Audit & Pemulihan Data Kartu Keluarga Bermasalah"
+                    icon={AlertTriangle}
+                    backHref={route('kk.index')}
+                />
 
                 {/* Stats Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

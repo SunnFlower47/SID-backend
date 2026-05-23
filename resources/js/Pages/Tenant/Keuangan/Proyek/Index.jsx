@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Head, Link, Deferred } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { PageHeader } from '@/Components/Shared';
 import ProyekCard from '@/Components/Keuangan/ProyekCard';
 import RealisasiModal from '@/Components/Keuangan/RealisasiModal';
 import KeuanganFilters from '@/Components/Keuangan/KeuanganFilters';
@@ -32,28 +33,15 @@ export default function Index({ auth, filters = {}, proyek, stats }) {
             <div className="space-y-6 animate-in fade-in duration-700 pb-20">
 
                 {/* Header */}
-                <div className="bg-gradient-to-r from-green-600 via-green-700 to-green-800 rounded-3xl shadow-xl p-6 sm:p-8 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl pointer-events-none" />
-                    <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                        <div className="flex items-center space-x-4">
-                            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-inner shrink-0">
-                                <Building2 className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-300" />
-                            </div>
-                            <div>
-                                <h1 className="text-xl sm:text-3xl font-black text-white tracking-tight uppercase italic leading-none">Proyek Desa</h1>
-                                <p className="text-green-100 font-bold text-[10px] sm:text-xs uppercase tracking-widest mt-1 opacity-80 italic">Manajemen & Monitoring Proyek Pembangunan</p>
-                            </div>
-                        </div>
-                        <div className="flex flex-wrap gap-2 sm:gap-3">
-                            <Link href={route('transparansi-desa.index')} className="flex items-center px-4 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl text-[10px] sm:text-xs font-black transition-all uppercase tracking-widest backdrop-blur-md border border-white/10">
-                                <ArrowLeft className="w-3.5 h-3.5 mr-2" /> DASHBOARD
-                            </Link>
-                            <Link href={route('anggaran.create-proyek')} className="flex items-center px-4 py-3 bg-white text-green-700 hover:bg-green-50 rounded-xl text-[10px] sm:text-xs font-black shadow-lg shadow-black/10 transition-all hover:scale-105 uppercase tracking-widest">
-                                <Plus className="w-3.5 h-3.5 mr-2" /> TAMBAH PROYEK
-                            </Link>
-                        </div>
-                    </div>
-                </div>
+                <PageHeader
+                    title="Proyek Desa"
+                    subtitle="Manajemen & Monitoring Proyek Pembangunan"
+                    icon={Building2}
+                    actions={[
+                        { label: 'DASHBOARD', icon: ArrowLeft, href: route('transparansi-desa.index'), variant: 'ghost' },
+                        { label: 'TAMBAH PROYEK', icon: Plus, href: route('anggaran.create-proyek'), variant: 'white' },
+                    ]}
+                />
 
                 {/* Stats */}
                 <Deferred data="stats" fallback={<SkeletonStats />}>

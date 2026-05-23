@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Home, ArrowLeft, Plus, MapPin, Crown, Info, UserCircle, Calendar, Briefcase, GraduationCap, Heart, User, Save } from 'lucide-react';
+import { Home, Plus, Crown, Save } from 'lucide-react';
 import Swal from 'sweetalert2';
+
+// Shared Components
+import { PageHeader, FormCard, FormField } from '@/Components/Shared';
 
 export default function Create({ auth, masterRwOptions }) {
     const { data, setData, post, processing, errors } = useForm({
@@ -56,71 +59,50 @@ export default function Create({ auth, masterRwOptions }) {
 
             <div className="space-y-6 animate-in fade-in duration-700 pb-20">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-green-600 via-green-700 to-green-800 rounded-3xl shadow-xl p-6 sm:p-8 text-white relative overflow-hidden">
-                    <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl"></div>
-                    <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                        <div className="flex items-center space-x-4">
-                            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-inner shrink-0">
-                                <Plus className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-300" />
-                            </div>
-                            <div>
-                                <h1 className="text-xl sm:text-3xl font-black tracking-tight uppercase italic leading-none text-left">Registrasi Kartu Keluarga</h1>
-                                <p className="text-green-100 font-bold text-[10px] sm:text-xs uppercase tracking-widest mt-1 opacity-80 italic text-left">Pendaftaran Rumah Tangga Baru Desa Cibatu</p>
-                            </div>
-                        </div>
-                        <Link 
-                            href={route('kk.index')}
-                            className="flex items-center px-6 py-3 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all w-fit"
-                        >
-                            <ArrowLeft className="w-4 h-4 mr-2" /> KEMBALI
-                        </Link>
-                    </div>
-                </div>
+                <PageHeader 
+                    title="Registrasi Kartu Keluarga"
+                    titleSize="sm"
+                    subtitle="Pendaftaran Rumah Tangga Baru Desa Cibatu"
+                    icon={Plus}
+                    backHref={route('kk.index')}
+                />
 
                 <div className="w-full">
                     <form onSubmit={handleSubmit} className="space-y-6">
                         {/* Household Data Section */}
-                        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-                            <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white flex items-center gap-3">
-                                <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
-                                    <Home className="w-4 h-4 text-blue-600" />
-                                </div>
-                                <h3 className="text-sm font-black text-gray-900 uppercase italic tracking-tighter">Informasi Rumah Tangga (KK)</h3>
-                            </div>
-                            
-                            <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <FormCard icon={Home} title="Informasi Rumah Tangga (KK)">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="md:col-span-2">
-                                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">Nomor Kartu Keluarga (NKK) *</label>
-                                    <input 
-                                        type="text"
+                                    <FormField.Input 
+                                        label="Nomor Kartu Keluarga (NKK)"
+                                        required
                                         maxLength="16"
                                         value={data.nkk}
                                         onChange={e => setData('nkk', e.target.value)}
-                                        className={`w-full px-4 py-3.5 bg-gray-50 border rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all font-mono font-bold text-sm tracking-widest ${errors.nkk ? 'border-red-500' : 'border-gray-100'}`}
+                                        error={errors.nkk}
                                         placeholder="MASUKKAN 16 DIGIT NKK"
-                                        required
+                                        inputClassName="font-mono font-bold tracking-widest"
                                     />
-                                    {errors.nkk && <p className="mt-2 text-[10px] font-bold text-red-600 uppercase italic px-1">{errors.nkk}</p>}
                                 </div>
 
                                 <div className="md:col-span-2">
-                                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">Alamat Domisili *</label>
-                                    <textarea 
+                                    <FormField.Textarea 
+                                        label="Alamat Domisili"
+                                        required
+                                        rows="2"
                                         value={data.alamat}
                                         onChange={e => setData('alamat', e.target.value.toUpperCase())}
-                                        rows="2"
-                                        className={`w-full px-4 py-3.5 bg-gray-50 border rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all font-bold text-sm uppercase ${errors.alamat ? 'border-red-500' : 'border-gray-100'}`}
+                                        error={errors.alamat}
                                         placeholder="KP / JALAN / NO RUMAH"
-                                        required
+                                        inputClassName="uppercase"
                                     />
                                 </div>
 
-                                <div>
-                                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">RW *</label>
+                                <FormField label="RW" required error={errors.rw_id}>
                                     <select 
                                         value={data.rw_id}
                                         onChange={e => setData('rw_id', e.target.value)}
-                                        className="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-blue-500 font-black text-xs uppercase"
+                                        className="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-blue-500 font-bold text-sm uppercase"
                                         required
                                     >
                                         <option value="">PILIH RW</option>
@@ -128,130 +110,111 @@ export default function Create({ auth, masterRwOptions }) {
                                             <option key={rw.id} value={rw.id}>RW {rw.kode} - {rw.nama}</option>
                                         ))}
                                     </select>
-                                </div>
+                                </FormField>
 
-                                <div>
-                                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">RT *</label>
+                                <FormField label="RT" required error={errors.rt_id}>
                                     <select 
                                         value={data.rt_id}
                                         onChange={e => setData('rt_id', e.target.value)}
                                         disabled={!data.rw_id}
-                                        className="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-blue-500 font-black text-xs uppercase disabled:opacity-50"
+                                        className="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-blue-500 font-bold text-sm uppercase disabled:opacity-50"
                                         required
                                     >
-                                    <option value="">PILIH RT</option>
-                                    {availableRts.map(rt => (
-                                        <option key={rt.id} value={rt.id}>RT {rt.kode} {rt.dusun ? `- DUSUN ${rt.dusun.toUpperCase()}` : ''}</option>
-                                    ))}
-                                </select>
+                                        <option value="">PILIH RT</option>
+                                        {availableRts.map(rt => (
+                                            <option key={rt.id} value={rt.id}>RT {rt.kode} {rt.dusun ? `- DUSUN ${rt.dusun.toUpperCase()}` : ''}</option>
+                                        ))}
+                                    </select>
+                                </FormField>
                             </div>
-                        </div>
-                    </div>
+                        </FormCard>
 
-                    {/* Head of Family Section */}
-                    <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-                        <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white flex items-center gap-3">
-                            <div className="w-8 h-8 bg-yellow-50 rounded-lg flex items-center justify-center">
-                                <Crown className="w-4 h-4 text-yellow-600" />
-                            </div>
-                            <h3 className="text-sm font-black text-gray-900 uppercase italic tracking-tighter">Profil Kepala Keluarga Utama</h3>
-                        </div>
-                        
-                        <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">Nama Kepala Keluarga *</label>
-                                <input 
-                                    type="text"
+                        {/* Head of Family Section */}
+                        <FormCard icon={Crown} title="Profil Kepala Keluarga Utama">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <FormField.Input 
+                                    label="Nama Kepala Keluarga"
+                                    required
                                     value={data.nama_kepala_keluarga}
                                     onChange={e => setData('nama_kepala_keluarga', e.target.value.toUpperCase())}
-                                    className="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-blue-500 font-black text-xs uppercase italic"
+                                    error={errors.nama_kepala_keluarga}
                                     placeholder="NAMA LENGKAP"
-                                    required
+                                    inputClassName="uppercase italic"
                                 />
-                            </div>
 
-                            <div>
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">NIK Kepala Keluarga *</label>
-                                <input 
-                                    type="text"
+                                <FormField.Input 
+                                    label="NIK Kepala Keluarga"
+                                    required
                                     maxLength="16"
                                     value={data.nik_kepala_keluarga}
                                     onChange={e => setData('nik_kepala_keluarga', e.target.value)}
-                                    className="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-blue-500 font-mono font-bold text-xs"
+                                    error={errors.nik_kepala_keluarga}
                                     placeholder="NIK 16 DIGIT"
-                                    required
+                                    inputClassName="font-mono font-bold"
                                 />
-                            </div>
 
-                            <div>
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">Tempat Lahir</label>
-                                <input 
-                                    type="text"
+                                <FormField.Input 
+                                    label="Tempat Lahir"
+                                    required
                                     value={data.tempat_lahir}
                                     onChange={e => setData('tempat_lahir', e.target.value.toUpperCase())}
-                                    className="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-blue-500 font-bold text-xs uppercase"
-                                    required
+                                    error={errors.tempat_lahir}
+                                    inputClassName="uppercase"
                                 />
-                            </div>
 
-                            <div>
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">Tanggal Lahir</label>
-                                <input 
+                                <FormField.Input 
+                                    label="Tanggal Lahir"
                                     type="date"
+                                    required
                                     value={data.tanggal_lahir}
                                     onChange={e => setData('tanggal_lahir', e.target.value)}
-                                    className="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-blue-500 font-bold text-xs"
-                                    required
+                                    error={errors.tanggal_lahir}
                                 />
-                            </div>
 
-                            <div>
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">Jenis Kelamin</label>
-                                <div className="grid grid-cols-2 gap-3">
-                                    {['LAKI-LAKI', 'PEREMPUAN'].map(gender => (
-                                        <button
-                                            key={gender}
-                                            type="button"
-                                            onClick={() => setData('jenis_kelamin', gender)}
-                                            className={`py-3 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all ${data.jenis_kelamin === gender ? 'bg-blue-600 border-blue-600 text-white shadow-lg' : 'bg-white border-gray-100 text-gray-400 hover:bg-gray-50'}`}
-                                        >
-                                            {gender}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
+                                <FormField label="Jenis Kelamin">
+                                    <div className="grid grid-cols-2 gap-3">
+                                        {['LAKI-LAKI', 'PEREMPUAN'].map(gender => (
+                                            <button
+                                                key={gender}
+                                                type="button"
+                                                onClick={() => setData('jenis_kelamin', gender)}
+                                                className={`py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest border transition-all ${data.jenis_kelamin === gender ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-200' : 'bg-white border-gray-100 text-gray-400 hover:bg-gray-50'}`}
+                                            >
+                                                {gender}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </FormField>
 
-                            <div>
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">Pekerjaan</label>
-                                <input 
-                                    type="text"
+                                <FormField.Input 
+                                    label="Pekerjaan"
+                                    required
                                     value={data.pekerjaan}
                                     onChange={e => setData('pekerjaan', e.target.value.toUpperCase())}
-                                    className="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-blue-500 font-bold text-xs uppercase"
+                                    error={errors.pekerjaan}
                                     placeholder="CONTOH: WIRASWASTA"
-                                    required
+                                    inputClassName="uppercase"
                                 />
                             </div>
-                        </div>
-                    </div>
+                        </FormCard>
 
-                    {/* Submit Section */}
-                    <div className="flex justify-end pt-4 pb-12">
-                        <button
-                            type="submit"
-                            disabled={processing}
-                            className="w-full sm:w-auto px-10 py-3.5 bg-green-600 hover:bg-green-700 text-white font-black rounded-xl shadow-xl shadow-green-200 hover:scale-[1.02] active:scale-95 transition-all text-[10px] uppercase tracking-[0.2em] flex items-center justify-center disabled:opacity-50"
-                        >
-                            {processing ? (
-                                <><div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-3"></div> MEMPROSES...</>
-                            ) : (
-                                <><Save className="w-4 h-4 mr-2" /> DAFTARKAN KARTU KELUARGA</>
-                            )}
-                        </button>
-                    </div>
+                        {/* Submit Section */}
+                        <div className="flex justify-end pt-4 pb-12">
+                            <button
+                                type="submit"
+                                disabled={processing}
+                                className="w-full sm:w-auto px-10 py-3.5 bg-green-600 hover:bg-green-700 text-white font-black rounded-xl shadow-xl shadow-green-200 hover:scale-[1.02] active:scale-95 transition-all text-[10px] uppercase tracking-[0.2em] flex items-center justify-center disabled:opacity-50"
+                            >
+                                {processing ? (
+                                    <><div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-3"></div> MEMPROSES...</>
+                                ) : (
+                                    <><Save className="w-4 h-4 mr-2" /> DAFTARKAN KARTU KELUARGA</>
+                                )}
+                            </button>
+                        </div>
                     </form>
                 </div>
             </div>
         </AuthenticatedLayout>
-);
+    );
 }

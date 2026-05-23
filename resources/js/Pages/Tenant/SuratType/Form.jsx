@@ -15,6 +15,7 @@ import {
 import * as LucideIcons from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Modal from '@/Components/Shared/Modal';
+import { PageHeader } from '@/Components/Shared';
 
 export default function Form({ auth, suratType = null }) {
     const isEdit = !!suratType;
@@ -142,41 +143,26 @@ export default function Form({ auth, suratType = null }) {
 
             <div className="space-y-6 animate-in fade-in duration-700 pb-20">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 rounded-3xl shadow-xl p-6 sm:p-8 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl"></div>
-                    <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                        <div className="flex items-center space-x-4">
-                            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-inner shrink-0">
-                                <FileText className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-300" />
-                            </div>
-                            <div>
-                                <h1 className="text-xl sm:text-3xl font-black text-white tracking-tight uppercase italic leading-none">
-                                    {isEdit ? 'Edit Jenis Surat' : 'Tambah Jenis Surat'}
-                                </h1>
-                                <p className="text-blue-100 font-bold text-[10px] sm:text-xs uppercase tracking-widest mt-1 opacity-80">
-                                    {isEdit ? `Memperbarui konfigurasi ${suratType.nama}` : 'Buat konfigurasi surat baru untuk warga'}
-                                </p>
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                            <button 
-                                type="button"
-                                onClick={() => setShowGuide(true)}
-                                className="flex items-center px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-2xl text-[10px] font-black transition-all uppercase tracking-widest shadow-lg shadow-blue-100"
-                            >
-                                <HelpCircle className="w-3.5 h-3.5 mr-2" />
-                                Panduan Kode Word
-                            </button>
-                            <Link 
-                                href={route('admin.surat-type.index')}
-                                className="flex items-center px-6 py-3 bg-white/20 hover:bg-white/30 backdrop-blur-md border border-white/20 text-white rounded-xl text-[10px] sm:text-xs font-black transition-all uppercase tracking-widest"
-                            >
-                                <ArrowLeft className="w-3.5 h-3.5 mr-2" />
-                                KEMBALI
-                            </Link>
-                        </div>
-                    </div>
-                </div>
+                <PageHeader 
+                    title={isEdit ? 'Edit Jenis Surat' : 'Tambah Jenis Surat'}
+                    subtitle={isEdit ? `Memperbarui konfigurasi ${suratType.nama}` : 'Buat konfigurasi surat baru untuk warga'}
+                    icon={FileText}
+                    gradient="from-blue-600 via-blue-700 to-blue-800"
+                    actions={[
+                        {
+                            label: 'Panduan Kode Word',
+                            icon: HelpCircle,
+                            onClick: () => setShowGuide(true),
+                            variant: 'white'
+                        },
+                        {
+                            label: 'KEMBALI',
+                            icon: ArrowLeft,
+                            href: route('admin.surat-type.index'),
+                            variant: 'ghost'
+                        }
+                    ]}
+                />
 
                 {/* Modal Panduan */}
                 <Modal show={showGuide} onClose={() => setShowGuide(false)} maxWidth="2xl">

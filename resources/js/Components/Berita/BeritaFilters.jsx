@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Search, Filter, RefreshCw, SlidersHorizontal } from 'lucide-react';
 import { router } from '@inertiajs/react';
 import { cn } from '@/lib/utils';
+import { FormField } from '@/Components/Shared';
 
 export default function BeritaFilters({ filters = {} }) {
     const [showFilters, setShowFilters] = useState(
@@ -60,41 +61,33 @@ export default function BeritaFilters({ filters = {} }) {
             {showFilters && (
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-3 sm:p-4 animate-in slide-in-from-top-2 duration-300 text-left">
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 text-left">
-                        <div className="text-left text-left">
-                            <input 
-                                type="text" 
-                                value={local.search} 
-                                placeholder="Cari judul atau isi berita..."
-                                onChange={e => updateLocal('search', e.target.value)}
-                                onKeyDown={e => e.key === 'Enter' && handleApply()}
-                                className="w-full border border-gray-200 rounded-xl px-4 py-2 text-sm font-bold focus:ring-2 focus:ring-green-500 focus:border-green-500 text-left" 
-                            />
-                        </div>
+                        <FormField.Input 
+                            value={local.search} 
+                            placeholder="Cari judul atau isi berita..."
+                            onChange={e => updateLocal('search', e.target.value)}
+                            onKeyDown={e => e.key === 'Enter' && handleApply()}
+                        />
 
-                        <div className="text-left text-left">
-                            <select 
-                                value={local.kategori} 
-                                onChange={e => updateLocal('kategori', e.target.value)} 
-                                className="w-full border border-gray-200 rounded-xl px-4 py-2 text-sm font-bold focus:ring-2 focus:ring-green-500 appearance-none cursor-pointer text-left"
-                            >
-                                <option value="">Semua Kategori</option>
-                                <option value="berita">Berita Desa</option>
-                                <option value="pengumuman">Pengumuman Resmi</option>
-                                <option value="agenda">Agenda Kegiatan</option>
-                            </select>
-                        </div>
+                        <FormField.Select 
+                            value={local.kategori} 
+                            onChange={e => updateLocal('kategori', e.target.value)}
+                            options={[
+                                { value: '', label: 'Semua Kategori' },
+                                { value: 'berita', label: 'Berita Desa' },
+                                { value: 'pengumuman', label: 'Pengumuman Resmi' },
+                                { value: 'agenda', label: 'Agenda Kegiatan' }
+                            ]}
+                        />
 
-                        <div className="text-left">
-                            <select 
-                                value={local.status} 
-                                onChange={e => updateLocal('status', e.target.value)} 
-                                className="w-full border border-gray-200 rounded-xl px-4 py-2 text-sm font-bold focus:ring-2 focus:ring-green-500 appearance-none cursor-pointer text-left text-left"
-                            >
-                                <option value="">Semua Status</option>
-                                <option value="published">Diterbitkan</option>
-                                <option value="draft">Draft (Arsip)</option>
-                            </select>
-                        </div>
+                        <FormField.Select 
+                            value={local.status} 
+                            onChange={e => updateLocal('status', e.target.value)}
+                            options={[
+                                { value: '', label: 'Semua Status' },
+                                { value: 'published', label: 'Diterbitkan' },
+                                { value: 'draft', label: 'Draft (Arsip)' }
+                            ]}
+                        />
                     </div>
                     
                     <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 mt-3 sm:mt-4 text-left text-left">

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head } from '@inertiajs/react';
 import * as Icons from 'lucide-react';
+import { PageHeader } from '@/Components/Shared';
 import { cn } from '@/lib/utils';
 import axios from 'axios';
 import Swal from 'sweetalert2';
@@ -152,22 +153,12 @@ export default function ExportData() {
 
             <div className="space-y-6">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-green-600 via-green-700 to-green-800 rounded-3xl shadow-xl p-6 sm:p-8 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl"></div>
-                    <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                        <div className="flex items-center space-x-4">
-                            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-inner shrink-0">
-                                <Icons.Download className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-300" />
-                            </div>
-                            <div>
-                                <h1 className="text-xl sm:text-3xl font-black text-white tracking-tight uppercase italic leading-none">Export Data</h1>
-                                <p className="text-green-100 font-bold text-[10px] sm:text-xs uppercase tracking-widest mt-1 opacity-80">
-                                    Unduh data sistem ke format Excel
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <PageHeader
+                    title="Export Data"
+                    subtitle="Unduh data sistem ke format Excel"
+                    icon={Icons.Download}
+                    titleSize="lg"
+                />
 
                 {/* Export Section */}
                 <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">

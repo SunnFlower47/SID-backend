@@ -100,30 +100,35 @@ export default function Create({ auth, kategoris, tahun, semester }) {
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <FormField label="Golongan Aset" required>
-                                <select value={selectedKategori} onChange={(e) => handleKategoriChange(e.target.value)}
-                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-green-500/10 focus:border-green-500 transition-all">
-                                    <option value="">Pilih golongan...</option>
-                                    {kategoris.map((k) => (
-                                        <option key={k.id} value={k.id}>{k.kode} — {k.nama}</option>
-                                    ))}
-                                </select>
-                            </FormField>
+                            <FormField.Select
+                                label="Golongan Aset"
+                                required
+                                value={selectedKategori}
+                                onChange={(e) => handleKategoriChange(e.target.value)}
+                                options={[
+                                    { value: '', label: 'Pilih golongan...' },
+                                    ...kategoris.map((k) => ({ value: k.id, label: `${k.kode} — ${k.nama}` }))
+                                ]}
+                            />
 
-                            <FormField label="Kode & Tipe Barang" required error={errors.aset_barang_id}>
-                                <select value={data.aset_barang_id} onChange={(e) => handleBarangChange(e.target.value)}
-                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-green-500/10 focus:border-green-500 transition-all">
-                                    <option value="">Pilih tipe barang...</option>
-                                    {barangOptions.map((b) => (
-                                        <option key={b.id} value={b.id}>{b.kode_barang} — {b.nama_barang}</option>
-                                    ))}
-                                </select>
+                            <div className="space-y-1">
+                                <FormField.Select
+                                    label="Kode & Tipe Barang"
+                                    required
+                                    value={data.aset_barang_id}
+                                    onChange={(e) => handleBarangChange(e.target.value)}
+                                    error={errors.aset_barang_id}
+                                    options={[
+                                        { value: '', label: 'Pilih tipe barang...' },
+                                        ...barangOptions.map((b) => ({ value: b.id, label: `${b.kode_barang} — ${b.nama_barang}` }))
+                                    ]}
+                                />
                                 {selectedBarang && (
                                     <p className="text-[10px] text-gray-400 font-mono ml-1 mt-1">
                                         Tipe: <span className="text-green-600 font-bold">{selectedBarang.kode_barang}</span> — {selectedBarang.nama_barang}
                                     </p>
                                 )}
-                            </FormField>
+                            </div>
                         </div>
                     </FormCard>
 
@@ -278,19 +283,29 @@ export default function Create({ auth, kategoris, tahun, semester }) {
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
-                            <FormField label={`Kwantitas${data.satuan ? ` (${data.satuan})` : ''}`} required error={errors.kwantitas}>
-                                <input type="number" step="0.01" min="0.01" placeholder="0"
-                                    value={data.kwantitas}
-                                    onChange={(e) => setData('kwantitas', e.target.value)}
-                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-bold outline-none focus:ring-4 focus:ring-green-500/10 focus:border-green-500 transition-all" />
-                            </FormField>
+                            <FormField.Input
+                                label={`Kwantitas${data.satuan ? ` (${data.satuan})` : ''}`}
+                                required
+                                type="number"
+                                step="0.01"
+                                min="0.01"
+                                placeholder="0"
+                                value={data.kwantitas}
+                                onChange={(e) => setData('kwantitas', e.target.value)}
+                                error={errors.kwantitas}
+                            />
 
-                            <FormField label="Nilai (Rp)" required error={errors.nilai}>
-                                <input type="number" step="1" min="0" placeholder="0"
-                                    value={data.nilai}
-                                    onChange={(e) => setData('nilai', e.target.value)}
-                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-bold outline-none focus:ring-4 focus:ring-green-500/10 focus:border-green-500 transition-all" />
-                            </FormField>
+                            <FormField.Input
+                                label="Nilai (Rp)"
+                                required
+                                type="number"
+                                step="1"
+                                min="0"
+                                placeholder="0"
+                                value={data.nilai}
+                                onChange={(e) => setData('nilai', e.target.value)}
+                                error={errors.nilai}
+                            />
 
                             <div className="sm:col-span-2">
                                 <FormField.Input

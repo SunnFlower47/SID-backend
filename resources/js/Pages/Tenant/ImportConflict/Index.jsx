@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Head, router, Deferred } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { PageHeader } from '@/Components/Shared';
 import { 
     AlertCircle, 
     CheckCircle2, 
@@ -68,27 +69,19 @@ export default function ImportConflictsIndex({ auth, conflicts, rws, filters, st
 
             <div className="space-y-6 animate-in fade-in duration-700 pb-20">
 
-                {/* ── Header — sama persis struktur & ukuran dengan Penduduk ── */}
-                <div className="bg-gradient-to-r from-green-600 via-green-700 to-green-800 rounded-3xl shadow-xl p-6 sm:p-8 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl" />
-                    <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                        <div className="flex items-center space-x-4">
-                            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-inner shrink-0">
-                                <FileWarning className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-300" />
-                            </div>
-                            <div>
-                                <h1 className="text-xl sm:text-3xl font-black text-white tracking-tight uppercase italic leading-none">Import Conflicts</h1>
-                                <p className="text-green-100 font-bold text-[10px] sm:text-xs uppercase tracking-widest mt-1 opacity-80">Selesaikan isu sinkronisasi data kependudukan</p>
-                            </div>
-                        </div>
-                        <div className="flex flex-wrap gap-2 sm:gap-3">
-                            <div className="flex items-center px-4 py-3 bg-green-500/30 backdrop-blur-md border border-green-400/30 text-white rounded-xl text-[10px] font-black uppercase tracking-widest gap-2">
-                                <AlertCircle className="w-3.5 h-3.5 text-yellow-300" />
-                                {stats?.pending ?? 0} Menunggu
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                {/* ── Header ── */}
+                <PageHeader
+                    title="Import Conflicts"
+                    subtitle="Selesaikan isu sinkronisasi data kependudukan"
+                    icon={FileWarning}
+                    actions={[
+                        {
+                            label: `${stats?.pending ?? 0} Menunggu`,
+                            icon: AlertCircle,
+                            variant: 'ghost'
+                        }
+                    ]}
+                />
 
                 {/* ── Stat Cards — sama pola dengan ResidentStats ── */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

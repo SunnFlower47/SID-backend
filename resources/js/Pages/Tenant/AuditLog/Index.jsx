@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import Pagination from '@/Components/Shared/Pagination';
+import { PageHeader, TableCard } from '@/Components/Shared';
 import SkeletonTable from '@/Components/Shared/Skeleton/SkeletonTable';
 import Lottie from 'lottie-react';
 import noDataAnimation from '@/assets/lottie/no-data-animation.json';
@@ -91,29 +91,20 @@ export default function Index({ auth, activities, users, events, subjectTypes, s
 
             <div className="space-y-6 animate-in fade-in duration-700 pb-20">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-green-600 via-green-700 to-green-800 rounded-3xl shadow-xl p-6 sm:p-8 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl pointer-events-none" />
-                    <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                        <div className="flex items-center space-x-4">
-                            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-inner shrink-0">
-                                <History className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-300" />
-                            </div>
-                            <div className="text-left">
-                                <h1 className="text-xl sm:text-3xl font-black text-white tracking-tight uppercase italic leading-none">Audit Log</h1>
-                                <p className="text-green-100 font-bold text-[10px] sm:text-xs uppercase tracking-widest mt-1 opacity-80 text-left">Riwayat Aktivitas & Perubahan Data Sistem</p>
-                            </div>
-                        </div>
-                        <div className="flex gap-2 sm:gap-3">
-                            <a 
-                                href={route('audit-log.export.excel', { start_date: startDate, end_date: endDate })}
-                                className="flex items-center px-6 py-3 bg-white text-green-700 hover:bg-green-50 rounded-xl text-[10px] sm:text-xs font-black shadow-lg shadow-black/10 transition-all hover:scale-105 uppercase tracking-widest"
-                            >
-                                <FileSpreadsheet className="w-3.5 h-3.5 mr-2" />
-                                Export Excel
-                            </a>
-                        </div>
-                    </div>
-                </div>
+                <PageHeader 
+                    title="Audit Log"
+                    subtitle="Riwayat Aktivitas & Perubahan Data Sistem"
+                    icon={History}
+                    actions={
+                        <a 
+                            href={route('audit-log.export.excel', { start_date: startDate, end_date: endDate })}
+                            className="flex items-center px-6 py-3 bg-green-600 text-white hover:bg-green-700 rounded-xl text-[10px] sm:text-xs font-black shadow-lg shadow-green-200 transition-all hover:scale-105 uppercase tracking-widest"
+                        >
+                            <FileSpreadsheet className="w-3.5 h-3.5 mr-2" />
+                            Export Excel
+                        </a>
+                    }
+                />
 
                 {/* Info Box */}
                 <div className="bg-green-50 border border-green-100 rounded-3xl p-6 flex items-start gap-4 text-left">
@@ -258,7 +249,18 @@ export default function Index({ auth, activities, users, events, subjectTypes, s
                 </div>
 
                 {/* Table View */}
-                <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+                <TableCard 
+                    title="Daftar Audit Log"
+                    icon={History}
+                    total={activities?.total || 0}
+                    noPadding
+                    pagination={{
+                        links: activities?.links,
+                        from: activities?.from,
+                        to: activities?.to,
+                        total: activities?.total
+                    }}
+                >
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
                             <thead>
@@ -352,19 +354,7 @@ export default function Index({ auth, activities, users, events, subjectTypes, s
                             </tbody>
                         </table>
                     </div>
-
-                    {/* Pagination */}
-                    {activities.links && activities.links.length > 3 && (
-                        <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex flex-wrap justify-center gap-1">
-                            <Pagination 
-                                links={activities.links} 
-                                from={activities.from}
-                                to={activities.to}
-                                total={activities.total}
-                            />
-                        </div>
-                    )}
-                </div>
+                </TableCard>
             </div>
         </AuthenticatedLayout>
     );

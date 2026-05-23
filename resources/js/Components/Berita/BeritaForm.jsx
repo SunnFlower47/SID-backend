@@ -10,6 +10,7 @@ import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import Swal from 'sweetalert2';
 import { cn } from '@/lib/utils';
+import { FormCard, FormField } from '@/Components/Shared';
 
 export default function BeritaForm({ berita = null, isEdit = false }) {
     const { data, setData, post, processing, errors } = useForm({
@@ -65,32 +66,22 @@ export default function BeritaForm({ berita = null, isEdit = false }) {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 text-left">
                 {/* Main Content Area */}
                 <div className="lg:col-span-9 space-y-6 text-left">
-                    <div className="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 p-8 sm:p-10 text-left">
-                        <div className="flex items-center gap-4 mb-8 text-left">
-                            <div className="w-12 h-12 bg-green-50 rounded-2xl flex items-center justify-center text-left">
-                                <FileText className="w-6 h-6 text-green-600" />
-                            </div>
-                            <div className="text-left">
-                                <h3 className="text-xl font-black text-gray-900 uppercase italic tracking-tighter text-left">Konten Utama</h3>
-                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none text-left">Tulis informasi yang ingin dibagikan</p>
-                            </div>
-                        </div>
-
+                    <FormCard 
+                        title="Konten Utama" 
+                        subtitle="Tulis informasi yang ingin dibagikan" 
+                        icon={FileText} 
+                        iconColor="text-green-600" 
+                        iconBg="bg-green-50"
+                    >
                         <div className="space-y-6 text-left">
-                            <div className="space-y-2 text-left">
-                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 text-left">Judul Konten</label>
-                                <div className="relative group text-left">
-                                    <Newspaper className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-green-500 transition-colors" />
-                                    <input
-                                        type="text"
-                                        value={data.judul}
-                                        onChange={e => setData('judul', e.target.value)}
-                                        className="w-full pl-12 pr-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold text-gray-700 focus:ring-4 focus:ring-green-500/10 transition-all text-left"
-                                        placeholder="Ketik judul yang menarik..."
-                                    />
-                                </div>
-                                {errors.judul && <p className="text-[10px] font-bold text-red-500 uppercase tracking-widest ml-1 italic">{errors.judul}</p>}
-                            </div>
+                            <FormField.Input
+                                label="Judul Konten"
+                                icon={Newspaper}
+                                value={data.judul}
+                                onChange={e => setData('judul', e.target.value)}
+                                error={errors.judul}
+                                placeholder="Ketik judul yang menarik..."
+                            />
 
                             <div className="space-y-2 text-left">
                                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 text-left">Isi Konten / Berita</label>
@@ -119,69 +110,60 @@ export default function BeritaForm({ berita = null, isEdit = false }) {
                                 {errors.konten && <p className="text-[10px] font-bold text-red-500 uppercase tracking-widest ml-1 italic text-left">{errors.konten}</p>}
                             </div>
 
-                            <div className="space-y-2 text-left">
-                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 text-left text-left text-left">Ringkasan (Excerpt) - Opsional</label>
-                                <div className="relative group text-left">
-                                    <textarea
-                                        value={data.excerpt}
-                                        onChange={e => setData('excerpt', e.target.value)}
-                                        rows="2"
-                                        className="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl text-xs font-bold text-gray-500 focus:ring-4 focus:ring-green-500/10 transition-all resize-none text-left text-left text-left"
-                                        placeholder="Ringkasan singkat untuk tampilan depan..."
-                                    ></textarea>
-                                </div>
-                                {errors.excerpt && <p className="text-[10px] font-bold text-red-500 uppercase tracking-widest ml-1 italic">{errors.excerpt}</p>}
-                            </div>
+                            <FormField.Textarea
+                                label="Ringkasan (Excerpt) - Opsional"
+                                value={data.excerpt}
+                                onChange={e => setData('excerpt', e.target.value)}
+                                error={errors.excerpt}
+                                rows={2}
+                                placeholder="Ringkasan singkat untuk tampilan depan..."
+                            />
                         </div>
-                    </div>
+                    </FormCard>
                 </div>
 
                 {/* Sidebar Configuration */}
                 <div className="lg:col-span-3 space-y-6 text-left">
-                    <div className="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 p-8 text-left">
-                        <div className="flex items-center gap-4 mb-6 text-left">
-                            <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-left">
-                                <LayoutGrid className="w-5 h-5 text-blue-600" />
-                            </div>
-                            <h3 className="text-sm font-black text-gray-900 uppercase italic tracking-tighter text-left">Pengaturan</h3>
-                        </div>
-
+                    <FormCard 
+                        title="Pengaturan" 
+                        icon={LayoutGrid} 
+                        iconColor="text-blue-600" 
+                        iconBg="bg-blue-50"
+                        className="p-8"
+                    >
                         <div className="space-y-4 text-left">
-                            <div className="space-y-1.5 text-left text-left">
-                                <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1 text-left">Kategori</label>
-                                <select 
-                                    value={data.kategori} 
-                                    onChange={e => setData('kategori', e.target.value)} 
-                                    className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl text-xs font-bold text-gray-700 focus:ring-4 focus:ring-blue-500/10 transition-all appearance-none text-left"
-                                >
-                                    <option value="berita">Berita Desa</option>
-                                    <option value="pengumuman">Pengumuman Resmi</option>
-                                    <option value="agenda">Agenda Kegiatan</option>
-                                </select>
-                            </div>
+                            <FormField.Select
+                                label="Kategori"
+                                value={data.kategori}
+                                onChange={e => setData('kategori', e.target.value)}
+                                error={errors.kategori}
+                                options={[
+                                    { value: 'berita', label: 'Berita Desa' },
+                                    { value: 'pengumuman', label: 'Pengumuman Resmi' },
+                                    { value: 'agenda', label: 'Agenda Kegiatan' }
+                                ]}
+                            />
 
-                            <div className="space-y-1.5 text-left text-left">
-                                <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1 text-left">Status</label>
-                                <select 
-                                    value={data.status} 
-                                    onChange={e => setData('status', e.target.value)} 
-                                    className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl text-xs font-bold text-gray-700 focus:ring-4 focus:ring-green-500/10 transition-all appearance-none text-left"
-                                >
-                                    <option value="draft">Simpan Sebagai Draft</option>
-                                    <option value="published">Langsung Terbitkan</option>
-                                </select>
-                            </div>
+                            <FormField.Select
+                                label="Status"
+                                value={data.status}
+                                onChange={e => setData('status', e.target.value)}
+                                error={errors.status}
+                                options={[
+                                    { value: 'draft', label: 'Simpan Sebagai Draft' },
+                                    { value: 'published', label: 'Langsung Terbitkan' }
+                                ]}
+                            />
                         </div>
-                    </div>
+                    </FormCard>
 
-                    <div className="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 p-8 text-left">
-                        <div className="flex items-center gap-4 mb-6 text-left">
-                            <div className="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center text-left">
-                                <Star className="w-5 h-5 text-orange-600" />
-                            </div>
-                            <h3 className="text-sm font-black text-gray-900 uppercase italic tracking-tighter text-left">Highlight</h3>
-                        </div>
-
+                    <FormCard 
+                        title="Highlight" 
+                        icon={Star} 
+                        iconColor="text-orange-600" 
+                        iconBg="bg-orange-50"
+                        className="p-8"
+                    >
                         <button
                             type="button"
                             onClick={() => setData('featured', !data.featured)}
@@ -198,16 +180,15 @@ export default function BeritaForm({ berita = null, isEdit = false }) {
                                 {data.featured && <CheckCircle className="w-3 h-3 text-white text-left" />}
                             </div>
                         </button>
-                    </div>
+                    </FormCard>
 
-                    <div className="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 p-8 text-left">
-                        <div className="flex items-center gap-4 mb-6 text-left">
-                            <div className="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center text-left">
-                                <ImageIcon className="w-5 h-5 text-purple-600" />
-                            </div>
-                            <h3 className="text-sm font-black text-gray-900 uppercase italic tracking-tighter text-left">Cover Visual</h3>
-                        </div>
-
+                    <FormCard 
+                        title="Cover Visual" 
+                        icon={ImageIcon} 
+                        iconColor="text-purple-600" 
+                        iconBg="bg-purple-50"
+                        className="p-8"
+                    >
                         <div className="aspect-video bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center overflow-hidden relative group text-left">
                             {preview || (isEdit && berita.gambar) ? (
                                 <img src={preview || `/storage/${berita.gambar}`} className="w-full h-full object-cover text-left" />
@@ -225,7 +206,7 @@ export default function BeritaForm({ berita = null, isEdit = false }) {
                             </div>
                         </div>
                         {errors.gambar && <p className="text-[10px] font-bold text-red-500 uppercase tracking-widest mt-2 italic text-left">{errors.gambar}</p>}
-                    </div>
+                    </FormCard>
 
                     <div className="pt-4 text-left">
                         <button

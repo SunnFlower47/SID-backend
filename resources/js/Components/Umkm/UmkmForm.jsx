@@ -1,5 +1,5 @@
 import React from 'react';
-import { useForm } from '@inertiajs/react';
+import { useForm, Link } from '@inertiajs/react';
 import { 
     Store, User, MapPin, Phone, 
     Save, X, Image as ImageIcon,
@@ -7,6 +7,7 @@ import {
     Star, ShieldCheck, Mail, Calendar,
     Users, LayoutGrid
 } from 'lucide-react';
+import { FormCard, FormField } from '@/Components/Shared';
 import Swal from 'sweetalert2';
 import { cn } from '@/lib/utils';
 
@@ -55,234 +56,132 @@ export default function UmkmForm({ umkm = null, jenisOptions = [], wilayah = {},
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 text-left">
                 {/* Left Side: Basic Info & Details */}
                 <div className="lg:col-span-2 space-y-6 text-left">
-                    <div className="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 p-8 sm:p-10 text-left">
-                        <div className="flex items-center gap-4 mb-8 text-left">
-                            <div className="w-12 h-12 bg-green-50 rounded-2xl flex items-center justify-center text-left">
-                                <Store className="w-6 h-6 text-green-600" />
-                            </div>
-                            <div className="text-left">
-                                <h3 className="text-xl font-black text-gray-900 uppercase italic tracking-tighter text-left">Informasi Usaha</h3>
-                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none text-left">Data Dasar & Legalitas Usaha</p>
-                            </div>
-                        </div>
-
+                    <FormCard icon={Store} title="Informasi Usaha" description="Data Dasar & Legalitas Usaha">
                         <div className="space-y-6 text-left">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
-                                <div className="space-y-2 text-left">
-                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 text-left">Nama Usaha</label>
-                                    <div className="relative group text-left">
-                                        <Store className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-green-500 transition-colors" />
-                                        <input
-                                            type="text"
-                                            value={data.nama_usaha}
-                                            onChange={e => setData('nama_usaha', e.target.value)}
-                                            className="w-full pl-12 pr-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold text-gray-700 focus:ring-4 focus:ring-green-500/10 transition-all text-left"
-                                            placeholder="Nama UMKM..."
-                                        />
-                                    </div>
-                                    {errors.nama_usaha && <p className="text-[10px] font-bold text-red-500 uppercase tracking-widest ml-1 italic">{errors.nama_usaha}</p>}
-                                </div>
-
-                                <div className="space-y-2 text-left">
-                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 text-left">Jenis Usaha</label>
-                                    <div className="relative group text-left">
-                                        <LayoutGrid className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-green-500 transition-colors" />
-                                        <select
-                                            value={data.jenis_usaha}
-                                            onChange={e => setData('jenis_usaha', e.target.value)}
-                                            className="w-full pl-12 pr-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold text-gray-700 focus:ring-4 focus:ring-green-500/10 transition-all appearance-none cursor-pointer text-left"
-                                        >
-                                            <option value="">Pilih Jenis</option>
-                                            {jenisOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-                                        </select>
-                                    </div>
-                                    {errors.jenis_usaha && <p className="text-[10px] font-bold text-red-500 uppercase tracking-widest ml-1 italic">{errors.jenis_usaha}</p>}
-                                </div>
+                                <FormField.Input
+                                    label="Nama Usaha"
+                                    required
+                                    value={data.nama_usaha}
+                                    onChange={e => setData('nama_usaha', e.target.value)}
+                                    error={errors.nama_usaha}
+                                    placeholder="Nama UMKM..."
+                                />
+                                <FormField.Select
+                                    label="Jenis Usaha"
+                                    required
+                                    value={data.jenis_usaha}
+                                    onChange={e => setData('jenis_usaha', e.target.value)}
+                                    error={errors.jenis_usaha}
+                                    options={jenisOptions}
+                                />
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
-                                <div className="space-y-2 text-left">
-                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 text-left">Nama Pemilik</label>
-                                    <div className="relative group text-left">
-                                        <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-green-500 transition-colors" />
-                                        <input
-                                            type="text"
-                                            value={data.nama_pemilik}
-                                            onChange={e => setData('nama_pemilik', e.target.value)}
-                                            className="w-full pl-12 pr-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold text-gray-700 focus:ring-4 focus:ring-green-500/10 transition-all text-left"
-                                            placeholder="Nama Pemilik Usaha..."
-                                        />
-                                    </div>
-                                    {errors.nama_pemilik && <p className="text-[10px] font-bold text-red-500 uppercase tracking-widest ml-1 italic">{errors.nama_pemilik}</p>}
-                                </div>
-
-                                <div className="space-y-2 text-left">
-                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 text-left">NIK Pemilik</label>
-                                    <div className="relative group text-left">
-                                        <ShieldCheck className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-green-500 transition-colors" />
-                                        <input
-                                            type="text"
-                                            value={data.nik_pemilik}
-                                            onChange={e => setData('nik_pemilik', e.target.value)}
-                                            className="w-full pl-12 pr-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold text-gray-700 focus:ring-4 focus:ring-green-500/10 transition-all text-left"
-                                            placeholder="NIK (Opsional)..."
-                                            maxLength={16}
-                                        />
-                                    </div>
-                                    {errors.nik_pemilik && <p className="text-[10px] font-bold text-red-500 uppercase tracking-widest ml-1 italic">{errors.nik_pemilik}</p>}
-                                </div>
+                                <FormField.Input
+                                    label="Nama Pemilik"
+                                    required
+                                    value={data.nama_pemilik}
+                                    onChange={e => setData('nama_pemilik', e.target.value)}
+                                    error={errors.nama_pemilik}
+                                    placeholder="Nama Pemilik Usaha..."
+                                />
+                                <FormField.Input
+                                    label="NIK Pemilik"
+                                    value={data.nik_pemilik}
+                                    onChange={e => setData('nik_pemilik', e.target.value)}
+                                    error={errors.nik_pemilik}
+                                    placeholder="NIK (Opsional)..."
+                                    maxLength={16}
+                                />
                             </div>
 
-                            <div className="space-y-2 text-left">
-                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 text-left">Alamat Usaha</label>
-                                <div className="relative group text-left">
-                                    <MapPin className="absolute left-4 top-4 w-4 h-4 text-gray-400 group-focus-within:text-green-500 transition-colors" />
-                                    <textarea
-                                        value={data.alamat_usaha}
-                                        onChange={e => setData('alamat_usaha', e.target.value)}
-                                        rows="2"
-                                        className="w-full pl-12 pr-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold text-gray-700 focus:ring-4 focus:ring-green-500/10 transition-all resize-none text-left"
-                                        placeholder="Alamat lengkap lokasi usaha..."
-                                    ></textarea>
-                                </div>
-                                {errors.alamat_usaha && <p className="text-[10px] font-bold text-red-500 uppercase tracking-widest ml-1 italic">{errors.alamat_usaha}</p>}
-                            </div>
+                            <FormField.Textarea
+                                label="Alamat Usaha"
+                                required
+                                value={data.alamat_usaha}
+                                onChange={e => setData('alamat_usaha', e.target.value)}
+                                error={errors.alamat_usaha}
+                                placeholder="Alamat lengkap lokasi usaha..."
+                                rows={2}
+                            />
                         </div>
-                    </div>
+                    </FormCard>
 
-                    <div className="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 p-8 sm:p-10 text-left">
-                        <div className="flex items-center gap-4 mb-8 text-left">
-                            <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-left">
-                                <Info className="w-6 h-6 text-blue-600" />
-                            </div>
-                            <div className="text-left">
-                                <h3 className="text-xl font-black text-gray-900 uppercase italic tracking-tighter text-left">Operasional & Kontak</h3>
-                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none text-left">Detail Karyawan & Kontak Usaha</p>
-                            </div>
-                        </div>
-
+                    <FormCard icon={Info} title="Operasional & Kontak" description="Detail Karyawan & Kontak Usaha">
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 text-left">
-                            <div className="space-y-2 text-left">
-                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 text-left">Jumlah Karyawan</label>
-                                <div className="relative group text-left">
-                                    <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-green-500 transition-colors" />
-                                    <input
-                                        type="number"
-                                        value={data.jumlah_karyawan}
-                                        onChange={e => setData('jumlah_karyawan', e.target.value)}
-                                        className="w-full pl-12 pr-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold text-gray-700 focus:ring-4 focus:ring-green-500/10 transition-all text-left"
-                                        min="0"
-                                    />
-                                </div>
-                                {errors.jumlah_karyawan && <p className="text-[10px] font-bold text-red-500 uppercase tracking-widest ml-1 italic">{errors.jumlah_karyawan}</p>}
-                            </div>
-
-                            <div className="space-y-2 text-left text-left">
-                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 text-left">Tanggal Berdiri</label>
-                                <div className="relative group text-left">
-                                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-green-500 transition-colors" />
-                                    <input
-                                        type="date"
-                                        value={data.tanggal_berdiri}
-                                        onChange={e => setData('tanggal_berdiri', e.target.value)}
-                                        className="w-full pl-12 pr-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold text-gray-700 focus:ring-4 focus:ring-green-500/10 transition-all text-left"
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="space-y-2 text-left">
-                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 text-left">Status Usaha</label>
-                                <select
-                                    value={data.status_usaha}
-                                    onChange={e => setData('status_usaha', e.target.value)}
-                                    className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold text-gray-700 focus:ring-4 focus:ring-green-500/10 transition-all appearance-none cursor-pointer text-left"
-                                >
-                                    <option value="aktif">Aktif</option>
-                                    <option value="tutup">Tutup</option>
-                                    <option value="pindah">Pindah</option>
-                                </select>
-                            </div>
+                            <FormField.Input
+                                label="Jumlah Karyawan"
+                                type="number"
+                                min="0"
+                                value={data.jumlah_karyawan}
+                                onChange={e => setData('jumlah_karyawan', e.target.value)}
+                                error={errors.jumlah_karyawan}
+                            />
+                            <FormField.Input
+                                label="Tanggal Berdiri"
+                                type="date"
+                                value={data.tanggal_berdiri}
+                                onChange={e => setData('tanggal_berdiri', e.target.value)}
+                                error={errors.tanggal_berdiri}
+                            />
+                            <FormField.Select
+                                label="Status Usaha"
+                                value={data.status_usaha}
+                                onChange={e => setData('status_usaha', e.target.value)}
+                                error={errors.status_usaha}
+                                options={[
+                                    { value: 'aktif', label: 'Aktif' },
+                                    { value: 'tutup', label: 'Tutup' },
+                                    { value: 'pindah', label: 'Pindah' }
+                                ]}
+                            />
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 text-left">
-                            <div className="space-y-2 text-left">
-                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 text-left">Nomor WhatsApp / Telepon</label>
-                                <div className="relative group text-left">
-                                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-green-500 transition-colors" />
-                                    <input
-                                        type="text"
-                                        value={data.no_telepon}
-                                        onChange={e => setData('no_telepon', e.target.value)}
-                                        className="w-full pl-12 pr-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold text-gray-700 focus:ring-4 focus:ring-green-500/10 transition-all text-left"
-                                        placeholder="0812..."
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="space-y-2 text-left text-left">
-                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 text-left">Email Bisnis</label>
-                                <div className="relative group text-left text-left">
-                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-green-500 transition-colors" />
-                                    <input
-                                        type="email"
-                                        value={data.email}
-                                        onChange={e => setData('email', e.target.value)}
-                                        className="w-full pl-12 pr-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold text-gray-700 focus:ring-4 focus:ring-green-500/10 transition-all text-left"
-                                        placeholder="email@bisnis.com"
-                                    />
-                                </div>
-                            </div>
+                            <FormField.Input
+                                label="Nomor WhatsApp / Telepon"
+                                value={data.no_telepon}
+                                onChange={e => setData('no_telepon', e.target.value)}
+                                error={errors.no_telepon}
+                                placeholder="0812..."
+                            />
+                            <FormField.Input
+                                label="Email Bisnis"
+                                type="email"
+                                value={data.email}
+                                onChange={e => setData('email', e.target.value)}
+                                error={errors.email}
+                                placeholder="email@bisnis.com"
+                            />
                         </div>
 
-                        <div className="mt-6 space-y-2 text-left">
-                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 text-left">Deskripsi Usaha & Produk</label>
-                            <div className="relative group text-left">
-                                <FileText className="absolute left-4 top-4 w-4 h-4 text-gray-400 group-focus-within:text-green-500 transition-colors" />
-                                <textarea
-                                    value={data.deskripsi_usaha}
-                                    onChange={e => setData('deskripsi_usaha', e.target.value)}
-                                    rows="4"
-                                    className="w-full pl-12 pr-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold text-gray-700 focus:ring-4 focus:ring-green-500/10 transition-all resize-none text-left"
-                                    placeholder="Jelaskan produk atau jasa yang ditawarkan..."
-                                ></textarea>
-                            </div>
+                        <div className="mt-6">
+                            <FormField.Textarea
+                                label="Deskripsi Usaha & Produk"
+                                value={data.deskripsi_usaha}
+                                onChange={e => setData('deskripsi_usaha', e.target.value)}
+                                error={errors.deskripsi_usaha}
+                                placeholder="Jelaskan produk atau jasa yang ditawarkan..."
+                                rows={4}
+                            />
                         </div>
-                    </div>
+                    </FormCard>
                 </div>
 
                 {/* Right Side: Territory & Flags */}
                 <div className="space-y-6 text-left">
-                    <div className="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 p-8 text-left">
-                        <div className="flex items-center gap-4 mb-6 text-left">
-                            <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center text-left">
-                                <MapPin className="w-5 h-5 text-red-600" />
-                            </div>
-                            <h3 className="text-sm font-black text-gray-900 uppercase italic tracking-tighter text-left">Lokasi Wilayah</h3>
-                        </div>
+                    <FormCard icon={MapPin} title="Lokasi Wilayah">
+                        <FormField.Select
+                            label="Dusun"
+                            value={data.dusun_id}
+                            onChange={e => setData('dusun_id', e.target.value)}
+                            error={errors.dusun_id}
+                            options={[{ value: '', label: 'Semua Dusun' }, ...(wilayah.dusun?.map(d => ({ value: d.id, label: d.nama.toUpperCase() })) || [])]}
+                        />
+                    </FormCard>
 
-                        <div className="space-y-4 text-left">
-                            <div className="space-y-1.5 text-left">
-                                <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1 text-left">Dusun</label>
-                                <select 
-                                    value={data.dusun_id} 
-                                    onChange={e => setData('dusun_id', e.target.value)} 
-                                    className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl text-xs font-bold text-gray-700 focus:ring-4 focus:ring-red-500/10 transition-all appearance-none text-left"
-                                >
-                                    <option value="">Semua Dusun</option>
-                                    {wilayah.dusun?.map(d => <option key={d.id} value={d.id}>{d.nama.toUpperCase()}</option>)}
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 p-8 text-left">
-                        <div className="flex items-center gap-4 mb-6 text-left text-left">
-                            <div className="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center text-left text-left text-left">
-                                <Star className="w-5 h-5 text-orange-600" />
-                            </div>
-                            <h3 className="text-sm font-black text-gray-900 uppercase italic tracking-tighter text-left">Atribut Khusus</h3>
-                        </div>
-
+                    <FormCard icon={Star} title="Atribut Khusus">
                         <div className="space-y-3 text-left">
                             <button
                                 type="button"
@@ -312,17 +211,9 @@ export default function UmkmForm({ umkm = null, jenisOptions = [], wilayah = {},
                                 </div>
                             </button>
                         </div>
-                    </div>
+                    </FormCard>
 
-                    {/* Photo Upload - simplified for multiple files if needed, but here we just handle the input */}
-                    <div className="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 p-8 text-left">
-                        <div className="flex items-center gap-4 mb-6 text-left">
-                            <div className="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center text-left">
-                                <ImageIcon className="w-5 h-5 text-purple-600" />
-                            </div>
-                            <h3 className="text-sm font-black text-gray-900 uppercase italic tracking-tighter text-left">Foto Galeri</h3>
-                        </div>
-
+                    <FormCard icon={ImageIcon} title="Foto Galeri">
                         <div className="space-y-4 text-left">
                             <div className="aspect-square bg-gray-50 rounded-[2rem] border-2 border-dashed border-gray-200 flex flex-col items-center justify-center overflow-hidden relative group text-left">
                                 {data.foto_usaha.length > 0 ? (
@@ -355,16 +246,33 @@ export default function UmkmForm({ umkm = null, jenisOptions = [], wilayah = {},
                                 )}
                             </div>
                         </div>
-                    </div>
+                    </FormCard>
 
-                    <div className="pt-4 text-left">
+                    <div className="space-y-3">
                         <button
                             type="submit"
                             disabled={processing}
-                            className="w-full flex items-center justify-center gap-3 px-8 py-6 bg-green-600 text-white rounded-[2rem] font-black uppercase tracking-widest text-[11px] shadow-xl shadow-green-200 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 text-left"
+                            className="w-full flex items-center justify-center gap-3 px-8 py-4 bg-green-600 text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg hover:bg-green-700 transition-all disabled:opacity-50"
                         >
-                            {processing ? "MEMPROSES..." : (isEdit ? "PERBARUI DATA" : "SIMPAN DATA UMKM")}
+                            {processing ? (
+                                <>
+                                    <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                                    MEMPROSES...
+                                </>
+                            ) : (
+                                <>
+                                    <Save className="w-4 h-4" />
+                                    {isEdit ? 'PERBARUI UMKM' : 'SIMPAN UMKM'}
+                                </>
+                            )}
                         </button>
+                        <Link
+                            href={route('umkm.index')}
+                            className="w-full flex items-center justify-center gap-3 px-8 py-4 bg-white text-gray-600 rounded-2xl font-black uppercase tracking-widest text-xs border border-gray-200 hover:bg-gray-50 transition-all"
+                        >
+                            <X className="w-4 h-4" />
+                            BATALKAN
+                        </Link>
                     </div>
                 </div>
             </div>

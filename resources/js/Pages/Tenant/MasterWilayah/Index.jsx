@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, useForm, router, Deferred, Link } from '@inertiajs/react';
+import { Head, router, Deferred, Link } from '@inertiajs/react';
 import { 
     Map, 
     Users, 
@@ -8,15 +8,9 @@ import {
     MapPin, 
     Plus, 
     Search, 
-    Filter, 
-    ChevronLeft, 
     Edit2, 
     Trash2, 
     History,
-    TrendingUp,
-    AlertCircle,
-    CheckCircle2,
-    Undo2,
     Eye,
     Loader2
 } from 'lucide-react';
@@ -29,30 +23,8 @@ import SkeletonStats from '@/Components/Shared/Skeleton/SkeletonStats';
 import SkeletonActivity from '@/Components/Shared/Skeleton/SkeletonActivity';
 import SkeletonTable from '@/Components/Shared/Skeleton/SkeletonTable';
 
-const StatBox = ({ label, value, sub, icon: Icon, color = 'green' }) => {
-    const colors = {
-        green: 'text-green-600 bg-green-50',
-        blue: 'text-blue-600 bg-blue-50',
-        purple: 'text-purple-600 bg-purple-50',
-        orange: 'text-orange-600 bg-orange-50',
-        indigo: 'text-indigo-600 bg-indigo-50',
-        emerald: 'text-emerald-600 bg-emerald-50',
-    };
-    return (
-        <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
-            <div className="flex items-center gap-3">
-                <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center shrink-0', colors[color])}>
-                    <Icon className="w-4.5 h-4.5" />
-                </div>
-                <div>
-                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">{label}</p>
-                    <p className="text-lg font-black text-gray-900 italic leading-none">{value || '0'}</p>
-                </div>
-            </div>
-            {sub && <p className="text-[8px] font-bold text-gray-400 mt-2 uppercase tracking-widest leading-none">{sub}</p>}
-        </div>
-    );
-};
+// Shared Components
+import { PageHeader, StatCard } from '@/Components/Shared';
 
 export default function Index({ auth, mapping, summary, recentChangeLogs }) {
     const [activeTab, setActiveTab] = useState('rt');
@@ -176,42 +148,33 @@ export default function Index({ auth, mapping, summary, recentChangeLogs }) {
             <div className="space-y-6 animate-in fade-in duration-700 pb-20">
                 
                 {/* ── Header ── */}
-                <div className="bg-gradient-to-r from-green-600 via-green-700 to-green-800 rounded-3xl shadow-xl p-6 sm:p-8 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl pointer-events-none" />
-                    <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                        <div className="flex items-center space-x-4">
-                            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-inner shrink-0">
-                                <Map className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-300" />
-                            </div>
-                            <div>
-                                <h1 className="text-xl sm:text-3xl font-black text-white tracking-tight uppercase italic leading-none">Master Wilayah</h1>
-                                <p className="text-green-100 font-bold text-[10px] sm:text-xs uppercase tracking-widest mt-1 opacity-80">Data Administratif Desa Cibatu</p>
-                            </div>
-                        </div>
-                        <div className="flex flex-wrap gap-2 sm:gap-3">
-                            <button 
-                                onClick={() => router.get(route('import-conflicts.index'))}
-                                className="flex items-center px-4 py-3 bg-green-500/30 hover:bg-green-500/50 backdrop-blur-md border border-green-400/30 text-white rounded-xl text-[10px] sm:text-xs font-black transition-all uppercase tracking-widest"
-                            >
-                                <History className="w-3.5 h-3.5 mr-2" /> Conflicts
-                            </button>
-                            <button 
-                                onClick={() => openCrudModal(activeTab, 'create')}
-                                className="flex items-center px-6 py-3 bg-white text-green-700 hover:bg-green-50 rounded-xl text-[10px] sm:text-xs font-black shadow-lg shadow-black/10 transition-all hover:scale-105 uppercase tracking-widest"
-                            >
-                                <Plus className="w-3.5 h-3.5 mr-2" /> TAMBAH DATA
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <PageHeader 
+                    title="Master Wilayah"
+                    subtitle="Data Administratif Desa Cibatu"
+                    icon={Map}
+                    actions={[
+                        {
+                            label: 'CONFLICTS',
+                            icon: History,
+                            onClick: () => router.get(route('import-conflicts.index')),
+                            variant: 'outline'
+                        },
+                        {
+                            label: 'TAMBAH DATA',
+                            icon: Plus,
+                            onClick: () => openCrudModal(activeTab, 'create'),
+                            variant: 'white'
+                        }
+                    ]}
+                />
 
                 {/* ── Summary Stats ── */}
                 <Deferred data="summary" fallback={<SkeletonStats count={4} />}>
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                        <StatBox label="Total Dusun" value={summary?.dusun} icon={Map} color="blue" sub="Wilayah Dusun" />
-                        <StatBox label="Total RW" value={summary?.rw} icon={Building2} color="indigo" sub="Rukun Warga" />
-                        <StatBox label="Total RT" value={summary?.rt} icon={MapPin} color="purple" sub="Rukun Tetangga" />
-                        <StatBox label="Penduduk" value={summary?.penduduk_terpetakan?.toLocaleString('id-ID')} icon={Users} color="emerald" sub="Jiwa Terpetakan" />
+                        <StatCard label="Total Dusun" value={summary?.dusun} icon={Map} color="blue" sub="Wilayah Dusun" />
+                        <StatCard label="Total RW" value={summary?.rw} icon={Building2} color="indigo" sub="Rukun Warga" />
+                        <StatCard label="Total RT" value={summary?.rt} icon={MapPin} color="purple" sub="Rukun Tetangga" />
+                        <StatCard label="Penduduk" value={summary?.penduduk_terpetakan?.toLocaleString('id-ID')} icon={Users} color="emerald" sub="Jiwa Terpetakan" />
                     </div>
                 </Deferred>
 

@@ -3,19 +3,12 @@ import { Head, Link, useForm } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import AnggaranProgressBar from '@/Components/Keuangan/AnggaranProgressBar';
 import { BIDANG_LIST, BIDANG_COLOR, BIDANG_MAP, SUB_BIDANG, SUMBER_DANA_LIST } from '@/Constants/keuangan';
-import { BarChart3, ArrowLeft, Save, AlertTriangle } from 'lucide-react';
+import { BarChart3, ArrowLeft, Save, AlertTriangle, FolderOpen, Wallet } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Swal from 'sweetalert2';
+import { PageHeader, FormField, FormCard } from '@/Components/Shared';
 
 const formatRupiah = (v) => `Rp ${Number(v || 0).toLocaleString('id-ID')}`;
-
-const InputField = ({ label, error, children }) => (
-    <div className="space-y-1.5">
-        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{label}</label>
-        {children}
-        {error && <p className="text-[10px] font-bold text-red-500 uppercase tracking-wider italic ml-1">{error}</p>}
-    </div>
-);
 
 export default function Edit({ auth, apbdes }) {
     const { data, setData, put, processing, errors } = useForm({
@@ -46,23 +39,19 @@ export default function Edit({ auth, apbdes }) {
 
             <div className="space-y-6 animate-in fade-in duration-700 pb-20">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-green-600 via-green-700 to-green-800 rounded-3xl shadow-xl p-6 sm:p-8 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl pointer-events-none" />
-                    <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                        <div className="flex items-center space-x-4">
-                            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-inner shrink-0">
-                                <BarChart3 className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-300" />
-                            </div>
-                            <div>
-                                <h1 className="text-xl sm:text-3xl font-black text-white tracking-tight uppercase italic leading-none line-clamp-1">{apbdes.nama_rekening}</h1>
-                                <p className="text-green-100 font-bold text-[10px] sm:text-xs uppercase tracking-widest mt-1 opacity-80 italic">Edit Rekening APBDes · {apbdes.kode_rekening}</p>
-                            </div>
-                        </div>
-                        <Link href={route('transparansi-desa.apbdes')} className="flex items-center px-4 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl text-[10px] sm:text-xs font-black transition-all uppercase tracking-widest backdrop-blur-md border border-white/10">
-                            <ArrowLeft className="w-3.5 h-3.5 mr-2" /> KEMBALI
-                        </Link>
-                    </div>
-                </div>
+                <PageHeader
+                    title={apbdes.nama_rekening}
+                    subtitle={`Edit Rekening APBDes · ${apbdes.kode_rekening}`}
+                    icon={BarChart3}
+                    actions={[
+                        {
+                            label: 'KEMBALI',
+                            icon: ArrowLeft,
+                            href: route('transparansi-desa.apbdes'),
+                            variant: 'ghost'
+                        }
+                    ]}
+                />
 
                 {/* Budget Warning */}
                 {isBelowRealisasi && (
@@ -80,99 +69,115 @@ export default function Edit({ auth, apbdes }) {
                 <form onSubmit={handleSubmit}>
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         {/* Main Form */}
-                        <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-8 space-y-6">
-                            {/* Bidang Selector */}
-                            <div className="space-y-3">
-                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Bidang (Permendagri 20/2018)</label>
-                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                                    {BIDANG_LIST.map(b => {
-                                        const cfg = BIDANG_COLOR[b.value];
-                                        const isSelected = Number(data.bidang) === b.value;
-                                        return (
-                                            <button key={b.value} type="button"
-                                                onClick={() => setData(prev => ({ ...prev, bidang: b.value, sub_bidang: '' }))}
-                                                className={cn(
-                                                    'text-left p-3 rounded-xl border-2 transition-all text-[9px] font-black uppercase tracking-wider leading-tight',
-                                                    isSelected ? `${cfg.border} ${cfg.bg} ${cfg.text} shadow-sm` : 'border-gray-100 bg-gray-50 text-gray-500 hover:border-gray-200'
-                                                )}>
-                                                <span className={cn('block text-[8px] mb-0.5 font-black', isSelected ? cfg.text : 'text-gray-400')}>Bidang {b.value}</span>
-                                                {BIDANG_MAP[b.value]}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                                {errors.bidang && <p className="text-[10px] font-bold text-red-500 uppercase tracking-wider italic ml-1">{errors.bidang}</p>}
-                            </div>
+                        <div className="lg:col-span-2 space-y-6">
+                            
+                            <FormCard title="Bidang (Permendagri 20/2018)" icon={FolderOpen} bodyClass="p-6 sm:p-8 space-y-6">
+                                <FormField label="Bidang" required error={errors.bidang}>
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                        {BIDANG_LIST.map(b => {
+                                            const cfg = BIDANG_COLOR[b.value];
+                                            const isSelected = Number(data.bidang) === b.value;
+                                            return (
+                                                <button key={b.value} type="button"
+                                                    onClick={() => setData(prev => ({ ...prev, bidang: b.value, sub_bidang: '' }))}
+                                                    className={cn(
+                                                        'text-left p-3 rounded-xl border-2 transition-all text-[9px] font-black uppercase tracking-wider leading-tight',
+                                                        isSelected ? `${cfg.border} ${cfg.bg} ${cfg.text} shadow-sm` : 'border-gray-100 bg-gray-50 text-gray-500 hover:border-gray-200'
+                                                    )}>
+                                                    <span className={cn('block text-[8px] mb-0.5 font-black', isSelected ? cfg.text : 'text-gray-400')}>Bidang {b.value}</span>
+                                                    {BIDANG_MAP[b.value]}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </FormField>
 
-                            {/* Sub-Bidang */}
-                            {data.bidang && (
-                                <div className="space-y-1.5 animate-in slide-in-from-top-1 duration-200">
-                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Sub-Bidang</label>
-                                    <select value={data.sub_bidang} onChange={e => setData('sub_bidang', e.target.value)}
-                                        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-green-500 appearance-none">
-                                        <option value="">-- Pilih Sub-Bidang (Opsional) --</option>
-                                        {subBidangOptions.map(sb => <option key={sb.value} value={sb.value}>{sb.label}</option>)}
-                                    </select>
-                                </div>
-                            )}
+                                {/* Sub-Bidang */}
+                                {data.bidang && (
+                                    <div className="animate-in slide-in-from-top-1 duration-200">
+                                        <FormField.Select 
+                                            label="Sub-Bidang" 
+                                            error={errors.sub_bidang}
+                                            value={data.sub_bidang} 
+                                            onChange={e => setData('sub_bidang', e.target.value)}
+                                            options={subBidangOptions}
+                                            placeholder="-- Pilih Sub-Bidang (Opsional) --"
+                                        />
+                                    </div>
+                                )}
 
-                            {/* Kegiatan */}
-                            <div className="space-y-1.5">
-                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Nama Kegiatan</label>
-                                <input type="text" value={data.kegiatan} onChange={e => setData('kegiatan', e.target.value)}
+                                {/* Kegiatan */}
+                                <FormField.Input 
+                                    label="Nama Kegiatan" 
+                                    error={errors.kegiatan}
+                                    value={data.kegiatan} 
+                                    onChange={e => setData('kegiatan', e.target.value)}
                                     placeholder="Opsional — nama spesifik kegiatan"
-                                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-green-500" />
-                            </div>
+                                />
+                            </FormCard>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                <InputField label="Jenis Rekening" error={errors.jenis}>
-                                    <select
+                            <FormCard title="Detail Rekening" icon={Wallet} bodyClass="p-6 sm:p-8 space-y-6">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                    <FormField.Select 
+                                        label="Jenis Rekening" 
+                                        error={errors.jenis}
                                         value={data.jenis}
                                         onChange={e => setData('jenis', e.target.value)}
-                                        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-green-500 appearance-none cursor-pointer"
-                                    >
-                                        <option value="pendapatan">Pendapatan</option>
-                                        <option value="belanja">Belanja</option>
-                                        <option value="pembiayaan">Pembiayaan</option>
-                                    </select>
-                                </InputField>
+                                        options={[
+                                            { value: 'pendapatan', label: 'Pendapatan' },
+                                            { value: 'belanja', label: 'Belanja' },
+                                            { value: 'pembiayaan', label: 'Pembiayaan' }
+                                        ]}
+                                    />
 
-                                <div className="space-y-1.5">
-                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Sumber Dana</label>
-                                    <select value={data.sumber_dana} onChange={e => setData('sumber_dana', e.target.value)}
-                                        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-green-500 appearance-none cursor-pointer">
-                                        <option value="">-- Pilih Sumber Dana --</option>
-                                        {SUMBER_DANA_LIST.map(group => (
-                                            <optgroup key={group.group} label={group.group}>
-                                                {group.options.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-                                            </optgroup>
-                                        ))}
-                                    </select>
-                                    {errors.sumber_dana && <p className="text-[10px] font-bold text-red-500 uppercase tracking-wider italic ml-1">{errors.sumber_dana}</p>}
+                                    <FormField label="Sumber Dana" error={errors.sumber_dana}>
+                                        <select value={data.sumber_dana} onChange={e => setData('sumber_dana', e.target.value)}
+                                            className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-bold outline-none focus:ring-4 focus:ring-green-500/10 focus:border-green-500 transition-all appearance-none cursor-pointer">
+                                            <option value="">-- Pilih Sumber Dana --</option>
+                                            {SUMBER_DANA_LIST.map(group => (
+                                                <optgroup key={group.group} label={group.group}>
+                                                    {group.options.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                                                </optgroup>
+                                            ))}
+                                        </select>
+                                    </FormField>
                                 </div>
-                            </div>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                <InputField label="Kode Rekening" error={errors.kode_rekening}>
-                                    <input type="text" value={data.kode_rekening} onChange={e => setData('kode_rekening', e.target.value)}
-                                        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-green-500 font-mono" />
-                                </InputField>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                    <FormField.Input 
+                                        label="Kode Rekening" 
+                                        error={errors.kode_rekening}
+                                        value={data.kode_rekening} 
+                                        onChange={e => setData('kode_rekening', e.target.value)}
+                                        inputClassName="font-mono"
+                                    />
 
-                                <InputField label="Jumlah Anggaran (Rp)" error={errors.anggaran}>
-                                    <input type="number" value={data.anggaran} onChange={e => setData('anggaran', e.target.value)}
-                                        min={apbdes.realisasi} className={cn("w-full border rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-green-500", isBelowRealisasi ? 'border-red-300 bg-red-50' : 'border-gray-200')} />
-                                </InputField>
-                            </div>
+                                    <FormField.Input 
+                                        label="Jumlah Anggaran (Rp)" 
+                                        error={errors.anggaran}
+                                        type="number" 
+                                        value={data.anggaran} 
+                                        onChange={e => setData('anggaran', e.target.value)}
+                                        min={apbdes.realisasi} 
+                                        inputClassName={cn(isBelowRealisasi && 'border-red-300 bg-red-50')}
+                                    />
+                                </div>
 
-                            <InputField label="Nama Rekening" error={errors.nama_rekening}>
-                                <input type="text" value={data.nama_rekening} onChange={e => setData('nama_rekening', e.target.value)}
-                                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-green-500" />
-                            </InputField>
+                                <FormField.Input 
+                                    label="Nama Rekening" 
+                                    error={errors.nama_rekening}
+                                    value={data.nama_rekening} 
+                                    onChange={e => setData('nama_rekening', e.target.value)}
+                                />
 
-                            <InputField label="Keterangan (Opsional)" error={errors.keterangan}>
-                                <textarea value={data.keterangan} onChange={e => setData('keterangan', e.target.value)}
-                                    rows={3} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-green-500 resize-none" />
-                            </InputField>
+                                <FormField.Textarea 
+                                    label="Keterangan (Opsional)" 
+                                    error={errors.keterangan}
+                                    value={data.keterangan} 
+                                    onChange={e => setData('keterangan', e.target.value)}
+                                    rows={3} 
+                                />
+                            </FormCard>
                         </div>
 
                         {/* Sidebar: Current Status */}

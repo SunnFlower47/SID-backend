@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
-import { Head, Link, useForm, router } from '@inertiajs/react';
+import { Head, useForm, router } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { 
     Settings, Plus, Edit2, Trash2, ArrowLeft, 
-    Save, X, CheckCircle, XCircle, GripVertical,
+    Save, X, CheckCircle, XCircle,
     Users, Phone, Info
 } from 'lucide-react';
 import Swal from 'sweetalert2';
+import { cn } from '@/lib/utils';
+
+// Shared Components
+import { PageHeader, TableCard, Badge, FormField } from '@/Components/Shared';
 
 export default function Index({ auth, jabatans }) {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -113,50 +117,35 @@ export default function Index({ auth, jabatans }) {
             <Head title="Master Jabatan - Admin Panel" />
 
             <div className="space-y-6 animate-in fade-in duration-700 pb-20 text-left">
+                
                 {/* Header */}
-                <div className="bg-gradient-to-r from-green-600 via-green-700 to-green-800 rounded-3xl shadow-xl p-6 sm:p-8 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl pointer-events-none"></div>
-                    <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                        <div className="flex items-center space-x-4 text-left">
-                            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-inner shrink-0">
-                                <Settings className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-300" />
-                            </div>
-                            <div>
-                                <h1 className="text-xl sm:text-3xl font-black text-white tracking-tight uppercase italic leading-none">Master Jabatan</h1>
-                                <p className="text-green-100 font-bold text-[10px] sm:text-xs uppercase tracking-widest mt-1 opacity-80 italic">Pengaturan Jabatan & Kategori Kontak</p>
-                            </div>
-                        </div>
-                        <div className="flex flex-wrap gap-2 sm:gap-3">
-                            <button 
-                                onClick={openCreateModal}
-                                className="flex items-center px-6 py-3 bg-white text-gray-900 hover:bg-gray-100 rounded-xl text-[10px] sm:text-xs font-black shadow-lg shadow-black/10 transition-all hover:scale-105 uppercase tracking-widest"
-                            >
-                                <Plus className="w-3.5 h-3.5 mr-2" />
-                                TAMBAH JABATAN
-                            </button>
-                            <Link 
-                                href={route('struktur-desa.index')}
-                                className="flex items-center px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl text-[10px] sm:text-xs font-black transition-all hover:scale-105 uppercase tracking-widest backdrop-blur-md border border-white/10"
-                            >
-                                <ArrowLeft className="w-3.5 h-3.5 mr-2" />
-                                KEMBALI
-                            </Link>
-                        </div>
-                    </div>
-                </div>
+                <PageHeader 
+                    title="Master Jabatan"
+                    subtitle="Pengaturan Jabatan & Kategori Kontak"
+                    icon={Settings}
+                    actions={[
+                        {
+                            label: 'KEMBALI',
+                            icon: ArrowLeft,
+                            href: route('struktur-desa.index'),
+                            variant: 'outline'
+                        },
+                        {
+                            label: 'TAMBAH JABATAN',
+                            icon: Plus,
+                            onClick: openCreateModal,
+                            variant: 'white'
+                        }
+                    ]}
+                />
 
                 {/* Table */}
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden text-left">
-                    <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-gray-50 to-white">
-                        <h3 className="text-lg font-black text-gray-900 flex items-center gap-3 uppercase italic tracking-tighter">
-                            <Info className="w-6 h-6 text-gray-600" />
-                            Daftar Jabatan & Kategori
-                        </h3>
-                        <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-[10px] font-black uppercase tracking-widest italic">
-                            Total: {jabatans.length}
-                        </span>
-                    </div>
-
+                <TableCard 
+                    title="Daftar Jabatan & Kategori"
+                    icon={Info}
+                    total={jabatans.length}
+                    noPadding
+                >
                     <div className="overflow-x-auto">
                         <table className="w-full text-left text-sm text-gray-600">
                             <thead>
@@ -169,7 +158,7 @@ export default function Index({ auth, jabatans }) {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-50">
-                                {jabatans.map((jabatan, index) => (
+                                {jabatans.map((jabatan) => (
                                     <tr key={jabatan.id} className="hover:bg-gray-50/50 transition-colors group">
                                         <td className="px-6 py-4">
                                             <span className="text-xs font-black text-gray-400 tabular-nums">#{jabatan.urutan}</span>
@@ -180,24 +169,16 @@ export default function Index({ auth, jabatans }) {
                                         </td>
                                         <td className="px-6 py-4 text-center">
                                             {jabatan.is_struktur ? (
-                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-50 text-green-700 border border-green-100 text-[9px] font-black uppercase tracking-widest italic">
-                                                    <Users className="w-2.5 h-2.5" /> AKTIF
-                                                </span>
+                                                <Badge color="green" icon={Users}>AKTIF</Badge>
                                             ) : (
-                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gray-50 text-gray-400 border border-gray-100 text-[9px] font-black uppercase tracking-widest italic">
-                                                    <XCircle className="w-2.5 h-2.5" /> TIDAK
-                                                </span>
+                                                <Badge color="gray" icon={XCircle}>TIDAK</Badge>
                                             )}
                                         </td>
                                         <td className="px-6 py-4 text-center">
                                             {jabatan.is_kontak ? (
-                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-100 text-[9px] font-black uppercase tracking-widest italic">
-                                                    <Phone className="w-2.5 h-2.5" /> AKTIF
-                                                </span>
+                                                <Badge color="blue" icon={Phone}>AKTIF</Badge>
                                             ) : (
-                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gray-50 text-gray-400 border border-gray-100 text-[9px] font-black uppercase tracking-widest italic">
-                                                    <XCircle className="w-2.5 h-2.5" /> TIDAK
-                                                </span>
+                                                <Badge color="gray" icon={XCircle}>TIDAK</Badge>
                                             )}
                                         </td>
                                         <td className="px-6 py-4 text-right">
@@ -205,12 +186,14 @@ export default function Index({ auth, jabatans }) {
                                                 <button 
                                                     onClick={() => openEditModal(jabatan)}
                                                     className="p-2 text-blue-600 hover:bg-blue-50 rounded-xl transition-all active:scale-95"
+                                                    title="Edit"
                                                 >
                                                     <Edit2 className="w-4 h-4" />
                                                 </button>
                                                 <button 
                                                     onClick={() => handleDelete(jabatan.id, jabatan.nama)}
                                                     className="p-2 text-red-600 hover:bg-red-50 rounded-xl transition-all active:scale-95"
+                                                    title="Hapus"
                                                 >
                                                     <Trash2 className="w-4 h-4" />
                                                 </button>
@@ -221,7 +204,7 @@ export default function Index({ auth, jabatans }) {
                             </tbody>
                         </table>
                     </div>
-                </div>
+                </TableCard>
             </div>
 
             {/* Modal */}
@@ -255,28 +238,22 @@ export default function Index({ auth, jabatans }) {
                                     </div>
 
                                     <div className="space-y-6">
-                                        <div className="space-y-2 text-left">
-                                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Nama Jabatan / Kategori</label>
-                                            <input
-                                                type="text"
-                                                value={data.nama}
-                                                onChange={e => setData('nama', e.target.value)}
-                                                className={`w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold text-gray-700 focus:ring-4 ${errors.nama ? 'focus:ring-red-500/10' : 'focus:ring-gray-900/5'} transition-all`}
-                                                placeholder="Contoh: Kepala Desa"
-                                                required
-                                            />
-                                            {errors.nama && <p className="text-[10px] font-bold text-red-500 uppercase tracking-widest ml-1 italic">{errors.nama}</p>}
-                                        </div>
+                                        <FormField.Input 
+                                            label="Nama Jabatan / Kategori"
+                                            value={data.nama}
+                                            onChange={e => setData('nama', e.target.value)}
+                                            error={errors.nama}
+                                            placeholder="Contoh: Kepala Desa"
+                                            required
+                                        />
 
-                                        <div className="space-y-2 text-left">
-                                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Urutan Tampil</label>
-                                            <input
-                                                type="number"
-                                                value={data.urutan}
-                                                onChange={e => setData('urutan', e.target.value)}
-                                                className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold text-gray-700 focus:ring-4 focus:ring-gray-900/5 transition-all"
-                                            />
-                                        </div>
+                                        <FormField.Input 
+                                            label="Urutan Tampil"
+                                            type="number"
+                                            value={data.urutan}
+                                            onChange={e => setData('urutan', e.target.value)}
+                                            error={errors.urutan}
+                                        />
 
                                         <div className="grid grid-cols-2 gap-4">
                                             <button

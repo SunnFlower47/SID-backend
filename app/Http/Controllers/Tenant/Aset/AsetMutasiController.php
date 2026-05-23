@@ -41,15 +41,77 @@ class AsetMutasiController extends Controller
     {
         $validated = $request->validated();
 
+        $beritaAcaraSuratId = null;
+        $skSuratId          = null;
+
+        if ($validated['jenis'] === 'kurang') {
+            // Pembuat (user login)
+            $user = auth()->user();
+            $namaPengaju = $user ? $user->name : 'Admin Aset';
+            $emailPengaju = $user ? $user->email : null;
+
+            // Detail aset untuk disimpan di data_tambahan
+            $dataTambahan = [
+                'nama_aset'        => $inventaris->nama_display,
+                'kode_barang'      => $inventaris->barang?->kode_barang,
+                'satuan'           => $inventaris->satuan,
+                'jumlah_dihapus'   => (float)$validated['kwantitas'],
+                'nilai_dihapus'    => (float)$validated['nilai'],
+                'alasan'           => $validated['keterangan'] ?? 'Tidak ada keterangan',
+                'kondisi_baru'     => $validated['kondisi'] ?? $inventaris->kondisi,
+                'tanggal_kejadian' => $validated['tanggal'],
+            ];
+
+            // 1. Buat Berita Acara
+            $nomorBapa = \App\Models\DesaSetting::generateNomorSurat('BAPA');
+            $beritaAcara = \App\Models\SuratPengajuan::create([
+                'nik_pengaju'         => null,
+                'nama_pengaju'        => $namaPengaju,
+                'email_pengaju'       => $emailPengaju,
+                'jenis_surat'         => 'berita-acara-penghapusan-aset',
+                'nomor_surat'         => $nomorBapa,
+                'keperluan'           => "Berita Acara Penghapusan Aset: " . $inventaris->nama_display,
+                'tanggal_surat'       => $validated['tanggal'],
+                'keterangan_tambahan' => "Dihapus sebanyak " . $validated['kwantitas'] . " " . $inventaris->satuan . " senilai Rp " . number_format($validated['nilai'], 0, ',', '.') . " karena: " . ($validated['keterangan'] ?? '-'),
+                'data_tambahan'       => $dataTambahan,
+                'status'              => 'selesai',
+                'admin_id'            => auth()->id(),
+                'approved_at'         => now(),
+                'completed_at'        => now(),
+            ]);
+            $beritaAcaraSuratId = $beritaAcara->id;
+
+            // 2. Buat SK Penghapusan
+            $nomorSkpa = \App\Models\DesaSetting::generateNomorSurat('SKPA');
+            $sk = \App\Models\SuratPengajuan::create([
+                'nik_pengaju'         => null,
+                'nama_pengaju'        => $namaPengaju,
+                'email_pengaju'       => $emailPengaju,
+                'jenis_surat'         => 'sk-penghapusan-aset',
+                'nomor_surat'         => $nomorSkpa,
+                'keperluan'           => "Surat Keputusan Penghapusan Aset: " . $inventaris->nama_display,
+                'tanggal_surat'       => $validated['tanggal'],
+                'keterangan_tambahan' => "SK Penghapusan aset " . $inventaris->nama_display . " sejumlah " . $validated['kwantitas'] . " " . $inventaris->satuan,
+                'data_tambahan'       => $dataTambahan,
+                'status'              => 'selesai',
+                'admin_id'            => auth()->id(),
+                'approved_at'         => now(),
+                'completed_at'        => now(),
+            ]);
+            $skSuratId = $sk->id;
+        }
+
         AsetMutasi::create([
-            'aset_inventaris_id' => $inventaris->id,
-            'tahun'              => $validated['tahun'],
-            'semester'           => $validated['semester'],
-            'tanggal'            => $validated['tanggal'],
-            'jenis'              => $validated['jenis'],
-            'kwantitas'          => $validated['kwantitas'],
-            'nilai'              => $validated['nilai'],
-            'keterangan'         => $validated['keterangan'] ?? null,
+            'aset_inventaris_id'    => $inventaris->id,
+            'tahun'                 => $validated['tahun'],
+            'semester'              => $validated['semester'],
+            'tanggal'               => $validated['tanggal'],
+            'jenis'                 => $validated['jenis'],
+            'kwantitas'             => $validated['kwantitas'],
+            'nilai'                 => $validated['nilai'],
+            'keterangan'            => $validated['keterangan'] ?? null,
+            'berita_acara_surat_id' => $beritaAcaraSuratId,
+            'sk_surat_id'           => $skSuratId,
         ]);
 
         // Update kondisi fisik aset jika diisi
@@ -72,6 +134,22 @@ class AsetMutasiController extends Controller
     public function destroy(AsetMutasi $mutasi)
     {
         $nama = $mutasi->inventaris?->nama_display ?? 'aset';
+
+        // Hapus surat terkait
+        if ($mutasi->berita_acara_surat_id) {
+            $surat1 = \App\Models\SuratPengajuan::find($mutasi->berita_acara_surat_id);
+            if ($surat1) {
+                $surat1->delete();
+            }
+        }
+
+        if ($mutasi->sk_surat_id) {
+            $surat2 = \App\Models\SuratPengajuan::find($mutasi->sk_surat_id);
+            if ($surat2) {
+                $surat2->delete();
+            }
+        }
+
         $mutasi->delete();
 
         return back()->with('success', "Mutasi {$nama} berhasil dihapus.");

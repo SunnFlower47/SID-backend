@@ -2,24 +2,19 @@ import React from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import { 
-  ArrowLeft, 
   Edit, 
-  Calendar, 
   MapPin, 
   User, 
-  Users, 
   Baby, 
   UserX, 
   History, 
   Info,
-  Clock,
   RotateCcw,
   XCircle,
   FileText,
   Split,
   ChevronRight,
-  ShieldCheck,
-  Eye
+  ShieldCheck
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 import axios from 'axios';
@@ -27,8 +22,10 @@ import { format } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 
+// Shared Components
+import { PageHeader, Badge } from '@/Components/Shared';
+
 export default function Show({ auth, mutasi }) {
-    // Gunakan attribute dari backend (bukan hardcode list) agar selalu sinkron
     const isSoftDelete = mutasi.is_soft_delete_type ?? false;
     const isPembaruanKK = mutasi.is_pembaruan_kk ?? false;
     const isUndoBlocked = mutasi.is_undo_blocked ?? false;
@@ -63,7 +60,6 @@ export default function Show({ auth, mutasi }) {
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
-                    // pembaruan_kk dan soft-delete type selalu pakai route undo
                     const response = isSoftDelete 
                         ? await axios.post(route('mutasi.undo', mutasi.id))
                         : await axios.delete(route('mutasi.cancel', mutasi.id));
@@ -232,66 +228,36 @@ export default function Show({ auth, mutasi }) {
             <div className="space-y-6 md:space-y-8 animate-in fade-in duration-700 pb-20">
                 
                 {/* 1. CONSISTENT PREMIUM HEADER */}
-                <div className="bg-gradient-to-r from-green-600 via-green-700 to-green-800 rounded-3xl shadow-xl p-6 sm:p-8 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl"></div>
-                    <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-                        <div className="flex items-center space-x-4">
-                            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-inner shrink-0">
-                                <History className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-300" />
-                            </div>
-                            <div>
-                                <h1 className="text-xl sm:text-3xl font-black text-white tracking-tight uppercase italic leading-none">Detail Mutasi</h1>
-                                <p className="text-green-100 font-bold text-[10px] sm:text-xs uppercase tracking-widest mt-1 opacity-80 flex items-center gap-2">
-                                    <ShieldCheck className="w-3 h-3 text-yellow-300" />
-                                    Arsip Riwayat Kependudukan
-                                </p>
-                            </div>
-                        </div>
-                        <div className="flex flex-wrap gap-2 sm:gap-3">
-                            <Link 
-                                href={route('mutasi.data.index')}
-                                className="flex items-center px-4 py-3 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white rounded-xl text-[10px] sm:text-xs font-black transition-all active:scale-95 uppercase tracking-widest group"
-                            >
-                                <ArrowLeft className="w-4 h-4 mr-2 transition-transform group-hover:-translate-x-1" />
-                                KEMBALI
-                            </Link>
-                            <Link 
-                                href={route('mutasi.data.edit', mutasi.id)}
-                                className="flex items-center px-6 py-3 bg-white text-green-700 hover:bg-green-50 rounded-xl text-[10px] sm:text-xs font-black shadow-lg shadow-black/10 transition-all hover:scale-105 active:scale-95 uppercase tracking-widest"
-                            >
-                                <Edit className="w-4 h-4 mr-2" />
-                                EDIT DATA
-                            </Link>
-                            {isUndoBlocked ? (
-                                <div className="relative group">
-                                    <button 
-                                        disabled
-                                        className="flex items-center px-6 py-3 rounded-xl text-[10px] sm:text-xs font-black text-white/60 bg-gray-400 cursor-not-allowed uppercase tracking-widest opacity-60"
-                                    >
-                                        <ShieldCheck className="w-4 h-4 mr-2" />
-                                        TERKUNCI
-                                    </button>
-                                    <div className="absolute bottom-full right-0 mb-2 px-4 py-2 bg-gray-900 text-white text-[10px] font-bold rounded-xl whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-xl z-50">
-                                        KK sudah diselesaikan secara permanen. Undo tidak tersedia.
-                                    </div>
-                                </div>
-                            ) : (
-                                <button 
-                                    onClick={handleAction}
-                                    className={cn(
-                                        "flex items-center px-6 py-3 rounded-xl text-[10px] sm:text-xs font-black text-white transition-all shadow-lg active:scale-95 uppercase tracking-widest",
-                                        isSoftDelete 
-                                            ? "bg-orange-500 hover:bg-orange-400 shadow-orange-900/20" 
-                                            : "bg-rose-500 hover:bg-rose-400 shadow-rose-900/20"
-                                    )}
-                                >
-                                    {isSoftDelete ? <RotateCcw className="w-4 h-4 mr-2" /> : <XCircle className="w-4 h-4 mr-2" />}
-                                    {isPembaruanKK ? 'UNDO PEMBARUAN KK' : isSoftDelete ? 'UNDO MUTASI' : 'CANCEL MUTASI'}
-                                </button>
-                            )}
-                        </div>
-                    </div>
-                </div>
+                <PageHeader 
+                    title="Detail Mutasi"
+                    subtitle="Arsip Riwayat Kependudukan"
+                    icon={History}
+                    backHref={route('mutasi.data.index')}
+                    actions={[
+                        {
+                            label: 'EDIT DATA',
+                            icon: Edit,
+                            href: route('mutasi.data.edit', mutasi.id),
+                            variant: 'ghost'
+                        },
+                        // Conditional actions logic for Undo/Cancel
+                        ...(isUndoBlocked ? [
+                            {
+                                label: 'TERKUNCI',
+                                icon: ShieldCheck,
+                                variant: 'ghost',
+                                disabled: true,
+                            }
+                        ] : [
+                            {
+                                label: isPembaruanKK ? 'UNDO PEMBARUAN KK' : isSoftDelete ? 'UNDO MUTASI' : 'CANCEL MUTASI',
+                                icon: isSoftDelete ? RotateCcw : XCircle,
+                                onClick: handleAction,
+                                variant: 'danger'
+                            }
+                        ])
+                    ]}
+                />
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Left Column: Resident Info Card */}
@@ -309,21 +275,19 @@ export default function Show({ auth, mutasi }) {
                                     {mutasi.penduduk?.nik || '-'}
                                 </p>
                                 
-                                <div className="mt-8 flex flex-wrap justify-center gap-2">
-                                    <span className={cn(
-                                        "px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm",
-                                        mutasi.jenis_mutasi === 'kematian' ? "bg-red-50 text-red-600 border border-red-100" :
-                                        mutasi.jenis_mutasi === 'kelahiran' ? "bg-blue-50 text-blue-600 border border-blue-100" :
-                                        mutasi.jenis_mutasi === 'pindah_masuk' ? "bg-green-50 text-green-600 border border-green-100" :
-                                        mutasi.jenis_mutasi === 'pindah_keluar' ? "bg-orange-50 text-orange-600 border border-orange-100" :
-                                        mutasi.jenis_mutasi === 'pindah_rt_rw' ? "bg-purple-50 text-purple-600 border border-purple-100" :
-                                        "bg-teal-50 text-teal-600 border border-teal-100"
-                                    )}>
+                                <div className="mt-8 flex flex-col sm:flex-row flex-wrap justify-center gap-2">
+                                    <Badge color={
+                                        mutasi.jenis_mutasi === 'kematian' ? 'red' :
+                                        mutasi.jenis_mutasi === 'kelahiran' ? 'blue' :
+                                        mutasi.jenis_mutasi === 'pindah_masuk' ? 'green' :
+                                        mutasi.jenis_mutasi === 'pindah_keluar' ? 'orange' :
+                                        mutasi.jenis_mutasi === 'pindah_rt_rw' ? 'purple' : 'teal'
+                                    }>
                                         {mutasi.jenis_mutasi_label}
-                                    </span>
-                                    <span className="px-4 py-1.5 bg-gray-50 text-gray-500 border border-gray-100 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm">
+                                    </Badge>
+                                    <Badge color="gray">
                                         {mutasi.kategori_mutasi?.replace('_', ' ')}
-                                    </span>
+                                    </Badge>
                                 </div>
                             </div>
                             <div className="p-10 space-y-8">
@@ -379,6 +343,7 @@ export default function Show({ auth, mutasi }) {
                                     <a 
                                         href={`/storage/${mutasi.dokumen_pendukung}`}
                                         target="_blank"
+                                        rel="noreferrer"
                                         className="w-full sm:w-auto px-10 py-4 bg-white border border-gray-200 rounded-[20px] text-[10px] font-black text-gray-600 hover:text-blue-600 hover:border-blue-200 transition-all shadow-md active:scale-95 uppercase tracking-widest text-center"
                                     >
                                         DOWNLOAD FILE

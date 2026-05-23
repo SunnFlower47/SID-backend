@@ -1,33 +1,28 @@
 import React from 'react';
 import { Head, Link, useForm, router } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Mailbox, ArrowLeft, Send, MailWarning, MailCheck, MailOpen, Archive, Clock, User, Phone, Mail, Globe, CalendarDays, CheckCircle } from 'lucide-react';
+import { Mailbox, ArrowLeft, Send, MailWarning, MailCheck, MailOpen, Archive, User, Phone, Mail, Globe, CheckCircle } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { format } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
 
-const STATUS_COLORS = {
-    unread: { bg: 'bg-red-100', text: 'text-red-800', icon: MailWarning, label: 'Belum Dibaca' },
-    read: { bg: 'bg-yellow-100', text: 'text-yellow-800', icon: MailOpen, label: 'Sudah Dibaca' },
-    replied: { bg: 'bg-emerald-100', text: 'text-emerald-800', icon: MailCheck, label: 'Sudah Dijawab' },
-    archived: { bg: 'bg-gray-100', text: 'text-gray-600', icon: Archive, label: 'Diarsipkan' },
-};
+// Shared Components
+import { PageHeader, Badge, InfoRow } from '@/Components/Shared';
 
-function StatusBadge({ status }) {
-    const cfg = STATUS_COLORS[status] || STATUS_COLORS.unread;
-    const Icon = cfg.icon;
-    return (
-        <span className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest ${cfg.bg} ${cfg.text} shadow-sm`}>
-            <Icon className="w-4 h-4" />
-            {cfg.label}
-        </span>
-    );
-}
+const STATUS_COLORS = {
+    unread: { color: 'red', icon: MailWarning, label: 'Belum Dibaca' },
+    read: { color: 'yellow', icon: MailOpen, label: 'Sudah Dibaca' },
+    replied: { color: 'green', icon: MailCheck, label: 'Sudah Dijawab' },
+    archived: { color: 'gray', icon: Archive, label: 'Diarsipkan' },
+};
 
 export default function Show({ auth, contactMessage }) {
     const { data, setData, post, processing, errors } = useForm({
         admin_reply: contactMessage.admin_reply || ''
     });
+
+    const statusCfg = STATUS_COLORS[contactMessage.status] || STATUS_COLORS.unread;
+    const StatusIcon = statusCfg.icon;
 
     const handleReply = (e) => {
         e.preventDefault();
@@ -52,9 +47,6 @@ export default function Show({ auth, contactMessage }) {
             if (result.isConfirmed) {
                 post(route('contact-messages.mark-replied', contactMessage.id), {
                     preserveScroll: true,
-                    onSuccess: () => {
-                        // Global flash message will be triggered automatically
-                    }
                 });
             }
         });
@@ -73,38 +65,22 @@ export default function Show({ auth, contactMessage }) {
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20">
                 
                 {/* Header Section */}
-                <div className="bg-gradient-to-r from-green-600 via-green-700 to-green-800 rounded-3xl shadow-xl p-6 sm:p-8 text-white relative overflow-hidden text-left">
-                    <div className="absolute top-0 right-0 -mt-6 -mr-6 w-48 h-48 bg-white opacity-10 rounded-full blur-3xl"></div>
-                    <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                        <div className="flex items-center space-x-4">
-                            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/10 shadow-inner shrink-0">
-                                <Mailbox className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-300" />
-                            </div>
-                            <div>
-                                <h1 className="text-xl sm:text-3xl font-black text-white tracking-tight uppercase italic leading-none text-left">Detail Pesan Masuk</h1>
-                                <p className="text-white/80 font-bold text-[10px] sm:text-xs uppercase tracking-widest mt-1 opacity-80 text-left italic">
-                                    Diterima pada: {format(new Date(contactMessage.created_at), 'dd MMMM yyyy HH:mm', { locale: localeId })} WIB
-                                </p>
-                            </div>
-                        </div>
-                        <div className="flex gap-3">
-                            {contactMessage.status !== 'archived' && (
-                                <button 
-                                    onClick={handleArchive}
-                                    className="inline-flex items-center px-6 py-3 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
-                                >
-                                    <Archive className="w-4 h-4 sm:mr-2" /> <span className="hidden sm:inline">ARSIPKAN</span>
-                                </button>
-                            )}
-                            <Link 
-                                href={route('contact-messages.index')}
-                                className="inline-flex items-center px-6 py-3 bg-white text-teal-800 hover:bg-teal-50 border border-transparent rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg"
-                            >
-                                <ArrowLeft className="w-4 h-4 sm:mr-2" /> <span className="hidden sm:inline">KEMBALI</span>
-                            </Link>
-                        </div>
-                    </div>
-                </div>
+                <PageHeader 
+                    title="Detail Pesan Masuk"
+                    subtitle={`Diterima pada: ${format(new Date(contactMessage.created_at), 'dd MMMM yyyy HH:mm', { locale: localeId })} WIB`}
+                    icon={Mailbox}
+                    backHref={route('contact-messages.index')}
+                    actions={
+                        contactMessage.status !== 'archived' ? [
+                            {
+                                label: 'ARSIPKAN',
+                                icon: Archive,
+                                onClick: handleArchive,
+                                variant: 'white'
+                            }
+                        ] : []
+                    }
+                />
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Left Column: Sender Info */}
@@ -112,36 +88,15 @@ export default function Show({ auth, contactMessage }) {
                         <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
                             <div className="p-6 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
                                 <h3 className="text-sm font-black text-gray-900 uppercase italic tracking-tighter">Informasi Pengirim</h3>
-                                <StatusBadge status={contactMessage.status} />
+                                <Badge color={statusCfg.color} icon={StatusIcon}>
+                                    {statusCfg.label}
+                               </Badge>
                             </div>
-                            <div className="p-6 space-y-5">
-                                <div className="flex items-start gap-4">
-                                    <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
-                                        <User className="w-5 h-5 text-blue-500" />
-                                    </div>
-                                    <div>
-                                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Nama Lengkap</p>
-                                        <p className="text-sm font-bold text-gray-900 mt-0.5 uppercase">{contactMessage.nama}</p>
-                                    </div>
-                                </div>
-                                <div className="flex items-start gap-4">
-                                    <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center shrink-0">
-                                        <Mail className="w-5 h-5 text-indigo-500" />
-                                    </div>
-                                    <div>
-                                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Alamat Email</p>
-                                        <p className="text-sm font-bold text-gray-900 mt-0.5">{contactMessage.email}</p>
-                                    </div>
-                                </div>
-                                <div className="flex items-start gap-4">
-                                    <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
-                                        <Phone className="w-5 h-5 text-emerald-500" />
-                                    </div>
-                                    <div>
-                                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Nomor Telepon</p>
-                                        <p className="text-sm font-bold text-gray-900 mt-0.5 font-mono">{contactMessage.telepon}</p>
-                                    </div>
-                                </div>
+                            <div className="p-6 space-y-4">
+                                <InfoRow label="Nama Lengkap" value={contactMessage.nama} icon={User} color="blue" />
+                                <InfoRow label="Alamat Email" value={contactMessage.email} icon={Mail} color="purple" />
+                                <InfoRow label="Nomor Telepon" value={contactMessage.telepon} icon={Phone} color="green" />
+                                
                                 <div className="border-t border-gray-100 pt-5 mt-2 space-y-4">
                                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 flex items-center gap-1.5">
                                         <Globe className="w-3.5 h-3.5" /> Data Jejak Digital

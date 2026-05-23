@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { PageHeader, FormCard, FormField } from '@/Components/Shared';
 import { MapPin, Save, ArrowLeft, User, Home, Calendar, Loader2, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import axios from 'axios';
@@ -12,64 +13,6 @@ const KEPERLUAN_OPTIONS = [
     { value: 'ikut_keluarga', label: 'Ikut Keluarga' },
     { value: 'lainnya',     label: 'Lainnya' },
 ];
-
-function SectionHeader({ icon: Icon, title, subtitle, color = 'green' }) {
-    const colors = { 
-        green: 'bg-green-50 text-green-600', 
-        blue: 'bg-blue-50 text-blue-600' 
-    };
-    return (
-        <div className="flex items-center gap-3 mb-8 pb-4 border-b border-gray-100">
-            <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center shrink-0', colors[color])}>
-                <Icon className="w-5 h-5" />
-            </div>
-            <div>
-                <h3 className="text-sm font-black text-gray-900 uppercase italic tracking-tighter leading-none">{title}</h3>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">{subtitle}</p>
-            </div>
-        </div>
-    );
-}
-
-function Field({ label, required, error, children, className }) {
-    return (
-        <div className={cn("space-y-2", className)}>
-            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
-                {label} {required && <span className="text-red-500">*</span>}
-            </label>
-            {children}
-            {error && <p className="text-[10px] text-red-500 font-bold mt-1 ml-1 uppercase tracking-widest animate-in fade-in slide-in-from-top-1">{error}</p>}
-        </div>
-    );
-}
-
-function Input({ className, error, ...props }) {
-    return (
-        <input 
-            className={cn(
-                'w-full px-4 py-3.5 bg-gray-50 border rounded-2xl text-sm font-bold outline-none focus:ring-4 focus:ring-green-500/10 focus:border-green-500 transition-all',
-                error ? 'border-red-500' : 'border-gray-100',
-                className
-            )} 
-            {...props} 
-        />
-    );
-}
-
-function Select({ className, children, error, ...props }) {
-    return (
-        <select 
-            className={cn(
-                'w-full px-4 py-3.5 bg-gray-50 border rounded-2xl text-sm font-bold outline-none focus:ring-4 focus:ring-green-500/10 focus:border-green-500 transition-all',
-                error ? 'border-red-500' : 'border-gray-100',
-                className
-            )} 
-            {...props}
-        >
-            {children}
-        </select>
-    );
-}
 
 export default function Form({ auth, domisili, rtList, rwList, dusunList }) {
     const isEdit = !!domisili;
@@ -178,170 +121,206 @@ export default function Form({ auth, domisili, rtList, rwList, dusunList }) {
         <AuthenticatedLayout user={auth.user} title={isEdit ? 'Edit Domisili' : 'Daftar Pendatang'}>
             <Head title={isEdit ? 'Edit Data Domisili' : 'Daftar Pendatang Baru'} />
 
-            <div className="space-y-6 animate-in fade-in duration-700 pb-20">
+            <div className="space-y-6 animate-in fade-in duration-700 pb-20 text-left">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-green-600 via-green-700 to-green-800 rounded-3xl shadow-xl p-6 sm:p-8 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl" />
-                    <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                        <div className="flex items-center space-x-4">
-                            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-inner shrink-0">
-                                <MapPin className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-300" />
-                            </div>
-                            <div>
-                                <h1 className="text-xl sm:text-3xl font-black text-white tracking-tight uppercase italic leading-none text-left">
-                                    {isEdit ? 'Edit Data Domisili' : 'Daftar Pendatang Baru'}
-                                </h1>
-                                <p className="text-green-100 font-bold text-[10px] sm:text-xs uppercase tracking-widest mt-1 opacity-80 italic text-left">
-                                    Pendaftaran Warga Sementara Desa Cibatu
-                                </p>
-                            </div>
-                        </div>
-                        <Link 
-                            href={route('domisili.index')}
-                            className="flex items-center px-6 py-3 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all w-fit"
-                        >
-                            <ArrowLeft className="w-4 h-4 mr-2" /> KEMBALI
-                        </Link>
-                    </div>
-                </div>
+                <PageHeader 
+                    title={isEdit ? 'Edit Data Domisili' : 'Daftar Pendatang Baru'}
+                    subtitle="Pendaftaran Warga Sementara Desa Cibatu"
+                    icon={MapPin}
+                    backLink={route('domisili.index')}
+                    backLabel="KEMBALI"
+                />
 
                 <div className="w-full">
                     <form onSubmit={handleSubmit} className="space-y-6">
                         {/* Section 1: Data KTP */}
-                        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden p-8">
-                            <div className="flex items-center gap-3 mb-8 pb-4 border-b border-gray-50">
-                                <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center">
-                                    <User className="w-5 h-5 text-green-600" />
-                                </div>
-                                <div>
-                                    <h3 className="text-sm font-black text-gray-900 uppercase italic tracking-tighter">Data Identitas (KTP)</h3>
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Sesuai Kartu Tanda Penduduk Asal</p>
-                                </div>
-                            </div>
-                            
+                        <FormCard
+                            title="Data Identitas (KTP)"
+                            icon={User}
+                            iconColor="text-green-600"
+                            iconBg="bg-green-50"
+                        >
+                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest -mt-4 mb-6 ml-[3.25rem]">Sesuai Kartu Tanda Penduduk Asal</p>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                <Field label="NIK" required error={errors.nik}>
-                                    <Input value={data.nik} onChange={e => setData('nik', e.target.value)} maxLength={16}
-                                        placeholder="16 digit NIK" error={errors.nik} className={cn(nikStatus === 'blocked' && 'border-red-400 ring-1 ring-red-400')} />
-                                    <div className="mt-2">{nikIndicator()}</div>
-                                </Field>
-                                <Field label="Nama Lengkap" required error={errors.nama}>
-                                    <Input value={data.nama} onChange={e => setData('nama', e.target.value)} placeholder="Nama sesuai KTP" error={errors.nama} />
-                                </Field>
-                                <Field label="Tempat Lahir" error={errors.tempat_lahir}>
-                                    <Input value={data.tempat_lahir} onChange={e => setData('tempat_lahir', e.target.value)} placeholder="Kota/Kabupaten" error={errors.tempat_lahir} />
-                                </Field>
-                                <Field label="Tanggal Lahir" error={errors.tanggal_lahir}>
-                                    <Input type="date" value={data.tanggal_lahir} onChange={e => setData('tanggal_lahir', e.target.value)} error={errors.tanggal_lahir} />
-                                </Field>
-                                <Field label="Jenis Kelamin" required error={errors.jenis_kelamin}>
-                                    <Select value={data.jenis_kelamin} onChange={e => setData('jenis_kelamin', e.target.value)} error={errors.jenis_kelamin}>
-                                        <option value="">-- Pilih --</option>
-                                        <option value="L">Laki-Laki</option>
-                                        <option value="P">Perempuan</option>
-                                    </Select>
-                                </Field>
-                                <Field label="Status Perkawinan" required error={errors.status_perkawinan}>
-                                    <Select value={data.status_perkawinan} onChange={e => setData('status_perkawinan', e.target.value)} error={errors.status_perkawinan}>
-                                        <option value="Belum Kawin">Belum Kawin</option>
-                                        <option value="Kawin">Kawin</option>
-                                        <option value="Cerai Hidup">Cerai Hidup</option>
-                                        <option value="Cerai Mati">Cerai Mati</option>
-                                    </Select>
-                                </Field>
-                                <Field label="Agama" error={errors.agama}>
-                                    <Select value={data.agama} onChange={e => setData('agama', e.target.value)} error={errors.agama}>
-                                        <option value="">-- Pilih --</option>
-                                        {AGAMA_OPTIONS.map(a => <option key={a} value={a}>{a}</option>)}
-                                    </Select>
-                                </Field>
-                                <Field label="Kewarganegaraan" error={errors.kewarganegaraan}>
-                                    <Input value={data.kewarganegaraan} onChange={e => setData('kewarganegaraan', e.target.value)} placeholder="Indonesia" error={errors.kewarganegaraan} />
-                                </Field>
-                                <Field label="Pekerjaan" error={errors.pekerjaan}>
-                                    <Input value={data.pekerjaan} onChange={e => setData('pekerjaan', e.target.value)} placeholder="Pekerjaan saat ini" error={errors.pekerjaan} />
-                                </Field>
-                                <Field label="Asal Daerah" error={errors.asal_daerah}>
-                                    <Input value={data.asal_daerah} onChange={e => setData('asal_daerah', e.target.value)} placeholder="Kota/Kabupaten asal" error={errors.asal_daerah} />
-                                </Field>
+                                <div className="space-y-2">
+                                    <FormField.Input
+                                        label="NIK *"
+                                        value={data.nik}
+                                        onChange={e => setData('nik', e.target.value)}
+                                        maxLength={16}
+                                        placeholder="16 digit NIK"
+                                        error={errors.nik}
+                                        className={cn(nikStatus === 'blocked' && 'border-red-400 ring-1 ring-red-400')}
+                                    />
+                                    <div className="mt-2 pl-1">{nikIndicator()}</div>
+                                </div>
+                                
+                                <FormField.Input
+                                    label="Nama Lengkap *"
+                                    value={data.nama}
+                                    onChange={e => setData('nama', e.target.value)}
+                                    placeholder="Nama sesuai KTP"
+                                    error={errors.nama}
+                                />
+                                <FormField.Input
+                                    label="Tempat Lahir"
+                                    value={data.tempat_lahir}
+                                    onChange={e => setData('tempat_lahir', e.target.value)}
+                                    placeholder="Kota/Kabupaten"
+                                    error={errors.tempat_lahir}
+                                />
+                                <FormField.Input
+                                    type="date"
+                                    label="Tanggal Lahir"
+                                    value={data.tanggal_lahir}
+                                    onChange={e => setData('tanggal_lahir', e.target.value)}
+                                    error={errors.tanggal_lahir}
+                                />
+                                <FormField.Select
+                                    label="Jenis Kelamin *"
+                                    value={data.jenis_kelamin}
+                                    onChange={e => setData('jenis_kelamin', e.target.value)}
+                                    error={errors.jenis_kelamin}
+                                    options={[
+                                        { value: '', label: '-- Pilih --' },
+                                        { value: 'L', label: 'Laki-Laki' },
+                                        { value: 'P', label: 'Perempuan' }
+                                    ]}
+                                />
+                                <FormField.Select
+                                    label="Status Perkawinan *"
+                                    value={data.status_perkawinan}
+                                    onChange={e => setData('status_perkawinan', e.target.value)}
+                                    error={errors.status_perkawinan}
+                                    options={[
+                                        { value: 'Belum Kawin', label: 'Belum Kawin' },
+                                        { value: 'Kawin', label: 'Kawin' },
+                                        { value: 'Cerai Hidup', label: 'Cerai Hidup' },
+                                        { value: 'Cerai Mati', label: 'Cerai Mati' }
+                                    ]}
+                                />
+                                <FormField.Select
+                                    label="Agama"
+                                    value={data.agama}
+                                    onChange={e => setData('agama', e.target.value)}
+                                    error={errors.agama}
+                                    options={[
+                                        { value: '', label: '-- Pilih --' },
+                                        ...AGAMA_OPTIONS.map(a => ({ value: a, label: a }))
+                                    ]}
+                                />
+                                <FormField.Input
+                                    label="Kewarganegaraan"
+                                    value={data.kewarganegaraan}
+                                    onChange={e => setData('kewarganegaraan', e.target.value)}
+                                    placeholder="Indonesia"
+                                    error={errors.kewarganegaraan}
+                                />
+                                <FormField.Input
+                                    label="Pekerjaan"
+                                    value={data.pekerjaan}
+                                    onChange={e => setData('pekerjaan', e.target.value)}
+                                    placeholder="Pekerjaan saat ini"
+                                    error={errors.pekerjaan}
+                                />
+                                <FormField.Input
+                                    label="Asal Daerah"
+                                    value={data.asal_daerah}
+                                    onChange={e => setData('asal_daerah', e.target.value)}
+                                    placeholder="Kota/Kabupaten asal"
+                                    error={errors.asal_daerah}
+                                />
                                 <div className="sm:col-span-2">
-                                    <Field label="Alamat Asal (sesuai KTP)" error={errors.alamat_asal}>
-                                        <textarea 
-                                            rows={2} 
-                                            value={data.alamat_asal} 
-                                            onChange={e => setData('alamat_asal', e.target.value)}
-                                            placeholder="Alamat lengkap sesuai KTP..."
-                                            className={cn(
-                                                "w-full px-4 py-3.5 bg-gray-50 border rounded-2xl text-sm font-bold outline-none focus:ring-4 focus:ring-green-500/10 focus:border-green-500 transition-all resize-none",
-                                                errors.alamat_asal ? 'border-red-500' : 'border-gray-100'
-                                            )} 
-                                        />
-                                    </Field>
+                                    <FormField.Textarea
+                                        label="Alamat Asal (sesuai KTP)"
+                                        value={data.alamat_asal}
+                                        onChange={e => setData('alamat_asal', e.target.value)}
+                                        placeholder="Alamat lengkap sesuai KTP..."
+                                        error={errors.alamat_asal}
+                                        rows={2}
+                                    />
                                 </div>
                             </div>
-                        </div>
+                        </FormCard>
 
                         {/* Section 2: Data Domisili */}
-                        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden p-8">
-                            <SectionHeader icon={Home} title="Data Domisili di Desa" subtitle="Lokasi & keperluan tinggal sementara" color="blue" />
+                        <FormCard
+                            title="Data Domisili di Desa"
+                            icon={Home}
+                            iconColor="text-blue-600"
+                            iconBg="bg-blue-50"
+                        >
+                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest -mt-4 mb-6 ml-[3.25rem]">Lokasi & keperluan tinggal sementara</p>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                <Field label="Dusun" error={errors.dusun_id}>
-                                    <Select value={data.dusun_id} onChange={e => handleDusunChange(e.target.value)} error={errors.dusun_id}>
-                                        <option value="">-- Pilih Dusun --</option>
-                                        {dusunList?.map(d => <option key={d.id} value={d.id}>{d.nama}</option>)}
-                                    </Select>
-                                </Field>
-                                <Field label="RW" required error={errors.rw_id}>
-                                    <Select value={data.rw_id} onChange={e => handleRwChange(e.target.value)} error={errors.rw_id}>
-                                        <option value="">-- Pilih RW --</option>
-                                        {filteredRws?.map(rw => <option key={rw.id} value={rw.id}>RW {rw.kode}</option>)}
-                                    </Select>
-                                </Field>
-                                <Field label="RT" required error={errors.rt_id}>
-                                    <Select value={data.rt_id} onChange={e => handleRtChange(e.target.value)} error={errors.rt_id}>
-                                        <option value="">-- Pilih RT --</option>
-                                        {filteredRts?.map(rt => <option key={rt.id} value={rt.id}>RT {rt.kode}</option>)}
-                                    </Select>
-                                </Field>
-                                <Field label="Keperluan Domisili" error={errors.keperluan_domisili}>
-                                    <Select value={data.keperluan_domisili} onChange={e => setData('keperluan_domisili', e.target.value)} error={errors.keperluan_domisili}>
-                                        <option value="">-- Pilih Keperluan --</option>
-                                        {KEPERLUAN_OPTIONS.map(k => <option key={k.value} value={k.value}>{k.label}</option>)}
-                                    </Select>
-                                </Field>
-                                <Field label="Tanggal Masuk" required error={errors.tanggal_masuk}>
-                                    <Input type="date" value={data.tanggal_masuk} onChange={e => setData('tanggal_masuk', e.target.value)} error={errors.tanggal_masuk} />
-                                </Field>
+                                <FormField.Select
+                                    label="Dusun"
+                                    value={data.dusun_id}
+                                    onChange={e => handleDusunChange(e.target.value)}
+                                    error={errors.dusun_id}
+                                    options={[
+                                        { value: '', label: '-- Pilih Dusun --' },
+                                        ...(dusunList?.map(d => ({ value: d.id, label: d.nama })) || [])
+                                    ]}
+                                />
+                                <FormField.Select
+                                    label="RW *"
+                                    value={data.rw_id}
+                                    onChange={e => handleRwChange(e.target.value)}
+                                    error={errors.rw_id}
+                                    options={[
+                                        { value: '', label: '-- Pilih RW --' },
+                                        ...(filteredRws?.map(rw => ({ value: rw.id, label: `RW ${rw.kode}` })) || [])
+                                    ]}
+                                />
+                                <FormField.Select
+                                    label="RT *"
+                                    value={data.rt_id}
+                                    onChange={e => handleRtChange(e.target.value)}
+                                    error={errors.rt_id}
+                                    options={[
+                                        { value: '', label: '-- Pilih RT --' },
+                                        ...(filteredRts?.map(rt => ({ value: rt.id, label: `RT ${rt.kode}` })) || [])
+                                    ]}
+                                />
+                                <FormField.Select
+                                    label="Keperluan Domisili"
+                                    value={data.keperluan_domisili}
+                                    onChange={e => setData('keperluan_domisili', e.target.value)}
+                                    error={errors.keperluan_domisili}
+                                    options={[
+                                        { value: '', label: '-- Pilih Keperluan --' },
+                                        ...KEPERLUAN_OPTIONS
+                                    ]}
+                                />
+                                <FormField.Input
+                                    type="date"
+                                    label="Tanggal Masuk *"
+                                    value={data.tanggal_masuk}
+                                    onChange={e => setData('tanggal_masuk', e.target.value)}
+                                    error={errors.tanggal_masuk}
+                                />
                                 <div className="sm:col-span-2">
-                                    <Field label="Alamat Tinggal di Desa" required error={errors.alamat_tinggal}>
-                                        <textarea 
-                                            rows={2} 
-                                            value={data.alamat_tinggal} 
-                                            onChange={e => setData('alamat_tinggal', e.target.value)}
-                                            placeholder="Alamat lengkap tempat tinggal sementara di desa..."
-                                            className={cn(
-                                                "w-full px-4 py-3.5 bg-gray-50 border rounded-2xl text-sm font-bold outline-none focus:ring-4 focus:ring-green-500/10 focus:border-green-500 transition-all resize-none",
-                                                errors.alamat_tinggal ? 'border-red-500' : 'border-gray-100'
-                                            )} 
-                                        />
-                                    </Field>
+                                    <FormField.Textarea
+                                        label="Alamat Tinggal di Desa *"
+                                        value={data.alamat_tinggal}
+                                        onChange={e => setData('alamat_tinggal', e.target.value)}
+                                        placeholder="Alamat lengkap tempat tinggal sementara di desa..."
+                                        error={errors.alamat_tinggal}
+                                        rows={2}
+                                    />
                                 </div>
                                 <div className="sm:col-span-2">
-                                    <Field label="Catatan Tambahan" error={errors.catatan}>
-                                        <textarea 
-                                            rows={2} 
-                                            value={data.catatan} 
-                                            onChange={e => setData('catatan', e.target.value)}
-                                            placeholder="Catatan atau informasi tambahan (opsional)..."
-                                            className={cn(
-                                                "w-full px-4 py-3.5 bg-gray-50 border rounded-2xl text-sm font-bold outline-none focus:ring-4 focus:ring-green-500/10 focus:border-green-500 transition-all resize-none",
-                                                errors.catatan ? 'border-red-500' : 'border-gray-100'
-                                            )} 
-                                        />
-                                    </Field>
+                                    <FormField.Textarea
+                                        label="Catatan Tambahan"
+                                        value={data.catatan}
+                                        onChange={e => setData('catatan', e.target.value)}
+                                        placeholder="Catatan atau informasi tambahan (opsional)..."
+                                        error={errors.catatan}
+                                        rows={2}
+                                    />
                                 </div>
                             </div>
-                        </div>
+                        </FormCard>
 
                         {/* Info Box */}
                         {!isEdit && (

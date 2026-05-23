@@ -5,19 +5,20 @@ import AnggaranProgressBar from '@/Components/Keuangan/AnggaranProgressBar';
 import { History, ArrowLeft, Plus, Edit2, Trash2, Save, X, Calendar, FileText, Upload, Eye, Download, CheckCircle, Clock, XCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Swal from 'sweetalert2';
+import { PageHeader, TableCard, FormField, Badge } from '@/Components/Shared';
 
 const formatRupiah = (v) => `Rp ${Number(v || 0).toLocaleString('id-ID')}`;
 const formatDate   = (d) => d ? new Date(d).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' }) : '-';
 
 const JENIS_CONFIG = {
-    pendapatan: { color: 'text-emerald-700', bg: 'bg-emerald-50' },
-    belanja:    { color: 'text-blue-700',    bg: 'bg-blue-50'    },
-    pembiayaan: { color: 'text-purple-700',  bg: 'bg-purple-50'  },
+    pendapatan: 'emerald',
+    belanja:    'blue',
+    pembiayaan: 'purple',
 };
 
 const SPJ_CONFIG = {
-    belum: { icon: Clock,         color: 'text-yellow-600', bg: 'bg-yellow-50', label: 'Belum SPJ' },
-    sudah: { icon: CheckCircle,   color: 'text-green-600',  bg: 'bg-green-50',  label: 'Sudah SPJ' },
+    belum: { icon: Clock,         color: 'yellow', label: 'Belum SPJ' },
+    sudah: { icon: CheckCircle,   color: 'green',  label: 'Sudah SPJ' },
 };
 
 export default function HistoryPage({ auth, apbdes, jenisBuktiOptions = {} }) {
@@ -56,15 +57,7 @@ export default function HistoryPage({ auth, apbdes, jenisBuktiOptions = {} }) {
         }).then(r => { if (r.isConfirmed) router.delete(route('anggaran.delete-pengeluaran', id), { preserveScroll: true }); });
     };
 
-    const jenisCfg = JENIS_CONFIG[apbdes.jenis] ?? JENIS_CONFIG.belanja;
-
-    const InputField = ({ label, error, children }) => (
-        <div className="space-y-1.5">
-            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{label}</label>
-            {children}
-            {error && <p className="text-[10px] font-bold text-red-500 uppercase tracking-wider italic ml-1">{error}</p>}
-        </div>
-    );
+    const jenisColor = JENIS_CONFIG[apbdes.jenis] ?? 'blue';
 
     return (
         <AuthenticatedLayout user={auth.user} title="Histori Pengeluaran">
@@ -101,36 +94,32 @@ export default function HistoryPage({ auth, apbdes, jenisBuktiOptions = {} }) {
 
             <div className="space-y-6 animate-in fade-in duration-700 pb-20">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-green-600 via-green-700 to-green-800 rounded-3xl shadow-xl p-6 sm:p-8 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl pointer-events-none" />
-                    <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                        <div className="flex items-center space-x-4">
-                            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-inner shrink-0">
-                                <History className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-300" />
-                            </div>
-                            <div>
-                                <h1 className="text-xl sm:text-3xl font-black text-white tracking-tight uppercase italic leading-none line-clamp-1">{apbdes.nama_rekening}</h1>
-                                <p className="text-green-100 font-bold text-[10px] sm:text-xs uppercase tracking-widest mt-1 opacity-80 italic">Histori Pengeluaran · {apbdes.kode_rekening} · {apbdes.tahun}</p>
-                            </div>
-                        </div>
-                        <div className="flex flex-wrap gap-2 sm:gap-3">
-                            <button onClick={() => setShowAddForm(!showAddForm)}
-                                className="flex items-center px-4 py-3 bg-white text-green-700 hover:bg-green-50 rounded-xl text-[10px] sm:text-xs font-black shadow-lg transition-all hover:scale-105 uppercase tracking-widest">
-                                <Plus className="w-3.5 h-3.5 mr-2" /> TAMBAH PENGELUARAN
-                            </button>
-                            <Link href={route('transparansi-desa.apbdes')} className="flex items-center px-4 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl text-[10px] sm:text-xs font-black transition-all uppercase tracking-widest backdrop-blur-md border border-white/10">
-                                <ArrowLeft className="w-3.5 h-3.5 mr-2" /> KEMBALI
-                            </Link>
-                        </div>
-                    </div>
-                </div>
+                <PageHeader
+                    title={apbdes.nama_rekening}
+                    subtitle={`Histori Pengeluaran · ${apbdes.kode_rekening} · ${apbdes.tahun}`}
+                    icon={History}
+                    actions={[
+                        {
+                            label: 'KEMBALI',
+                            icon: ArrowLeft,
+                            href: route('transparansi-desa.apbdes'),
+                            variant: 'ghost'
+                        },
+                        {
+                            label: 'TAMBAH PENGELUARAN',
+                            icon: Plus,
+                            onClick: () => setShowAddForm(!showAddForm),
+                            variant: 'white'
+                        }
+                    ]}
+                />
 
                 {/* Status Card + Add Form */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
                         <div className="flex items-center justify-between">
                             <h3 className="text-xs font-black text-gray-900 uppercase italic tracking-tighter">Status Rekening</h3>
-                            <span className={cn('px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest', jenisCfg.bg, jenisCfg.color)}>{apbdes.jenis}</span>
+                            <Badge color={jenisColor}>{apbdes.jenis}</Badge>
                         </div>
                         <div className="space-y-2">
                             {[
@@ -161,46 +150,24 @@ export default function HistoryPage({ auth, apbdes, jenisBuktiOptions = {} }) {
                             </div>
                             <form onSubmit={handleAdd} className="space-y-4" encType="multipart/form-data">
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <InputField label="Nama Pengeluaran *" error={errors.nama_pengeluaran}>
-                                        <input type="text" value={data.nama_pengeluaran} onChange={e => setData('nama_pengeluaran', e.target.value)}
-                                            placeholder="Contoh: Pembelian material..." className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-green-500" />
-                                    </InputField>
-                                    <InputField label="Tanggal Pengeluaran *" error={errors.tanggal_pengeluaran}>
-                                        <input type="date" value={data.tanggal_pengeluaran} onChange={e => setData('tanggal_pengeluaran', e.target.value)}
-                                            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-green-500" />
-                                    </InputField>
+                                    <FormField.Input label="Nama Pengeluaran" required error={errors.nama_pengeluaran} value={data.nama_pengeluaran} onChange={e => setData('nama_pengeluaran', e.target.value)} placeholder="Contoh: Pembelian material..." />
+                                    <FormField.Input label="Tanggal Pengeluaran" required type="date" error={errors.tanggal_pengeluaran} value={data.tanggal_pengeluaran} onChange={e => setData('tanggal_pengeluaran', e.target.value)} />
                                 </div>
-                                <InputField label={`Jumlah * — Sisa: ${formatRupiah(sisaAnggaran)}`} error={errors.jumlah}>
-                                    <input type="number" value={data.jumlah} onChange={e => setData('jumlah', e.target.value)}
-                                        max={sisaAnggaran} min="0" placeholder="0"
-                                        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-green-500" />
-                                </InputField>
+                                <FormField.Input label={`Jumlah — Sisa: ${formatRupiah(sisaAnggaran)}`} required type="number" max={sisaAnggaran} min="0" placeholder="0" error={errors.jumlah} value={data.jumlah} onChange={e => setData('jumlah', e.target.value)} />
 
                                 {/* ── Bukti Pembayaran ── */}
                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                    <InputField label="No. Bukti" error={errors.no_bukti}>
-                                        <input type="text" value={data.no_bukti} onChange={e => setData('no_bukti', e.target.value)}
-                                            placeholder="Auto: BKT-YYYY-XXXX"
-                                            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-green-500 font-mono" />
-                                    </InputField>
-                                    <InputField label="Jenis Bukti" error={errors.jenis_bukti}>
-                                        <select value={data.jenis_bukti} onChange={e => setData('jenis_bukti', e.target.value)}
-                                            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-green-500 appearance-none">
-                                            {Object.entries(jenisBuktiOptions).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-                                        </select>
-                                    </InputField>
-                                    <InputField label="Upload Bukti (PDF/JPG, maks 5MB)" error={errors.file_bukti}>
+                                    <FormField.Input label="No. Bukti" error={errors.no_bukti} value={data.no_bukti} onChange={e => setData('no_bukti', e.target.value)} placeholder="Auto: BKT-YYYY-XXXX" inputClassName="font-mono" />
+                                    <FormField.Select label="Jenis Bukti" error={errors.jenis_bukti} value={data.jenis_bukti} onChange={e => setData('jenis_bukti', e.target.value)} options={Object.entries(jenisBuktiOptions).map(([v, l]) => ({value: v, label: l}))} />
+                                    <FormField label="Upload Bukti (PDF/JPG, maks 5MB)" error={errors.file_bukti}>
                                         <input type="file" accept=".pdf,.jpg,.jpeg,.png"
                                             onChange={e => setData('file_bukti', e.target.files[0])}
-                                            className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-xs font-bold focus:ring-2 focus:ring-green-500 file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-[9px] file:font-black file:uppercase file:tracking-widest file:bg-green-50 file:text-green-700 hover:file:bg-green-100 cursor-pointer" />
-                                    </InputField>
+                                            className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-xs font-bold focus:ring-2 focus:ring-green-500 file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-[9px] file:font-black file:uppercase file:tracking-widest file:bg-green-50 file:text-green-700 hover:file:bg-green-100 cursor-pointer" />
+                                    </FormField>
                                 </div>
 
-                                <InputField label="Keterangan (Opsional)" error={errors.keterangan}>
-                                    <textarea value={data.keterangan} onChange={e => setData('keterangan', e.target.value)}
-                                        rows={2} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-green-500 resize-none" />
-                                </InputField>
-                                <div className="flex gap-3">
+                                <FormField.Textarea label="Keterangan (Opsional)" error={errors.keterangan} value={data.keterangan} onChange={e => setData('keterangan', e.target.value)} rows={2} />
+                                <div className="flex gap-3 pt-2">
                                     <button type="button" onClick={() => { setShowAddForm(false); reset(); }}
                                         className="flex-1 py-3 rounded-xl bg-gray-50 text-gray-600 text-xs font-black uppercase tracking-widest hover:bg-gray-100 border border-gray-200 transition-all">BATAL</button>
                                     <button type="submit" disabled={processing}
@@ -214,15 +181,13 @@ export default function HistoryPage({ auth, apbdes, jenisBuktiOptions = {} }) {
                 </div>
 
                 {/* History Table */}
-                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                    <div className="p-5 sm:p-6 border-b border-gray-50 flex items-center justify-between">
-                        <h3 className="text-base font-black text-gray-900 uppercase italic tracking-tighter flex items-center gap-3">
-                            <History className="w-5 h-5 text-green-600" /> Histori Pengeluaran
-                        </h3>
-                        <span className="px-4 py-1.5 bg-blue-50 text-blue-700 rounded-full text-[10px] font-black uppercase tracking-widest border border-blue-100">
-                            {apbdes.histori_pengeluarans?.length ?? 0} Transaksi
-                        </span>
-                    </div>
+                <TableCard
+                    title="Histori Pengeluaran"
+                    icon={History}
+                    total={apbdes.histori_pengeluarans?.length ?? 0}
+                    totalLabel="Transaksi"
+                    noPadding={true}
+                >
                     {apbdes.histori_pengeluarans?.length > 0 ? (
                         <div className="overflow-x-auto">
                             <table className="w-full">
@@ -236,7 +201,6 @@ export default function HistoryPage({ auth, apbdes, jenisBuktiOptions = {} }) {
                                 <tbody className="divide-y divide-gray-50">
                                     {apbdes.histori_pengeluarans.map((item) => {
                                         const spjCfg = SPJ_CONFIG[item.spj_status] ?? SPJ_CONFIG.belum;
-                                        const SpjIcon = spjCfg.icon;
                                         return (
                                             <tr key={item.id} className="hover:bg-gray-50/50 transition-all group">
                                                 <td className="px-4 py-4 whitespace-nowrap">
@@ -273,9 +237,9 @@ export default function HistoryPage({ auth, apbdes, jenisBuktiOptions = {} }) {
                                                     )}
                                                 </td>
                                                 <td className="px-4 py-4 whitespace-nowrap">
-                                                    <span className={cn('flex items-center gap-1 px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest', spjCfg.bg, spjCfg.color)}>
-                                                        <SpjIcon className="w-2.5 h-2.5" /> {spjCfg.label}
-                                                    </span>
+                                                    <Badge color={spjCfg.color} icon={spjCfg.icon}>
+                                                        {spjCfg.label}
+                                                    </Badge>
                                                 </td>
                                                 <td className="px-4 py-4 whitespace-nowrap">
                                                     <div className="flex items-center gap-1">
@@ -318,7 +282,7 @@ export default function HistoryPage({ auth, apbdes, jenisBuktiOptions = {} }) {
                             </button>
                         </div>
                     )}
-                </div>
+                </TableCard>
             </div>
         </AuthenticatedLayout>
     );

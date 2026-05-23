@@ -1,8 +1,9 @@
 import React from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link } from '@inertiajs/react';
+import { Head } from '@inertiajs/react';
 import MutasiFormManager from '@/Components/Mutasi/MutasiFormManager';
-import { Plus, ArrowLeft, History, ShieldCheck } from 'lucide-react';
+import { Plus, History } from 'lucide-react';
+import { PageHeader } from '@/Components/Shared';
 
 export default function Create({ auth, wilayahTree }) {
     const handleBack = (e) => {
@@ -17,47 +18,26 @@ export default function Create({ auth, wilayahTree }) {
             <div className="space-y-6 md:space-y-8 animate-in fade-in duration-700 pb-20">
                 
                 {/* 1. CONSISTENT PREMIUM HEADER */}
-                <div className="bg-gradient-to-r from-green-600 via-green-700 to-green-800 rounded-3xl shadow-xl p-6 sm:p-8 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl"></div>
-                    <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-                        <div className="flex items-center space-x-4">
-                            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-inner shrink-0">
-                                <Plus className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-300" />
-                            </div>
-                            <div>
-                                <h1 className="text-xl sm:text-3xl font-black text-white tracking-tight uppercase italic leading-none">Input Mutasi</h1>
-                                <p className="text-green-100 font-bold text-[10px] sm:text-xs uppercase tracking-widest mt-1 opacity-80 flex items-center gap-2">
-                                    <ShieldCheck className="w-3 h-3 text-yellow-300" />
-                                    Pencatatan Peristiwa Kependudukan
-                                </p>
-                            </div>
-                        </div>
-                        <div className="flex flex-wrap gap-2 sm:gap-3">
-                            <button 
-                                onClick={handleBack}
-                                className="flex items-center px-4 py-3 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white rounded-xl text-[10px] sm:text-xs font-black transition-all active:scale-95 uppercase tracking-widest group"
-                            >
-                                <ArrowLeft className="w-4 h-4 mr-2 transition-transform group-hover:-translate-x-1" />
-                                KEMBALI
-                            </button>
-                            <Link 
-                                href={route('mutasi.data.index')}
-                                className="flex items-center px-6 py-3 bg-white text-green-700 hover:bg-green-50 rounded-xl text-[10px] sm:text-xs font-black shadow-lg shadow-black/10 transition-all hover:scale-105 active:scale-95 uppercase tracking-widest"
-                            >
-                                <History className="w-4 h-4 mr-2" />
-                                RIWAYAT
-                            </Link>
-                        </div>
-                    </div>
-                </div>
+                <PageHeader 
+                    title="Input Mutasi"
+                    subtitle="Pencatatan Peristiwa Kependudukan"
+                    icon={Plus}
+                    backAction={handleBack}
+                    actions={[
+                        {
+                            label: 'RIWAYAT',
+                            icon: History,
+                            href: route('mutasi.data.index'),
+                            variant: 'white'
+                        }
+                    ]}
+                />
 
                 {/* Form Section */}
                 <div className="w-full">
                     <div className="bg-white overflow-hidden shadow-xl sm:rounded-3xl border border-gray-100 animate-in slide-in-from-bottom-4 duration-700">
-                        <div className="p-1 border-b border-gray-50 bg-gradient-to-r from-gray-50 to-white">
-                                <div className="p-4 md:p-10">
-                                <MutasiFormManager wilayahTree={wilayahTree} />
-                                </div>
+                        <div className="p-4 md:p-10">
+                            <MutasiFormManager wilayahTree={wilayahTree} />
                         </div>
                     </div>
                 </div>
