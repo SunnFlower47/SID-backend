@@ -103,9 +103,9 @@ export default function Dashboard({
                         variant: 'ghost'
                     }]}
                 >
-                    <div className="flex flex-col gap-1 items-start">
-                        <div className="flex items-center gap-2 -mt-1 sm:-mt-2 mb-2 sm:mb-0">
-                            <span className="px-2 py-0.5 bg-green-500/30 backdrop-blur-md border border-green-400/30 text-green-100 text-[10px] font-black rounded-full uppercase tracking-widest italic">Live Monitor</span>
+                    <div className="flex items-center">
+                        <div className="flex items-center gap-2">
+                            <span className="px-2 py-1 bg-green-500/30 backdrop-blur-md border border-green-400/30 text-green-100 text-[10px] font-black rounded-full uppercase tracking-widest italic">Live Monitor</span>
                             <span className="text-[10px] text-green-100/60 font-bold uppercase tracking-widest flex items-center gap-1">
                                 <Clock className="w-3.5 h-3.5" />
                                 {new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}

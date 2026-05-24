@@ -79,7 +79,7 @@ export default function PageHeader({
 
                 {/* Kanan: action buttons */}
                 {(actions.length > 0 || children) && (
-                    <div className="flex flex-wrap gap-2 sm:gap-3 shrink-0">
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-3 shrink-0">
                         {children}
                         {actions.map((action, i) => {
                             const ActionIcon = action.icon;
