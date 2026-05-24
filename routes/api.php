@@ -2,7 +2,10 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\WebDesaController;
+use App\Http\Controllers\Api\DesaInfoApiController;
+use App\Http\Controllers\Api\StatisticApiController;
+use App\Http\Controllers\Api\LayananApiController;
+use App\Http\Controllers\Api\PengumumanApiController;
 use App\Http\Controllers\Api\BeritaController;
 use App\Http\Controllers\Api\BantuanSosialController;
 use App\Http\Controllers\Api\PengaduanController;
@@ -31,10 +34,10 @@ use App\Http\Controllers\Api\ApiProxyController;
 // ========================================
 Route::prefix('v1/public-statistics')->middleware(['throttle:10,1'])->group(function () {
     // Statistik umum untuk halaman welcome (tidak butuh API key)
-    Route::get('/', [WebDesaController::class, 'getPublicStatistics']);
-    Route::get('/penduduk', [WebDesaController::class, 'getPublicPendudukStats']);
+    Route::get('/', [StatisticApiController::class, 'getPublicStatistics']);
+    Route::get('/penduduk', [StatisticApiController::class, 'getPublicPendudukStats']);
     // Info desa publik: nama, sosmed, kontak (tidak ada data sensitif)
-    Route::get('/info-desa', [WebDesaController::class, 'getPublicDesaInfo']);
+    Route::get('/info-desa', [DesaInfoApiController::class, 'getPublicDesaInfo']);
 });
 
 Route::prefix('v1')->group(function () {
@@ -44,10 +47,10 @@ Route::prefix('v1')->group(function () {
     // ========================================
 
     // Statistics & Data - Frontend routes (dengan API key untuk keamanan)
-    Route::get('/statistics', [WebDesaController::class, 'getStatistics'])->middleware(['throttle:100,1', 'private.api']);
-    Route::get('/statistics/penduduk', [WebDesaController::class, 'getPendudukStats'])->middleware(['throttle:100,1', 'private.api']);
-    Route::get('/statistics/kk', [WebDesaController::class, 'getKKStats'])->middleware(['throttle:100,1', 'private.api']);
-    Route::get('/statistics/mutasi', [WebDesaController::class, 'getMutasiStats'])->middleware(['throttle:100,1', 'private.api']);
+    Route::get('/statistics', [StatisticApiController::class, 'getStatistics'])->middleware(['throttle:100,1', 'private.api']);
+    Route::get('/statistics/penduduk', [StatisticApiController::class, 'getPendudukStats'])->middleware(['throttle:100,1', 'private.api']);
+    Route::get('/statistics/kk', [StatisticApiController::class, 'getKKStats'])->middleware(['throttle:100,1', 'private.api']);
+    Route::get('/statistics/mutasi', [StatisticApiController::class, 'getMutasiStats'])->middleware(['throttle:100,1', 'private.api']);
 
 
     // Testimoni Data - Frontend routes (dengan API key untuk keamanan)
@@ -74,8 +77,8 @@ Route::prefix('v1')->group(function () {
     Route::get('/berita-combined', [\App\Http\Controllers\Api\BeritaEksternalController::class, 'internalExternalCombined'])->middleware(['throttle:300,1', 'private.api']);
 
     // Desa Info & Services - Frontend routes (dengan API key untuk keamanan)
-    Route::get('/desa-info', [WebDesaController::class, 'desaInfo'])->middleware(['throttle:100,1', 'private.api']);
-    Route::get('/contact-info', [WebDesaController::class, 'contactInfo'])->middleware(['throttle:100,1', 'private.api']);
+    Route::get('/desa-info', [DesaInfoApiController::class, 'getDesaInfo'])->middleware(['throttle:100,1', 'private.api']);
+    Route::get('/contact-info', [DesaInfoApiController::class, 'getContactInfo'])->middleware(['throttle:100,1', 'private.api']);
     Route::get('/contact/info', [ContactController::class, 'info'])->middleware(['throttle:100,1', 'private.api']);
     Route::get('/kontak-desa', [\App\Http\Controllers\Api\KontakDesaController::class, 'index'])->middleware(['throttle:100,1', 'private.api']);
 
@@ -85,8 +88,8 @@ Route::prefix('v1')->group(function () {
     Route::get('/proyek-desa/tahun/{year}', [\App\Http\Controllers\Api\ProyekDesaController::class, 'byYear'])->middleware(['throttle:100,1', 'private.api']);
 
     // Announcements - Frontend routes (dengan API key untuk keamanan)
-    Route::get('/announcements', [WebDesaController::class, 'getAnnouncements'])->middleware(['throttle:100,1', 'private.api']);
-    Route::get('/announcements/{id}', [WebDesaController::class, 'getAnnouncement'])->middleware(['throttle:100,1', 'private.api']);
+    Route::get('/announcements', [PengumumanApiController::class, 'index'])->middleware(['throttle:100,1', 'private.api']);
+    Route::get('/announcements/{id}', [PengumumanApiController::class, 'show'])->middleware(['throttle:100,1', 'private.api']);
 
     // Bantuan Sosial
     Route::get('/bantuan-sosial', [BantuanSosialController::class, 'index'])->middleware(['throttle:100,1', 'private.api']);
