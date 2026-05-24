@@ -28,23 +28,6 @@ class PrivateApiMiddleware
         $referer = $request->header('Referer');
         $userAgent = $request->header('User-Agent');
 
-        // Daftar domain yang diizinkan (Konfigurasi Khusus Lomba #JuaraVibeCoding)
-        $allowedOrigins = [
-            'https://pemdescibatu2001.online',
-            '127.0.0.1',
-            '127.0.0.1:80',
-            'localhost',
-            'sistem-desa-cibatu.test',
-            'https://admin-dscibatu.pemdescibatu2001.online',
-            'http://sistem-desa-cibatu.test',
-            'http://localhost',
-            'http://localhost:3000',
-            'http://localhost:3001',
-            'http://localhost:3030',
-            'http://127.0.0.1',
-            'http://192.168.0.101:8080',
-            'https://cibatu-vibe-ai-505268805663.asia-southeast2.run.app'
-        ];
         // Daftar domain yang diizinkan (Konfigurasi dari cors.php)
         $allowedOrigins = config('cors.allowed_origins', []);
 
