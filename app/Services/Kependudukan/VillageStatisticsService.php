@@ -79,6 +79,62 @@ class VillageStatisticsService
                 ],
                 'age_groups' => $this->calculateAgeGroups(),
                 'mutation_trends' => $this->calculateMutationTrends(),
+                'umkm' => [
+                    'total' => \App\Models\Umkm::count(),
+                    'aktif' => \App\Models\Umkm::where('status_usaha', 'aktif')->count(),
+                    'verified' => \App\Models\Umkm::where('is_verified', true)->count(),
+                ],
+                'pengaduan' => [
+                    'total' => \App\Models\Pengaduan::count(),
+                    'baru' => \App\Models\Pengaduan::where('status', 'baru')->count(),
+                    'diproses' => \App\Models\Pengaduan::where('status', 'diproses')->count(),
+                    'selesai' => \App\Models\Pengaduan::where('status', 'selesai')->count(),
+                ],
+                'bansos' => [
+                    'total_program' => \App\Models\BantuanSosial::count(),
+                    'aktif' => \App\Models\BantuanSosial::aktif()->count(),
+                    'total_penerima' => \App\Models\PenerimaBantuanSosial::count(),
+                ],
+                'aset' => [
+                    'total_inventaris' => \App\Models\AsetInventaris::count(),
+                    'total_nilai' => (float) (
+                        \App\Models\AsetMutasi::where('jenis', 'tambah')->sum('nilai')
+                        - \App\Models\AsetMutasi::where('jenis', 'kurang')->sum('nilai')
+                    ),
+                ],
+                'proyek' => [
+                    'total' => \App\Models\ProyekDesa::count(),
+                    'pelaksanaan' => \App\Models\ProyekDesa::where('status', 'pelaksanaan')->count(),
+                    'anggaran' => (float) \App\Models\ProyekDesa::sum('anggaran'),
+                    'realisasi' => (float) \App\Models\ProyekDesa::sum('realisasi'),
+                ],
+                'umkm_distribution' => DB::table('umkms')
+                    ->select('jenis_usaha', DB::raw('COUNT(*) as total'))
+                    ->whereNull('deleted_at')
+                    ->groupBy('jenis_usaha')
+                    ->get()
+                    ->map(function($item) {
+                        return [
+                            'name' => ucfirst($item->jenis_usaha),
+                            'value' => (int) $item->total
+                        ];
+                    })
+                    ->toArray(),
+                'aset_distribution' => DB::table('aset_kategoris as ak')
+                    ->join('aset_barangs as ab', 'ab.aset_kategori_id', '=', 'ak.id')
+                    ->join('aset_inventaris as ai', 'ai.aset_barang_id', '=', 'ab.id')
+                    ->join('aset_mutasi as am', 'am.aset_inventaris_id', '=', 'ai.id')
+                    ->select('ak.nama as name', DB::raw("SUM(CASE WHEN am.jenis = 'tambah' THEN am.nilai ELSE -am.nilai END) as value"))
+                    ->groupBy('ak.id', 'ak.nama')
+                    ->having('value', '>', 0)
+                    ->get()
+                    ->map(function($item) {
+                        return [
+                            'name' => $item->name,
+                            'value' => (float) $item->value
+                        ];
+                    })
+                    ->toArray(),
             ];
         });
     }

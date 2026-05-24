@@ -30,7 +30,7 @@ class WilayahController extends Controller
 
     public function index()
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('settings.view');
 
         return Inertia::render('Tenant/MasterWilayah/Index', [
             'mapping' => Inertia::defer(fn () => [
@@ -45,7 +45,7 @@ class WilayahController extends Controller
 
     public function detailRtPenduduk(Request $request, Rt $rt)
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('settings.view');
 
         return Inertia::render('Tenant/MasterWilayah/RtDetail', [
             'rt'        => $rt->load(['rw', 'dusun']),
@@ -70,7 +70,7 @@ class WilayahController extends Controller
 
     public function storeDusun(Request $request)
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('settings.view');
 
         $data = $request->validate([
             'nama' => 'required|string|max:100|unique:dusuns,nama',
@@ -90,7 +90,7 @@ class WilayahController extends Controller
 
     public function updateDusun(Request $request, Dusun $dusun)
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('settings.view');
 
         $data = $request->validate([
             'nama'         => 'required|string|max:100|unique:dusuns,nama,' . $dusun->id,
@@ -111,7 +111,7 @@ class WilayahController extends Controller
 
     public function destroyDusun(Request $request, Dusun $dusun)
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('settings.view');
 
         if ($error = $this->wilayahService->canDeleteDusun($dusun)) {
             return back()->with('error', $error);
@@ -127,7 +127,7 @@ class WilayahController extends Controller
 
     public function previewImpactDusun(Request $request, Dusun $dusun)
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('settings.view');
         $data = $request->validate(['nama' => 'required|string|max:100']);
 
         return response()->json($this->wilayahService->previewDusunImpact($dusun, $data['nama']));
@@ -139,7 +139,7 @@ class WilayahController extends Controller
 
     public function storeRw(Request $request)
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('settings.view');
 
         $data = $request->validate([
             'kode' => 'required|string|max:3|unique:rws,kode',
@@ -161,7 +161,7 @@ class WilayahController extends Controller
 
     public function updateRw(Request $request, Rw $rw)
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('settings.view');
 
         $data = $request->validate([
             'kode'         => 'required|string|max:3|unique:rws,kode,' . $rw->id,
@@ -184,7 +184,7 @@ class WilayahController extends Controller
 
     public function destroyRw(Request $request, Rw $rw)
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('settings.view');
 
         if ($error = $this->wilayahService->canDeleteRw($rw)) {
             return back()->with('error', $error);
@@ -200,7 +200,7 @@ class WilayahController extends Controller
 
     public function previewImpactRw(Request $request, Rw $rw)
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('settings.view');
         $data = $request->validate(['kode' => 'required|string|max:3']);
 
         return response()->json($this->wilayahService->previewRwImpact($rw, $data['kode']));
@@ -212,7 +212,7 @@ class WilayahController extends Controller
 
     public function storeRt(Request $request)
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('settings.view');
 
         $data = $request->validate([
             'kode'     => 'required|string|max:3',
@@ -239,7 +239,7 @@ class WilayahController extends Controller
 
     public function updateRt(Request $request, Rt $rt)
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('settings.view');
 
         // Guard: perubahan hierarki (pindah RW/Dusun) harus lewat preview impact
         if (($request->has('rw_id') && $request->rw_id != $rt->rw_id) ||
@@ -269,7 +269,7 @@ class WilayahController extends Controller
 
     public function destroyRt(Request $request, Rt $rt)
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('settings.view');
 
         if ($error = $this->wilayahService->canDeleteRt($rt)) {
             return back()->with('error', $error);
@@ -285,7 +285,7 @@ class WilayahController extends Controller
 
     public function previewImpactRt(Request $request, Rt $rt)
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('settings.view');
 
         $data = $request->validate([
             'kode'         => 'required|string|max:3',
@@ -307,7 +307,7 @@ class WilayahController extends Controller
 
     public function applyRtUpdate(Request $request, Rt $rt)
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('settings.view');
 
         $data = $request->validate([
             'preview_token' => 'required|string',
@@ -341,7 +341,7 @@ class WilayahController extends Controller
 
     public function rollbackWilayahChange(Request $request, WilayahChangeLog $log)
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('settings.view');
 
         if ($log->entity_type !== 'rt' || $log->status !== 'applied') {
             return back()->with('error', 'Rollback tidak tersedia untuk log ini.');

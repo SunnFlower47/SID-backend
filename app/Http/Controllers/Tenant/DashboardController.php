@@ -38,6 +38,13 @@ class DashboardController extends Controller
             })),
             'ageGroups' => Inertia::defer(fn() => once(fn() => $this->statsService->getDashboardStats())['age_groups']),
             'mutationTrends' => Inertia::defer(fn() => once(fn() => $this->statsService->getDashboardStats())['mutation_trends']),
+            'umkmStats' => Inertia::defer(fn() => once(fn() => $this->statsService->getDashboardStats())['umkm'] ?? null),
+            'pengaduanStats' => Inertia::defer(fn() => once(fn() => $this->statsService->getDashboardStats())['pengaduan'] ?? null),
+            'bansosStats' => Inertia::defer(fn() => once(fn() => $this->statsService->getDashboardStats())['bansos'] ?? null),
+            'asetStats' => Inertia::defer(fn() => once(fn() => $this->statsService->getDashboardStats())['aset'] ?? null),
+            'proyekStats' => Inertia::defer(fn() => once(fn() => $this->statsService->getDashboardStats())['proyek'] ?? null),
+            'umkmDistribution' => Inertia::defer(fn() => once(fn() => $this->statsService->getDashboardStats())['umkm_distribution'] ?? []),
+            'asetDistribution' => Inertia::defer(fn() => once(fn() => $this->statsService->getDashboardStats())['aset_distribution'] ?? []),
         ]);
     }
 

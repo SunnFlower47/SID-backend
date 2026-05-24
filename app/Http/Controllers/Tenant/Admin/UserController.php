@@ -22,7 +22,7 @@ class UserController extends Controller
      */
     public function index()
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('users.manage');
 
         $users = User::with('roles')->paginate(20);
         return view('settings.users.index', compact('users'));
@@ -33,7 +33,7 @@ class UserController extends Controller
      */
     public function create()
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('users.create');
 
         $roles = Role::all();
         return view('settings.users.create', compact('roles'));
@@ -44,7 +44,7 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('users.create');
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -71,7 +71,7 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('users.manage');
 
         $user->load('roles');
         return view('settings.users.show', compact('user'));
@@ -82,7 +82,7 @@ class UserController extends Controller
      */
     public function edit(User $user)
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('users.edit');
 
         $roles = Role::all();
         $user->load('roles');
@@ -94,7 +94,7 @@ class UserController extends Controller
      */
     public function update(Request $request, User $user)
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('users.edit');
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -124,7 +124,7 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('users.delete');
 
         if ($user->id === auth()->id()) {
             return redirect()->route('settings.users.index')

@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 
-export default function Index({ auth, users, roles, permissions, stats }) {
+export default function Index({ auth, users, roles, permissions, permissions_structure = {}, stats }) {
     // Get query params for tab switching
     const { url } = usePage();
     const searchParams = new URLSearchParams(window.location.search);
@@ -143,6 +143,7 @@ export default function Index({ auth, users, roles, permissions, stats }) {
         password: '',
         password_confirmation: '',
         role: roles[0]?.id || '',
+        permissions: [],
     });
 
     const openCreateUserModal = () => {
@@ -162,11 +163,21 @@ export default function Index({ auth, users, roles, permissions, stats }) {
             password: '',
             password_confirmation: '',
             role: user.roles[0]?.id || '',
+            permissions: user.permissions ? user.permissions.map(p => p.id) : [],
         });
         setEditUserId(user.id);
         setShowUserPassword(false);
         setShowUserConfirmPassword(false);
         setIsUserModalOpen(true);
+    };
+
+    const handleUserPermissionToggle = (permissionId) => {
+        const isChecked = userForm.data.permissions.includes(permissionId);
+        if (isChecked) {
+            userForm.setData('permissions', userForm.data.permissions.filter(id => id !== permissionId));
+        } else {
+            userForm.setData('permissions', [...userForm.data.permissions, permissionId]);
+        }
     };
 
     const handleUserSubmit = (e) => {
@@ -262,6 +273,60 @@ export default function Index({ auth, users, roles, permissions, stats }) {
         });
         setEditRoleId(role.id);
         setIsRoleModalOpen(true);
+    };
+
+    const getCategoryMatrix = (categoryNames) => {
+        const rows = {};
+        categoryNames.forEach(name => {
+            const dbPermission = permissions.find(p => p.name === name);
+            if (!dbPermission) return;
+            
+            let resource = name;
+            let action = name;
+            
+            if (name.includes('.')) {
+                const parts = name.split('.');
+                resource = parts[0];
+                action = parts[1];
+            }
+            
+            if (!rows[resource]) {
+                rows[resource] = {
+                    resourceName: resource,
+                    permissions: []
+                };
+            }
+            
+            rows[resource].permissions.push({
+                id: dbPermission.id,
+                name: name,
+                action: action
+            });
+        });
+        return Object.values(rows);
+    };
+
+    const formatResourceName = (name) => {
+        return name
+            .replace(/[_-]/g, ' ')
+            .split(' ')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
+    };
+
+    const isRowAllChecked = (rowPermissions) => {
+        return rowPermissions.every(p => roleForm.data.permissions.includes(p.id));
+    };
+
+    const toggleRowPermissions = (rowPermissions) => {
+        const allChecked = isRowAllChecked(rowPermissions);
+        const pIds = rowPermissions.map(p => p.id);
+        if (allChecked) {
+            roleForm.setData('permissions', roleForm.data.permissions.filter(id => !pIds.includes(id)));
+        } else {
+            const newPermissions = [...new Set([...roleForm.data.permissions, ...pIds])];
+            roleForm.setData('permissions', newPermissions);
+        }
     };
 
     const handleRoleSubmit = (e) => {
@@ -966,6 +1031,56 @@ export default function Index({ auth, users, roles, permissions, stats }) {
                                             </div>
                                             {userForm.errors.password_confirmation && <p className="text-[10px] font-bold text-red-500 uppercase tracking-widest ml-1 italic">{userForm.errors.password_confirmation}</p>}
                                         </div>
+
+                                        {/* Direct Permissions section */}
+                                        <div className="space-y-3 pt-4 border-t border-gray-100">
+                                            <div className="flex items-center justify-between">
+                                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Direct Permissions (Izin Ekstra Tambahan)</label>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => userForm.setData('permissions', [])}
+                                                    className="text-[9px] font-bold text-red-600 hover:text-red-800 uppercase tracking-widest italic"
+                                                >
+                                                    Reset Izin Ekstra
+                                                </button>
+                                            </div>
+                                            <p className="text-[10px] text-gray-400 font-medium ml-1 leading-relaxed">
+                                                Gunakan ini jika ingin memberi akses tambahan khusus ke user ini di luar permission bawaan Role-nya.
+                                            </p>
+                                            
+                                            <div className="border border-gray-100 rounded-2xl overflow-hidden max-h-[220px] overflow-y-auto bg-gray-50/30 p-3 space-y-4">
+                                                {Object.entries(permissions_structure).map(([category, categoryPerms]) => {
+                                                    const categoryDbPerms = permissions.filter(p => categoryPerms.includes(p.name));
+                                                    if (categoryDbPerms.length === 0) return null;
+                                                    
+                                                    return (
+                                                        <div key={category} className="space-y-1.5">
+                                                            <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest italic border-b border-gray-100 pb-0.5 block">{category}</span>
+                                                            <div className="grid grid-cols-2 gap-1.5">
+                                                                {categoryDbPerms.map(p => {
+                                                                    const isChecked = userForm.data.permissions.includes(p.id);
+                                                                    return (
+                                                                        <label key={p.id} className={`flex items-center gap-2 p-2 rounded-xl border text-left cursor-pointer transition-all ${
+                                                                            isChecked 
+                                                                                ? 'border-green-500 bg-green-50/50 text-green-950 font-bold' 
+                                                                                : 'border-gray-100 bg-white hover:bg-gray-50 text-gray-600'
+                                                                        }`}>
+                                                                            <input
+                                                                                type="checkbox"
+                                                                                checked={isChecked}
+                                                                                onChange={() => handleUserPermissionToggle(p.id)}
+                                                                                className="rounded border-gray-300 text-green-600 focus:ring-green-500/20 w-3.5 h-3.5"
+                                                                            />
+                                                                            <span className="text-[9px] font-bold truncate uppercase tracking-tight">{p.name}</span>
+                                                                        </label>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -997,7 +1112,7 @@ export default function Index({ auth, users, roles, permissions, stats }) {
 
                         <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
-                        <div className="inline-block align-bottom bg-white rounded-[2.5rem] text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full animate-in zoom-in-95 duration-300">
+                        <div className="inline-block align-bottom bg-white rounded-[2.5rem] text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-5xl sm:w-full animate-in zoom-in-95 duration-300">
                             <form onSubmit={handleRoleSubmit}>
                                 <div className="bg-white px-8 pt-8 pb-6">
                                     <div className="flex items-center justify-between mb-8">
@@ -1031,27 +1146,118 @@ export default function Index({ auth, users, roles, permissions, stats }) {
                                             {roleForm.errors.name && <p className="text-[10px] font-bold text-red-500 uppercase tracking-widest ml-1 italic">{roleForm.errors.name}</p>}
                                         </div>
 
-                                        <div className="space-y-3">
-                                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 block">Pilih Izin Modul (Permission)</label>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-[300px] overflow-y-auto pr-2">
-                                                {permissions.map((p) => {
-                                                    const isChecked = roleForm.data.permissions.includes(p.id);
+                                        <div className="space-y-4">
+                                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 block">Atur Izin Modul (Matrix Permission)</label>
+                                            <div className="border border-gray-100 rounded-3xl overflow-hidden max-h-[450px] overflow-y-auto pr-1">
+                                                {Object.entries(permissions_structure).map(([category, categoryPerms]) => {
+                                                    const rows = getCategoryMatrix(categoryPerms);
                                                     return (
-                                                        <button
-                                                            key={p.id}
-                                                            type="button"
-                                                            onClick={() => handlePermissionToggle(p.id)}
-                                                            className={`flex items-center justify-between p-3.5 rounded-xl border text-left transition-all ${
-                                                                isChecked 
-                                                                    ? 'border-green-500 bg-green-50/50 text-green-900 font-bold' 
-                                                                    : 'border-gray-100 bg-gray-50/50 hover:bg-gray-100 text-gray-600'
-                                                            }`}
-                                                        >
-                                                            <span className="text-xs uppercase tracking-wider">{p.name}</span>
-                                                            <div className={`w-4.5 h-4.5 rounded-md border flex items-center justify-center ${isChecked ? 'bg-green-600 border-green-600 text-white' : 'border-gray-300 bg-white'}`}>
-                                                                {isChecked && <CheckCircle className="w-3.5 h-3.5" />}
+                                                        <div key={category} className="mb-6 last:mb-0">
+                                                            <div className="bg-gray-50 px-5 py-3 border-b border-gray-100">
+                                                                <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest italic">{category}</span>
                                                             </div>
-                                                        </button>
+                                                            <div className="overflow-x-auto">
+                                                                <table className="w-full text-left text-xs text-gray-600 min-w-[650px]">
+                                                                    <thead>
+                                                                        <tr className="border-b border-gray-100">
+                                                                            <th className="px-5 py-3 text-[9px] font-black text-gray-400 uppercase tracking-wider w-1/3">Modul / Fitur</th>
+                                                                            <th className="px-3 py-3 text-[9px] font-black text-gray-400 uppercase tracking-wider text-center">Semua</th>
+                                                                            <th className="px-3 py-3 text-[9px] font-black text-gray-400 uppercase tracking-wider text-center">View</th>
+                                                                            <th className="px-3 py-3 text-[9px] font-black text-gray-400 uppercase tracking-wider text-center">Create</th>
+                                                                            <th className="px-3 py-3 text-[9px] font-black text-gray-400 uppercase tracking-wider text-center">Edit</th>
+                                                                            <th className="px-3 py-3 text-[9px] font-black text-gray-400 uppercase tracking-wider text-center">Delete</th>
+                                                                            <th className="px-3 py-3 text-[9px] font-black text-gray-400 uppercase tracking-wider text-center">Export</th>
+                                                                            <th className="px-3 py-3 text-[9px] font-black text-gray-400 uppercase tracking-wider text-center">Import</th>
+                                                                            <th className="px-3 py-3 text-[9px] font-black text-gray-400 uppercase tracking-wider text-center">Lainnya</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody className="divide-y divide-gray-50">
+                                                                        {rows.map((row) => {
+                                                                            const isAllChecked = isRowAllChecked(row.permissions);
+                                                                            
+                                                                            // Find standard actions
+                                                                            const viewPerm = row.permissions.find(p => p.action === 'view');
+                                                                            const createPerm = row.permissions.find(p => p.action === 'create');
+                                                                            const editPerm = row.permissions.find(p => p.action === 'edit' || p.action === 'update');
+                                                                            const deletePerm = row.permissions.find(p => p.action === 'delete' || p.action === 'destroy');
+                                                                            const exportPerm = row.permissions.find(p => p.action === 'export');
+                                                                            const importPerm = row.permissions.find(p => p.action === 'import');
+                                                                            
+                                                                            // Others: anything else
+                                                                            const otherPerms = row.permissions.filter(p => 
+                                                                                !['view', 'create', 'edit', 'update', 'delete', 'destroy', 'export', 'import'].includes(p.action)
+                                                                            );
+
+                                                                            const renderCheckbox = (perm) => {
+                                                                                if (!perm) return <span className="text-gray-300">-</span>;
+                                                                                const isChecked = roleForm.data.permissions.includes(perm.id);
+                                                                                return (
+                                                                                    <label className="flex items-center justify-center cursor-pointer p-1">
+                                                                                        <input
+                                                                                            type="checkbox"
+                                                                                            checked={isChecked}
+                                                                                            onChange={() => handlePermissionToggle(perm.id)}
+                                                                                            className="rounded border-gray-300 text-green-600 focus:ring-green-500/20 w-4 h-4"
+                                                                                        />
+                                                                                    </label>
+                                                                                );
+                                                                            };
+
+                                                                            return (
+                                                                                <tr key={row.resourceName} className="hover:bg-gray-50/30 transition-colors">
+                                                                                    <td className="px-5 py-3">
+                                                                                        <div className="font-bold text-gray-800 uppercase tracking-tight">
+                                                                                            {formatResourceName(row.resourceName)}
+                                                                                        </div>
+                                                                                        <div className="text-[9px] text-gray-400 font-medium font-mono lowercase">
+                                                                                            {row.resourceName}
+                                                                                        </div>
+                                                                                    </td>
+                                                                                    <td className="px-3 py-3 text-center">
+                                                                                        <label className="flex items-center justify-center cursor-pointer">
+                                                                                            <input
+                                                                                                type="checkbox"
+                                                                                                checked={isAllChecked}
+                                                                                                onChange={() => toggleRowPermissions(row.permissions)}
+                                                                                                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500/20 w-4 h-4"
+                                                                                            />
+                                                                                        </label>
+                                                                                    </td>
+                                                                                    <td className="px-3 py-3 text-center">{renderCheckbox(viewPerm)}</td>
+                                                                                    <td className="px-3 py-3 text-center">{renderCheckbox(createPerm)}</td>
+                                                                                    <td className="px-3 py-3 text-center">{renderCheckbox(editPerm)}</td>
+                                                                                    <td className="px-3 py-3 text-center">{renderCheckbox(deletePerm)}</td>
+                                                                                    <td className="px-3 py-3 text-center">{renderCheckbox(exportPerm)}</td>
+                                                                                    <td className="px-3 py-3 text-center">{renderCheckbox(importPerm)}</td>
+                                                                                    <td className="px-3 py-3 text-center">
+                                                                                        {otherPerms.length > 0 ? (
+                                                                                            <div className="flex flex-col gap-1 items-center justify-center">
+                                                                                                {otherPerms.map(p => {
+                                                                                                    const isChecked = roleForm.data.permissions.includes(p.id);
+                                                                                                    return (
+                                                                                                        <label key={p.id} className="flex items-center gap-1 cursor-pointer text-[9px] bg-gray-50 border border-gray-100 rounded-md px-1.5 py-0.5 hover:bg-gray-100 transition-colors">
+                                                                                                            <input
+                                                                                                                type="checkbox"
+                                                                                                                checked={isChecked}
+                                                                                                                onChange={() => handlePermissionToggle(p.id)}
+                                                                                                                className="rounded border-gray-300 text-green-600 focus:ring-green-500/20 w-3 h-3"
+                                                                                                            />
+                                                                                                            <span className="font-mono text-gray-500 font-bold uppercase tracking-widest text-[8px]">{p.action}</span>
+                                                                                                        </label>
+                                                                                                    );
+                                                                                                })}
+                                                                                            </div>
+                                                                                        ) : (
+                                                                                            <span className="text-gray-300">-</span>
+                                                                                        )}
+                                                                                    </td>
+                                                                                </tr>
+                                                                            );
+                                                                        })}
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        </div>
                                                     );
                                                 })}
                                             </div>

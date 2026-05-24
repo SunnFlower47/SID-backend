@@ -17,7 +17,7 @@ class VillageProfileController extends Controller
      */
     public function index()
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('settings.view');
 
         return Inertia::render('Tenant/Admin/VillageProfile/Index', [
             'profile' => DesaSetting::getFullProfile(),
@@ -29,7 +29,7 @@ class VillageProfileController extends Controller
      */
     public function update(Request $request)
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('settings.view');
 
         $validated = $request->validate([
             // General
@@ -95,7 +95,7 @@ class VillageProfileController extends Controller
      */
     public function updateLogos(Request $request)
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('settings.view');
 
         $request->validate([
             'logo_desa' => 'nullable|image|max:2048',

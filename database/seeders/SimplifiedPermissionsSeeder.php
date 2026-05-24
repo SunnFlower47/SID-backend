@@ -9,6 +9,9 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * @deprecated This seeder is deprecated in favor of RolesAndPermissionsSeeder, which handles granular permissions.
+ */
 class SimplifiedPermissionsSeeder extends Seeder
 {
     public function run(): void

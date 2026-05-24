@@ -14,7 +14,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             // 1. Roles, Permissions, and Admin Users
-            SimplifiedPermissionsSeeder::class,
+            RolesAndPermissionsSeeder::class,
             
             // 2. Global Village Information (Settings)
             DesaSettingsSeeder::class,

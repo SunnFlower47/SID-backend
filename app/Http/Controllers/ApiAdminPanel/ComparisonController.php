@@ -14,7 +14,7 @@ class ComparisonController extends Controller
 {
     public function index(): JsonResponse
     {
-        Gate::authorize('laporan_statistik');
+        Gate::authorize('laporan.view');
 
         $current = $this->getMonthData(now());
         $last = $this->getMonthData(now()->subMonth());

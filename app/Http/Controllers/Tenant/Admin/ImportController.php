@@ -16,7 +16,7 @@ class ImportController extends Controller
     public function __construct(ImportService $importService)
     {
         $this->middleware('auth');
-        $this->middleware('can:admin_sistem');
+        $this->middleware('can:settings.view');
         $this->importService = $importService;
     }
 
@@ -25,7 +25,7 @@ class ImportController extends Controller
      */
     public function index()
     {
-        Gate::authorize('kependudukan');
+        Gate::authorize('penduduk.view');
         return \Inertia\Inertia::render('Tenant/Import/Import');
     }
 
@@ -34,7 +34,7 @@ class ImportController extends Controller
      */
     public function excel(Request $request)
     {
-        Gate::authorize('kependudukan');
+        Gate::authorize('penduduk.view');
 
         $request->validate([
             'file' => 'required|file|mimes:xlsx,xls|max:10240', // 10MB max

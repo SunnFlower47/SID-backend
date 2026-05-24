@@ -15,7 +15,7 @@ class RoleController extends Controller
      */
     public function index(): JsonResponse
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('settings.view');
 
         $roles = Role::with('permissions')->get();
         
@@ -30,7 +30,7 @@ class RoleController extends Controller
      */
     public function permissions(): JsonResponse
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('settings.view');
 
         $permissions = Permission::all();
         
@@ -45,7 +45,7 @@ class RoleController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('settings.view');
 
         $validated = $request->validate([
             'name' => 'required|string|unique:roles,name',
@@ -71,7 +71,7 @@ class RoleController extends Controller
      */
     public function update(Request $request, Role $role): JsonResponse
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('settings.view');
 
         $validated = $request->validate([
             'name' => 'required|string|unique:roles,name,' . $role->id,

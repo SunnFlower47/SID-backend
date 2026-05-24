@@ -17,7 +17,7 @@ class BantuanSosialController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        Gate::authorize('pelayanan_informasi');
+        Gate::authorize('surat.view');
 
         $query = BantuanSosial::withCount('penerima');
 
@@ -53,7 +53,7 @@ class BantuanSosialController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
-        Gate::authorize('pelayanan_informasi');
+        Gate::authorize('surat.view');
 
         $validated = $request->validate([
             'nama_program' => 'required|string|max:255',
@@ -107,7 +107,7 @@ class BantuanSosialController extends Controller
      */
     public function addPenerima(Request $request, BantuanSosial $bantuanSosial): JsonResponse
     {
-        Gate::authorize('pelayanan_informasi');
+        Gate::authorize('surat.view');
 
         $validated = $request->validate([
             'penduduk_id' => 'required|exists:penduduks,id',

@@ -19,7 +19,7 @@ class TestimoniController extends Controller
      */
     public function index(Request $request)
     {
-        Gate::authorize('pelayanan_informasi');
+        Gate::authorize('surat.view');
 
         $query = Testimoni::query();
 
@@ -68,7 +68,7 @@ class TestimoniController extends Controller
      */
     public function create()
     {
-        Gate::authorize('pelayanan_informasi');
+        Gate::authorize('surat.view');
 
         $masterRwOptions = Rw::with('rts')->orderBy('kode')->get()->map(function($rw) {
             return [
@@ -96,7 +96,7 @@ class TestimoniController extends Controller
      */
     public function store(Request $request)
     {
-        Gate::authorize('pelayanan_informasi');
+        Gate::authorize('surat.view');
 
         $request->validate([
             'nama' => 'required|string|max:255',
@@ -136,7 +136,7 @@ class TestimoniController extends Controller
      */
     public function show(Testimoni $testimoni)
     {
-        Gate::authorize('pelayanan_informasi');
+        Gate::authorize('surat.view');
         return Inertia::render('Tenant/Testimoni/Show', [
             'testimoni' => $testimoni->load(['rt', 'rw', 'dusun'])
         ]);
@@ -147,7 +147,7 @@ class TestimoniController extends Controller
      */
     public function edit(Testimoni $testimoni)
     {
-        Gate::authorize('pelayanan_informasi');
+        Gate::authorize('surat.view');
 
         $masterRwOptions = Rw::with('rts')->orderBy('kode')->get()->map(function($rw) {
             return [
@@ -176,7 +176,7 @@ class TestimoniController extends Controller
      */
     public function update(Request $request, Testimoni $testimoni)
     {
-        Gate::authorize('pelayanan_informasi');
+        Gate::authorize('surat.view');
 
         $request->validate([
             'nama' => 'required|string|max:255',
@@ -215,7 +215,7 @@ class TestimoniController extends Controller
      */
     public function destroy(Testimoni $testimoni)
     {
-        Gate::authorize('pelayanan_informasi');
+        Gate::authorize('surat.view');
         $testimoni->delete();
 
         return redirect()->route('testimoni.index')
@@ -227,7 +227,7 @@ class TestimoniController extends Controller
      */
     public function updateStatus(Request $request, Testimoni $testimoni)
     {
-        Gate::authorize('pelayanan_informasi');
+        Gate::authorize('surat.view');
 
         $request->validate([
             'status' => 'required|in:pending,approved,rejected',

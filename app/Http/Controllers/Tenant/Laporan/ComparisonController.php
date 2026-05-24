@@ -15,7 +15,7 @@ class ComparisonController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['auth', 'can:laporan_statistik']);
+        $this->middleware(['auth', 'can:laporan.view']);
     }
 
     public function index(Request $request)

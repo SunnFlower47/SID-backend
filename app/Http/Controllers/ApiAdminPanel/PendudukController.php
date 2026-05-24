@@ -28,7 +28,7 @@ class PendudukController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        Gate::authorize('kependudukan');
+        Gate::authorize('penduduk.view');
 
         $query = Penduduk::withWilayah()
             ->filter($request->all())
@@ -64,7 +64,7 @@ class PendudukController extends Controller
      */
     public function store(StorePendudukRequest $request): JsonResponse
     {
-        Gate::authorize('kependudukan');
+        Gate::authorize('penduduk.create');
 
         try {
             $validated = $request->validated();
@@ -94,7 +94,7 @@ class PendudukController extends Controller
      */
     public function show($id): JsonResponse
     {
-        Gate::authorize('kependudukan');
+        Gate::authorize('penduduk.view');
         
         $penduduk = Penduduk::withWilayah()->withTrashed()->findOrFail($id);
         $penduduk->load(['mutasis', 'kartuKeluarga.penduduks']);
@@ -110,7 +110,7 @@ class PendudukController extends Controller
      */
     public function update(UpdatePendudukRequest $request, $id): JsonResponse
     {
-        Gate::authorize('kependudukan');
+        Gate::authorize('penduduk.edit');
 
         try {
             $penduduk = Penduduk::withTrashed()->findOrFail($id);
@@ -138,7 +138,7 @@ class PendudukController extends Controller
      */
     public function destroy($id): JsonResponse
     {
-        Gate::authorize('kependudukan');
+        Gate::authorize('penduduk.delete');
 
         try {
             $penduduk = Penduduk::withTrashed()->findOrFail($id);
@@ -226,7 +226,7 @@ class PendudukController extends Controller
      */
     public function exportExcel(Request $request)
     {
-        Gate::authorize('kependudukan');
+        Gate::authorize('penduduk.export');
         set_time_limit(300);
         ini_set('memory_limit', '512M');
         

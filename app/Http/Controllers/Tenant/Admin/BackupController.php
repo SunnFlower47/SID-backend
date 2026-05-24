@@ -13,7 +13,7 @@ class BackupController extends Controller
 
     public function __construct(BackupService $backupService)
     {
-        $this->middleware(['auth', 'can:admin_sistem']);
+        $this->middleware(['auth', 'can:settings.view']);
         $this->backupService = $backupService;
     }
 

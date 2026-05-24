@@ -15,7 +15,7 @@ class AuditLogController extends Controller
 {
         public function __construct()
     {
-        $this->middleware(['auth', 'can:admin_sistem']);
+        $this->middleware(['auth', 'can:settings.view']);
     }
 
     /**

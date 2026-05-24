@@ -14,7 +14,7 @@ class SettingsPolicy
      */
     public function view(User $user)
     {
-        return $user->hasPermissionTo('admin_sistem');
+        return $user->hasPermissionTo('settings.view');
     }
 
     /**
@@ -22,7 +22,7 @@ class SettingsPolicy
      */
     public function usersManage(User $user)
     {
-        return $user->hasPermissionTo('admin_sistem');
+        return $user->hasPermissionTo('users.manage');
     }
 
     /**
@@ -30,7 +30,7 @@ class SettingsPolicy
      */
     public function usersCreate(User $user)
     {
-        return $user->hasPermissionTo('admin_sistem');
+        return $user->hasPermissionTo('users.create');
     }
 
     /**
@@ -38,7 +38,7 @@ class SettingsPolicy
      */
     public function usersEdit(User $user)
     {
-        return $user->hasPermissionTo('admin_sistem');
+        return $user->hasPermissionTo('users.edit');
     }
 
     /**
@@ -46,7 +46,7 @@ class SettingsPolicy
      */
     public function usersDelete(User $user)
     {
-        return $user->hasPermissionTo('admin_sistem');
+        return $user->hasPermissionTo('users.delete');
     }
 
     /**
@@ -54,7 +54,7 @@ class SettingsPolicy
      */
     public function rolesManage(User $user)
     {
-        return $user->hasPermissionTo('admin_sistem');
+        return $user->hasPermissionTo('roles.manage');
     }
 
     /**
@@ -62,7 +62,7 @@ class SettingsPolicy
      */
     public function rolesCreate(User $user)
     {
-        return $user->hasPermissionTo('admin_sistem');
+        return $user->hasPermissionTo('roles.create');
     }
 
     /**
@@ -70,7 +70,7 @@ class SettingsPolicy
      */
     public function rolesEdit(User $user)
     {
-        return $user->hasPermissionTo('admin_sistem');
+        return $user->hasPermissionTo('roles.edit');
     }
 
     /**
@@ -78,7 +78,7 @@ class SettingsPolicy
      */
     public function rolesDelete(User $user)
     {
-        return $user->hasPermissionTo('admin_sistem');
+        return $user->hasPermissionTo('roles.delete');
     }
 }
 

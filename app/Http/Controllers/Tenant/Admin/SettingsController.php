@@ -21,7 +21,7 @@ class SettingsController extends Controller
 {
     public function index()
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('settings.view');
 
         $stats = [
             'totalUsers' => User::count(),
@@ -31,7 +31,7 @@ class SettingsController extends Controller
             'totalMutasi' => Mutasi::count(),
         ];
 
-        $users = User::with('roles')->get();
+        $users = User::with(['roles', 'permissions'])->get();
         $roles = Role::with('permissions')->get();
         $permissions = Permission::all();
 
@@ -39,6 +39,7 @@ class SettingsController extends Controller
             'users' => $users,
             'roles' => $roles,
             'permissions' => $permissions,
+            'permissions_structure' => config('permissions'),
             'stats' => $stats
         ]);
     }
@@ -46,7 +47,7 @@ class SettingsController extends Controller
     public function updateUser(Request $request, User $user)
     {
         try {
-            Gate::authorize('admin_sistem');
+            Gate::authorize('users.edit');
 
             $request->validate([
                 'name' => 'required|string|max:255',
@@ -54,6 +55,8 @@ class SettingsController extends Controller
                 'password' => 'nullable|min:8',
                 'password_confirmation' => 'nullable|same:password',
                 'role' => 'required|exists:roles,id',
+                'permissions' => 'nullable|array',
+                'permissions.*' => 'exists:permissions,id',
             ]);
 
             $user->name = $request->name;
@@ -72,6 +75,15 @@ class SettingsController extends Controller
                 throw new \Exception('Role tidak ditemukan');
             }
 
+            if ($request->has('permissions')) {
+                if (is_array($request->permissions)) {
+                    $permissionNames = Permission::whereIn('id', $request->permissions)->pluck('name')->toArray();
+                    $user->syncPermissions($permissionNames);
+                } else {
+                    $user->syncPermissions([]);
+                }
+            }
+
             return redirect()->back()->with('success', 'User berhasil diperbarui!');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Terjadi kesalahan saat memperbarui user: ' . $e->getMessage());
@@ -81,13 +93,15 @@ class SettingsController extends Controller
     public function createUser(Request $request)
     {
         try {
-            Gate::authorize('admin_sistem');
+            Gate::authorize('users.create');
 
             $request->validate([
                 'name' => 'required|string|max:255',
                 'email' => 'required|email|unique:users',
                 'password' => 'required|min:8|confirmed',
                 'role' => 'required|exists:roles,id',
+                'permissions' => 'nullable|array',
+                'permissions.*' => 'exists:permissions,id',
             ]);
 
             $user = User::create([
@@ -103,6 +117,11 @@ class SettingsController extends Controller
                 throw new \Exception('Role tidak ditemukan');
             }
 
+            if ($request->has('permissions') && is_array($request->permissions)) {
+                $permissionNames = Permission::whereIn('id', $request->permissions)->pluck('name')->toArray();
+                $user->syncPermissions($permissionNames);
+            }
+
             return redirect()->back()->with('success', 'User berhasil dibuat!');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Terjadi kesalahan saat membuat user: ' . $e->getMessage());
@@ -111,7 +130,7 @@ class SettingsController extends Controller
 
     public function deleteUser(User $user)
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('users.delete');
 
         if ($user->id === Auth::id()) {
             return redirect()->back()->with('error', 'Tidak dapat menghapus akun sendiri!');
@@ -125,7 +144,7 @@ class SettingsController extends Controller
     public function updateRole(Request $request, Role $role)
     {
         try {
-            Gate::authorize('admin_sistem');
+            Gate::authorize('roles.edit');
 
             $request->validate([
                 'name' => 'required|string|max:255',
@@ -151,7 +170,7 @@ class SettingsController extends Controller
     public function createRole(Request $request)
     {
         try {
-            Gate::authorize('admin_sistem');
+            Gate::authorize('roles.create');
 
             $request->validate([
                 'name' => 'required|string|max:255|unique:roles',
@@ -173,7 +192,7 @@ class SettingsController extends Controller
 
     public function deleteRole(Role $role)
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('roles.delete');
 
         if ($role->users()->count() > 0) {
             return redirect()->back()->with('error', 'Role tidak dapat dihapus karena masih digunakan oleh user!');

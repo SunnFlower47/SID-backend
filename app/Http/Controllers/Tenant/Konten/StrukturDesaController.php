@@ -17,7 +17,7 @@ class StrukturDesaController extends Controller
 
     public function __construct(FileUploadService $fileUploadService)
     {
-        $this->middleware(['auth', 'can:pelayanan_informasi']);
+        $this->middleware(['auth', 'can:surat.view']);
         $this->fileUploadService = $fileUploadService;
     }
 

@@ -12,7 +12,7 @@ class AuditLogController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('settings.view');
 
         $query = Activity::with(['causer', 'subject']);
 
@@ -41,13 +41,13 @@ class AuditLogController extends Controller
 
     public function show(Activity $activity): JsonResponse
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('settings.view');
         return response()->json(['status' => 'success', 'data' => $activity->load(['causer', 'subject'])]);
     }
 
     public function clear(Request $request): JsonResponse
     {
-        Gate::authorize('admin_sistem'); // Ensure permission
+        Gate::authorize('settings.view'); // Ensure permission
         $request->validate(['days' => 'required|integer|min:30']);
 
         $cutoff = now()->subDays($request->days);

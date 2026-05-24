@@ -24,7 +24,7 @@ class AnggaranController extends Controller
     public function __construct(AnggaranService $anggaranService)
     {
         $this->anggaranService = $anggaranService;
-        $this->middleware(['auth', 'can:keuangan']);
+        $this->middleware(['auth', 'can:anggaran.view']);
     }
 
     /**

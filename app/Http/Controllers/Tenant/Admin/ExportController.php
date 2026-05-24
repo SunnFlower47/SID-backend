@@ -12,13 +12,14 @@ use App\Exports\UmkmExport;
 use App\Exports\SuratPengajuanExport;
 use App\Exports\PendudukExport;
 use App\Exports\KartuKeluargaExport;
+use App\Exports\AsetExport;
 
 class ExportController extends Controller
 {
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware('can:admin_sistem');
+        $this->middleware('can:settings.view');
     }
 
     /**
@@ -88,6 +89,15 @@ class ExportController extends Controller
         $filters = $request->only(['dusun', 'rt', 'rw']);
         $filename = 'kartu_keluarga_' . date('Y-m-d_H-i-s') . '.xlsx';
         return Excel::download(new KartuKeluargaExport($filters), $filename);
+    }
+
+    /**
+     * Export Aset Inventaris
+     */
+    public function exportAset(Request $request)
+    {
+        $filename = 'aset_inventaris_' . date('Y-m-d_H-i-s') . '.xlsx';
+        return Excel::download(new AsetExport($request), $filename);
     }
 
     /**

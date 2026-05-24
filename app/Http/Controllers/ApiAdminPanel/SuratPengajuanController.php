@@ -16,7 +16,7 @@ class SuratPengajuanController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        Gate::authorize('pelayanan_informasi');
+        Gate::authorize('surat.view');
 
         $query = SuratPengajuan::with(['penduduk', 'admin']);
 
@@ -45,7 +45,7 @@ class SuratPengajuanController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
-        Gate::authorize('pelayanan_informasi');
+        Gate::authorize('surat.view');
 
         $validated = $request->validate([
             'jenis_surat' => 'required|string',
@@ -76,7 +76,7 @@ class SuratPengajuanController extends Controller
      */
     public function show(SuratPengajuan $suratPengajuan): JsonResponse
     {
-        Gate::authorize('pelayanan_informasi');
+        Gate::authorize('surat.view');
         $suratPengajuan->load(['penduduk', 'admin']);
         
         return response()->json([
@@ -90,7 +90,7 @@ class SuratPengajuanController extends Controller
      */
     public function updateStatus(Request $request, SuratPengajuan $suratPengajuan): JsonResponse
     {
-        Gate::authorize('pelayanan_informasi');
+        Gate::authorize('surat.view');
 
         $validated = $request->validate([
             'status' => 'required|in:pending,approved,rejected,completed',
@@ -121,7 +121,7 @@ class SuratPengajuanController extends Controller
      */
     public function statistics(): JsonResponse
     {
-        Gate::authorize('pelayanan_informasi');
+        Gate::authorize('surat.view');
 
         $stats = [
             'total' => SuratPengajuan::count(),
@@ -142,7 +142,7 @@ class SuratPengajuanController extends Controller
      */
     public function download(SuratPengajuan $surat): JsonResponse
     {
-        Gate::authorize('pelayanan_informasi');
+        Gate::authorize('surat.view');
         
         // Sementara kasih response sukses dulu, nanti logic PDF-nya kita pindahin dari Tenant
         return response()->json([

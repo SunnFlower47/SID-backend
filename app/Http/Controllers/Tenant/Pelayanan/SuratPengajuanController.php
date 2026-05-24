@@ -16,7 +16,7 @@ class SuratPengajuanController extends Controller
 {
     public function __construct(protected SuratPengajuanService $suratService)
     {
-        $this->middleware(['auth', 'can:pelayanan_informasi']);
+        $this->middleware(['auth', 'can:surat.view']);
     }
 
     /**
@@ -56,7 +56,7 @@ class SuratPengajuanController extends Controller
      */
     public function store(Request $request)
     {
-        Gate::authorize('pelayanan_informasi');
+        Gate::authorize('surat.view');
 
         $validated = $request->validate([
             'jenis_surat'         => 'required|string',
@@ -99,7 +99,7 @@ class SuratPengajuanController extends Controller
      */
     public function edit(SuratPengajuan $suratPengajuan)
     {
-        Gate::authorize('pelayanan_informasi');
+        Gate::authorize('surat.view');
         $suratPengajuan->load('penduduk');
 
         return Inertia::render('Tenant/SuratPengajuan/Edit', [
@@ -118,7 +118,7 @@ class SuratPengajuanController extends Controller
      */
     public function update(Request $request, SuratPengajuan $suratPengajuan)
     {
-        Gate::authorize('pelayanan_informasi');
+        Gate::authorize('surat.view');
 
         $validated = $request->validate([
             'jenis_surat'         => 'required|string',
@@ -147,7 +147,7 @@ class SuratPengajuanController extends Controller
      */
     public function updateStatus(Request $request, SuratPengajuan $suratPengajuan)
     {
-        Gate::authorize('pelayanan_informasi');
+        Gate::authorize('surat.view');
 
         $validated = $request->validate([
             'status'              => 'required|in:pending,diproses,selesai,ditolak',
@@ -167,7 +167,7 @@ class SuratPengajuanController extends Controller
      */
     public function generatePdf(SuratPengajuan $suratPengajuan)
     {
-        Gate::authorize('pelayanan_informasi');
+        Gate::authorize('surat.view');
 
         try {
             return $this->suratService->generateDocument($suratPengajuan);
@@ -184,7 +184,7 @@ class SuratPengajuanController extends Controller
      */
     public function preview(SuratPengajuan $suratPengajuan)
     {
-        Gate::authorize('pelayanan_informasi');
+        Gate::authorize('surat.view');
 
         try {
             $data         = $this->suratService->buildSuratData($suratPengajuan);
@@ -242,7 +242,7 @@ class SuratPengajuanController extends Controller
      */
     public function destroy($id)
     {
-        Gate::authorize('pelayanan_informasi');
+        Gate::authorize('surat.view');
 
         try {
             SuratPengajuan::findOrFail($id)->delete();

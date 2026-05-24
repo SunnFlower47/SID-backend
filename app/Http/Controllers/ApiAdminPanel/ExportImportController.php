@@ -15,14 +15,14 @@ class ExportImportController extends Controller
 {
     public function exportPenduduk(Request $request)
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('settings.view');
         $filename = 'penduduk_' . date('Ymd_His') . '.xlsx';
         return Excel::download(new PendudukExport($request), $filename);
     }
 
     public function exportKartuKeluarga(Request $request)
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('settings.view');
         $filename = 'kartu_keluarga_' . date('Ymd_His') . '.xlsx';
         return Excel::download(new KartuKeluargaExport($request->only(['dusun', 'rt', 'rw'])), $filename);
     }

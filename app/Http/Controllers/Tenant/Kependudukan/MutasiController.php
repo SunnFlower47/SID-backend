@@ -28,7 +28,7 @@ class MutasiController extends Controller
      */
     public function index(Request $request)
     {
-        Gate::authorize('kependudukan');
+        Gate::authorize('mutasi.view');
 
         $query = Mutasi::with(['penduduk' => function($q) {
             $q->withTrashed();
@@ -67,7 +67,7 @@ class MutasiController extends Controller
      */
     public function create()
     {
-        Gate::authorize('kependudukan');
+        Gate::authorize('mutasi.create');
 
         return Inertia::render('Tenant/Mutasi/Create', [
             'wilayahTree' => $this->mutasiService->getWilayahTree()
@@ -79,7 +79,7 @@ class MutasiController extends Controller
      */
     public function store(\App\Http\Requests\Mutasi\StoreMutasiRequest $request)
     {
-        Gate::authorize('kependudukan');
+        Gate::authorize('mutasi.create');
 
         $jenisMutasi = $request->input('jenis_mutasi');
 
@@ -181,7 +181,7 @@ class MutasiController extends Controller
      */
     public function edit(Mutasi $mutasi)
     {
-        Gate::authorize('kependudukan');
+        Gate::authorize('mutasi.edit');
 
         return \Inertia\Inertia::render('Tenant/Mutasi/Edit', [
             'mutasi' => $mutasi->load(['penduduk' => fn($q) => $q->withWilayah()]),
@@ -196,7 +196,7 @@ class MutasiController extends Controller
      */
     public function update(Request $request, Mutasi $mutasi)
     {
-        Gate::authorize('kependudukan');
+        Gate::authorize('mutasi.edit');
 
         // Validation logic remains in Controller for clarity
         $rules = [
@@ -253,7 +253,7 @@ class MutasiController extends Controller
      */
     public function cancel(Request $request, Mutasi $mutasi)
     {
-        Gate::authorize('mutasi.delete', $mutasi);
+        Gate::authorize('mutasi.cancel', $mutasi);
 
         $wantsJson = ($request->expectsJson() || $request->wantsJson() || $request->ajax()) && !$request->header('X-Inertia');
 
@@ -378,7 +378,7 @@ class MutasiController extends Controller
     
     public function undo(Request $request, Mutasi $mutasi)
     {
-        Gate::authorize('mutasi.delete', $mutasi);
+        Gate::authorize('mutasi.undo', $mutasi);
 
         $wantsJson = ($request->expectsJson() || $request->wantsJson() || $request->ajax()) && !$request->header('X-Inertia');
 
@@ -397,6 +397,8 @@ class MutasiController extends Controller
 
     public function printSuratKematian(Mutasi $mutasi)
     {
+        Gate::authorize('mutasi.print', $mutasi);
+
         if ($mutasi->jenis_mutasi !== 'kematian') {
             return redirect()->back()->with('error', 'Mutasi ini bukan data kematian.');
         }

@@ -15,7 +15,7 @@ class PendudukDomisiliController extends Controller
 {
     public function __construct(private PendudukDomisiliService $service)
     {
-        $this->middleware(['auth', 'can:kependudukan']);
+        $this->middleware(['auth', 'can:penduduk.view']);
     }
 
     /**

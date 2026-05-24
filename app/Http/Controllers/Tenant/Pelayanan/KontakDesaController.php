@@ -13,7 +13,7 @@ class KontakDesaController extends Controller
 {
         public function __construct()
     {
-        $this->middleware(['auth', 'can:pelayanan_informasi']);
+        $this->middleware(['auth', 'can:surat.view']);
     }
 
     /**

@@ -383,7 +383,7 @@ class KartuKeluargaController extends Controller
      */
     public function sync(): JsonResponse
     {
-        Gate::authorize('kependudukan');
+        Gate::authorize('kartu_keluarga.delete');
         try {
             Artisan::call('sync:kartu-keluarga');
             Artisan::call('kk:scan-historis', ['--force' => true]);

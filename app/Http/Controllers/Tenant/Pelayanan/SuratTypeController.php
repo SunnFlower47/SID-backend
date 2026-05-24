@@ -12,7 +12,7 @@ class SuratTypeController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['auth', 'can:admin_sistem']);
+        $this->middleware(['auth', 'can:settings.view']);
     }
 
     public function index()
@@ -25,13 +25,13 @@ class SuratTypeController extends Controller
 
     public function create()
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('settings.view');
         return Inertia::render('Tenant/SuratType/Form');
     }
 
     public function store(Request $request)
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('settings.view');
 
         $validated = $request->validate([
             'id' => 'required|string|unique:surat_types,id|max:50',
@@ -64,7 +64,7 @@ class SuratTypeController extends Controller
 
     public function edit(SuratType $suratType)
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('settings.view');
         return Inertia::render('Tenant/SuratType/Form', [
             'suratType' => $suratType
         ]);
@@ -72,7 +72,7 @@ class SuratTypeController extends Controller
 
     public function update(Request $request, SuratType $suratType)
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('settings.view');
 
         $validated = $request->validate([
             'nama' => 'required|string|max:255',
@@ -104,7 +104,7 @@ class SuratTypeController extends Controller
 
     public function destroy(SuratType $suratType)
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('settings.view');
         $suratType->delete();
 
         return redirect()->route('admin.surat-type.index')

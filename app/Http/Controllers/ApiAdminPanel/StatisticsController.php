@@ -18,7 +18,7 @@ class StatisticsController extends Controller
      */
     public function index(): JsonResponse
     {
-        Gate::authorize('laporan_statistik');
+        Gate::authorize('laporan.view');
 
         try {
             // Real-time basic stats
@@ -168,7 +168,7 @@ class StatisticsController extends Controller
      */
     public function refreshCache()
     {
-        Gate::authorize('laporan_statistik');
+        Gate::authorize('laporan.view');
         return response()->json(['success' => true, 'message' => 'Data statistik sudah real-time']);
     }
 
@@ -177,7 +177,7 @@ class StatisticsController extends Controller
      */
     public function getChartData(Request $request)
     {
-        Gate::authorize('laporan_statistik');
+        Gate::authorize('laporan.view');
         $type = $request->get('type');
 
         switch ($type) {

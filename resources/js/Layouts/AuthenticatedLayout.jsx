@@ -69,7 +69,7 @@ export default function AuthenticatedLayout({ children, title }) {
                 />
 
                 <main className="flex-1 overflow-y-scroll p-4 md:p-8">
-                    <div className="mx-auto max-w-7xl">
+                    <div className="mx-auto max-w-[85rem] w-full">
                         {children}
                     </div>
                 </main>

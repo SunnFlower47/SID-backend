@@ -1,73 +1,25 @@
 import React from 'react';
 import { List, CheckCircle, Users, UserCheck } from 'lucide-react';
-
-const STAT_CONFIG = [
-    {
-        key: 'total_program',
-        label: 'Total Program',
-        icon: List,
-        color: 'blue',
-        bg: 'bg-blue-50',
-        iconBg: 'bg-blue-100',
-        iconColor: 'text-blue-600',
-        textColor: 'text-blue-600',
-        border: 'border-blue-200',
-    },
-    {
-        key: 'program_aktif',
-        label: 'Program Aktif',
-        icon: CheckCircle,
-        color: 'green',
-        bg: 'bg-green-50',
-        iconBg: 'bg-green-100',
-        iconColor: 'text-green-600',
-        textColor: 'text-green-600',
-        border: 'border-green-200',
-    },
-    {
-        key: 'total_penerima',
-        label: 'Total Penerima',
-        icon: Users,
-        color: 'purple',
-        bg: 'bg-purple-50',
-        iconBg: 'bg-purple-100',
-        iconColor: 'text-purple-600',
-        textColor: 'text-purple-600',
-        border: 'border-purple-200',
-    },
-    {
-        key: 'penerima_aktif',
-        label: 'Penerima Aktif',
-        icon: UserCheck,
-        color: 'yellow',
-        bg: 'bg-yellow-50',
-        iconBg: 'bg-yellow-100',
-        iconColor: 'text-yellow-600',
-        textColor: 'text-yellow-600',
-        border: 'border-yellow-200',
-    },
-];
+import { StatCard } from '@/Components/Shared';
 
 export default function BansosStats({ stats = {} }) {
+    const statCards = [
+        { key: 'total_program', label: 'Total Program', icon: List, color: 'blue' },
+        { key: 'program_aktif', label: 'Program Aktif', icon: CheckCircle, color: 'green' },
+        { key: 'total_penerima', label: 'Total Penerima', icon: Users, color: 'purple' },
+        { key: 'penerima_aktif', label: 'Penerima Aktif', icon: UserCheck, color: 'yellow' }
+    ];
+
     return (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-            {STAT_CONFIG.map(({ key, label, icon: Icon, bg, iconBg, iconColor, textColor, border }) => (
-                <div
-                    key={key}
-                    className={`bg-white border ${border} rounded-2xl p-3 sm:p-4 flex items-center gap-3 sm:gap-4 shadow-sm hover:shadow-md transition-shadow`}
-                >
-                    <div className={`${iconBg} w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0`}>
-                        <Icon className={`w-4 h-4 sm:w-5 sm:h-5 ${iconColor}`} />
-                    </div>
-                    <div className="min-w-0">
-                        <p className="text-[10px] sm:text-xs font-black text-gray-400 uppercase tracking-widest truncate leading-none mb-1">
-                            {label}
-                        </p>
-                        <p className="text-xl sm:text-2xl font-black text-gray-900 leading-none">
-                            {(stats[key] ?? 0).toLocaleString('id-ID')}
-                        </p>
-                    </div>
-                </div>
+            {statCards.map((stat) => (
+                <StatCard
+                    key={stat.key}
+                    label={stat.label}
+                    value={stats[stat.key]}
+                    icon={stat.icon}
+                    color={stat.color}
+                />
             ))}
         </div>
     );

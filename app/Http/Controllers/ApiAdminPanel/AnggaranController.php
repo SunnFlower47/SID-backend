@@ -16,7 +16,7 @@ class AnggaranController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        Gate::authorize('keuangan');
+        Gate::authorize('anggaran.view');
         
         $tahun = $request->get('tahun', date('Y'));
         $apbdes = Apbdes::where('tahun', $tahun)->orderBy('kode_rekening')->get();
@@ -42,7 +42,7 @@ class AnggaranController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
-        Gate::authorize('keuangan');
+        Gate::authorize('anggaran.view');
 
         $validated = $request->validate([
             'tahun' => 'required|integer|min:2020|max:2030',
@@ -73,7 +73,7 @@ class AnggaranController extends Controller
      */
     public function storePengeluaran(Request $request): JsonResponse
     {
-        Gate::authorize('keuangan');
+        Gate::authorize('anggaran.view');
 
         $validated = $request->validate([
             'apbdes_id' => 'required|exists:apbdes,id',
@@ -120,7 +120,7 @@ class AnggaranController extends Controller
      */
     public function listProyek(): JsonResponse
     {
-        Gate::authorize('keuangan');
+        Gate::authorize('anggaran.view');
         $proyek = ProyekDesa::with('apbdes')->latest()->get();
         return response()->json(['status' => 'success', 'data' => $proyek]);
     }

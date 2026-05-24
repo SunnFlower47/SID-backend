@@ -13,7 +13,7 @@ class TransparansiDesaController extends Controller
 {
         public function __construct()
     {
-        $this->middleware(['auth', 'can:keuangan']);
+        $this->middleware(['auth', 'can:anggaran.view']);
     }
 
     /**

@@ -23,7 +23,7 @@ class KartuKeluargaController extends Controller
     public function __construct(KartuKeluargaService $kkService)
     {
         $this->kkService = $kkService;
-        $this->middleware(['auth', 'can:kependudukan']);
+        $this->middleware(['auth', 'can:kartu_keluarga.view']);
     }
 
     /**
@@ -193,7 +193,7 @@ class KartuKeluargaController extends Controller
      */
     public function destroy($nkk)
     {
-        Gate::authorize('kependudukan');
+        Gate::authorize('kartu_keluarga.delete');
         $kk = KartuKeluarga::where('nkk', $nkk)->firstOrFail();
 
         try {
@@ -209,7 +209,7 @@ class KartuKeluargaController extends Controller
      */
     public function export(Request $request)
     {
-        Gate::authorize('kependudukan');
+        Gate::authorize('kartu_keluarga.export');
 
         try {
             set_time_limit(300);
@@ -229,7 +229,7 @@ class KartuKeluargaController extends Controller
 
     public function syncSummary()
     {
-        Gate::authorize('kependudukan');
+        Gate::authorize('kartu_keluarga.edit');
 
         try {
             set_time_limit(900);
@@ -369,7 +369,7 @@ class KartuKeluargaController extends Controller
 
     public function downloadPdf($nkk)
     {
-        Gate::authorize('kependudukan');
+        Gate::authorize('kartu_keluarga.export');
         // Keep existing PDF logic...
          try {
             $kkRecord = KartuKeluarga::where('nkk', $nkk)->first();

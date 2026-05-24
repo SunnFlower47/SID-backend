@@ -24,7 +24,7 @@ class PendudukController extends Controller
 
     public function __construct(PendudukService $pendudukService)
     {
-        $this->middleware(['auth', 'can:kependudukan']);
+        $this->middleware(['auth', 'can:penduduk.view']);
         $this->pendudukService = $pendudukService;
     }
 
@@ -64,7 +64,7 @@ class PendudukController extends Controller
      */
     public function create()
     {
-        Gate::authorize('kependudukan');
+        Gate::authorize('penduduk.create');
 
         return Inertia::render('Tenant/Penduduk/Create', [
             'existingNKKs' => $this->pendudukService->getExistingNKKs(),
@@ -78,7 +78,7 @@ class PendudukController extends Controller
      */
     public function store(StorePendudukRequest $request)
     {
-        Gate::authorize('kependudukan');
+        Gate::authorize('penduduk.create');
 
         try {
             $validated = $request->validated();
@@ -130,7 +130,7 @@ class PendudukController extends Controller
      */
     public function edit(Penduduk $penduduk)
     {
-        Gate::authorize('kependudukan');
+        Gate::authorize('penduduk.edit');
         
         return Inertia::render('Tenant/Penduduk/Edit', [
             'penduduk' => $penduduk->load('kartuKeluarga.rtMaster', 'kartuKeluarga.rwMaster', 'kartuKeluarga.dusunMaster'),
@@ -144,7 +144,7 @@ class PendudukController extends Controller
      */
     public function update(UpdatePendudukRequest $request, Penduduk $penduduk)
     {
-        Gate::authorize('kependudukan');
+        Gate::authorize('penduduk.edit');
 
         try {
             $validated = $request->validated();
@@ -170,7 +170,7 @@ class PendudukController extends Controller
      */
     public function destroy(Penduduk $penduduk)
     {
-        Gate::authorize('kependudukan');
+        Gate::authorize('penduduk.delete');
 
         try {
             $penduduk->delete();
@@ -186,7 +186,7 @@ class PendudukController extends Controller
      */
     public function exportExcel(Request $request)
     {
-        Gate::authorize('kependudukan');
+        Gate::authorize('penduduk.export');
         set_time_limit(300);
         ini_set('memory_limit', '512M');
         return Excel::download(new PendudukExport($request), 'data_penduduk_' . now()->format('Y-m-d_H-i-s') . '.xlsx');
@@ -197,7 +197,7 @@ class PendudukController extends Controller
      */
     public function updateFamilyAddress(Request $request, $nkk)
     {
-        Gate::authorize('kependudukan');
+        Gate::authorize('penduduk.edit');
 
         $validated = $request->validate([
             'alamat' => 'required|string|max:500',

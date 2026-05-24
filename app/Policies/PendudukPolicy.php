@@ -13,7 +13,7 @@ class PendudukPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('kependudukan');
+        return $user->can('penduduk.view');
     }
 
     /**
@@ -21,7 +21,7 @@ class PendudukPolicy
      */
     public function view(User $user, Penduduk $penduduk): bool
     {
-        return $user->can('kependudukan');
+        return $user->can('penduduk.view');
     }
 
     /**
@@ -29,7 +29,7 @@ class PendudukPolicy
      */
     public function create(User $user): bool
     {
-        return $user->can('kependudukan');
+        return $user->can('penduduk.create');
     }
 
     /**
@@ -37,7 +37,7 @@ class PendudukPolicy
      */
     public function update(User $user, Penduduk $penduduk): bool
     {
-        return $user->can('kependudukan');
+        return $user->can('penduduk.edit');
     }
 
     /**
@@ -45,7 +45,7 @@ class PendudukPolicy
      */
     public function delete(User $user, Penduduk $penduduk): bool
     {
-        return $user->can('kependudukan');
+        return $user->can('penduduk.delete');
     }
 
     /**
@@ -53,7 +53,7 @@ class PendudukPolicy
      */
     public function export(User $user): bool
     {
-        return $user->can('kependudukan');
+        return $user->can('penduduk.export');
     }
 
     /**
@@ -61,7 +61,7 @@ class PendudukPolicy
      */
     public function restore(User $user, Penduduk $penduduk): bool
     {
-        return $user->can('kependudukan');
+        return $user->can('penduduk.delete');
     }
 
     /**
@@ -69,6 +69,6 @@ class PendudukPolicy
      */
     public function forceDelete(User $user, Penduduk $penduduk): bool
     {
-        return $user->can('kependudukan');
+        return $user->can('penduduk.delete');
     }
 }

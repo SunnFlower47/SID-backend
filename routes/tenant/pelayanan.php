@@ -15,7 +15,7 @@ use App\Http\Controllers\Tenant\Konten\TestimoniController;
 use App\Http\Controllers\Tenant\Konten\MasterJabatanController;
 
 // MODULE 2: Pelayanan Informasi
-Route::middleware('can:pelayanan_informasi')->group(function () {
+Route::middleware([])->group(function () {
     // Admin Surat Pengajuan routes
     Route::prefix('admin')->name('admin.')->controller(SuratPengajuanController::class)->group(function () {
         Route::get('/surat-pengajuan', 'index')->name('surat-pengajuan.index');
@@ -34,8 +34,8 @@ Route::middleware('can:pelayanan_informasi')->group(function () {
         Route::delete('/surat-pengajuan/{id}', 'destroy')->name('surat-pengajuan.destroy');
         
         // Master Jenis Surat
-        Route::resource('surat-type', SuratTypeController::class)->middleware('can:admin_sistem');
-        Route::post('surat-type/{surat_type}', [SuratTypeController::class, 'update'])->name('surat-type.update.post')->middleware('can:admin_sistem');
+        Route::resource('surat-type', SuratTypeController::class);
+        Route::post('surat-type/{surat_type}', [SuratTypeController::class, 'update'])->name('surat-type.update.post');
         
         // Legacy Surat Routes
         Route::get('/surat-pengajuan/legacy/{id}', 'downloadLegacy')->name('surat-pengajuan.download-legacy');

@@ -14,7 +14,7 @@ use App\Http\Controllers\Tenant\Admin\VillageProfileController;
 use Illuminate\Support\Facades\Artisan;
 
 // MODULE 5: Admin Sistem
-Route::middleware('can:admin_sistem')->group(function () {
+Route::middleware([])->group(function () {
     // Settings
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
     Route::get('/settings/users', [SettingsController::class, 'users'])->name('settings.users.index');
@@ -84,6 +84,7 @@ Route::middleware('can:admin_sistem')->group(function () {
         Route::get('/pengaduan', 'exportPengaduan')->name('pengaduan');
         Route::get('/umkm', 'exportUmkm')->name('umkm');
         Route::get('/surat-pengajuan', 'exportSuratPengajuan')->name('surat-pengajuan');
+        Route::get('/aset', 'exportAset')->name('aset');
     });
 
     Route::prefix('audit-log')->name('audit-log.')->controller(AuditLogController::class)->group(function () {

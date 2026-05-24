@@ -15,7 +15,7 @@ class LaporanController extends Controller
 {
     public function index(): JsonResponse
     {
-        Gate::authorize('laporan_statistik');
+        Gate::authorize('laporan.view');
 
         $genderDist = Penduduk::select('jenis_kelamin', DB::raw('count(*) as total'))->groupBy('jenis_kelamin')->get();
         

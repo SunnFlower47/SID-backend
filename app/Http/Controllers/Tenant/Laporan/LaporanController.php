@@ -16,7 +16,7 @@ class LaporanController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['auth', 'can:laporan_statistik']);
+        $this->middleware(['auth', 'can:laporan.view']);
     }
 
     /**

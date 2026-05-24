@@ -87,13 +87,45 @@ export default function ExportData() {
             bgLight: 'bg-gray-50',
             border: 'border-gray-200'
         },
+        {
+            id: 'aset',
+            title: 'Data Aset Desa',
+            description: 'Export data inventaris aset desa',
+            href: route('export.aset'),
+            icon: 'Box',
+            colors: 'from-amber-500 to-amber-600',
+            bgLight: 'bg-amber-50',
+            border: 'border-amber-200',
+            hasYearFilter: true
+        },
     ];
 
     const handleExport = async (item) => {
+        let finalHref = item.href;
+
+        if (item.hasYearFilter) {
+            const { value: year } = await Swal.fire({
+                title: 'Pilih Tahun',
+                input: 'number',
+                inputLabel: 'Tahun Laporan',
+                inputValue: new Date().getFullYear(),
+                showCancelButton: true,
+                inputValidator: (value) => {
+                    if (!value) {
+                        return 'Tahun harus diisi!';
+                    }
+                }
+            });
+
+            if (!year) return; // cancelled
+            
+            finalHref = `${item.href}?tahun=${year}`;
+        }
+
         setExportingId(item.id);
 
         try {
-            const response = await axios.get(item.href, {
+            const response = await axios.get(finalHref, {
                 responseType: 'blob'
             });
 

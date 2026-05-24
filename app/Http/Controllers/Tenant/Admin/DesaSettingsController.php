@@ -25,7 +25,7 @@ class DesaSettingsController extends Controller
      */
     public function index()
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('settings.view');
 
         $groups = [
             'general' => 'Informasi Umum Desa',
@@ -46,7 +46,7 @@ class DesaSettingsController extends Controller
      */
     public function update(Request $request)
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('settings.view');
 
         $validated = $request->validate([
             'settings' => 'required|array',
@@ -84,7 +84,7 @@ class DesaSettingsController extends Controller
      */
     public function updateSetting(Request $request, $key)
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('settings.view');
 
         $setting = DesaSetting::where('key', $key)->firstOrFail();
 
@@ -117,7 +117,7 @@ class DesaSettingsController extends Controller
      */
     public function reset()
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('settings.view');
 
         // Delete all current settings
         DesaSetting::truncate();
@@ -134,7 +134,7 @@ class DesaSettingsController extends Controller
      */
     public function export()
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('settings.view');
 
         $settings = DesaSetting::all();
 
@@ -159,7 +159,7 @@ class DesaSettingsController extends Controller
      */
     public function import(Request $request)
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('settings.view');
 
         $validated = $request->validate([
             'file' => 'required|file|mimes:json'

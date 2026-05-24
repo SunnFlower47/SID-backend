@@ -16,7 +16,7 @@ class TrashPendudukController extends Controller
      */
     public function index(Request $request)
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('settings.view');
 
         $query = Penduduk::onlyTrashed()
             ->doesntHave('mutasis')
@@ -44,7 +44,7 @@ class TrashPendudukController extends Controller
      */
     public function restore($id)
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('settings.view');
 
         $penduduk = Penduduk::onlyTrashed()->findOrFail($id);
         $penduduk->restore();
@@ -57,7 +57,7 @@ class TrashPendudukController extends Controller
      */
     public function forceDelete($id)
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('settings.view');
 
         $penduduk = Penduduk::onlyTrashed()->findOrFail($id);
         $nama = $penduduk->nama;

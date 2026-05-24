@@ -7,7 +7,7 @@ use App\Http\Controllers\Tenant\Keuangan\LaporanKeuanganController;
 use App\Http\Controllers\Tenant\Keuangan\PeraturanDesaController;
 
 // MODULE 3: Keuangan
-Route::middleware('can:keuangan')->group(function () {
+Route::middleware([])->group(function () {
     Route::controller(TransparansiDesaController::class)->group(function () {
         Route::get('transparansi-desa', 'index')->name('transparansi-desa.index');
         Route::get('transparansi-desa/apbdes', 'apbdes')->name('transparansi-desa.apbdes');

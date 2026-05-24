@@ -20,7 +20,7 @@ class StatisticsController extends Controller
 
     public function __construct(VillageStatisticsService $statsService)
     {
-        $this->middleware(['auth', 'can:laporan_statistik']);
+        $this->middleware(['auth', 'can:laporan.view']);
         $this->statsService = $statsService;
     }
 
@@ -29,7 +29,7 @@ class StatisticsController extends Controller
      */
     public function index()
     {
-        Gate::authorize('laporan_statistik');
+        Gate::authorize('laporan.view');
 
         return Inertia::render('Tenant/Laporan/Statistik/Index', [
             'basicStats' => Inertia::defer(fn() => [

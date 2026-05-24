@@ -18,7 +18,7 @@ class ImportConflictController extends Controller
     public function __construct(ImportConflictService $importConflictService)
     {
         $this->middleware('auth');
-        $this->middleware('can:admin_sistem');
+        $this->middleware('can:settings.view');
         $this->importConflictService = $importConflictService;
     }
 
@@ -27,7 +27,7 @@ class ImportConflictController extends Controller
      */
     public function importConflicts(Request $request)
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('settings.view');
 
         return Inertia::render('Tenant/ImportConflict/Index', [
             'conflicts' => Inertia::defer(function() use ($request) {
@@ -44,7 +44,7 @@ class ImportConflictController extends Controller
      */
     public function resolveImportConflict(Request $request, ImportConflict $conflict)
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('settings.view');
 
         $data = $request->validate([
             'action' => 'required|in:use_existing,create_override,skip,fix_fields,keep_existing_nik,update_existing_from_incoming,change_incoming_nik',
@@ -91,7 +91,7 @@ class ImportConflictController extends Controller
      */
     public function resetImportConflict(Request $request, ImportConflict $conflict)
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('settings.view');
 
         try {
             $this->importConflictService->resetConflict($conflict);
@@ -106,7 +106,7 @@ class ImportConflictController extends Controller
      */
     public function reprocessImportIssue(Request $request, ImportConflict $conflict)
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('settings.view');
 
         try {
             $this->importConflictService->reprocessConflict($conflict);

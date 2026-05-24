@@ -35,6 +35,7 @@ const COLOR_MAP = {
 export default function StatCard({
     icon: Icon,
     label,
+    title,
     value,
     color = 'green',
     trend,
@@ -42,39 +43,115 @@ export default function StatCard({
     sub,
     badge,
     className = '',
+    compact = false,
 }) {
     const c = COLOR_MAP[color] ?? COLOR_MAP.green;
+    const displayLabel = label ?? title;
+
+    if (compact) {
+        return (
+            <div className={cn(
+                'bg-white rounded-xl border shadow-sm p-2 sm:p-2.5 hover:shadow-md transition-all flex items-center justify-between gap-2 min-w-0',
+                c.border,
+                className
+            )}>
+                <div className="flex items-center gap-2 min-w-0">
+                    {/* Icon box */}
+                    <div className={cn('w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border border-transparent', c.bg)}>
+                        {Icon && <Icon className={cn('w-4 h-4', c.icon)} />}
+                    </div>
+
+                    {/* Label & Value */}
+                    <div className="min-w-0 text-left">
+                        <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest leading-none">
+                            {displayLabel}
+                        </p>
+                        <h2 className="text-sm sm:text-base font-black text-gray-950 mt-1 tracking-tight leading-none italic">
+                            {value ?? 0}
+                        </h2>
+                        {sub && (
+                            <p className="text-[7px] text-gray-400 font-bold mt-0.5 leading-none">{sub}</p>
+                        )}
+                    </div>
+                </div>
+
+                {/* Badge statis ATAU trend dinamis di kanan */}
+                <div className="shrink-0 flex flex-col items-end gap-1">
+                    {badge && (
+                        <span className="px-1 py-0.5 bg-white border border-gray-100 rounded-md text-[6.5px] font-black text-gray-400 uppercase tracking-widest shadow-sm">
+                            {badge}
+                        </span>
+                    )}
+                    {trend != null && (
+                        <span className={cn(
+                            'text-[8px] font-black uppercase tracking-widest flex items-center gap-0.5',
+                            trend > 0 ? 'text-green-500' : trend < 0 ? 'text-red-400' : 'text-gray-400'
+                        )}>
+                            {trend > 0 && (
+                                <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                                </svg>
+                            )}
+                            {trend < 0 && (
+                                <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
+                                </svg>
+                            )}
+                            {Math.abs(trend)}
+                        </span>
+                    )}
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className={cn(
-            'bg-white rounded-2xl border shadow-sm p-4 sm:p-5 hover:shadow-md transition-all',
+            'bg-white rounded-2xl border shadow-sm p-3 hover:shadow-md transition-all flex items-center justify-between gap-3 min-w-0 text-left w-full h-full',
             c.border,
             className
         )}>
-            <div className="flex items-start justify-between mb-3">
+            <div className="flex items-center gap-3 min-w-0">
                 {/* Icon box */}
-                <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center shrink-0', c.bg)}>
-                    {Icon && <Icon className={cn('w-5 h-5', c.icon)} />}
+                <div className={cn('w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center shrink-0 border border-transparent', c.bg)}>
+                    {Icon && <Icon className={cn('w-4 h-4 sm:w-4.5 sm:h-4.5', c.icon)} />}
                 </div>
 
-                {/* Badge statis ATAU trend dinamis di pojok kanan */}
+                {/* Label & Value */}
+                <div className="min-w-0 text-left flex flex-col justify-center">
+                    <p className="text-[8px] sm:text-[9px] font-black text-gray-400 uppercase tracking-widest truncate leading-tight mb-0.5 text-left">
+                        {displayLabel}
+                    </p>
+                    <h3 className="text-base sm:text-lg font-black text-gray-950 leading-none text-left">
+                        {value ?? 0}
+                    </h3>
+                    <div className="min-h-[12px] mt-0.5">
+                        {sub && (
+                            <p className="text-[7px] sm:text-[8px] text-gray-400 font-bold leading-none text-left">{sub}</p>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            {/* Badge statis ATAU trend dinamis di kanan */}
+            <div className="shrink-0 flex flex-col items-end gap-1">
                 {badge && (
-                    <span className="px-2 py-0.5 bg-white border border-gray-100 rounded-lg text-[8px] font-black text-gray-400 uppercase tracking-widest shadow-sm">
+                    <span className="px-1.5 py-0.5 bg-white border border-gray-100 rounded-md text-[7px] font-black text-gray-400 uppercase tracking-widest shadow-sm">
                         {badge}
                     </span>
                 )}
                 {trend != null && (
                     <span className={cn(
-                        'text-[9px] font-black uppercase tracking-widest flex items-center gap-0.5',
+                        'text-[8px] font-black uppercase tracking-widest flex items-center gap-0.5',
                         trend > 0 ? 'text-green-500' : trend < 0 ? 'text-red-400' : 'text-gray-400'
                     )}>
                         {trend > 0 && (
-                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                            <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                             </svg>
                         )}
                         {trend < 0 && (
-                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                            <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
                             </svg>
                         )}
@@ -82,19 +159,6 @@ export default function StatCard({
                     </span>
                 )}
             </div>
-
-            {/* Nilai utama */}
-            <p className="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] leading-none">
-                {label}
-            </p>
-            <h2 className="text-xl sm:text-2xl font-black text-gray-950 mt-1 tracking-tighter leading-none italic">
-                {value ?? 0}
-            </h2>
-
-            {/* Sub-label opsional */}
-            {sub && (
-                <p className="text-[9px] text-gray-400 font-bold mt-1">{sub}</p>
-            )}
         </div>
     );
 }

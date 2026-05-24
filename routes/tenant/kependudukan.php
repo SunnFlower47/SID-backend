@@ -7,7 +7,7 @@ use App\Http\Controllers\Tenant\Kependudukan\KartuKeluargaController;
 use App\Http\Controllers\Tenant\Kependudukan\PendudukDomisiliController;
 
 // MODULE 1: Kependudukan
-Route::middleware('can:kependudukan')->group(function () {
+Route::middleware([])->group(function () {
     // Penduduk routes
     Route::prefix('penduduk')->name('penduduk.')->controller(PendudukController::class)->group(function () {
         Route::get('/export/excel', 'exportExcel')->name('export.excel');

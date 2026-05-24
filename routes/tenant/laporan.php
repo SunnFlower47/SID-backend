@@ -6,7 +6,7 @@ use App\Http\Controllers\Tenant\Laporan\ComparisonController;
 use App\Http\Controllers\Tenant\Laporan\LaporanController;
 
 // MODULE 4: Laporan & Statistik
-Route::middleware('can:laporan_statistik')->group(function () {
+Route::middleware([])->group(function () {
     // Statistics & Comparison
     Route::get('/statistics', [StatisticsController::class, 'index'])->name('statistics.index');
     Route::post('/statistics/refresh', [StatisticsController::class, 'refreshCache'])->name('statistics.refresh');

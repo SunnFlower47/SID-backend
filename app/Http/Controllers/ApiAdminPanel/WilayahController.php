@@ -19,7 +19,7 @@ class WilayahController extends Controller
      */
     public function index(): JsonResponse
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('settings.view');
 
         $dusuns = Dusun::orderBy('nama')->get();
         $rws = Rw::orderBy('kode')->get();
@@ -60,7 +60,7 @@ class WilayahController extends Controller
      */
     public function getTree(): JsonResponse
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('settings.view');
 
         $dusuns = Dusun::orderBy('nama')->get()->map(function($dusun) {
             $rts = Rt::with('rw')->where('dusun_id', $dusun->id)->get();
@@ -97,7 +97,7 @@ class WilayahController extends Controller
 
     public function storeDusun(Request $request): JsonResponse
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('settings.view');
 
         $data = $request->validate([
             'nama' => 'required|string|max:100|unique:dusuns,nama',
@@ -115,7 +115,7 @@ class WilayahController extends Controller
 
     public function storeRw(Request $request): JsonResponse
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('settings.view');
 
         $data = $request->validate([
             'kode' => 'required|string|max:3|unique:rws,kode',
@@ -139,7 +139,7 @@ class WilayahController extends Controller
 
     public function storeRt(Request $request): JsonResponse
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('settings.view');
 
         $data = $request->validate([
             'kode' => 'required|string|max:3',
@@ -168,7 +168,7 @@ class WilayahController extends Controller
 
     public function destroyRt(Rt $rt): JsonResponse
     {
-        Gate::authorize('admin_sistem');
+        Gate::authorize('settings.view');
 
         $rtKode = $rt->kode;
         $rwKode = optional($rt->rw)->kode;
