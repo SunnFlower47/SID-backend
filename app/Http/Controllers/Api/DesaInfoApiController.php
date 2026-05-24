@@ -17,7 +17,7 @@ class DesaInfoApiController extends Controller
      */
     public function getDesaInfo()
     {
-        return Cache::remember('api_desa_info_new', 7200, function () {
+        return Cache::remember('api_desa_info_new', 15, function () {
             try {
                 $desaInfo = DesaSetting::getDesaInfo();
                 $kepalaDesa = DesaSetting::getKepalaDesaInfo();
@@ -56,7 +56,7 @@ class DesaInfoApiController extends Controller
      */
     public function getPublicDesaInfo()
     {
-        return Cache::remember('api_public_desa_info', 600, function () {
+        return Cache::remember('api_public_desa_info', 15, function () {
             try {
                 $desaInfo = DesaSetting::getDesaInfo();
 

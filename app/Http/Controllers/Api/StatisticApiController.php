@@ -20,7 +20,7 @@ class StatisticApiController extends Controller
     public function getStatistics()
     {
         // Redis cache untuk 2 menit
-        return Cache::remember('api_statistics', 120, function () {
+        return Cache::remember('api_statistics', 15, function () {
             $stats = DB::table('penduduks as p')
                 ->leftJoin('kartu_keluargas as kk', 'p.kartu_keluarga_id', '=', 'kk.id')
                 ->select([
@@ -224,7 +224,7 @@ class StatisticApiController extends Controller
      */
     public function getPublicStatistics()
     {
-        return Cache::remember('api_public_statistics', 300, function () {
+        return Cache::remember('api_public_statistics', 15, function () {
             try {
                 $stats = [
                     'total_penduduk' => DB::table('penduduks')->whereNull('deleted_at')->count(),
@@ -247,7 +247,7 @@ class StatisticApiController extends Controller
      */
     public function getPublicPendudukStats()
     {
-        return Cache::remember('api_public_penduduk_stats', 300, function () {
+        return Cache::remember('api_public_penduduk_stats', 15, function () {
             try {
                 $stats = [
                     'total' => Penduduk::whereNull('deleted_at')->count(),

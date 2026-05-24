@@ -19,7 +19,7 @@ class BeritaController extends Controller
         // Cache key berdasarkan parameter request
         $cacheKey = 'api_berita_index_' . md5(serialize($request->all()));
 
-        return Cache::remember($cacheKey, 30, function () use ($request) {
+        return Cache::remember($cacheKey, 15, function () use ($request) {
             $query = Berita::published()->with('author');
 
             // Filter by category
@@ -64,7 +64,7 @@ class BeritaController extends Controller
         // Cache individual berita untuk 1 jam (jarang berubah)
         $cacheKey = "api_berita_show_{$slug}";
 
-        return Cache::remember($cacheKey, 3600, function () use ($slug) {
+        return Cache::remember($cacheKey, 15, function () use ($slug) {
             $berita = Berita::published()
                             ->with('author')
                             ->where('slug', $slug)
@@ -100,7 +100,7 @@ class BeritaController extends Controller
     public function featured()
     {
         // Redis cache untuk 10 menit (featured berita jarang berubah)
-        return Cache::remember('api_berita_featured', 600, function () {
+        return Cache::remember('api_berita_featured', 15, function () {
             $beritas = Berita::published()
                             ->featured()
                             ->select('id', 'judul', 'excerpt', 'gambar', 'slug', 'published_at', 'kategori')
@@ -122,7 +122,7 @@ class BeritaController extends Controller
     public function categories()
     {
         // Redis cache untuk 1 jam (categories jarang berubah)
-        return Cache::remember('api_berita_categories', 3600, function () {
+        return Cache::remember('api_berita_categories', 15, function () {
             $categories = Berita::published()
                                 ->select('kategori')
                                 ->distinct()
@@ -141,7 +141,7 @@ class BeritaController extends Controller
     public function latest()
     {
         // Redis cache untuk 5 menit (sering berubah tapi tidak terlalu sering)
-        return Cache::remember('api_berita_latest', 300, function () {
+        return Cache::remember('api_berita_latest', 15, function () {
             $beritas = Berita::published()
                             ->select('id', 'judul', 'excerpt', 'gambar', 'slug', 'published_at', 'kategori')
                             ->with(['author:id,name'])
@@ -176,7 +176,7 @@ class BeritaController extends Controller
         // Cache search results untuk 30 detik
         $cacheKey = 'api_berita_search_' . md5($request->input('q'));
 
-        return Cache::remember($cacheKey, 30, function () use ($request) {
+        return Cache::remember($cacheKey, 15, function () use ($request) {
             $query = $request->input('q');
             $beritas = Berita::published()
                             ->with('author')
@@ -209,7 +209,7 @@ class BeritaController extends Controller
         // Cache berita by category untuk 30 detik
         $cacheKey = "api_berita_category_{$category}";
 
-        return Cache::remember($cacheKey, 30, function () use ($category) {
+        return Cache::remember($cacheKey, 15, function () use ($category) {
             $beritas = Berita::published()
                             ->with('author')
                             ->where('kategori', $category)

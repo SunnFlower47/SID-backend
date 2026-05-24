@@ -19,7 +19,7 @@ class TestimoniController extends Controller
         // Redis cache untuk 5 menit (testimoni jarang berubah)
         $cacheKey = 'api_testimoni_' . md5(serialize($request->all()));
 
-        return Cache::remember($cacheKey, 300, function () use ($request) {
+        return Cache::remember($cacheKey, 15, function () use ($request) {
             try {
                 $query = Testimoni::query();
 
