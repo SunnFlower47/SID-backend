@@ -25,12 +25,22 @@ class DatabaseSeeder extends Seeder
             // 5. Master Jenis Surat (Layanan Surat)
             SuratTypeSeeder::class,
 
-            // 6. Simulation & Demo Data
+            // 6. Master Wilayah (RT/RW/Dusun dasar)
             WilayahSeeder::class,
-            BeritaSeeder::class,
-            TestimoniSeeder::class,
-            PendudukSeeder::class,
         ]);
+
+        // 7. Simulation & Demo Data (HANYA UNTUK NON-PRODUCTION)
+        if (!app()->environment('production')) {
+            $this->call([
+                BeritaSeeder::class,
+                TestimoniSeeder::class,
+                PendudukSeeder::class,
+            ]);
+            $this->command->info('Dummy data seeded for local development.');
+        } else {
+            $this->command->warn('Production environment detected. Dummy data skipped.');
+        }
+        
         
         echo "\nDatabase Reset and Seeding Completed Successfully!\n";
     }
