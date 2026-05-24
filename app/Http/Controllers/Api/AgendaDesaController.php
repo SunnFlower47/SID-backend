@@ -4,10 +4,14 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Berita;
+use App\Http\Resources\AgendaDesaResource;
+use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 
 class AgendaDesaController extends Controller
 {
+    use ApiResponse;
+
     /**
      * Get agenda desa data (using berita with kategori agenda)
      */
@@ -25,31 +29,11 @@ class AgendaDesaController extends Controller
                 $query->whereYear('published_at', $request->tahun);
             }
 
-            $agenda = $query->orderBy('published_at', 'desc')
-                ->get()
-                ->map(function($item) {
-                    return [
-                        'id' => $item->id,
-                        'judul' => $item->judul,
-                        'deskripsi' => $item->konten,
-                        'tanggal' => $item->published_at ? $item->published_at->format('Y-m-d') : null,
-                        'waktu' => $item->published_at ? $item->published_at->format('H:i') : null,
-                        'lokasi' => 'Kantor Desa Cibatu',
-                        'kategori' => $item->kategori,
-                        'status' => 'upcoming'
-                    ];
-                });
+            $agenda = $query->orderBy('published_at', 'desc')->get();
 
-            return response()->json([
-                'success' => true,
-                'data' => $agenda
-            ]);
+            return $this->successResponse(AgendaDesaResource::collection($agenda));
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal mengambil data agenda desa',
-                'error' => $e->getMessage()
-            ], 500);
+            return $this->errorResponse('Gagal mengambil data agenda desa', 500, $e->getMessage());
         }
     }
 
@@ -61,16 +45,9 @@ class AgendaDesaController extends Controller
         try {
             $categories = ['Pemerintahan', 'Kegiatan', 'Pembangunan', 'Sosial', 'Lainnya'];
 
-            return response()->json([
-                'success' => true,
-                'data' => $categories
-            ]);
+            return $this->successResponse($categories);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal mengambil kategori agenda',
-                'error' => $e->getMessage()
-            ], 500);
+            return $this->errorResponse('Gagal mengambil kategori agenda', 500, $e->getMessage());
         }
     }
 }

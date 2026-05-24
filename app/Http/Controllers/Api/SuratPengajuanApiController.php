@@ -37,6 +37,7 @@ class SuratPengajuanApiController extends Controller
     public function index()
     {
         $types = SuratType::where('is_active', true)
+            ->where('is_public', true)
             ->orderBy('has_template', 'desc')
             ->orderBy('nama')
             ->get()

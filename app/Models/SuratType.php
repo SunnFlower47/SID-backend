@@ -27,12 +27,14 @@ class SuratType extends Model
         'icon',
         'color',
         'is_active',
+        'is_public',
         'form_json'
     ];
 
     protected $casts = [
         'has_template' => 'boolean',
         'is_active' => 'boolean',
+        'is_public' => 'boolean',
         'form_json' => 'array'
     ];
 

@@ -5,49 +5,35 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\StrukturDesa;
 use App\Models\Penduduk;
+use App\Http\Resources\StrukturDesaResource;
+use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 
 class StrukturDesaController extends Controller
 {
+    use ApiResponse;
+
     /**
      * Get struktur desa data grouped by category
      */
     public function index()
     {
         try {
-            $struktur = StrukturDesa::orderBy('urutan')
+            $strukturRaw = StrukturDesa::orderBy('urutan')
                 ->where('status_aktif', true)
-                ->get()
-                ->map(function($item) {
-                    return [
-                        'id' => $item->id,
-                        'nama' => $item->nama,
-                        'jabatan' => $item->jabatan,
-                        'kategori' => $item->kategori,
-                        'email' => $item->email,
-                        'alamat' => $item->alamat,
-                        'rt' => $item->rt_label,
-                        'rw' => $item->rw_label,
-                        'dusun' => $item->dusun_label,
-                        'foto' => $item->foto,
-                        'urutan' => $item->urutan
-                    ];
-                });
+                ->get();
 
-            // Group by category for better organization
-            $groupedStruktur = $struktur->groupBy('kategori');
+            $struktur = StrukturDesaResource::collection($strukturRaw);
+            $resolvedStruktur = collect($struktur->resolve());
+            $groupedStruktur = $resolvedStruktur->groupBy('kategori');
 
             return response()->json([
                 'success' => true,
-                'data' => $struktur,
+                'data' => $resolvedStruktur,
                 'grouped' => $groupedStruktur
             ]);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal mengambil data struktur desa',
-                'error' => $e->getMessage()
-            ], 500);
+            return $this->errorResponse('Gagal mengambil data struktur desa', 500, $e->getMessage());
         }
     }
 
@@ -99,16 +85,9 @@ class StrukturDesaController extends Controller
                 $rtRw = $strukturRtRw;
             }
 
-            return response()->json([
-                'success' => true,
-                'data' => $rtRw
-            ]);
+            return $this->successResponse($rtRw);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal mengambil data RT/RW',
-                'error' => $e->getMessage()
-            ], 500);
+            return $this->errorResponse('Gagal mengambil data RT/RW', 500, $e->getMessage());
         }
     }
 
@@ -121,32 +100,11 @@ class StrukturDesaController extends Controller
             $bumdes = StrukturDesa::where('status_aktif', true)
                 ->where('kategori', 'ketua_bumdes')
                 ->orderBy('urutan')
-                ->get()
-                ->map(function($item) {
-                    return [
-                        'id' => $item->id,
-                        'nama' => $item->nama,
-                        'jabatan' => $item->jabatan,
-                        'email' => $item->email,
-                        'alamat' => $item->alamat,
-                        'rt' => $item->rt_label,
-                        'rw' => $item->rw_label,
-                        'dusun' => $item->dusun_label,
-                        'foto' => $item->foto,
-                        'urutan' => $item->urutan
-                    ];
-                });
+                ->get();
 
-            return response()->json([
-                'success' => true,
-                'data' => $bumdes
-            ]);
+            return $this->successResponse(StrukturDesaResource::collection($bumdes));
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal mengambil data BUMDes',
-                'error' => $e->getMessage()
-            ], 500);
+            return $this->errorResponse('Gagal mengambil data BUMDes', 500, $e->getMessage());
         }
     }
 
@@ -159,33 +117,11 @@ class StrukturDesaController extends Controller
             $struktur = StrukturDesa::where('status_aktif', true)
                 ->where('kategori', $category)
                 ->orderBy('urutan')
-                ->get()
-                ->map(function($item) {
-                    return [
-                        'id' => $item->id,
-                        'nama' => $item->nama,
-                        'jabatan' => $item->jabatan,
-                        'kategori' => $item->kategori,
-                        'email' => $item->email,
-                        'alamat' => $item->alamat,
-                        'rt' => $item->rt_label,
-                        'rw' => $item->rw_label,
-                        'dusun' => $item->dusun_label,
-                        'foto' => $item->foto,
-                        'urutan' => $item->urutan
-                    ];
-                });
+                ->get();
 
-            return response()->json([
-                'success' => true,
-                'data' => $struktur
-            ]);
+            return $this->successResponse(StrukturDesaResource::collection($struktur));
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal mengambil data struktur desa',
-                'error' => $e->getMessage()
-            ], 500);
+            return $this->errorResponse('Gagal mengambil data struktur desa', 500, $e->getMessage());
         }
     }
 }

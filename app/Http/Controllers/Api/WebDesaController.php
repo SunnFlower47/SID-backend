@@ -91,6 +91,9 @@ class WebDesaController extends Controller
                         'email' => $desaInfo['email'] ?? 'desa@cibatu.id',
                         'website' => $desaInfo['website'] ?? 'https://cibatu.desa.id'
                     ]
+                ])->withHeaders([
+                    'Cache-Control' => 'public, max-age=7200',
+                    'X-Content-Type-Options' => 'nosniff',
                 ]);
             } catch (\Exception $e) {
                 return response()->json([
@@ -261,6 +264,9 @@ class WebDesaController extends Controller
                         'berita' => $totalBerita,
                         'pengajuan_surat' => $totalPengajuan
                     ]
+                ])->withHeaders([
+                    'Cache-Control' => 'public, max-age=120',
+                    'X-Content-Type-Options' => 'nosniff',
                 ]);
         });
     }

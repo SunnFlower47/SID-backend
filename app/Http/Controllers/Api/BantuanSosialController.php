@@ -95,13 +95,17 @@ class BantuanSosialController extends Controller
             ->where('status_penerimaan', 'aktif')
             ->get();
 
+        $maskName = function($str) {
+            $len = strlen($str);
+            if ($len <= 3) return $str;
+            return substr($str, 0, 3) . str_repeat('*', min(10, $len - 3));
+        };
+
         return response()->json([
             'success' => true,
             'data' => [
                 'penduduk' => [
-                    'nama' => $penduduk->nama,
-                    // Zero Trust: Sensor NIK langsung dari Server
-                    'nik' => substr($penduduk->nik, 0, 4) . '****' . substr($penduduk->nik, -4),
+                    'nama' => $maskName($penduduk->nama),
                     // Zero Trust: Sembunyikan detail alamat jalan, hanya tampilkan RT/RW/Dusun
                     'alamat' => 'Alamat Tersensor (Verifikasi NIK & Tgl Lahir Berhasil)',
                     'rt' => $penduduk->rt_id,

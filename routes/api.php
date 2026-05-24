@@ -8,7 +8,7 @@ use App\Http\Controllers\Api\BantuanSosialController;
 use App\Http\Controllers\Api\PengaduanController;
 use App\Http\Controllers\Api\SuratPengajuanApiController;
 use App\Http\Controllers\Api\ContactController;
-use App\Http\Controllers\Api\PendudukApiController;
+
 use App\Http\Controllers\Api\TestimoniController;
 use App\Http\Controllers\Api\ApiProxyController;
 

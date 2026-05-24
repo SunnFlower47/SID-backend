@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Berita;
+use App\Http\Resources\BeritaResource;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Cache;
 
@@ -44,7 +45,7 @@ class BeritaController extends Controller
 
             return response()->json([
                 'success' => true,
-                'data' => $beritas->items(),
+                'data' => BeritaResource::collection($beritas->items()),
                 'pagination' => [
                     'current_page' => $beritas->currentPage(),
                     'last_page' => $beritas->lastPage(),
@@ -86,8 +87,8 @@ class BeritaController extends Controller
             return response()->json([
                 'success' => true,
                 'data' => [
-                    'berita' => $berita,
-                    'related' => $relatedBeritas
+                    'berita' => new BeritaResource($berita),
+                    'related' => BeritaResource::collection($relatedBeritas)
                 ]
             ]);
         });
@@ -110,7 +111,7 @@ class BeritaController extends Controller
 
             return response()->json([
                 'success' => true,
-                'data' => $beritas
+                'data' => BeritaResource::collection($beritas)
             ]);
         });
     }
@@ -150,7 +151,7 @@ class BeritaController extends Controller
 
             return response()->json([
                 'success' => true,
-                'data' => $beritas
+                'data' => BeritaResource::collection($beritas)
             ]);
         });
     }
@@ -189,7 +190,7 @@ class BeritaController extends Controller
 
             return response()->json([
                 'success' => true,
-                'data' => $beritas->items(),
+                'data' => BeritaResource::collection($beritas->items()),
                 'pagination' => [
                     'current_page' => $beritas->currentPage(),
                     'last_page' => $beritas->lastPage(),
@@ -217,7 +218,7 @@ class BeritaController extends Controller
 
             return response()->json([
                 'success' => true,
-                'data' => $beritas->items(),
+                'data' => BeritaResource::collection($beritas->items()),
                 'pagination' => [
                     'current_page' => $beritas->currentPage(),
                     'last_page' => $beritas->lastPage(),

@@ -45,6 +45,7 @@ export default function Form({ auth, suratType = null }) {
         icon: suratType?.icon || 'file-text',
         color: suratType?.color || 'blue',
         is_active: suratType?.is_active ?? true,
+        is_public: suratType?.is_public ?? true,
         form_json: suratType?.form_json || [],
         file_template: null,
     });
@@ -566,6 +567,26 @@ export default function Form({ auth, suratType = null }) {
                                         <div className={cn(
                                             "absolute top-1 w-4 h-4 bg-white rounded-full transition-all shadow-sm",
                                             data.is_active ? "left-7" : "left-1"
+                                        )}></div>
+                                    </button>
+                                </div>
+
+                                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                                    <div>
+                                        <p className="text-[10px] font-black text-gray-900 uppercase tracking-widest">Dapat Diajukan Online</p>
+                                        <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest mt-1">Bisa diajukan warga di web desa</p>
+                                    </div>
+                                    <button 
+                                        type="button"
+                                        onClick={() => setData('is_public', !data.is_public)}
+                                        className={cn(
+                                            "w-12 h-6 rounded-full transition-all relative",
+                                            data.is_public ? "bg-green-500 shadow-lg shadow-green-200" : "bg-gray-300"
+                                        )}
+                                    >
+                                        <div className={cn(
+                                            "absolute top-1 w-4 h-4 bg-white rounded-full transition-all shadow-sm",
+                                            data.is_public ? "left-7" : "left-1"
                                         )}></div>
                                     </button>
                                 </div>

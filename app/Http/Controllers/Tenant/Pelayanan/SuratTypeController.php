@@ -44,6 +44,7 @@ class SuratTypeController extends Controller
             'icon' => 'nullable|string|max:50',
             'color' => 'nullable|string|max:20',
             'is_active' => 'boolean',
+            'is_public' => 'boolean',
             'form_json' => 'nullable|array',
             'file_template' => 'nullable|file|mimes:docx|max:2048',
         ]);
@@ -84,6 +85,7 @@ class SuratTypeController extends Controller
             'icon' => 'nullable|string|max:50',
             'color' => 'nullable|string|max:20',
             'is_active' => 'boolean',
+            'is_public' => 'boolean',
             'form_json' => 'nullable|array',
             'file_template' => 'nullable|file|mimes:docx|max:2048',
         ]);
