@@ -44,7 +44,7 @@ export default function AnggaranBarChart({ data = [] }) {
     return (
         <div className="w-full h-full flex flex-col">
             <div style={{ height: '220px' }}>
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                     <BarChart data={chartData} barCategoryGap="30%" barGap={4}>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
                         <XAxis

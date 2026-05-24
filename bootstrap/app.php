@@ -54,5 +54,20 @@
             ]);
         })
         ->withExceptions(function (Exceptions $exceptions): void {
-            //
+            $exceptions->respond(function (\Symfony\Component\HttpFoundation\Response $response, \Throwable $exception, \Illuminate\Http\Request $request) {
+                if (!app()->environment(['local', 'testing']) || in_array($response->getStatusCode(), [401, 403, 404, 419, 429, 500, 503])) {
+                    // Jika request meminta JSON murni (API atau request non-Inertia), biarkan kembalikan default
+                    if ($request->wantsJson() && !$request->header('X-Inertia')) {
+                        return $response;
+                    }
+                    
+                    // Untuk 403, 404 dll render via Inertia
+                    if (in_array($response->getStatusCode(), [401, 403, 404, 419, 429, 500, 503])) {
+                        return \Inertia\Inertia::render('Errors/Error', [
+                            'status' => $response->getStatusCode()
+                        ])->toResponse($request)->setStatusCode($response->getStatusCode());
+                    }
+                }
+                return $response;
+            });
         })->create();

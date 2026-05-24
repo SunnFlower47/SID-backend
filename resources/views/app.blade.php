@@ -14,7 +14,7 @@
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
         <!-- Scripts -->
-        @routes(nonce: $csp_nonce)
+        @routes(nonce: $csp_nonce ?? null)
         @viteReactRefresh
         @vite(['resources/js/inertia-app.jsx'])
         @inertiaHead

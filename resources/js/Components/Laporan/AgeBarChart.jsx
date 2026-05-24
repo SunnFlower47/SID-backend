@@ -24,7 +24,7 @@ export default function AgeBarChart({ data }) {
 
     return (
         <div className="h-[300px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                 <BarChart
                     layout="vertical"
                     data={chartData}

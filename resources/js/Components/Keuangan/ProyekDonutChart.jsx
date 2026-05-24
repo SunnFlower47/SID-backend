@@ -40,7 +40,7 @@ export default function ProyekDonutChart({ data = [] }) {
     return (
         <div className="w-full flex flex-col">
             <div style={{ height: '180px' }} className="relative">
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                     <PieChart>
                         <Pie
                             data={chartData}

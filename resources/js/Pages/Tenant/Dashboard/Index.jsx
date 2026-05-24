@@ -266,7 +266,7 @@ export default function Dashboard({
                                     >
                                         <h3 className="text-xs font-black text-gray-950 mb-3 self-start uppercase tracking-tighter italic">Komposisi Gender</h3>
                                         <div className="flex-1 w-full flex items-center justify-center" style={{ minHeight: '160px' }}>
-                                            <ResponsiveContainer width="100%" height="100%">
+                                            <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                                                 <PieChart>
                                                     <Pie
                                                         data={[
@@ -315,7 +315,7 @@ export default function Dashboard({
                                     >
                                         <h3 className="text-xs font-black text-gray-950 mb-3 uppercase tracking-tighter italic">Demografi Usia</h3>
                                         <div className="w-full flex items-center justify-center" style={{ height: '220px' }}>
-                                            <ResponsiveContainer width="100%" height="100%">
+                                            <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                                                 <BarChart data={[
                                                     { name: 'Balita (0-5)', total: ageGroups?.balita || 0 },
                                                     { name: 'Anak (6-12)', total: ageGroups?.anak || 0 },
@@ -347,7 +347,7 @@ export default function Dashboard({
                                     >
                                         <h3 className="text-xs font-black text-gray-950 mb-3 uppercase tracking-tighter italic">Tren Mutasi (6 Bulan)</h3>
                                         <div className="w-full flex items-center justify-center" style={{ height: '210px' }}>
-                                            <ResponsiveContainer width="100%" height="100%">
+                                            <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                                                 <AreaChart data={mutationTrends?.labels?.map((label, index) => ({
                                                     name: label,
                                                     masuk: mutationTrends.masuk[index],
@@ -485,7 +485,7 @@ export default function Dashboard({
                                         <h3 className="text-xs font-black text-gray-950 mb-3 self-start uppercase tracking-tighter italic">Status Pengaduan Warga</h3>
                                         <div className="flex-1 w-full flex items-center justify-center" style={{ minHeight: '165px' }}>
                                             {pengaduanStats?.total > 0 ? (
-                                                <ResponsiveContainer width="100%" height="100%">
+                                                <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                                                     <PieChart>
                                                         <Pie
                                                             data={[
@@ -638,7 +638,7 @@ export default function Dashboard({
                                             <h3 className="text-xs font-black text-gray-950 mb-4 uppercase tracking-tighter italic">Distribusi Jenis Usaha UMKM</h3>
                                             <div className="w-full flex items-center justify-center" style={{ height: '210px' }}>
                                                 {umkmDistribution?.length > 0 ? (
-                                                    <ResponsiveContainer width="100%" height="100%">
+                                                    <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                                                         <BarChart
                                                             data={umkmDistribution}
                                                             layout="vertical"
@@ -790,7 +790,7 @@ export default function Dashboard({
                                             <h3 className="text-xs font-black text-gray-950 mb-4 uppercase tracking-tighter italic">Nilai Aset per Kategori</h3>
                                             <div className="w-full flex items-center justify-center" style={{ height: '210px' }}>
                                                 {asetDistribution?.length > 0 ? (
-                                                    <ResponsiveContainer width="100%" height="100%">
+                                                    <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                                                         <BarChart
                                                             data={asetDistribution}
                                                             layout="vertical"
