@@ -81,7 +81,11 @@ class Berita extends Model
     public function getImageUrlAttribute()
     {
         if ($this->gambar) {
-            return asset('storage/berita/' . $this->gambar);
+            // Jika gambar adalah URL eksternal (contoh: Unsplash), langsung return
+            if (str_starts_with($this->gambar, 'http')) {
+                return $this->gambar;
+            }
+            return asset('storage/' . $this->gambar);
         }
 
         return asset('images/default-berita.jpg');

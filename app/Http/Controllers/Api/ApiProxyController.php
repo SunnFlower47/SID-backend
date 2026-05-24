@@ -69,79 +69,42 @@ class ApiProxyController extends Controller
             if ($request->header('X-Recaptcha-Token')) $headers['X-Recaptcha-Token'] = $request->header('X-Recaptcha-Token');
             if ($request->header('X-CSRF-Token')) $headers['X-CSRF-Token'] = $request->header('X-CSRF-Token');
 
-            // 3. Eksekusi Request ke Internal API
-            $response = Http::withHeaders($headers)
-                ->withOptions(['verify' => false])
-                ->timeout(30);
+            // 3. Eksekusi Request ke Internal API secara INTERNAL (Mencegah Deadlock di artisan serve)
+            $internalRequest = Request::create(
+                $internalUrl,
+                $method,
+                $request->all(),
+                $request->cookies->all(),
+                $request->allFiles(),
+                $request->server()
+            );
 
-            if (in_array($method, ['POST', 'PUT', 'PATCH'])) {
-                $contentType = $request->header('Content-Type', 'application/json');
-                
-                if (strpos($contentType, 'multipart/form-data') !== false) {
-                    $client = new \GuzzleHttp\Client(['verify' => false, 'timeout' => 30]);
-                    $multipart = [];
-
-                    // 1. Masukkan semua teks/field biasa
-                    foreach ($request->except(array_keys($request->allFiles())) as $key => $value) {
-                        $multipart[] = [
-                            'name' => $key,
-                            'contents' => (string)($value ?? '')
-                        ];
-                    }
-
-                    // 2. Masukkan semua file
-                    foreach ($request->allFiles() as $key => $file) {
-                        if (is_array($file)) {
-                            foreach ($file as $f) {
-                                if ($f->isValid()) {
-                                    $multipart[] = [
-                                        'name' => $key,
-                                        'contents' => fopen($f->getRealPath(), 'r'),
-                                        'filename' => $f->getClientOriginalName()
-                                    ];
-                                }
-                            }
-                        } else {
-                            if ($file->isValid()) {
-                                $multipart[] = [
-                                    'name' => $key,
-                                    'contents' => fopen($file->getRealPath(), 'r'),
-                                    'filename' => $file->getClientOriginalName()
-                                ];
-                            }
-                        }
-                    }
-
-                    $response = $client->request($method, $internalUrl, [
-                        'headers' => $headers,
-                        'multipart' => $multipart,
-                        'http_errors' => false,
-                    ]);
-                } else {
-                    $response = Http::withHeaders($headers)
-                        ->withOptions(['verify' => false])
-                        ->withBody($request->getContent(), $contentType)
-                        ->send($method, $internalUrl);
-                }
-            } else {
-                $response = $response->send($method, $internalUrl);
+            // Copy header penting ke request internal
+            foreach ($headers as $key => $value) {
+                $internalRequest->headers->set($key, $value);
             }
 
-            // Ambil status dan body dari Guzzle response (PSR-7)
-            $statusCode = ($response instanceof \Illuminate\Http\Client\Response) ? $response->status() : $response->getStatusCode();
-            $responseBody = ($response instanceof \Illuminate\Http\Client\Response) ? $response->body() : (string)$response->getBody();
+            // Jika ada raw body JSON, set ke content request
+            if (in_array($method, ['POST', 'PUT', 'PATCH']) && !empty($request->getContent())) {
+                // Duplicate request dengan body json
+                $internalRequest = $internalRequest->duplicate(
+                    null, null, null, null, null, null, $request->getContent()
+                );
+            }
+
+            // Handle secara internal tanpa keluar dari PHP process!
+            $response = app()->handle($internalRequest);
 
             // DEBUG LOG: Sangat membantu jika masih error
-            if ($statusCode >= 400) {
+            if ($response->getStatusCode() >= 400) {
                 Log::error('Proxy Request Failed', [
                     'url' => $internalUrl,
-                    'status' => $statusCode,
-                    'response' => $responseBody
+                    'status' => $response->getStatusCode(),
+                    'response' => $response->getContent()
                 ]);
             }
 
-            return response($responseBody, $statusCode)
-                ->header('Content-Type', 'application/json');
+            return $response;
 
         } catch (\Exception $e) {
             Log::error('Proxy Critical Error', ['msg' => $e->getMessage()]);
