@@ -1,14 +1,20 @@
 import React, { useState, useRef } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, usePage } from '@inertiajs/react';
+import { Head, usePage, router } from '@inertiajs/react';
 import * as Icons from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Swal from 'sweetalert2';
 import axios from 'axios';
+import Lottie from 'lottie-react';
 import { PageHeader } from '@/Components/Shared';
+
+import loadingAnimation from '@/assets/lottie/loading-circle-animation.json';
+
+const LottieComponent = Lottie?.default || Lottie;
 
 export default function ImportData() {
     const [previewLoading, setPreviewLoading] = useState(false);
+    const [isImporting, setIsImporting] = useState(false);
     const [previewData, setPreviewData] = useState(null);
     const fileInputRef = useRef(null);
 
@@ -63,9 +69,42 @@ export default function ImportData() {
         }
     };
 
+    const handleImportPenduduk = (e) => {
+        e.preventDefault();
+        const file = fileInputRef.current?.files[0];
+        if (!file) return;
+
+        setIsImporting(true);
+        router.post(route('import.penduduk'), { file: file }, {
+            forceFormData: true,
+            onSuccess: () => {
+                setPreviewData(null);
+                if (fileInputRef.current) fileInputRef.current.value = '';
+            },
+            onFinish: () => {
+                setIsImporting(false);
+            }
+        });
+    };
+
     return (
         <AuthenticatedLayout title="Import Data">
             <Head title="Import Data" />
+
+            {/* Custom Loading Overlay */}
+            {isImporting && (
+                <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-300">
+                    <div className="bg-white rounded-3xl p-8 shadow-2xl flex flex-col items-center gap-4 max-w-xs w-full mx-4 animate-in zoom-in-95 duration-300">
+                        <div className="w-24 h-24">
+                            <LottieComponent animationData={loadingAnimation} loop={true} />
+                        </div>
+                        <div className="text-center">
+                            <h3 className="text-lg font-black text-gray-900">Mengimport Data</h3>
+                            <p className="text-sm text-gray-500 mt-1">Mohon tunggu, proses import sedang berjalan...</p>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <div className="space-y-6">
                 {/* Header */}
@@ -94,8 +133,7 @@ export default function ImportData() {
                                     </div>
                                     <h6 className="text-sm font-bold text-gray-900">Import Data Penduduk</h6>
                                 </div>
-                                <form action={route('import.penduduk')} method="POST" encType="multipart/form-data">
-                                    <input type="hidden" name="_token" value={document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')} />
+                                <form onSubmit={handleImportPenduduk}>
                                     <div className="mb-4">
                                         <label className="block text-sm font-bold text-gray-700 mb-2">Pilih File Excel</label>
                                         <input 
