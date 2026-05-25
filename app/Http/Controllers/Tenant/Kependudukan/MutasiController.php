@@ -403,30 +403,23 @@ class MutasiController extends Controller
             return redirect()->back()->with('error', 'Mutasi ini bukan data kematian.');
         }
 
-        $mutasi->load(['penduduk' => function($q) {
-            $q->withTrashed();
-        }]);
-
-        $penduduk = $mutasi->penduduk;
-        
-        if (!$penduduk) {
-             return redirect()->back()->with('error', 'Data penduduk tidak ditemukan.');
+        // Cari surat pengajuan yang digenerate otomatis dari mutasi ini
+        $suratId = $mutasi->detail_tambahan['surat_pengajuan_id'] ?? null;
+        if (!$suratId) {
+            return redirect()->back()->with('error', 'Surat kematian belum digenerate atau tidak ditemukan.');
         }
 
-        $kadesInfo = DesaSetting::getKepalaDesaInfo();
-        $data = [
-            'mutasi' => $mutasi,
-            'penduduk' => $penduduk,
-            'nomor_surat' => $this->generateNomorSuratKematian(),   
-            'kepala_desa' => $kadesInfo,
-            'desa' => DesaSetting::getDesaInfo(),
-            'logos' => DesaSetting::getLogos(),
-        ];
+        $suratPengajuan = \App\Models\SuratPengajuan::find($suratId);
+        if (!$suratPengajuan) {
+            return redirect()->back()->with('error', 'Data surat kematian tidak ditemukan di menu Layanan Surat.');
+        }
 
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('surat.templates.kematian', $data);
-        $pdf->setPaper(array(0, 0, 609.4488, 935.433), 'landscape'); 
-        
-        return $pdf->stream('Surat_Kematian_' . $penduduk->nik . '.pdf');
+        try {
+            $suratService = app(\App\Services\Pelayanan\SuratPengajuanService::class);
+            return $suratService->generateDocument($suratPengajuan);
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal mencetak surat: ' . $e->getMessage());
+        }
     }
 
     private function generateNomorSuratKematian()

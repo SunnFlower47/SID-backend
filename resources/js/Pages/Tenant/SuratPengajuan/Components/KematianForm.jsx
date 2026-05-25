@@ -16,26 +16,34 @@ const KematianForm = ({ data, updateDataTambahan }) => {
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
+                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Tanggal Meninggal</label>
+                            <input type="date" className="w-full px-5 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-red-500 transition-all" 
+                                value={data.data_tambahan.kematian_tanggal || data.data_tambahan.tanggal_meninggal || ''} 
+                                onChange={(e) => {
+                                    const val = e.target.value;
+                                    const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+                                    const hari = val ? days[new Date(val).getDay()] : (data.data_tambahan.kematian_hari || data.data_tambahan.hari_meninggal || 'Senin');
+                                    updateDataTambahan('kematian_tanggal', val);
+                                    setTimeout(() => updateDataTambahan('kematian_hari', hari), 0);
+                                }} 
+                            />
+                        </div>
+                        <div className="space-y-2">
                             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Hari Meninggal</label>
-                            <select className="w-full px-5 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-red-500 transition-all" 
-                                value={data.data_tambahan.hari_meninggal || 'Senin'} onChange={e => updateDataTambahan('hari_meninggal', e.target.value)}>
+                            <select className="w-full px-5 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-bold outline-none text-gray-500 cursor-not-allowed transition-all" 
+                                value={data.data_tambahan.kematian_hari || data.data_tambahan.hari_meninggal || 'Senin'} onChange={e => updateDataTambahan('kematian_hari', e.target.value)} tabIndex="-1">
                                 {['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'].map(h => <option key={h} value={h}>{h}</option>)}
                             </select>
                         </div>
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Tanggal Meninggal</label>
-                            <input type="date" className="w-full px-5 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-red-500 transition-all" 
-                                value={data.data_tambahan.tanggal_meninggal || ''} onChange={e => updateDataTambahan('tanggal_meninggal', e.target.value)} />
-                        </div>
-                        <div className="space-y-2">
                             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Jam Meninggal</label>
                             <input type="time" lang="en-GB" className="w-full px-5 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-red-500 transition-all" 
-                                value={data.data_tambahan.jam_meninggal || '12:00'} onChange={e => updateDataTambahan('jam_meninggal', e.target.value)} />
+                                value={data.data_tambahan.kematian_jam || data.data_tambahan.jam_meninggal || ''} onChange={e => updateDataTambahan('kematian_jam', e.target.value)} />
                         </div>
                         <div className="space-y-2">
                             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Bertempat Di</label>
                             <input type="text" placeholder="Contoh: Rumah Sakit Umum" className="w-full px-5 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-red-500 transition-all" 
-                                value={data.data_tambahan.bertempat_di || ''} onChange={e => updateDataTambahan('bertempat_di', e.target.value)} />
+                                value={data.data_tambahan.kematian_bertempat_di || data.data_tambahan.bertempat_di || ''} onChange={e => updateDataTambahan('kematian_bertempat_di', e.target.value)} />
                         </div>
                         <div className="md:col-span-2 space-y-2">
                             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Penyebab / Alasan</label>
@@ -52,26 +60,34 @@ const KematianForm = ({ data, updateDataTambahan }) => {
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
+                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Tanggal Pemakaman</label>
+                            <input type="date" className="w-full px-5 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-green-500 transition-all" 
+                                value={data.data_tambahan.pemakaman_tanggal || data.data_tambahan.tanggal_pemakaman || ''} 
+                                onChange={(e) => {
+                                    const val = e.target.value;
+                                    const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+                                    const hari = val ? days[new Date(val).getDay()] : (data.data_tambahan.pemakaman_hari || data.data_tambahan.hari_pemakaman || 'Senin');
+                                    updateDataTambahan('pemakaman_tanggal', val);
+                                    setTimeout(() => updateDataTambahan('pemakaman_hari', hari), 0);
+                                }} 
+                            />
+                        </div>
+                        <div className="space-y-2">
                             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Hari Pemakaman</label>
-                            <select className="w-full px-5 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-green-500 transition-all" 
-                                value={data.data_tambahan.hari_pemakaman || ''} onChange={e => updateDataTambahan('hari_pemakaman', e.target.value)}>
+                            <select className="w-full px-5 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-bold outline-none text-gray-500 cursor-not-allowed transition-all" 
+                                value={data.data_tambahan.pemakaman_hari || data.data_tambahan.hari_pemakaman || 'Senin'} onChange={e => updateDataTambahan('pemakaman_hari', e.target.value)} tabIndex="-1">
                                 {['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'].map(h => <option key={h} value={h}>{h}</option>)}
                             </select>
                         </div>
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Tanggal Pemakaman</label>
-                            <input type="date" className="w-full px-5 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-green-500 transition-all" 
-                                value={data.data_tambahan.tanggal_pemakaman || ''} onChange={e => updateDataTambahan('tanggal_pemakaman', e.target.value)} />
-                        </div>
-                        <div className="space-y-2">
                             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Jam Pemakaman</label>
                             <input type="time" lang="en-GB" className="w-full px-5 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-green-500 transition-all" 
-                                value={data.data_tambahan.jam_pemakaman || ''} onChange={e => updateDataTambahan('jam_pemakaman', e.target.value)} />
+                                value={data.data_tambahan.pemakaman_jam || data.data_tambahan.jam_pemakaman || ''} onChange={e => updateDataTambahan('pemakaman_jam', e.target.value)} />
                         </div>
                         <div className="space-y-2">
                             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Lokasi Pemakaman</label>
                             <input type="text" placeholder="Contoh: TPU Desa Cibatu" className="w-full px-5 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-green-500 transition-all" 
-                                value={data.data_tambahan.lokasi_pemakaman || ''} onChange={e => updateDataTambahan('lokasi_pemakaman', e.target.value)} />
+                                value={data.data_tambahan.pemakaman_lokasi || data.data_tambahan.lokasi_pemakaman || ''} onChange={e => updateDataTambahan('pemakaman_lokasi', e.target.value)} />
                         </div>
                     </div>
                 </div>
