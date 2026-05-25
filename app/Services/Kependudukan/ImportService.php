@@ -342,6 +342,14 @@ class ImportService
         $rwIdx    = $findIdx($headers, ['rw']);
         $dusunIdx = $findIdx($headers, ['dusun']);
         $ttlIdx   = $findIdx($headers, ['tanggal lahir']);
+        $tempatLahirIdx = $findIdx($headers, ['tempat lahir']);
+        $agamaIdx = $findIdx($headers, ['agama']);
+        $statusPerkawinanIdx = $findIdx($headers, ['status perkawinan', 'status perkawinan']);
+        $kedudukanKeluargaIdx = $findIdx($headers, ['kedudukan keluarga', 'shdk']);
+        $pendidikanIdx = $findIdx($headers, ['pendidikan']);
+        $pekerjaanIdx = $findIdx($headers, ['pekerjaan']);
+        $namaAyahIdx = $findIdx($headers, ['nama ayah']);
+        $namaIbuIdx = $findIdx($headers, ['nama ibu']);
 
         if ($nikIdx === false || $namaIdx === false) {
             throw new \InvalidArgumentException('Header wajib NIK dan Nama tidak ditemukan.');
@@ -442,7 +450,15 @@ class ImportService
                 '_nkk'              => $nkk, // temporary
                 'nama'              => $nama,
                 'jenis_kelamin'     => $this->mapJenisKelaminSimple((string)($jkIdx !== false ? ($row[$jkIdx] ?? '') : '')),
+                'tempat_lahir'      => (string)($tempatLahirIdx !== false ? ($row[$tempatLahirIdx] ?? '') : ''),
                 'tanggal_lahir'     => $this->parseDateSimple((string)($ttlIdx !== false ? ($row[$ttlIdx] ?? '') : '')),
+                'agama'             => $this->mapAgama((string)($agamaIdx !== false ? ($row[$agamaIdx] ?? '') : '')),
+                'status_perkawinan' => $this->mapStatusPerkawinan((string)($statusPerkawinanIdx !== false ? ($row[$statusPerkawinanIdx] ?? '') : '')),
+                'kedudukan_keluarga'=> $this->mapKedudukanKeluarga((string)($kedudukanKeluargaIdx !== false ? ($row[$kedudukanKeluargaIdx] ?? '') : '')),
+                'pendidikan'        => $this->mapPendidikan((string)($pendidikanIdx !== false ? ($row[$pendidikanIdx] ?? '') : '')),
+                'pekerjaan'         => (string)($pekerjaanIdx !== false ? ($row[$pekerjaanIdx] ?? '') : ''),
+                'nama_ayah'         => (string)($namaAyahIdx !== false ? ($row[$namaAyahIdx] ?? '') : ''),
+                'nama_ibu'          => (string)($namaIbuIdx !== false ? ($row[$namaIbuIdx] ?? '') : ''),
                 'deleted_at'        => null,
                 'created_at'        => $now,
                 'updated_at'        => $now,
@@ -606,5 +622,48 @@ class ImportService
             'created_at'  => $now,
             'updated_at'  => $now,
         ];
+    }
+
+    private function mapAgama($value)
+    {
+        $value = strtolower(trim($value));
+        $agamaMap = [
+            'islam' => 'Islam', 'kristen' => 'Kristen', 'katolik' => 'Katolik',
+            'hindu' => 'Hindu', 'buddha' => 'Buddha', 'khonghucu' => 'Khonghucu', 'konghucu' => 'Khonghucu',
+        ];
+        return $agamaMap[$value] ?? 'Islam';
+    }
+
+    private function mapStatusPerkawinan($value)
+    {
+        $value = strtolower(trim($value));
+        $statusMap = [
+            'belum kawin' => 'Belum Kawin', 'kawin' => 'Kawin',
+            'cerai hidup' => 'Cerai Hidup', 'cerai mati' => 'Cerai Mati',
+        ];
+        return $statusMap[$value] ?? 'Belum Kawin';
+    }
+
+    private function mapKedudukanKeluarga($value)
+    {
+        $value = strtolower(trim($value));
+        $kedudukanMap = [
+            'kepala keluarga' => 'Kepala Keluarga', 'istri' => 'Istri', 'anak' => 'Anak',
+            'menantu' => 'Menantu', 'cucu' => 'Cucu', 'orang tua' => 'Orang Tua',
+            'mertua' => 'Mertua', 'famili lain' => 'Famili Lain', 'pembantu' => 'Pembantu', 'lainnya' => 'Lainnya',
+        ];
+        return $kedudukanMap[$value] ?? 'Anak';
+    }
+
+    private function mapPendidikan($value)
+    {
+        $value = strtolower(trim($value));
+        $pendidikanMap = [
+            'tidak/belum sekolah' => 'Tidak/Belum Sekolah', 'tidak tamat sd/sederajat' => 'Tidak Tamat SD/Sederajat',
+            'tamat sd/sederajat' => 'Tamat SD/Sederajat', 'smp/sederajat' => 'SMP/Sederajat', 'sma/sederajat' => 'SMA/Sederajat',
+            'diploma i/ii' => 'Diploma I/II', 'akademi/diploma iii/s.muda' => 'Akademi/Diploma III/S.Muda',
+            'diploma iv/strata i' => 'Diploma IV/Strata I', 'strata ii' => 'Strata II', 'strata iii' => 'Strata III',
+        ];
+        return $pendidikanMap[$value] ?? 'Tidak/Belum Sekolah';
     }
 }
