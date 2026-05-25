@@ -29,7 +29,7 @@
         @inertia
         
         <!-- PWA Service Worker -->
-        <script>
+        <script nonce="{{ $csp_nonce ?? '' }}">
             if ('serviceWorker' in navigator) {
                 window.addEventListener('load', function() {
                     navigator.serviceWorker.register('/sw.js').then(function(registration) {

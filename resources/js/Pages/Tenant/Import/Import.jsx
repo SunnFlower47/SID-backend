@@ -332,7 +332,7 @@ export default function ImportData() {
             </div>
             
             {/* Custom scrollbar styles for preview boxes */}
-            <style jsx global>{`
+            <style>{`
                 .custom-scrollbar::-webkit-scrollbar {
                     width: 6px;
                 }

@@ -492,11 +492,9 @@ class ImportService
 
             DB::commit();
 
-            // Batch Recalculate — gunakan namespace baru
+            // Batch Recalculate — gunakan method batch recalculateMultiple
             $kkService = app(\App\Services\Kependudukan\KartuKeluargaService::class);
-            foreach (array_unique($affectedKkIds) as $kkId) {
-                $kkService->recalculate($kkId);
-            }
+            $kkService->recalculateMultiple(array_unique($affectedKkIds));
 
             return $summary;
         } catch (\Exception $e) {
