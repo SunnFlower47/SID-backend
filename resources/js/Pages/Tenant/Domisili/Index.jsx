@@ -130,15 +130,14 @@ export default function Index({ auth, domisilis, stats, filters, rtList, rwList,
                     title="Penduduk Domisili"
                     subtitle="Warga Pendatang Sementara"
                     icon={MapPin}
-                    actions={
-                        <Link
-                            href={route('domisili.create')}
-                            className="flex items-center px-6 py-3 bg-green-600 text-white hover:bg-green-700 rounded-xl text-[10px] sm:text-xs font-black shadow-lg shadow-green-200 transition-all hover:scale-105 uppercase tracking-widest"
-                        >
-                            <Plus className="w-3.5 h-3.5 mr-2" />
-                            TAMBAH
-                        </Link>
-                    }
+                    actions={[
+                        {
+                            label: 'TAMBAH',
+                            icon: Plus,
+                            href: route('domisili.create'),
+                            variant: 'white'
+                        }
+                    ]}
                 />
 
                 {/* Stats */}

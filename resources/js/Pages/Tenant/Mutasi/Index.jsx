@@ -153,7 +153,8 @@ export default function Index({ auth, mutasis, filters, stats }) {
         href: route('mutasi.print-kematian', m.id),
         className: 'bg-red-50 text-red-600 hover:bg-red-600 hover:text-white',
         title: 'Cetak Surat Kematian',
-        target: '_blank'
+        target: '_blank',
+        isNative: true
       });
     }
 

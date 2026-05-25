@@ -35,9 +35,15 @@ export default function ActionButtons({
                 );
 
                 return extra.href ? (
-                    <Link key={i} href={extra.href} className={baseClass} title={extra.title}>
-                        <ExtraIcon className="w-4 h-4" />
-                    </Link>
+                    extra.isNative ? (
+                        <a key={i} href={extra.href} target={extra.target} className={baseClass} title={extra.title}>
+                            <ExtraIcon className="w-4 h-4" />
+                        </a>
+                    ) : (
+                        <Link key={i} href={extra.href} className={baseClass} title={extra.title}>
+                            <ExtraIcon className="w-4 h-4" />
+                        </Link>
+                    )
                 ) : (
                     <button key={i} type="button" onClick={extra.onClick} className={baseClass} title={extra.title}>
                         <ExtraIcon className="w-4 h-4" />

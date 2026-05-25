@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { FileText, Plus, Edit, Trash2, Search, CheckCircle2, XCircle, Layout, Palette, Type, Info, Users, Briefcase, MapPin, Heart, Baby, Ghost, ShieldAlert, School, Wallet, Home, Truck, Building, Skull, ClipboardList, Footprints } from 'lucide-react';
+import { FileText, Plus, Edit, Trash2, Search, CheckCircle2, XCircle, Layout, Palette, Type, Info, Users, Briefcase, MapPin, Heart, Baby, Ghost, ShieldAlert, School, Wallet, Home, Truck, Building, Skull, ClipboardList, Footprints, HelpCircle } from 'lucide-react';
 import Swal from 'sweetalert2';
 import Lottie from 'lottie-react';
 import noDataAnimation from '@/assets/lottie/no-data-animation.json';
@@ -91,6 +91,12 @@ export default function Index({ auth, suratTypes }) {
                     subtitle="Konfigurasi Template & Form Surat Dinamis"
                     icon={FileText}
                     actions={[
+                        {
+                            label: 'PANDUAN SURAT',
+                            href: route('admin.surat-type.panduan'),
+                            icon: HelpCircle,
+                            variant: 'ghost'
+                        },
                         {
                             label: 'TAMBAH JENIS',
                             href: route('admin.surat-type.create'),

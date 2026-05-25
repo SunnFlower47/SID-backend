@@ -127,8 +127,7 @@ export default function Form({ auth, domisili, rtList, rwList, dusunList }) {
                     title={isEdit ? 'Edit Data Domisili' : 'Daftar Pendatang Baru'}
                     subtitle="Pendaftaran Warga Sementara Desa Cibatu"
                     icon={MapPin}
-                    backLink={route('domisili.index')}
-                    backLabel="KEMBALI"
+                    backHref={route('domisili.index')}
                 />
 
                 <div className="w-full">

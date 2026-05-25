@@ -126,6 +126,7 @@ class SuratPengajuanService
                 $flattened = \Illuminate\Support\Arr::dot($dataTambahan);
                 foreach ($flattened as $key => $value) {
                     $newKey = str_replace('.', '_', $key);
+                    
                     if (str_contains($newKey, 'alamat') && is_string($value)) {
                         $data[$newKey] = ucwords(strtolower($value));
                     } else {
@@ -144,7 +145,23 @@ class SuratPengajuanService
     public function formatDataForWord(array $data, SuratPengajuan $suratPengajuan): array
     {
         $data['tanggal_surat'] = Carbon::parse($suratPengajuan->tanggal_surat)->isoFormat('D MMMM Y');
-        $data['tanggal_lahir'] = $suratPengajuan->penduduk?->tanggal_lahir?->isoFormat('D MMMM Y');
+
+        $tglLahir = $data['tanggal_lahir'] ?? $suratPengajuan->penduduk?->tanggal_lahir;
+        if ($tglLahir) {
+            $data['tanggal_lahir'] = Carbon::parse($tglLahir)->isoFormat('D MMMM Y');
+        }
+
+        // Format tanggal khusus domisili
+        if (isset($data['domisili_tanggal_lahir'])) {
+            $data['domisili_tanggal_lahir'] = Carbon::parse($data['domisili_tanggal_lahir'])->isoFormat('D MMMM Y');
+        }
+        if (isset($data['domisili_tanggal_masuk'])) {
+            $data['domisili_tanggal_masuk'] = Carbon::parse($data['domisili_tanggal_masuk'])->isoFormat('D MMMM Y');
+        }
+        if (isset($data['domisili_tanggal_berlaku'])) {
+            $data['domisili_tanggal_berlaku'] = Carbon::parse($data['domisili_tanggal_berlaku'])->isoFormat('D MMMM Y');
+        }
+
         return $data;
     }
 

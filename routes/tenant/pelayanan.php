@@ -34,6 +34,7 @@ Route::middleware([])->group(function () {
         Route::delete('/surat-pengajuan/{id}', 'destroy')->name('surat-pengajuan.destroy');
         
         // Master Jenis Surat
+        Route::get('surat-type/panduan', [SuratTypeController::class, 'panduan'])->name('surat-type.panduan');
         Route::resource('surat-type', SuratTypeController::class);
         Route::post('surat-type/{surat_type}', [SuratTypeController::class, 'update'])->name('surat-type.update.post');
         
