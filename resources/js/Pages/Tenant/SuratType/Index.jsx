@@ -90,9 +90,14 @@ export default function Index({ auth, suratTypes }) {
                     title="Master Jenis Surat"
                     subtitle="Konfigurasi Template & Form Surat Dinamis"
                     icon={FileText}
-                    actionLabel="TAMBAH JENIS"
-                    actionHref={route('admin.surat-type.create')}
-                    actionIcon={Plus}
+                    actions={[
+                        {
+                            label: 'TAMBAH JENIS',
+                            href: route('admin.surat-type.create'),
+                            icon: Plus,
+                            variant: 'white'
+                        }
+                    ]}
                 />
                 
                 {/* Info Box */}
