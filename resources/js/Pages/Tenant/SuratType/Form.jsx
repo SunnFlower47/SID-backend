@@ -244,6 +244,36 @@ export default function Form({ auth, suratType = null }) {
                                 </div>
                             </section>
 
+                            <section>
+                                <h4 className="text-[11px] font-black text-purple-600 uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
+                                    <div className="w-1.5 h-1.5 bg-purple-600 rounded-full"></div>
+                                    Khusus Surat Kematian (Otomatis dari Mutasi)
+                                </h4>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[10px] font-bold">
+                                    {[
+                                        { code: '${kematian_hari}', desc: 'Hari Meninggal' },
+                                        { code: '${kematian_tanggal}', desc: 'Tanggal Meninggal' },
+                                        { code: '${kematian_jam}', desc: 'Jam Meninggal' },
+                                        { code: '${kematian_bertempat_di}', desc: 'Tempat Meninggal' },
+                                        { code: '${alasan}', desc: 'Penyebab Kematian' },
+                                        { code: '${pemakaman_hari}', desc: 'Hari Pemakaman' },
+                                        { code: '${pemakaman_tanggal}', desc: 'Tanggal Pemakaman' },
+                                        { code: '${pemakaman_jam}', desc: 'Jam Pemakaman' },
+                                        { code: '${pemakaman_lokasi}', desc: 'Tempat Pemakaman' },
+                                        { code: '${pelapor_nama}', desc: 'Nama Pelapor' },
+                                        { code: '${pelapor_umur}', desc: 'Umur Pelapor' },
+                                        { code: '${pelapor_pekerjaan}', desc: 'Pekerjaan Pelapor' },
+                                        { code: '${pelapor_alamat}', desc: 'Alamat Pelapor' },
+                                        { code: '${pelapor_hubungan}', desc: 'Hubungan Pelapor' },
+                                    ].map((item, i) => (
+                                        <div key={i} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                                            <code className="text-purple-600 bg-purple-50 px-2 py-1 rounded-md">{item.code}</code>
+                                            <span className="text-gray-500">{item.desc}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </section>
+
                             <div className="p-4 bg-yellow-50 rounded-2xl border border-yellow-100">
                                 <h5 className="text-[10px] font-black text-yellow-700 uppercase mb-1">💡 Tips Custom Form:</h5>
                                 <p className="text-[10px] font-bold text-yellow-600 leading-relaxed uppercase">

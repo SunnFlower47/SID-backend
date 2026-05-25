@@ -122,8 +122,10 @@ class SuratPengajuanService
                 $dataTambahan = json_decode($dataTambahan, true);
             }
             if (is_array($dataTambahan) && !empty($dataTambahan)) {
-                foreach ($dataTambahan as $key => $value) {
-                    $data[$key] = $value;
+                $flattened = \Illuminate\Support\Arr::dot($dataTambahan);
+                foreach ($flattened as $key => $value) {
+                    $newKey = str_replace('.', '_', $key);
+                    $data[$newKey] = $value;
                 }
             }
         }
