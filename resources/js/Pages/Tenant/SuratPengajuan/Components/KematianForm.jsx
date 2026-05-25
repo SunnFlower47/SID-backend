@@ -29,7 +29,7 @@ const KematianForm = ({ data, updateDataTambahan }) => {
                         </div>
                         <div className="space-y-2">
                             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Jam Meninggal</label>
-                            <input type="time" className="w-full px-5 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-red-500 transition-all" 
+                            <input type="time" lang="en-GB" className="w-full px-5 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-red-500 transition-all" 
                                 value={data.data_tambahan.jam_meninggal || '12:00'} onChange={e => updateDataTambahan('jam_meninggal', e.target.value)} />
                         </div>
                         <div className="space-y-2">
@@ -65,7 +65,7 @@ const KematianForm = ({ data, updateDataTambahan }) => {
                         </div>
                         <div className="space-y-2">
                             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Jam Pemakaman</label>
-                            <input type="time" className="w-full px-5 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-green-500 transition-all" 
+                            <input type="time" lang="en-GB" className="w-full px-5 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-green-500 transition-all" 
                                 value={data.data_tambahan.jam_pemakaman || ''} onChange={e => updateDataTambahan('jam_pemakaman', e.target.value)} />
                         </div>
                         <div className="space-y-2">
