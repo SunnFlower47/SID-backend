@@ -102,6 +102,18 @@ class SuratPengajuanController extends Controller
         Gate::authorize('surat.view');
         $suratPengajuan->load('penduduk');
 
+        // Flatten data_tambahan agar form frontend bisa membaca data bersarang (contoh: kematian.hari menjadi kematian_hari)
+        $dataTambahan = $suratPengajuan->data_tambahan;
+        if (is_array($dataTambahan) && !empty($dataTambahan)) {
+            $flattened = \Illuminate\Support\Arr::dot($dataTambahan);
+            $newData = $dataTambahan; // keep original just in case
+            foreach ($flattened as $key => $value) {
+                $newKey = str_replace('.', '_', $key);
+                $newData[$newKey] = $value;
+            }
+            $suratPengajuan->data_tambahan = $newData;
+        }
+
         return Inertia::render('Tenant/SuratPengajuan/Edit', [
             'suratPengajuan' => $suratPengajuan,
             'suratTypes'     => SuratType::where('is_active', true)->orderBy('nama')->get(),

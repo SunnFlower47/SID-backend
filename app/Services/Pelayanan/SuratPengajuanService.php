@@ -111,6 +111,7 @@ class SuratPengajuanService
                 if ($key === 'rt_id')    $data['rt']    = $penduduk->rt_label    ?? $value;
                 elseif ($key === 'rw_id')    $data['rw']    = $penduduk->rw_label    ?? $value;
                 elseif ($key === 'dusun_id') $data['dusun'] = $penduduk->dusun_label ?? $value;
+                elseif ($key === 'alamat' && is_string($value)) $data[$key] = ucwords(strtolower($value));
                 else $data[$key] = $value;
             }
         }
@@ -125,7 +126,11 @@ class SuratPengajuanService
                 $flattened = \Illuminate\Support\Arr::dot($dataTambahan);
                 foreach ($flattened as $key => $value) {
                     $newKey = str_replace('.', '_', $key);
-                    $data[$newKey] = $value;
+                    if (str_contains($newKey, 'alamat') && is_string($value)) {
+                        $data[$newKey] = ucwords(strtolower($value));
+                    } else {
+                        $data[$newKey] = $value;
+                    }
                 }
             }
         }

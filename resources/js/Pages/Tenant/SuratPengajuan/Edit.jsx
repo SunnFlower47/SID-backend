@@ -285,7 +285,7 @@ export default function Edit({ auth, suratPengajuan, suratTypes, wilayah }) {
                         )}
 
                         {/* Dynamic Fields */}
-                        {selectedType?.form_json && selectedType.form_json.length > 0 && selectedType.id !== 'kematian' && (
+                        {selectedType?.form_json && selectedType.form_json.length > 0 && (
                             <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden animate-in slide-in-from-bottom-4 duration-500">
                                 <div className="p-6 border-b border-gray-100 bg-gray-50/50 flex items-center gap-3 text-left">
                                     <FileText className="w-5 h-5 text-green-600" />

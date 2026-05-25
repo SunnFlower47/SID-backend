@@ -112,14 +112,23 @@ export default function KematianForm({ mutasi = null }) {
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Hari</label>
-                <select className="w-full px-4 py-3 bg-white border border-gray-100 rounded-2xl text-sm font-bold outline-none" value={data.hari_meninggal} onChange={e => setData('hari_meninggal', e.target.value)}>
-                  {['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'].map(h => <option key={h} value={h}>{h}</option>)}
-                </select>
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Tanggal</label>
+                <input type="date" required className="w-full px-4 py-3 bg-white border border-gray-100 rounded-2xl text-sm font-bold outline-none" 
+                  value={data.tanggal_mutasi} 
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+                    const hari = val ? days[new Date(val).getDay()] : data.hari_meninggal;
+                    setData(d => ({ ...d, tanggal_mutasi: val, hari_meninggal: hari }));
+                  }} 
+                />
               </div>
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Tanggal</label>
-                <input type="date" required className="w-full px-4 py-3 bg-white border border-gray-100 rounded-2xl text-sm font-bold outline-none" value={data.tanggal_mutasi} onChange={e => setData('tanggal_mutasi', e.target.value)} />
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Hari</label>
+                <select className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-bold outline-none text-gray-500 cursor-not-allowed" 
+                  value={data.hari_meninggal} onChange={e => setData('hari_meninggal', e.target.value)} tabIndex="-1">
+                  {['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'].map(h => <option key={h} value={h}>{h}</option>)}
+                </select>
               </div>
             </div>
             <div className="space-y-2">
@@ -146,14 +155,23 @@ export default function KematianForm({ mutasi = null }) {
             </h4>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Hari</label>
-                <select className="w-full px-4 py-3 bg-white border border-gray-100 rounded-2xl text-sm font-bold outline-none" value={data.hari_pemakaman} onChange={e => setData('hari_pemakaman', e.target.value)}>
-                  {['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'].map(h => <option key={h} value={h}>{h}</option>)}
-                </select>
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Tanggal</label>
+                <input type="date" required className="w-full px-4 py-3 bg-white border border-gray-100 rounded-2xl text-sm font-bold outline-none" 
+                  value={data.tanggal_pemakaman} 
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+                    const hari = val ? days[new Date(val).getDay()] : data.hari_pemakaman;
+                    setData(d => ({ ...d, tanggal_pemakaman: val, hari_pemakaman: hari }));
+                  }} 
+                />
               </div>
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Tanggal</label>
-                <input type="date" required className="w-full px-4 py-3 bg-white border border-gray-100 rounded-2xl text-sm font-bold outline-none" value={data.tanggal_pemakaman} onChange={e => setData('tanggal_pemakaman', e.target.value)} />
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Hari</label>
+                <select className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-bold outline-none text-gray-500 cursor-not-allowed" 
+                  value={data.hari_pemakaman} onChange={e => setData('hari_pemakaman', e.target.value)} tabIndex="-1">
+                  {['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'].map(h => <option key={h} value={h}>{h}</option>)}
+                </select>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">

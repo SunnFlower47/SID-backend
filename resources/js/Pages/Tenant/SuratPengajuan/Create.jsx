@@ -323,7 +323,7 @@ export default function Create({ auth, suratTypes, wilayah }) {
                             )}
 
                             {/* Dynamic Fields from form_json (Only for non-kematian or specific additional fields) */}
-                            {selectedType.form_json && selectedType.form_json.length > 0 && selectedType.id !== 'kematian' && (
+                            {selectedType.form_json && selectedType.form_json.length > 0 && (
                                 <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden animate-in slide-in-from-bottom-4 duration-500">
                                     <div className="p-6 border-b border-gray-100 bg-gray-50/50 flex items-center gap-3">
                                         <Layers className="w-5 h-5 text-green-600" />
