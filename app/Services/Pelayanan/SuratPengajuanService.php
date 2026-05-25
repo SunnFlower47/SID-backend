@@ -98,6 +98,7 @@ class SuratPengajuanService
                 'P' => 'Perempuan',
                 default => $penduduk?->jenis_kelamin,
             },
+            'umur' => $penduduk?->usia,
             'bulan_romawi' => DesaSetting::intToRoman(
                 Carbon::parse($suratPengajuan->tanggal_surat)->format('n')
             ),

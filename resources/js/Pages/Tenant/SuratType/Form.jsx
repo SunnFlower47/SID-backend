@@ -197,6 +197,7 @@ export default function Form({ auth, suratType = null }) {
                                         { code: '${tempat_lahir}', desc: 'Tempat Lahir' },
                                         { code: '${tanggal_lahir}', desc: 'Tanggal Lahir (Format Indo)' },
                                         { code: '${jenis_kelamin}', desc: 'Laki-laki / Perempuan' },
+                                        { code: '${umur}', desc: 'Umur / Usia (Tahun)' },
                                         { code: '${agama}', desc: 'Agama' },
                                         { code: '${pekerjaan}', desc: 'Pekerjaan' },
                                         { code: '${pendidikan}', desc: 'Pendidikan Terakhir' },
