@@ -124,7 +124,7 @@ export default function KematianForm({ mutasi = null }) {
             </div>
             <div className="space-y-2">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Jam Meninggal</label>
-              <input type="time" required className="w-full px-4 py-3 bg-white border border-gray-100 rounded-2xl text-sm font-bold outline-none" value={data.jam_meninggal} onChange={e => setData('jam_meninggal', e.target.value)} />
+              <input type="time" lang="en-GB" required className="w-full px-4 py-3 bg-white border border-gray-100 rounded-2xl text-sm font-bold outline-none" value={data.jam_meninggal} onChange={e => setData('jam_meninggal', e.target.value)} />
             </div>
             <div className="space-y-2">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Bertempat Di</label>
@@ -159,7 +159,7 @@ export default function KematianForm({ mutasi = null }) {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Jam</label>
-                <input type="time" required className="w-full px-4 py-3 bg-white border border-gray-100 rounded-2xl text-sm font-bold outline-none" value={data.jam_pemakaman} onChange={e => setData('jam_pemakaman', e.target.value)} />
+              <input type="time" lang="en-GB" required className="w-full px-4 py-3 bg-white border border-gray-100 rounded-2xl text-sm font-bold outline-none" value={data.jam_pemakaman} onChange={e => setData('jam_pemakaman', e.target.value)} />
               </div>
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Lokasi</label>

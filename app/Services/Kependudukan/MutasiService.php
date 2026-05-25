@@ -838,6 +838,12 @@ class MutasiService
                 }
             }
 
+            // Hapus surat pengajuan jika mutasi ini menghasilkan surat
+            if (!empty($mutasi->detail_tambahan['surat_pengajuan_id'])) {
+                $suratId = $mutasi->detail_tambahan['surat_pengajuan_id'];
+                \App\Models\SuratPengajuan::where('id', $suratId)->delete();
+            }
+
             $mutasi->forceDelete();
 
             return $penduduk->fresh();
