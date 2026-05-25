@@ -50,7 +50,6 @@ export default function Form({ auth, suratType = null }) {
         file_template: null,
     });
 
-    const [showGuide, setShowGuide] = useState(false);
     const [showIconPicker, setShowIconPicker] = useState(false);
     const [searchIcon, setSearchIcon] = useState('');
 
@@ -149,141 +148,16 @@ export default function Form({ auth, suratType = null }) {
                     subtitle={isEdit ? `Memperbarui konfigurasi ${suratType.nama}` : 'Buat konfigurasi surat baru untuk warga'}
                     icon={FileText}
                     gradient="from-blue-600 via-blue-700 to-blue-800"
+                    backHref={route('admin.surat-type.index')}
                     actions={[
                         {
-                            label: 'Panduan Kode Word',
+                            label: 'PANDUAN SURAT',
                             icon: HelpCircle,
-                            onClick: () => setShowGuide(true),
+                            href: route('admin.surat-type.panduan'),
                             variant: 'white'
-                        },
-                        {
-                            label: 'KEMBALI',
-                            icon: ArrowLeft,
-                            href: route('admin.surat-type.index'),
-                            variant: 'ghost'
                         }
                     ]}
                 />
-
-                {/* Modal Panduan */}
-                <Modal show={showGuide} onClose={() => setShowGuide(false)} maxWidth="2xl">
-                    <div className="p-8 bg-white rounded-3xl">
-                        <div className="flex items-center justify-between mb-6">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600">
-                                    <HelpCircle className="w-6 h-6" />
-                                </div>
-                                <div>
-                                    <h3 className="text-lg font-black text-gray-900 uppercase italic tracking-tighter leading-none">Panduan Variabel Word</h3>
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Gunakan kode ini di dalam file .docx kamu</p>
-                                </div>
-                            </div>
-                            <button onClick={() => setShowGuide(false)} className="p-2 hover:bg-gray-100 rounded-full transition-all text-gray-400">
-                                <X className="w-6 h-6" />
-                            </button>
-                        </div>
-
-                        <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-4 scrollbar-thin scrollbar-thumb-gray-200">
-                            <section>
-                                <h4 className="text-[11px] font-black text-blue-600 uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
-                                    <div className="w-1.5 h-1.5 bg-blue-600 rounded-full"></div>
-                                    Data Penduduk (Dasar)
-                                </h4>
-                                <div className="grid grid-cols-2 gap-3 text-[10px] font-bold">
-                                    {[
-                                        { code: '${nama}', desc: 'Nama Lengkap Warga' },
-                                        { code: '${nik}', desc: 'NIK (16 Digit)' },
-                                        { code: '${nkk}', desc: 'Nomor Kartu Keluarga' },
-                                        { code: '${tempat_lahir}', desc: 'Tempat Lahir' },
-                                        { code: '${tanggal_lahir}', desc: 'Tanggal Lahir (Format Indo)' },
-                                        { code: '${jenis_kelamin}', desc: 'Laki-laki / Perempuan' },
-                                        { code: '${umur}', desc: 'Umur / Usia (Tahun)' },
-                                        { code: '${agama}', desc: 'Agama' },
-                                        { code: '${pekerjaan}', desc: 'Pekerjaan' },
-                                        { code: '${pendidikan}', desc: 'Pendidikan Terakhir' },
-                                        { code: '${status_perkawinan}', desc: 'Status Kawin' },
-                                        { code: '${nama_ayah}', desc: 'Nama Ayah' },
-                                        { code: '${nama_ibu}', desc: 'Nama Ibu' },
-                                        { code: '${alamat}', desc: 'Alamat (Tanpa RT/RW)' },
-                                        { code: '${rt}', desc: 'Nomor RT' },
-                                        { code: '${rw}', desc: 'Nomor RW' },
-                                        { code: '${dusun}', desc: 'Nama Dusun' },
-                                    ].map((item, i) => (
-                                        <div key={i} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
-                                            <code className="text-blue-600 bg-blue-50 px-2 py-1 rounded-md">{item.code}</code>
-                                            <span className="text-gray-500">{item.desc}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </section>
-
-                            <section>
-                                <h4 className="text-[11px] font-black text-green-600 uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
-                                    <div className="w-1.5 h-1.5 bg-green-600 rounded-full"></div>
-                                    Wilayah & Penandatangan
-                                </h4>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[10px] font-bold">
-                                    {[
-                                        { code: '${desa}', desc: 'Nama Desa' },
-                                        { code: '${kecamatan}', desc: 'Nama Kecamatan' },
-                                        { code: '${kabupaten}', desc: 'Nama Kabupaten' },
-                                        { code: '${provinsi}', desc: 'Nama Provinsi' },
-                                        { code: '${alamat_desa}', desc: 'Alamat Kantor Desa' },
-                                        { code: '${nomor_surat}', desc: 'Nomor Surat Lengkap' },
-                                        { code: '${tanggal_surat}', desc: 'Tanggal Cetak Indo' },
-                                        { code: '${keperluan}', desc: 'Keperluan Surat' },
-                                        { code: '${tujuan}', desc: 'Tujuan Surat' },
-                                        { code: '${ttd_atas}', desc: 'Jabatan Penandatangan' },
-                                        { code: '${ttd_bawah}', desc: 'Nama Penandatangan (Bold)' },
-                                    ].map((item, i) => (
-                                        <div key={i} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
-                                            <code className="text-green-600 bg-green-50 px-2 py-1 rounded-md">{item.code}</code>
-                                            <span className="text-gray-500">{item.desc}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </section>
-
-                            <section>
-                                <h4 className="text-[11px] font-black text-purple-600 uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
-                                    <div className="w-1.5 h-1.5 bg-purple-600 rounded-full"></div>
-                                    Khusus Surat Kematian (Otomatis dari Mutasi)
-                                </h4>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[10px] font-bold">
-                                    {[
-                                        { code: '${kematian_hari}', desc: 'Hari Meninggal' },
-                                        { code: '${kematian_tanggal}', desc: 'Tanggal Meninggal' },
-                                        { code: '${kematian_jam}', desc: 'Jam Meninggal' },
-                                        { code: '${kematian_bertempat_di}', desc: 'Tempat Meninggal' },
-                                        { code: '${alasan}', desc: 'Penyebab Kematian' },
-                                        { code: '${pemakaman_hari}', desc: 'Hari Pemakaman' },
-                                        { code: '${pemakaman_tanggal}', desc: 'Tanggal Pemakaman' },
-                                        { code: '${pemakaman_jam}', desc: 'Jam Pemakaman' },
-                                        { code: '${pemakaman_lokasi}', desc: 'Tempat Pemakaman' },
-                                        { code: '${pelapor_nama}', desc: 'Nama Pelapor' },
-                                        { code: '${pelapor_umur}', desc: 'Umur Pelapor' },
-                                        { code: '${pelapor_pekerjaan}', desc: 'Pekerjaan Pelapor' },
-                                        { code: '${pelapor_alamat}', desc: 'Alamat Pelapor' },
-                                        { code: '${pelapor_hubungan}', desc: 'Hubungan Pelapor' },
-                                    ].map((item, i) => (
-                                        <div key={i} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
-                                            <code className="text-purple-600 bg-purple-50 px-2 py-1 rounded-md">{item.code}</code>
-                                            <span className="text-gray-500">{item.desc}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </section>
-
-                            <div className="p-4 bg-yellow-50 rounded-2xl border border-yellow-100">
-                                <h5 className="text-[10px] font-black text-yellow-700 uppercase mb-1">💡 Tips Custom Form:</h5>
-                                <p className="text-[10px] font-bold text-yellow-600 leading-relaxed uppercase">
-                                    Jika kamu menambahkan field baru di <b>JSON Form</b> dengan nama <code>tujuan_sekolah</code>, 
-                                    maka di Word kamu bisa memanggilnya dengan kode <code>{`${'${tujuan_sekolah}'}`}</code>.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </Modal>
 
                 <form onSubmit={handleSubmit} className="grid grid-cols-1 xl:grid-cols-3 gap-6">
                     {/* Main Config */}

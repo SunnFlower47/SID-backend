@@ -215,7 +215,7 @@
     </table>
 
     <div class="title">SURAT KETERANGAN KEMATIAN</div>
-    <div class="subtitle">No. {{ $kode_surat }} / {{ $nomor_urut }} / {{ $kode_desa }} / {{ $bulan_romawi }} / {{ $tahun_surat }}</div>
+    <div class="subtitle">No. {{ $nomor_surat ?? ($kode_surat ?? '') . ' / ' . ($nomor_urut ?? '') . ' / ' . ($kode_desa ?? '') . ' / ' . ($bulan_romawi ?? '') . ' / ' . ($tahun_surat ?? '') }}</div>
 
     <div class="content">
         <p>Yang bertanda tangan di bawah ini, menerangkan bahwa :</p>

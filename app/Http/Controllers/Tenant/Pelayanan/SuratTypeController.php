@@ -23,6 +23,18 @@ class SuratTypeController extends Controller
         ]);
     }
 
+    public function panduan()
+    {
+        // Ambil semua surat type yang memiliki form_json untuk ditampilkan di panduan variabel
+        $suratTypes = SuratType::whereNotNull('form_json')
+            ->where('form_json', '!=', '[]')
+            ->get(['id', 'nama', 'form_json']);
+
+        return Inertia::render('Tenant/SuratType/Panduan', [
+            'suratTypes' => $suratTypes
+        ]);
+    }
+
     public function create()
     {
         Gate::authorize('settings.view');
