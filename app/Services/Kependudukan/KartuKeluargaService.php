@@ -143,15 +143,12 @@ class KartuKeluargaService
                 Penduduk::whereIn('id', $mustDeleteIds)->delete();
             }
 
-            // 2. Recalculate every KK
-            $total = 0;
-            KartuKeluarga::all()->each(function ($kk) use (&$total) {
-                $this->recalculate($kk->id);
-                $total++;
-            });
+            // 2. Recalculate every KK using batch method to prevent timeouts
+            $allKkIds = KartuKeluarga::pluck('id')->all();
+            $this->recalculateMultiple($allKkIds);
 
             $this->statsService->clearStats();
-            return $total;
+            return count($allKkIds);
         });
     }
 
@@ -334,6 +331,169 @@ class KartuKeluargaService
             $kk->update(['status_kk' => 'bermasalah', 'kk_sementara_id' => null]);
             return true;
         });
+    }
+
+    /**
+     * Recalculate statistics for multiple KK IDs or NKKs in batch to prevent timeouts
+     */
+    public function recalculateMultiple(array $identifiers)
+    {
+        if (empty($identifiers)) return;
+
+        // Separate numeric IDs from string NKKs
+        $ids = [];
+        $nkks = [];
+        foreach ($identifiers as $id) {
+            if (empty($id)) continue;
+            if (is_numeric($id)) {
+                $ids[] = $id;
+            } else {
+                $nkks[] = (string)$id;
+            }
+        }
+
+        if (empty($ids) && empty($nkks)) return;
+
+        // Fetch KKs in one query
+        $query = \App\Models\KartuKeluarga::withTrashed();
+        if (!empty($ids) && !empty($nkks)) {
+            $query->where(function($q) use ($ids, $nkks) {
+                $q->whereIn('id', $ids)->orWhereIn('nkk', $nkks);
+            });
+        } elseif (!empty($ids)) {
+            $query->whereIn('id', $ids);
+        } elseif (!empty($nkks)) {
+            $query->whereIn('nkk', $nkks);
+        }
+
+        $kks = $query->get();
+        if ($kks->isEmpty()) return;
+
+        $kkIds = $kks->pluck('id')->all();
+
+        // Fetch all members with their latest mutasis in one query
+        $membersGrouped = \App\Models\Penduduk::withTrashed()
+            ->with(['mutasis' => function($q) {
+                $q->latest('tanggal_mutasi')->latest('id');
+            }])
+            ->whereIn('kartu_keluarga_id', $kkIds)
+            ->get()
+            ->groupBy('kartu_keluarga_id');
+
+        // Fetch all mutations for these members in batch
+        $allMemberIds = [];
+        foreach ($membersGrouped as $kkId => $members) {
+            $allMemberIds = array_merge($allMemberIds, $members->pluck('id')->all());
+        }
+
+        $mutationsGrouped = [];
+        if (!empty($allMemberIds)) {
+            $mutationsGrouped = \App\Models\Mutasi::whereIn('penduduk_id', $allMemberIds)
+                ->whereIn('jenis_mutasi', ['kematian', 'pindah_keluar', 'pisah_kk'])
+                ->latest('tanggal_mutasi')
+                ->latest('id')
+                ->get()
+                ->groupBy('penduduk_id');
+        }
+
+        foreach ($kks as $kk) {
+            $members = $membersGrouped->get($kk->id) ?? collect();
+
+            if ($members->isEmpty()) {
+                $kk->update([
+                    'jumlah_anggota'    => 0,
+                    'anggota_aktif'     => 0,
+                    'anggota_mutasi'    => 0,
+                    'anggota_meninggal' => 0,
+                    'anggota_pindah'    => 0,
+                    'anggota_pisah_kk'  => 0,
+                    'status_kk'         => 'normal',
+                ]);
+                continue;
+            }
+
+            $allHOFs = $members->filter(function($m) {
+                $role = strtoupper(trim($m->kedudukan_keluarga));
+                return $role === 'KEPALA KELUARGA';
+            });
+            
+            $activeHOF = $allHOFs->filter(fn($m) => is_null($m->deleted_at))->first();
+            
+            $activeMembers = $members->filter(fn($m) => is_null($m->deleted_at))->sortBy('tanggal_lahir');
+            $displayHOF = $activeHOF ?? $activeMembers->first() ?? $members->first();
+
+            $stats = [
+                'active'  => 0,
+                'dead'    => 0,
+                'moved'   => 0,
+                'split'   => 0,
+                'mutated' => 0,
+            ];
+
+            foreach ($members as $member) {
+                if (is_null($member->deleted_at)) {
+                    $stats['active']++;
+                } else {
+                    $stats['mutated']++;
+                    $mutasi = $member->mutasis->first();
+                    if ($mutasi) {
+                        if ($mutasi->jenis_mutasi === 'kematian') $stats['dead']++;
+                        elseif ($mutasi->jenis_mutasi === 'pindah_keluar') $stats['moved']++;
+                        elseif ($mutasi->jenis_mutasi === 'pisah_kk') $stats['split']++;
+                    }
+                }
+            }
+
+            $statusKk = $kk->status_kk;
+            $bermasalahSejak = $kk->kk_bermasalah_sejak;
+            $mutasiPenyebabId = $kk->mutasi_penyebab_id;
+
+            if ($stats['active'] > 0 && !$activeHOF) {
+                if (in_array($statusKk, ['normal', null])) {
+                    $statusKk = 'bermasalah';
+                    $bermasalahSejak = $bermasalahSejak ?? now();
+                    
+                    // Find latest mutation from pre-fetched mutations
+                    $latestMutation = null;
+                    foreach ($members as $member) {
+                        $mList = $mutationsGrouped[$member->id] ?? null;
+                        if ($mList) {
+                            foreach ($mList as $m) {
+                                if (!$latestMutation || $m->tanggal_mutasi > $latestMutation->tanggal_mutasi || ($m->tanggal_mutasi == $latestMutation->tanggal_mutasi && $m->id > $latestMutation->id)) {
+                                    $latestMutation = $m;
+                                }
+                            }
+                        }
+                    }
+                    $mutasiPenyebabId = $latestMutation ? $latestMutation->id : null;
+                }
+            } else {
+                if ($statusKk === 'bermasalah') {
+                    $statusKk = 'normal';
+                    $bermasalahSejak = null;
+                    $mutasiPenyebabId = null;
+                    $kk->update(['kk_sementara_id' => null]);
+                }
+            }
+
+            $kk->update([
+                'nama_kepala_keluarga' => $displayHOF ? $displayHOF->nama : null,
+                'nik_kepala_keluarga'  => $displayHOF ? substr(str_replace(' ', '', $displayHOF->nik), 0, 16) : null,
+                'jumlah_anggota'       => $members->count(),
+                'anggota_aktif'        => $stats['active'],
+                'anggota_mutasi'       => $stats['mutated'],
+                'anggota_meninggal'    => $stats['dead'],
+                'anggota_pindah'       => $stats['moved'],
+                'anggota_pisah_kk'     => $stats['split'],
+                'status_kk'            => $statusKk,
+                'kk_bermasalah_sejak'  => $bermasalahSejak,
+                'mutasi_penyebab_id'   => $mutasiPenyebabId,
+            ]);
+
+            if ($stats['active'] > 0 && $kk->trashed()) {
+                $kk->restore();
+            }
+        }
     }
 
     /**
