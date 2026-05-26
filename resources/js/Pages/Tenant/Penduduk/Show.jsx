@@ -57,9 +57,9 @@ export default function Show({ auth, penduduk }) {
                     
                     {/* LEFT SIDE: SUMMARY CARD */}
                     <div className="lg:col-span-1 space-y-6">
-                        <div className="bg-white rounded-3xl border border-gray-100 shadow-xl overflow-hidden">
+                        <div className="bg-white rounded-3xl border border-green-700 shadow-xl overflow-hidden">
                             <div className="h-24 bg-gray-50 relative">
-                                <div className="absolute inset-0 bg-gradient-to-b from-gray-100/50 to-transparent"></div>
+                                <div className="absolute inset-0 bg-gradient-to-b from-green-600 to-green-700"></div>
                                 <div className="absolute -bottom-12 left-1/2 -translate-x-1/2">
                                     <div className="w-24 h-24 bg-white rounded-[28px] p-1.5 shadow-2xl border border-gray-50">
                                         <div className="w-full h-full bg-gray-50 rounded-[20px] flex items-center justify-center overflow-hidden">

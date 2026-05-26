@@ -130,8 +130,9 @@ class PendudukDomisiliService
                 throw new \Exception('Domisili yang sudah dicabut tidak dapat diperpanjang.');
             }
 
-            // Hitung tanggal berlaku baru: +3 bulan dari tanggal_berlaku lama (bukan dari hari ini)
-            $newTanggalBerlaku = Carbon::parse($domisili->tanggal_berlaku)->addMonths(3);
+            // Hitung tanggal berlaku baru: +3 bulan dari HARI INI (saat dia perpanjang)
+            // Ini untuk mengatasi kasus warga telat perpanjang berbulan-bulan
+            $newTanggalBerlaku = now()->addMonths(3);
 
             $type = \App\Models\SuratType::find('keterangan-domisili');
             $kodeSurat = $type ? $type->kode : 'SKD';
@@ -186,26 +187,25 @@ class PendudukDomisiliService
             'approved_at'         => now(),
             'completed_at'        => now(),
             'data_tambahan'       => [
-                'domisili_nik'               => $domisili->nik,
-                'domisili_nama'              => $domisili->nama,
-                'domisili_tempat_lahir'      => $domisili->tempat_lahir,
-                'domisili_tanggal_lahir'     => $domisili->tanggal_lahir?->toDateString(),
-                'domisili_jenis_kelamin'     => $domisili->jenis_kelamin === 'L' ? 'Laki-laki' : ($domisili->jenis_kelamin === 'P' ? 'Perempuan' : $domisili->jenis_kelamin),
-                'domisili_agama'             => $domisili->agama,
-                'domisili_status_perkawinan' => $domisili->status_perkawinan,
-                'domisili_pekerjaan'         => $domisili->pekerjaan,
-                'domisili_kewarganegaraan'   => $domisili->kewarganegaraan,
-                'domisili_asal_daerah'       => $domisili->asal_daerah,
-                'domisili_alamat_asal'       => $domisili->alamat_asal,
-                'domisili_alamat_tinggal'    => $domisili->alamat_tinggal,
-                'domisili_rt'                => optional($domisili->rt)->kode,
-                'domisili_rw'                => optional($domisili->rw)->kode,
-                'domisili_dusun'             => optional($domisili->dusun)->nama,
-                'domisili_tanggal_masuk'     => $domisili->tanggal_masuk?->toDateString(),
-                'domisili_tanggal_berlaku'   => $domisili->tanggal_berlaku?->toDateString(),
-                'domisili_perpanjangan_ke'   => $domisili->perpanjangan_ke,
-                'domisili_keperluan'         => $domisili->keperluan_domisili,
-                'domisili_nomor_surat'       => $nomorSurat,
+                'dm_nik'               => $domisili->nik,
+                'dm_nama'              => $domisili->nama,
+                'dm_tempat_lahir'      => $domisili->tempat_lahir,
+                'dm_tanggal_lahir'     => $domisili->tanggal_lahir?->toDateString(),
+                'dm_jenis_kelamin'     => $domisili->jenis_kelamin === 'L' ? 'Laki-laki' : ($domisili->jenis_kelamin === 'P' ? 'Perempuan' : $domisili->jenis_kelamin),
+                'dm_agama'             => $domisili->agama,
+                'dm_status_perkawinan' => $domisili->status_perkawinan,
+                'dm_kewarganegaraan'   => $domisili->kewarganegaraan,
+                'dm_pekerjaan'         => $domisili->pekerjaan,
+                'dm_asal_daerah'       => $domisili->asal_daerah,
+                'dm_alamat_asal'       => $domisili->alamat_asal,
+                'dm_alamat_tinggal'    => $domisili->alamat_tinggal,
+                'dm_rt'                => optional($domisili->rt)->kode,
+                'dm_rw'                => optional($domisili->rw)->kode,
+                'dm_dusun'             => optional($domisili->dusun)->nama,
+                'dm_tanggal_masuk'     => $domisili->tanggal_masuk?->toDateString(),
+                'dm_tanggal_berlaku'   => $domisili->tanggal_berlaku?->toDateString(),
+                'dm_perpanjangan_ke'   => $domisili->perpanjangan_ke,
+                'dm_keperluan'         => $domisili->keperluan_domisili,
             ],
         ]);
     }

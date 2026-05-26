@@ -152,14 +152,14 @@ class SuratPengajuanService
         }
 
         // Format tanggal khusus domisili
-        if (isset($data['domisili_tanggal_lahir'])) {
-            $data['domisili_tanggal_lahir'] = Carbon::parse($data['domisili_tanggal_lahir'])->isoFormat('D MMMM Y');
+        if (isset($data['dm_tanggal_lahir'])) {
+            $data['dm_tanggal_lahir'] = Carbon::parse($data['dm_tanggal_lahir'])->isoFormat('D MMMM Y');
         }
-        if (isset($data['domisili_tanggal_masuk'])) {
-            $data['domisili_tanggal_masuk'] = Carbon::parse($data['domisili_tanggal_masuk'])->isoFormat('D MMMM Y');
+        if (isset($data['dm_tanggal_masuk'])) {
+            $data['dm_tanggal_masuk'] = Carbon::parse($data['dm_tanggal_masuk'])->isoFormat('D MMMM Y');
         }
-        if (isset($data['domisili_tanggal_berlaku'])) {
-            $data['domisili_tanggal_berlaku'] = Carbon::parse($data['domisili_tanggal_berlaku'])->isoFormat('D MMMM Y');
+        if (isset($data['dm_tanggal_berlaku'])) {
+            $data['dm_tanggal_berlaku'] = Carbon::parse($data['dm_tanggal_berlaku'])->isoFormat('D MMMM Y');
         }
 
         return $data;

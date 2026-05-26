@@ -18,8 +18,32 @@ class SuratTypeController extends Controller
     public function index()
     {
         $suratTypes = SuratType::orderBy('nama')->get();
+
+        // Info storage template
+        $disk   = \Illuminate\Support\Facades\Storage::disk('local');
+        $folder = 'templates/surat';
+
+        $filesInStorage = $disk->exists($folder)
+            ? collect($disk->files($folder))->map(fn($f) => basename($f))
+            : collect();
+
+        $filesInDb = $suratTypes->whereNotNull('file_template')->pluck('file_template');
+        $orphans   = $filesInStorage->diff($filesInDb);
+
+        $totalSize = $filesInStorage->sum(
+            fn($f) => $disk->exists("{$folder}/{$f}") ? $disk->size("{$folder}/{$f}") : 0
+        );
+
+        $storageInfo = [
+            'total_files'   => $filesInStorage->count(),
+            'active_files'  => $filesInDb->count(),
+            'orphan_files'  => $orphans->count(),
+            'total_size_kb' => round($totalSize / 1024, 1),
+        ];
+
         return Inertia::render('Tenant/SuratType/Index', [
-            'suratTypes' => $suratTypes
+            'suratTypes'  => $suratTypes,
+            'storageInfo' => $storageInfo,
         ]);
     }
 

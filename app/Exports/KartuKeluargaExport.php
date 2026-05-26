@@ -86,7 +86,12 @@ class KartuKeluargaExport implements FromCollection, WithHeadings, WithMapping, 
             }
         }
 
-        return $query->orderBy('kk.updated_at', 'desc')->get();
+        return $query
+            ->orderByRaw("CAST(rts.kode AS UNSIGNED)")
+            ->orderByRaw("CAST(rws.kode AS UNSIGNED)")
+            ->orderBy('dusuns.nama')
+            ->orderBy('kk.nama_kepala_keluarga')
+            ->get();
     }
 
     public function headings(): array

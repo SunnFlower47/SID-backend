@@ -58,6 +58,17 @@ class PendudukDomisiliController extends Controller
     }
 
     /**
+     * Display the specified resource in a separate page.
+     */
+    public function show(PendudukDomisili $domisili)
+    {
+        $domisili->load(['rt', 'rw', 'dusun']);
+        return Inertia::render('Tenant/Domisili/Show', [
+            'domisili' => $domisili
+        ]);
+    }
+
+    /**
      * Show the form for creating a new resource.
      */
     public function create()

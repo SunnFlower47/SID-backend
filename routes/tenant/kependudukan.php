@@ -59,6 +59,7 @@ Route::middleware([])->group(function () {
         Route::get('/', 'index')->name('index');
         Route::get('/create', 'create')->name('create');
         Route::post('/', 'store')->name('store');
+        Route::get('/{domisili}', 'show')->name('show');
         Route::get('/{domisili}/edit', 'edit')->name('edit');
         Route::put('/{domisili}', 'update')->name('update');
         Route::post('/{domisili}/perpanjang', 'perpanjang')->name('perpanjang');

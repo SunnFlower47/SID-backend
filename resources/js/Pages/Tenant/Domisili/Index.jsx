@@ -36,9 +36,6 @@ export default function Index({ auth, domisilis, stats, filters, rtList, rwList,
     const [showCabutModal, setShowCabutModal] = useState(false);
     const [cabutTarget, setCabutTarget] = useState(null);
     const [alasan, setAlasan] = useState('');
-    
-    const [showDetailModal, setShowDetailModal] = useState(false);
-    const [selectedDetail, setSelectedDetail] = useState(null);
 
     const handleDelete = (id, nama) => {
         Swal.fire({
@@ -64,7 +61,7 @@ export default function Index({ auth, domisilis, stats, filters, rtList, rwList,
         });
     };
 
-    const handlePerpanjang = (nik, nama) => {
+    const handlePerpanjang = (id, nama) => {
         Swal.fire({
             title: 'PERPANJANG DOMISILI',
             html: `Domisili atas nama <b class="text-emerald-600">${nama}</b> akan diperpanjang melalui pembuatan surat baru agar memiliki history yang jelas.`,
@@ -83,9 +80,11 @@ export default function Index({ auth, domisilis, stats, filters, rtList, rwList,
             }
         }).then(res => {
             if (res.isConfirmed) {
-                router.get(route('admin.surat-pengajuan.create'), {
-                    nik: nik,
-                    type: 'keterangan-domisili'
+                // Hit api perpanjang langsung tanpa membuka form lagi
+                router.post(route('domisili.perpanjang', id), {}, {
+                    onSuccess: () => {
+                        // Tidak perlu alert lagi karena controller sudah mengembalikan flash 'success'
+                    }
                 });
             }
         });
@@ -116,10 +115,7 @@ export default function Index({ auth, domisilis, stats, filters, rtList, rwList,
         });
     };
 
-    const openDetail = (item) => {
-        setSelectedDetail(item);
-        setShowDetailModal(true);
-    };
+
 
     return (
         <AuthenticatedLayout user={auth.user} title="Penduduk Domisili">
@@ -205,14 +201,14 @@ export default function Index({ auth, domisilis, stats, filters, rtList, rwList,
                                                     <td className="px-5 py-4 text-left"><StatusBadge status={d.status} /></td>
                                                     <td className="px-5 py-4">
                                                         <div className="flex justify-end gap-2">
-                                                            <button onClick={() => openDetail(d)} className="w-8 h-8 flex items-center justify-center rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all" title="Detail">
+                                                            <Link href={route('domisili.show', d.id)} className="w-8 h-8 flex items-center justify-center rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all" title="Detail">
                                                                 <Eye className="w-3.5 h-3.5" />
-                                                            </button>
+                                                            </Link>
                                                             <Link href={route('domisili.edit', d.id)} className="w-8 h-8 flex items-center justify-center rounded-xl bg-gray-50 text-gray-600 hover:bg-gray-800 hover:text-white transition-all" title="Edit">
                                                                 <Edit className="w-3.5 h-3.5" />
                                                             </Link>
                                                             {d.status !== 'dicabut' && (
-                                                                <button onClick={() => handlePerpanjang(d.nik, d.nama)} className="w-8 h-8 flex items-center justify-center rounded-xl bg-green-50 text-green-600 hover:bg-green-600 hover:text-white transition-all" title="Perpanjang">
+                                                                <button onClick={() => handlePerpanjang(d.id, d.nama)} className="w-8 h-8 flex items-center justify-center rounded-xl bg-green-50 text-green-600 hover:bg-green-600 hover:text-white transition-all" title="Perpanjang">
                                                                     <RefreshCw className="w-3.5 h-3.5" />
                                                                 </button>
                                                             )}
@@ -249,9 +245,9 @@ export default function Index({ auth, domisilis, stats, filters, rtList, rwList,
                                                 Berlaku: {d.tanggal_berlaku ? new Date(d.tanggal_berlaku).toLocaleDateString('id-ID') : '-'}
                                              </p>
                                             <div className="flex gap-2">
-                                                <button onClick={() => openDetail(d)} className="px-3 py-2.5 bg-blue-50 text-blue-600 rounded-xl"><Eye className="w-4 h-4" /></button>
+                                                <Link href={route('domisili.show', d.id)} className="px-3 py-2.5 bg-blue-50 text-blue-600 rounded-xl"><Eye className="w-4 h-4" /></Link>
                                                 <Link href={route('domisili.edit', d.id)} className="flex-1 py-2.5 bg-gray-50 text-gray-700 rounded-xl text-[10px] font-black text-center uppercase tracking-widest">EDIT</Link>
-                                                {d.status !== 'dicabut' && <button onClick={() => handlePerpanjang(d.nik, d.nama)} className="flex-1 py-2.5 bg-green-50 text-green-700 rounded-xl text-[10px] font-black text-center uppercase tracking-widest">PERPANJANG</button>}
+                                                {d.status !== 'dicabut' && <button onClick={() => handlePerpanjang(d.id, d.nama)} className="flex-1 py-2.5 bg-green-50 text-green-700 rounded-xl text-[10px] font-black text-center uppercase tracking-widest">PERPANJANG</button>}
                                                 <button onClick={() => handleDelete(d.id, d.nama)} className="px-3 py-2.5 bg-red-50 text-red-600 rounded-xl"><Trash2 className="w-4 h-4" /></button>
                                             </div>
                                         </div>
@@ -294,114 +290,6 @@ export default function Index({ auth, domisilis, stats, filters, rtList, rwList,
                 </div>
             )}
 
-            {/* Detail Modal */}
-            {showDetailModal && selectedDetail && (
-                <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 overflow-y-auto">
-                    <div className="bg-white rounded-[40px] shadow-2xl w-full max-w-2xl relative overflow-hidden animate-in zoom-in-95 duration-300 flex flex-col max-h-[90vh]">
-                        {/* Modal Header */}
-                        <div className="bg-gradient-to-r from-blue-600 to-blue-800 p-8 text-white relative">
-                            <button onClick={() => setShowDetailModal(false)} className="absolute top-6 right-6 w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-all">
-                                <X className="w-6 h-6" />
-                            </button>
-                            <div className="flex items-center gap-6">
-                                <div className="w-20 h-20 bg-white/20 backdrop-blur-md rounded-3xl flex items-center justify-center border border-white/20 shadow-inner shrink-0">
-                                    <User className="w-10 h-10 text-white" />
-                                </div>
-                                <div className="text-left overflow-hidden">
-                                    <h2 className="text-2xl font-black uppercase italic tracking-tighter leading-none truncate">{selectedDetail.nama}</h2>
-                                    <p className="text-blue-100 font-mono text-sm mt-2 tracking-widest opacity-80">{selectedDetail.nik}</p>
-                                    <div className="mt-4 flex flex-wrap items-center gap-2">
-                                        <StatusBadge status={selectedDetail.status} />
-                                        <span className="bg-white/20 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-white/10">
-                                            {selectedDetail.nomor_surat || 'NOMOR BELUM TERBIT'}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Modal Body */}
-                        <div className="p-8 overflow-y-auto flex-1 space-y-8 text-left">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                {/* Info Pribadi */}
-                                <div className="space-y-4">
-                                    <h4 className="text-[10px] font-black text-blue-600 uppercase tracking-[0.2em] flex items-center gap-2">
-                                        <Info className="w-3.5 h-3.5" /> Informasi Pribadi
-                                    </h4>
-                                    <div className="space-y-3 bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
-                                        <DetailItem label="TTL" value={`${selectedDetail.tempat_lahir || '-'}, ${selectedDetail.tanggal_lahir || '-'}`} />
-                                        <DetailItem label="J. Kelamin" value={selectedDetail.jenis_kelamin === 'L' ? 'LAKI-LAKI' : 'PEREMPUAN'} />
-                                        <DetailItem label="Agama" value={selectedDetail.agama} />
-                                        <DetailItem label="Status" value={selectedDetail.status_perkawinan} />
-                                        <DetailItem label="Pekerjaan" value={selectedDetail.pekerjaan} />
-                                        <DetailItem label="Warganegara" value={selectedDetail.kewarganegaraan} />
-                                    </div>
-                                </div>
-
-                                {/* Info Domisili */}
-                                <div className="space-y-4">
-                                    <h4 className="text-[10px] font-black text-green-600 uppercase tracking-[0.2em] flex items-center gap-2">
-                                        <Home className="w-3.5 h-3.5" /> Detail Domisili
-                                    </h4>
-                                    <div className="space-y-3 bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
-                                        <DetailItem label="Tgl Masuk" value={selectedDetail.tanggal_masuk} />
-                                        <DetailItem label="Berlaku S/D" value={selectedDetail.tanggal_berlaku} />
-                                        <DetailItem label="Keperluan" value={selectedDetail.keperluan_domisili?.toUpperCase() || '-'} />
-                                        <DetailItem label="Sisa Hari" value={`${selectedDetail.sisa_hari_berlaku} HARI`} color="text-green-600" />
-                                        <DetailItem label="P. Ke" value={selectedDetail.perpanjangan_ke} />
-                                    </div>
-                                </div>
-
-                                {/* Lokasi */}
-                                <div className="md:col-span-2 space-y-4">
-                                    <h4 className="text-[10px] font-black text-orange-600 uppercase tracking-[0.2em] flex items-center gap-2">
-                                        <MapPin className="w-3.5 h-3.5" /> Lokasi & Alamat
-                                    </h4>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div className="bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
-                                            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Wilayah / Kota Asal</p>
-                                            <p className="text-xs font-black text-blue-700 leading-relaxed uppercase">{selectedDetail.asal_daerah || '-'}</p>
-                                            <div className="mt-2 pt-2 border-t border-gray-100">
-                                                <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Alamat Lengkap Asal</p>
-                                                <p className="text-xs font-bold text-gray-700 leading-relaxed">{selectedDetail.alamat_asal || '-'}</p>
-                                            </div>
-                                        </div>
-                                        <div className="bg-gray-50/50 p-4 rounded-2xl border border-gray-100 text-left">
-                                            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Alamat Tinggal (Cibatu)</p>
-                                            <p className="text-xs font-bold text-gray-700 leading-relaxed">
-                                                {selectedDetail.alamat_tinggal} <br/>
-                                                <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">RT {selectedDetail.rt_label} / RW {selectedDetail.rw_label}, Dsn. {selectedDetail.dusun_label}</span>
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Catatan */}
-                                {selectedDetail.catatan && (
-                                    <div className="md:col-span-2 space-y-4">
-                                        <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2">
-                                            <ClipboardList className="w-3.5 h-3.5" /> Catatan Admin
-                                        </h4>
-                                        <div className="bg-yellow-50 p-5 rounded-2xl border border-yellow-100">
-                                            <p className="text-xs font-medium text-yellow-800 italic leading-relaxed text-left">"{selectedDetail.catatan}"</p>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Modal Footer */}
-                        <div className="p-6 bg-gray-50 border-t border-gray-100 flex justify-end gap-3 shrink-0">
-                            <button onClick={() => setShowDetailModal(false)} className="px-8 py-3 rounded-2xl bg-white border border-gray-200 text-[10px] font-black uppercase tracking-widest hover:bg-gray-100 transition-all text-gray-600">
-                                Tutup
-                            </button>
-                            <Link href={route('domisili.edit', selectedDetail.id)} className="px-8 py-3 rounded-2xl bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all">
-                                Edit Data
-                            </Link>
-                        </div>
-                    </div>
-                </div>
-            )}
         </AuthenticatedLayout>
     );
 }

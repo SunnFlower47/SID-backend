@@ -48,4 +48,27 @@ class SuratType extends Model
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
     }
+
+    /**
+     * Boot model events to automatically manage file storage.
+     */
+    protected static function booted()
+    {
+        // Hapus file lama jika diupdate dengan file baru
+        static::updating(function ($suratType) {
+            if ($suratType->isDirty('file_template')) {
+                $oldFile = $suratType->getOriginal('file_template');
+                if ($oldFile) {
+                    \Illuminate\Support\Facades\Storage::disk('local')->delete('templates/surat/' . $oldFile);
+                }
+            }
+        });
+
+        // Hapus file saat jenis surat dihapus
+        static::deleted(function ($suratType) {
+            if ($suratType->file_template) {
+                \Illuminate\Support\Facades\Storage::disk('local')->delete('templates/surat/' . $suratType->file_template);
+            }
+        });
+    }
 }

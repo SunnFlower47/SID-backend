@@ -11,7 +11,7 @@ import { PageHeader } from '@/Components/Shared';
 
 const LottieComponent = Lottie?.default || Lottie;
 
-export default function Index({ auth, suratTypes }) {
+export default function Index({ auth, suratTypes, storageInfo }) {
     const [searchQuery, setSearchQuery] = useState('');
 
     const handleDelete = (id, nama) => {
@@ -106,17 +106,46 @@ export default function Index({ auth, suratTypes }) {
                     ]}
                 />
                 
-                {/* Info Box */}
-                <div className="bg-green-50 border border-green-100 rounded-3xl p-6 flex items-start gap-4">
-                    <div className="p-2 bg-green-100 text-green-600 rounded-xl">
-                        <Info className="w-5 h-5" />
+                {/* Storage Info + Info Box */}
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                    {/* Storage Cards */}
+                    <div className="bg-white border border-gray-100 rounded-3xl p-5 shadow-sm flex flex-col gap-1">
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">File Aktif</p>
+                        <p className="text-2xl font-black text-green-600">{storageInfo?.active_files ?? 0}</p>
+                        <p className="text-[10px] text-gray-400 font-bold">template terhubung ke DB</p>
                     </div>
-                    <div>
-                        <p className="text-xs font-bold text-green-800 uppercase tracking-widest mb-1 italic">Informasi Sistem</p>
-                        <p className="text-[11px] text-green-700/80 font-medium leading-relaxed">
-                            Di sini Anda dapat menentukan syarat dokumen (berupa PDF) dan mengatur apakah surat tersebut menggunakan template sistem (otomatis) 
-                            atau akan diproses manual menggunakan Microsoft Word. Gunakan <span className="font-black italic text-green-700">Custom Fields</span> untuk menambah pertanyaan khusus pada setiap jenis surat.
+                    <div className={`border rounded-3xl p-5 shadow-sm flex flex-col gap-1 ${
+                        storageInfo?.orphan_files > 0 ? 'bg-orange-50 border-orange-100' : 'bg-white border-gray-100'
+                    }`}>
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">File Tidak Terpakai</p>
+                        <p className={`text-2xl font-black ${storageInfo?.orphan_files > 0 ? 'text-orange-500' : 'text-gray-300'}`}>
+                            {storageInfo?.orphan_files ?? 0}
                         </p>
+                        <p className="text-[10px] text-gray-400 font-bold">
+                            {storageInfo?.orphan_files > 0 ? '⚠️ Jalankan surat:clean-templates' : 'storage bersih'}
+                        </p>
+                    </div>
+                    <div className="bg-white border border-gray-100 rounded-3xl p-5 shadow-sm flex flex-col gap-1">
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Ukuran</p>
+                        <p className="text-2xl font-black text-blue-600">
+                            {storageInfo?.total_size_kb >= 1024
+                                ? `${(storageInfo.total_size_kb / 1024).toFixed(1)} MB`
+                                : `${storageInfo?.total_size_kb ?? 0} KB`
+                            }
+                        </p>
+                        <p className="text-[10px] text-gray-400 font-bold">semua file di storage</p>
+                    </div>
+                    {/* Info system */}
+                    <div className="bg-green-50 border border-green-100 rounded-3xl p-5 flex items-start gap-3 sm:col-span-1">
+                        <div className="p-1.5 bg-green-100 text-green-600 rounded-xl shrink-0">
+                            <Info className="w-4 h-4" />
+                        </div>
+                        <div>
+                            <p className="text-[10px] font-black text-green-800 uppercase tracking-widest mb-1 italic">Auto-Cleanup Aktif</p>
+                            <p className="text-[10px] text-green-700/80 font-medium leading-relaxed">
+                                File lama otomatis terhapus saat template diganti atau jenis surat dihapus.
+                            </p>
+                        </div>
                     </div>
                 </div>
 
