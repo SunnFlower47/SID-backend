@@ -145,36 +145,35 @@ export default function Panduan({ auth, suratTypes }) {
                             Khusus Keterangan Domisili
                         </h4>
                         <div className="bg-orange-50 border border-orange-100 rounded-2xl p-3 mb-4">
-                            <p className="text-[10px] font-bold text-orange-700 uppercase tracking-widest">
-                                ⚠️ Data domisili diambil dari tabel domisili (BUKAN penduduk tetap). Wajib gunakan prefix <code className="bg-orange-100 px-1 rounded">domisili_</code> agar tidak bentrok.
+                            <p className="text-[10px] font-bold text-orange-700 uppercase tracking-widest leading-relaxed">
+                                ⚠️ Data domisili diambil dari tabel domisili (BUKAN penduduk tetap). Wajib gunakan prefix <code className="bg-orange-100 px-1 rounded">dm_</code> agar tidak bentrok dengan data penduduk tetap.
                             </p>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             {[
                                 // Identitas
-                                { code: '${domisili_nama}', desc: 'Nama Lengkap' },
-                                { code: '${domisili_nik}', desc: 'NIK (16 Digit)' },
-                                { code: '${domisili_tempat_lahir}', desc: 'Tempat Lahir' },
-                                { code: '${domisili_tanggal_lahir}', desc: 'Tanggal Lahir (Format Indo)' },
-                                { code: '${domisili_jenis_kelamin}', desc: 'Laki-laki / Perempuan' },
-                                { code: '${domisili_agama}', desc: 'Agama' },
-                                { code: '${domisili_status_perkawinan}', desc: 'Status Perkawinan' },
-                                { code: '${domisili_kewarganegaraan}', desc: 'Kewarganegaraan' },
-                                { code: '${domisili_pekerjaan}', desc: 'Pekerjaan' },
+                                { code: '${dm_nama}', desc: 'Nama Lengkap' },
+                                { code: '${dm_nik}', desc: 'NIK (16 Digit)' },
+                                { code: '${dm_tempat_lahir}', desc: 'Tempat Lahir' },
+                                { code: '${dm_tanggal_lahir}', desc: 'Tanggal Lahir (Format Indo)' },
+                                { code: '${dm_jenis_kelamin}', desc: 'Laki-laki / Perempuan' },
+                                { code: '${dm_agama}', desc: 'Agama' },
+                                { code: '${dm_status_perkawinan}', desc: 'Status Perkawinan' },
+                                { code: '${dm_kewarganegaraan}', desc: 'Kewarganegaraan' },
+                                { code: '${dm_pekerjaan}', desc: 'Pekerjaan' },
                                 // Alamat Asal (1 field teks penuh, tidak ada RT/RW)
-                                { code: '${domisili_asal_daerah}', desc: 'Kota / Kabupaten Asal' },
-                                { code: '${domisili_alamat_asal}', desc: 'Alamat Asal sesuai KTP (1 teks penuh)' },
+                                { code: '${dm_asal_daerah}', desc: 'Kota / Kabupaten Asal' },
+                                { code: '${dm_alamat_asal}', desc: 'Alamat Asal sesuai KTP (1 teks penuh)' },
                                 // Alamat Domisili di Desa (ada RT/RW/Dusun)
-                                { code: '${domisili_alamat_tinggal}', desc: 'Alamat Tinggal di Desa (teks)' },
-                                { code: '${domisili_rt}', desc: 'RT Domisili di Desa' },
-                                { code: '${domisili_rw}', desc: 'RW Domisili di Desa' },
-                                { code: '${domisili_dusun}', desc: 'Dusun Domisili di Desa' },
+                                { code: '${dm_alamat_tinggal}', desc: 'Alamat Tinggal di Desa (teks)' },
+                                { code: '${dm_rt}', desc: 'RT Domisili di Desa' },
+                                { code: '${dm_rw}', desc: 'RW Domisili di Desa' },
+                                { code: '${dm_dusun}', desc: 'Dusun Domisili di Desa' },
                                 // Masa berlaku
-                                { code: '${domisili_keperluan}', desc: 'Keperluan (kerja/sekolah/dll)' },
-                                { code: '${domisili_tanggal_masuk}', desc: 'Tanggal Masuk (Format Indo)' },
-                                { code: '${domisili_tanggal_berlaku}', desc: 'Berlaku Sampai (Format Indo)' },
-                                { code: '${domisili_perpanjangan_ke}', desc: 'Berapa Kali Diperpanjang' },
-                                { code: '${domisili_nomor_surat}', desc: 'Nomor Surat Domisili' },
+                                { code: '${dm_keperluan}', desc: 'Keperluan (kerja/sekolah/dll)' },
+                                { code: '${dm_tanggal_masuk}', desc: 'Tanggal Masuk (Format Indo)' },
+                                { code: '${dm_tanggal_berlaku}', desc: 'Berlaku Sampai (Format Indo)' },
+                                { code: '${dm_perpanjangan_ke}', desc: 'Berapa Kali Diperpanjang' },
                             ].map((item, i) => (
                                 <div key={i} className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
                                     <code className="text-orange-700 font-bold bg-orange-100/50 px-2 py-1 rounded-md text-xs">{item.code}</code>

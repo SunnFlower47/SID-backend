@@ -136,15 +136,6 @@ const ManualDomisiliForm = ({ data, updateDataTambahan, isCheckingNik, wilayah, 
                 />
             </div>
             <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Berlaku Sampai</label>
-                <input 
-                    type="date"
-                    value={data.data_tambahan.tanggal_berlaku || ''}
-                    onChange={e => updateDataTambahan('tanggal_berlaku', e.target.value)}
-                    className="w-full px-5 py-3.5 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-green-500 transition-all shadow-inner"
-                />
-            </div>
-            <div className="space-y-2">
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Dusun Tujuan</label>
                 <select 
                     value={data.data_tambahan.dusun_id || ''}
