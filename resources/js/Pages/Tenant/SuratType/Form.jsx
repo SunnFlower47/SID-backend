@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { Head, Link, useForm, router } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { 
@@ -46,7 +46,10 @@ export default function Form({ auth, suratType = null }) {
         color: suratType?.color || 'blue',
         is_active: suratType?.is_active ?? true,
         is_public: suratType?.is_public ?? true,
-        form_json: suratType?.form_json || [],
+        form_json: (suratType?.form_json || []).map((f, i) => ({
+            ...f,
+            _id: f._id || `f_${Date.now()}_${i}`,
+        })),
         file_template: null,
     });
 
@@ -82,7 +85,10 @@ export default function Form({ auth, suratType = null }) {
     const addField = () => {
         setData('form_json', [
             ...data.form_json,
-            { name: '', label: '', type: 'text', required: false, placeholder: '', options: [] }
+            {
+                _id: `f_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+                name: '', label: '', type: 'text', required: false, placeholder: '', options: []
+            }
         ]);
     };
 
@@ -116,13 +122,66 @@ export default function Form({ auth, suratType = null }) {
         setData('form_json', newFields);
     };
 
+    // ── Refs untuk FLIP animation ──────────────────────────────────────────────
+    const cardRefs = useRef({});
+    const pendingFlip = useRef(null);
+
     const moveField = (index, direction) => {
-        const newFields = [...data.form_json];
         const targetIndex = index + direction;
-        if (targetIndex < 0 || targetIndex >= newFields.length) return;
+        if (targetIndex < 0 || targetIndex >= data.form_json.length) return;
+
+        // FIRST: rekam posisi sebelum swap
+        pendingFlip.current = {
+            fromRect: cardRefs.current[index]?.getBoundingClientRect(),
+            toRect: cardRefs.current[targetIndex]?.getBoundingClientRect(),
+            fromIndex: index,
+            toIndex: targetIndex,
+        };
+
+        const newFields = [...data.form_json];
         [newFields[index], newFields[targetIndex]] = [newFields[targetIndex], newFields[index]];
         setData('form_json', newFields);
     };
+
+    // LAST → INVERT → PLAY  (runs after React commits DOM, before browser paint)
+    useLayoutEffect(() => {
+        const flip = pendingFlip.current;
+        if (!flip?.fromRect || !flip?.toRect) return;
+        pendingFlip.current = null;
+
+        // Setelah swap dengan stable key, DOM node berpindah:
+        // element yang tadinya di fromIndex kini ada di toIndex (dan sebaliknya)
+        const movedEl    = cardRefs.current[flip.toIndex];   // element yg diklik naik/turun
+        const displacedEl = cardRefs.current[flip.fromIndex]; // element yg tergeser
+        if (!movedEl || !displacedEl) return;
+
+        // Hitung delta (posisi lama - posisi baru)
+        const fromDelta = flip.fromRect.top - movedEl.getBoundingClientRect().top;
+        const toDelta   = flip.toRect.top   - displacedEl.getBoundingClientRect().top;
+
+        // Terapkan posisi lama seketika (INVERT)
+        movedEl.style.transition    = 'none';
+        displacedEl.style.transition = 'none';
+        movedEl.style.transform    = `translateY(${fromDelta}px)`;
+        displacedEl.style.transform = `translateY(${toDelta}px)`;
+
+        movedEl.getBoundingClientRect(); // force reflow agar transition 'none' efektif
+
+        // Animasikan ke posisi akhir (PLAY)
+        const easing = 'transform 240ms cubic-bezier(0.4, 0, 0.2, 1)';
+        movedEl.style.transition    = easing;
+        displacedEl.style.transition = easing;
+        movedEl.style.transform    = '';
+        displacedEl.style.transform = '';
+
+        const timer = setTimeout(() => {
+            if (movedEl)     { movedEl.style.transition = '';     movedEl.style.transform = ''; }
+            if (displacedEl) { displacedEl.style.transition = ''; displacedEl.style.transform = ''; }
+        }, 260);
+
+        return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [data.form_json]);
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -289,10 +348,11 @@ export default function Form({ auth, suratType = null }) {
                                         type="button"
                                         onClick={() => {
                                             if (confirm('Muat contoh SKU? Field saat ini akan terhapus.')) {
+                                                const t = Date.now();
                                                 setData('form_json', [
-                                                    { name: 'nama_usaha', label: 'Nama Usaha', type: 'text', required: true },
-                                                    { name: 'jenis_usaha', label: 'Jenis Usaha', type: 'text', required: true },
-                                                    { name: 'alamat_usaha', label: 'Alamat Usaha', type: 'textarea', required: true }
+                                                    { _id: `f_${t}_0`, name: 'nama_usaha',   label: 'Nama Usaha',    type: 'text',     required: true, placeholder: '', options: [] },
+                                                    { _id: `f_${t}_1`, name: 'jenis_usaha',  label: 'Jenis Usaha',   type: 'text',     required: true, placeholder: '', options: [] },
+                                                    { _id: `f_${t}_2`, name: 'alamat_usaha', label: 'Alamat Usaha',  type: 'textarea', required: true, placeholder: '', options: [] },
                                                 ]);
                                             }
                                         }}
@@ -304,11 +364,12 @@ export default function Form({ auth, suratType = null }) {
                                         type="button"
                                         onClick={() => {
                                             if (confirm('Muat contoh SKTM? Field saat ini akan terhapus.')) {
+                                                const t = Date.now();
                                                 setData('form_json', [
-                                                    { name: 'penghasilan', label: 'Penghasilan Per Bulan', type: 'number', required: true },
-                                                    { name: 'pekerjaan_ayah', label: 'Pekerjaan Ayah', type: 'text', required: true },
-                                                    { name: 'pekerjaan_ibu', label: 'Pekerjaan Ibu', type: 'text', required: true },
-                                                    { name: 'alasan', label: 'Alasan Mengajukan', type: 'textarea', required: true }
+                                                    { _id: `f_${t}_0`, name: 'penghasilan',    label: 'Penghasilan Per Bulan', type: 'number',   required: true, placeholder: '', options: [] },
+                                                    { _id: `f_${t}_1`, name: 'pekerjaan_ayah', label: 'Pekerjaan Ayah',        type: 'text',     required: true, placeholder: '', options: [] },
+                                                    { _id: `f_${t}_2`, name: 'pekerjaan_ibu',  label: 'Pekerjaan Ibu',         type: 'text',     required: true, placeholder: '', options: [] },
+                                                    { _id: `f_${t}_3`, name: 'alasan',         label: 'Alasan Mengajukan',     type: 'textarea', required: true, placeholder: '', options: [] },
                                                 ]);
                                             }
                                         }}
@@ -336,7 +397,11 @@ export default function Form({ auth, suratType = null }) {
                                 ) : (
                                     <div className="space-y-4">
                                         {data.form_json.map((field, fIndex) => (
-                                            <div key={fIndex} className="bg-gray-50/50 rounded-3xl border border-gray-100 p-5 space-y-4 animate-in slide-in-from-right-4 duration-300">
+                                            <div
+                                                key={field._id || fIndex}
+                                                ref={el => { cardRefs.current[fIndex] = el; }}
+                                                className="bg-gray-50/50 rounded-3xl border border-gray-100 p-5 space-y-4"
+                                            >
                                                 <div className="flex items-center justify-between">
                                                     <div className="flex items-center gap-2">
                                                         <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center text-[10px] font-black">
