@@ -83,7 +83,7 @@ class SuratService
             }
 
             $outputName = $outputName ?? 'surat_' . time() . '.docx';
-            $outputPath = storage_path('app/public/generated_surat/' . $outputName);
+            $outputPath = storage_path('app/private/generated_surat/' . $outputName);
 
             // Pastikan folder output ada
             $outputDir = dirname($outputPath);

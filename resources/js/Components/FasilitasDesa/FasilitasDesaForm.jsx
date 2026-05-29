@@ -1,14 +1,33 @@
-import React from 'react';
-import { useForm, Link } from '@inertiajs/react';
+import React, { useState, useEffect } from 'react';
+import { useForm, Link, usePage } from '@inertiajs/react';
 import { 
     Building2, MapPin, Phone, Clock, 
     Save, X, Image as ImageIcon,
     FileText, CheckCircle, Info
 } from 'lucide-react';
-import { FormCard, FormField } from '@/Components/Shared';
+import { FormCard, FormField, MapPicker } from '@/Components/Shared';
 import Swal from 'sweetalert2';
 
 export default function FasilitasDesaForm({ fasilitas = null, jenisOptions = [], wilayah = {}, isEdit = false }) {
+    const { props } = usePage();
+    const desaSettings = props.desa_settings || {};
+
+    // Koordinat kantor desa dari profil desa
+    const kantorDesaLat = parseFloat(desaSettings.latitude) || -6.5001403;
+    const kantorDesaLng = parseFloat(desaSettings.longitude) || 107.5342964;
+    const kantorDesa = { lat: kantorDesaLat, lng: kantorDesaLng };
+
+    // GeoJSON batas wilayah — fetch dari API Laravel (server-side, aman)
+    const [geojsonData, setGeojsonData] = useState(null);
+    useEffect(() => {
+        fetch('/api/v1/geojson', {
+            headers: { 'Accept': 'application/json' }
+        })
+            .then(r => r.ok ? r.json() : null)
+            .then(res => { if (res?.success && res?.data) setGeojsonData(res.data); })
+            .catch(() => {});
+    }, []);
+
     const { data, setData, post, processing, errors } = useForm({
         _method: isEdit ? 'PUT' : 'POST',
         nama: fasilitas?.nama ?? '',
@@ -17,8 +36,9 @@ export default function FasilitasDesaForm({ fasilitas = null, jenisOptions = [],
         dusun_id: fasilitas?.dusun_id ?? '',
         rw_id: fasilitas?.rw_id ?? '',
         rt_id: fasilitas?.rt_id ?? '',
-        latitude: fasilitas?.latitude ?? '',
-        longitude: fasilitas?.longitude ?? '',
+        // Default ke koordinat kantor desa untuk fasilitas baru
+        latitude: fasilitas?.latitude ?? kantorDesaLat.toString(),
+        longitude: fasilitas?.longitude ?? kantorDesaLng.toString(),
         deskripsi: fasilitas?.deskripsi ?? '',
         kontak: fasilitas?.kontak ?? '',
         jam_operasional: fasilitas?.jam_operasional ?? '',
@@ -124,6 +144,28 @@ export default function FasilitasDesaForm({ fasilitas = null, jenisOptions = [],
                                 />
                             </div>
 
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <FormField.Input
+                                    label="Latitude (Garis Lintang)"
+                                    type="number"
+                                    step="any"
+                                    value={data.latitude}
+                                    onChange={e => setData('latitude', e.target.value)}
+                                    error={errors.latitude}
+                                    placeholder="Contoh: -6.912345"
+                                />
+
+                                <FormField.Input
+                                    label="Longitude (Garis Bujur)"
+                                    type="number"
+                                    step="any"
+                                    value={data.longitude}
+                                    onChange={e => setData('longitude', e.target.value)}
+                                    error={errors.longitude}
+                                    placeholder="Contoh: 107.612345"
+                                />
+                            </div>
+
                             <FormField.Textarea
                                 label="Deskripsi / Keterangan"
                                 value={data.deskripsi}
@@ -133,6 +175,30 @@ export default function FasilitasDesaForm({ fasilitas = null, jenisOptions = [],
                                 rows={4}
                             />
                         </div>
+                    </FormCard>
+
+                    {/* Interactive Map */}
+                    <FormCard icon={MapPin} title="Pilih Lokasi di Peta">
+                        {/* Info koordinat terpilih */}
+                        <div className="mb-3 flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-gray-400">
+                            <MapPin className="w-3 h-3 text-green-600" />
+                            <span>Koordinat terpilih:</span>
+                            <span className="text-green-700 font-black">
+                                {parseFloat(data.latitude || 0).toFixed(6)}, {parseFloat(data.longitude || 0).toFixed(6)}
+                            </span>
+                        </div>
+                        <MapPicker
+                            value={{ latitude: data.latitude, longitude: data.longitude }}
+                            onChange={(coords) => {
+                                setData(prev => ({
+                                    ...prev,
+                                    latitude: coords.latitude,
+                                    longitude: coords.longitude
+                                }));
+                            }}
+                            kantorDesa={kantorDesa}
+                            geojsonData={geojsonData}
+                        />
                     </FormCard>
                 </div>
 

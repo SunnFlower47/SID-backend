@@ -115,4 +115,57 @@ class DesaInfoApiController extends Controller
             return $this->errorResponse('Gagal mengambil informasi kontak', $e->getMessage(), 500);
         }
     }
+    /**
+     * Get GeoJSON batas wilayah desa
+     * File disimpan di storage/app/public/geojson/ dan dibaca server-side
+     */
+    public function getGeoJson()
+    {
+        return Cache::remember('api_geojson_batas_wilayah', 3600, function () {
+            try {
+                // Ambil path dari settings
+                $storedUrl = DesaSetting::getValue('batas_wilayah_geojson', null);
+
+                if (!$storedUrl) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'GeoJSON batas wilayah belum diupload.'
+                    ], 404);
+                }
+
+                // Resolve ke path file fisik di storage
+                // Value disimpan sebagai URL: /storage/geojson/filename.geojson
+                $relativePath = ltrim(str_replace('/storage/', '', parse_url($storedUrl, PHP_URL_PATH)), '/');
+                $absolutePath = storage_path('app/public/' . $relativePath);
+
+                if (!file_exists($absolutePath)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'File GeoJSON tidak ditemukan di server.'
+                    ], 404);
+                }
+
+                $geojsonContent = file_get_contents($absolutePath);
+                $geojson = json_decode($geojsonContent, true);
+
+                if (json_last_error() !== JSON_ERROR_NONE) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'File GeoJSON tidak valid.'
+                    ], 422);
+                }
+
+                return response()->json([
+                    'success' => true,
+                    'data' => $geojson
+                ])->withHeaders([
+                    'Cache-Control' => 'public, max-age=3600',
+                    'X-Content-Type-Options' => 'nosniff',
+                ]);
+
+            } catch (\Exception $e) {
+                return $this->errorResponse('Gagal mengambil GeoJSON', $e->getMessage(), 500);
+            }
+        });
+    }
 }

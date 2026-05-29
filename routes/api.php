@@ -81,6 +81,8 @@ Route::prefix('v1')->group(function () {
     Route::get('/contact-info', [DesaInfoApiController::class, 'getContactInfo'])->middleware(['throttle:100,1', 'private.api']);
     Route::get('/contact/info', [ContactController::class, 'info'])->middleware(['throttle:100,1', 'private.api']);
     Route::get('/kontak-desa', [\App\Http\Controllers\Api\KontakDesaController::class, 'index'])->middleware(['throttle:100,1', 'private.api']);
+    // GeoJSON batas wilayah — dibaca server-side, file tidak langsung diekspos ke publik
+    Route::get('/geojson', [DesaInfoApiController::class, 'getGeoJson'])->middleware(['throttle:60,1', 'private.api']);
 
     // Proyek & Development - Frontend routes (dengan API key untuk keamanan)
     Route::get('/proyek-desa', [\App\Http\Controllers\Api\ProyekDesaController::class, 'index'])->middleware(['throttle:100,1', 'private.api']);

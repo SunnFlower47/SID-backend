@@ -4,12 +4,12 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { PageHeader } from '@/Components/Shared';
 import { 
     Settings, User, Shield, Server, Plus, Edit2, 
-    Trash2, Save, X, CheckCircle, Info, Database,
+    Trash2, Save, X, CheckCircle, Info, Database, Map,
     FileSpreadsheet, ShieldAlert, Key, UserMinus, Eye, EyeOff
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 
-export default function Index({ auth, users, roles, permissions, permissions_structure = {}, stats }) {
+export default function Index({ auth, users, roles, permissions, permissions_structure = {}, stats, desa_settings = {} }) {
     // Get query params for tab switching
     const { url } = usePage();
     const searchParams = new URLSearchParams(window.location.search);
@@ -464,6 +464,36 @@ export default function Index({ auth, users, roles, permissions, permissions_str
         });
     };
 
+    // ==========================================
+    // 5. DESA SETTINGS (GEOJSON UPLOAD)
+    // ==========================================
+    const desaForm = useForm({
+        _method: 'put',
+        settings: [
+            { key: 'batas_wilayah_geojson', type: 'json', group: 'geography' }
+        ],
+        files: {
+            batas_wilayah_geojson: null
+        }
+    });
+
+    const handleDesaSubmit = (e) => {
+        e.preventDefault();
+        desaForm.post(route('settings.desa.update'), {
+            preserveScroll: true,
+            onSuccess: () => {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'BERHASIL!',
+                    text: 'Pengaturan Geografi berhasil diperbarui.',
+                    timer: 1500,
+                    showConfirmButton: false,
+                    customClass: { popup: 'rounded-3xl' }
+                });
+            }
+        });
+    };
+
     return (
         <AuthenticatedLayout user={auth.user} title="Pengaturan Sistem">
             <Head title="Pengaturan - Admin Panel" />
@@ -521,6 +551,17 @@ export default function Index({ auth, users, roles, permissions, permissions_str
                     >
                         <Server className="w-4 h-4" />
                         Sistem & Stats
+                    </button>
+                    <button
+                        onClick={() => handleTabChange('desa')}
+                        className={`flex items-center gap-2 px-5 py-3 rounded-xl text-xs font-black uppercase tracking-widest italic transition-all ${
+                            activeTab === 'desa' 
+                                ? 'bg-gradient-to-r from-green-600 to-green-700 text-white shadow-md' 
+                                : 'text-gray-600 hover:bg-gray-50'
+                        }`}
+                    >
+                        <Map className="w-4 h-4" />
+                        Peta & Geografi
                     </button>
                 </div>
 
@@ -1097,6 +1138,52 @@ export default function Index({ auth, users, roles, permissions, permissions_str
                             </form>
                         </div>
                     </div>
+                </div>
+            )}
+
+            {/* ========================================================================= */}
+            {/* TAB 5: PETA & GEOGRAFI */}
+            {/* ========================================================================= */}
+            {activeTab === 'desa' && (
+                <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 sm:p-8 space-y-6 animate-in fade-in duration-300">
+                    <h3 className="text-lg font-black text-gray-900 flex items-center gap-3 uppercase italic tracking-tighter border-b border-gray-50 pb-4">
+                        <Map className="w-6 h-6 text-green-600" />
+                        Pengaturan Geografi & Peta Desa
+                    </h3>
+                    
+                    <form onSubmit={handleDesaSubmit} className="space-y-6">
+                        <div className="bg-gray-50/50 p-6 rounded-2xl border border-gray-100 space-y-4">
+                            <h4 className="text-xs font-black text-gray-600 uppercase tracking-widest">Batas Wilayah Desa (GeoJSON)</h4>
+                            <p className="text-xs text-gray-500 font-medium">Unggah file .geojson yang berisi data poligon batas administrasi desa Anda. File ini akan dirender secara otomatis pada Peta Interaktif.</p>
+                            
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">File GeoJSON</label>
+                                <input
+                                    type="file"
+                                    accept=".geojson,application/geo+json"
+                                    onChange={e => desaForm.setData('files', { ...desaForm.data.files, batas_wilayah_geojson: e.target.files[0] })}
+                                    className="w-full px-5 py-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold text-gray-700 focus:ring-4 focus:ring-green-500/10 transition-all file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-black file:uppercase file:tracking-widest file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
+                                />
+                                {desaForm.errors['files.batas_wilayah_geojson'] && <p className="text-[10px] font-bold text-red-500 uppercase tracking-widest ml-1 italic">{desaForm.errors['files.batas_wilayah_geojson']}</p>}
+                                
+                                {desa_settings['batas_wilayah_geojson']?.value && (
+                                    <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 bg-green-50 text-green-700 border border-green-100 rounded-full text-xs font-black uppercase tracking-widest italic">
+                                        <CheckCircle className="w-4 h-4" />
+                                        File GeoJSON saat ini telah terunggah
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        <button
+                            type="submit"
+                            disabled={desaForm.processing}
+                            className="flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-green-200 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50"
+                        >
+                            <Save className="w-4 h-4" />
+                            Simpan Geografi
+                        </button>
+                    </form>
                 </div>
             )}
 

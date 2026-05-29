@@ -367,7 +367,21 @@ export default function StrukturDesaForm({
                                 {errors.kategori && <p className="text-red-500 text-[10px] font-bold uppercase">{errors.kategori}</p>}
                             </div>
                             
-                            <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-5 pt-2 border-t border-gray-50">
+                            <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-4 gap-5 pt-2 border-t border-gray-50">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1 flex items-center gap-1">
+                                        Urutan (Prioritas)
+                                    </label>
+                                    <input 
+                                        type="number"
+                                        value={data.urutan}
+                                        onChange={e => setData('urutan', parseInt(e.target.value) || 0)}
+                                        className="w-full px-4 py-3 bg-gray-50 border-transparent focus:bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 rounded-xl text-xs font-bold transition-all"
+                                        placeholder="0"
+                                        min="0"
+                                    />
+                                    {errors.urutan && <p className="text-red-500 text-[10px] font-bold uppercase">{errors.urutan}</p>}
+                                </div>
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1 flex items-center gap-1">
                                         <MapPin className="w-3 h-3" /> RW

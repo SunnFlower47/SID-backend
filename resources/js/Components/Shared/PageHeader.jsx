@@ -105,13 +105,25 @@ export default function PageHeader({
                             );
 
                             return action.href ? (
-                                <Link
-                                    key={i}
-                                    href={action.href}
-                                    className={cn(baseClass, variantClass, disabledClass)}
-                                >
-                                    {content}
-                                </Link>
+                                action.external ? (
+                                    <a
+                                        key={i}
+                                        href={action.href}
+                                        className={cn(baseClass, variantClass, disabledClass)}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
+                                        {content}
+                                    </a>
+                                ) : (
+                                    <Link
+                                        key={i}
+                                        href={action.href}
+                                        className={cn(baseClass, variantClass, disabledClass)}
+                                    >
+                                        {content}
+                                    </Link>
+                                )
                             ) : (
                                 <button
                                     key={i}

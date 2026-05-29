@@ -48,6 +48,13 @@ export default function Show({ auth, suratPengajuan, statusList }) {
                     icon={FileSignature}
                     backHref={route('admin.surat-pengajuan.index')}
                     actions={[
+                        p.file_lampiran ? {
+                            label: 'UNDUH LAMPIRAN',
+                            icon: Download,
+                            href: route('admin.surat-pengajuan.lampiran', p.id),
+                            external: true,
+                            variant: 'white'
+                        } : null,
                         {
                             label: 'EDIT DATA',
                             icon: Edit,
@@ -61,7 +68,7 @@ export default function Show({ auth, suratPengajuan, statusList }) {
                             external: true,
                             variant: 'primary'
                         }
-                    ]}
+                    ].filter(Boolean)}
                 />
 
                 <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">

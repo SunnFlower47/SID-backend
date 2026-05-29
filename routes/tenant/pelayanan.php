@@ -29,6 +29,7 @@ Route::middleware([])->group(function () {
         Route::post('/surat-pengajuan/{suratPengajuan}/mark-read', 'markAsRead')->name('surat-pengajuan.mark-read');
         Route::get('/surat-pengajuan/{suratPengajuan}/preview', 'preview')->name('surat-pengajuan.preview');
         Route::get('/surat-pengajuan/{suratPengajuan}/pdf', 'generatePdf')->name('surat-pengajuan.pdf');
+        Route::get('/surat-pengajuan/{suratPengajuan}/lampiran', 'downloadLampiran')->name('surat-pengajuan.lampiran');
         Route::get('/surat-pengajuan/{suratPengajuan}/edit', 'edit')->name('surat-pengajuan.edit');
         Route::put('/surat-pengajuan/{suratPengajuan}', 'update')->name('surat-pengajuan.update');
         Route::delete('/surat-pengajuan/{id}', 'destroy')->name('surat-pengajuan.destroy');

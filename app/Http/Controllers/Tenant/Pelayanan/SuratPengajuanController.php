@@ -264,4 +264,32 @@ class SuratPengajuanController extends Controller
             return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
     }
+
+    /**
+     * Download lampiran pengajuan surat secara aman.
+     */
+    public function downloadLampiran(SuratPengajuan $suratPengajuan)
+    {
+        Gate::authorize('surat.view');
+
+        if (!$suratPengajuan->file_lampiran) {
+            abort(404, 'Lampiran tidak ditemukan');
+        }
+
+        // Handle path that might have been saved as 'surat-pengajuan/filename.pdf'
+        // or 'public/surat-pengajuan/filename.pdf' previously.
+        $path = $suratPengajuan->file_lampiran;
+
+        // Try local disk first (which points to storage/app/private)
+        if (\Illuminate\Support\Facades\Storage::disk('local')->exists($path)) {
+            return \Illuminate\Support\Facades\Storage::disk('local')->download($path);
+        }
+
+        // Fallback for files that were saved in public disk before the fix
+        if (\Illuminate\Support\Facades\Storage::disk('public')->exists($path)) {
+            return \Illuminate\Support\Facades\Storage::disk('public')->download($path);
+        }
+
+        abort(404, 'File lampiran fisik tidak ditemukan di server.');
+    }
 }

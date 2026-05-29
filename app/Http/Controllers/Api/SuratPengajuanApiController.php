@@ -114,7 +114,7 @@ class SuratPengajuanApiController extends Controller
             if ($request->hasFile('file_lampiran')) {
                 $file = $request->file('file_lampiran');
                 $filename = time() . '_' . $request->surat_type . '_' . $penduduk->nik . '.pdf';
-                $filePath = $file->storeAs('surat-pengajuan', $filename, 'public');
+                $filePath = $file->storeAs('surat-pengajuan', $filename, 'local');
             }
 
             $dataTambahan = $request->data_tambahan;

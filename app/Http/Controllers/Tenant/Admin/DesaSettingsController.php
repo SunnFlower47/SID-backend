@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Tenant\Admin;
 use App\Http\Controllers\Controller;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\View;
@@ -25,19 +26,7 @@ class DesaSettingsController extends Controller
      */
     public function index()
     {
-        Gate::authorize('settings.view');
-
-        $groups = [
-            'general' => 'Informasi Umum Desa',
-            'logo' => 'Logo dan Branding'
-        ];
-
-        $settings = [];
-        foreach ($groups as $group => $name) {
-            $settings[$group] = DesaSetting::getByGroup($group);
-        }
-
-        return View::make('settings.desa', compact('groups', 'settings'));
+        return redirect()->route('settings.index');
     }
 
 
@@ -59,12 +48,30 @@ class DesaSettingsController extends Controller
         foreach ($validated['settings'] as $setting) {
             $value = $setting['value'] ?? null;
 
-            // Handle image upload
-            if ($setting['type'] === 'image' && $request->hasFile("files.{$setting['key']}")) {
+            // Handle image and json (GeoJSON) file upload
+            if (in_array($setting['type'], ['image', 'json']) && $request->hasFile("files.{$setting['key']}")) {
                 $file = $request->file("files.{$setting['key']}");
-                $filename = $setting['key'] . '_' . time() . '.' . $file->getClientOriginalExtension();
-                $path = $file->storeAs('public/logos', $filename);
+                $extension = $file->getClientOriginalExtension();
+                $filename = $setting['key'] . '_' . time() . '.' . $extension;
+                
+                $folder = $setting['type'] === 'image' ? 'logos' : 'geojson';
+
+                // Hapus file lama agar tidak menumpuk
+                $existingSetting = DesaSetting::where('key', $setting['key'])->first();
+                if ($existingSetting && $existingSetting->value) {
+                    $oldPath = str_replace('/storage/', '', parse_url($existingSetting->value, PHP_URL_PATH));
+                    if (Storage::disk('public')->exists($oldPath)) {
+                        Storage::disk('public')->delete($oldPath);
+                    }
+                }
+
+                $path = $file->storeAs($folder, $filename, 'public');
                 $value = Storage::url($path);
+
+                // Hapus cache API GeoJSON agar data terbaru langsung tersaji
+                if ($setting['type'] === 'json') {
+                    Cache::forget('api_geojson_batas_wilayah');
+                }
             }
 
             DesaSetting::setValue(
@@ -75,7 +82,7 @@ class DesaSettingsController extends Controller
             );
         }
 
-        return Redirect::route('settings.desa')
+        return Redirect::back()
             ->with('success', 'Pengaturan desa berhasil diperbarui.');
     }
 
@@ -95,12 +102,29 @@ class DesaSettingsController extends Controller
             'description' => 'nullable|string'
         ]);
 
-        // Handle image upload
-        if ($setting->type === 'image' && $request->hasFile('file')) {
+        // Handle image and json (GeoJSON) file upload
+        if (in_array($setting->type, ['image', 'json']) && $request->hasFile('file')) {
             $file = $request->file('file');
-            $filename = $key . '_' . time() . '.' . $file->getClientOriginalExtension();
-            $path = $file->storeAs('public/logos', $filename);
+            $extension = $file->getClientOriginalExtension();
+            $filename = $key . '_' . time() . '.' . $extension;
+            
+            $folder = $setting->type === 'image' ? 'logos' : 'geojson';
+
+            // Hapus file lama agar tidak menumpuk
+            if ($setting->value) {
+                $oldPath = str_replace('/storage/', '', parse_url($setting->value, PHP_URL_PATH));
+                if (Storage::disk('public')->exists($oldPath)) {
+                    Storage::disk('public')->delete($oldPath);
+                }
+            }
+
+            $path = $file->storeAs($folder, $filename, 'public');
             $validated['value'] = Storage::url($path);
+
+            // Hapus cache API GeoJSON agar data terbaru langsung tersaji
+            if ($setting->type === 'json') {
+                Cache::forget('api_geojson_batas_wilayah');
+            }
         }
 
         $setting->update($validated);
@@ -125,7 +149,7 @@ class DesaSettingsController extends Controller
         // Run migration to insert default settings
         Artisan::call('migrate:refresh', ['--path' => 'database/migrations/2025_09_28_080756_create_desa_settings_table.php']);
 
-        return Redirect::route('settings.desa')
+        return Redirect::back()
             ->with('success', 'Pengaturan desa berhasil direset ke default.');
     }
 
@@ -186,7 +210,7 @@ class DesaSettingsController extends Controller
             );
         }
 
-        return redirect()->route('settings.desa')
+        return Redirect::back()
             ->with('success', 'Pengaturan desa berhasil diimpor.');
     }
 }

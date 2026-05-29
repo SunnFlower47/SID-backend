@@ -5,7 +5,7 @@ import {
     FileText, Save, ArrowLeft, Plus, Trash2, 
     Settings, Layout, Info, Type, List, 
     Calendar, CheckSquare, AlignLeft, Layers, Palette, HelpCircle, X,
-    ChevronDown, Search, FileEdit, ClipboardCheck, ClipboardList, 
+    ChevronDown, ChevronUp, Search, FileEdit, ClipboardCheck, ClipboardList, 
     Stamp, Files, UserCheck, UserPlus, Contact, Fingerprint, Smile, 
     Heart, Map, Building, Building2, Landmark, Tent, Globe, Book, 
     BookOpen, Backpack, Calculator, HardHat, Baby, Accessibility, 
@@ -113,6 +113,14 @@ export default function Form({ auth, suratType = null }) {
     const removeOption = (fieldIndex, optionIndex) => {
         const newFields = [...data.form_json];
         newFields[fieldIndex].options.splice(optionIndex, 1);
+        setData('form_json', newFields);
+    };
+
+    const moveField = (index, direction) => {
+        const newFields = [...data.form_json];
+        const targetIndex = index + direction;
+        if (targetIndex < 0 || targetIndex >= newFields.length) return;
+        [newFields[index], newFields[targetIndex]] = [newFields[targetIndex], newFields[index]];
         setData('form_json', newFields);
     };
 
@@ -336,13 +344,35 @@ export default function Form({ auth, suratType = null }) {
                                                         </div>
                                                         <span className="text-[10px] font-black text-gray-900 uppercase tracking-widest">Field Configuration</span>
                                                     </div>
-                                                    <button 
-                                                        type="button"
-                                                        onClick={() => removeField(fIndex)}
-                                                        className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
-                                                    >
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </button>
+                                                    <div className="flex items-center gap-1">
+                                                        {/* Tombol pindah urutan */}
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => moveField(fIndex, -1)}
+                                                            disabled={fIndex === 0}
+                                                            title="Geser ke atas"
+                                                            className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all disabled:opacity-25 disabled:cursor-not-allowed"
+                                                        >
+                                                            <ChevronUp className="w-4 h-4" />
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => moveField(fIndex, 1)}
+                                                            disabled={fIndex === data.form_json.length - 1}
+                                                            title="Geser ke bawah"
+                                                            className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all disabled:opacity-25 disabled:cursor-not-allowed"
+                                                        >
+                                                            <ChevronDown className="w-4 h-4" />
+                                                        </button>
+                                                        <div className="w-px h-5 bg-gray-200 mx-1" />
+                                                        <button 
+                                                            type="button"
+                                                            onClick={() => removeField(fIndex)}
+                                                            className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
                                                 </div>
 
                                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

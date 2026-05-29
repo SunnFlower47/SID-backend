@@ -34,13 +34,15 @@ class SettingsController extends Controller
         $users = User::with(['roles', 'permissions'])->get();
         $roles = Role::with('permissions')->get();
         $permissions = Permission::all();
+        $desa_settings = \App\Models\DesaSetting::all()->keyBy('key');
 
         return Inertia::render('Tenant/Settings/Index', [
             'users' => $users,
             'roles' => $roles,
             'permissions' => $permissions,
             'permissions_structure' => config('permissions'),
-            'stats' => $stats
+            'stats' => $stats,
+            'desa_settings' => $desa_settings
         ]);
     }
 

@@ -50,6 +50,7 @@ class HandleInertiaRequests extends Middleware
                 'v2_site_key' => config('services.recaptcha.v2_site_key'),
                 'v3_site_key' => config('services.recaptcha.v3_site_key'),
             ],
+            'desa_settings' => \App\Models\DesaSetting::getAllAsArray(),
         ]);
     }
 }
