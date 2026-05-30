@@ -221,11 +221,12 @@
 3. Kelola testimoni
 
 #### **Fitur Testimoni:**
-- ✅ **Lihat Testimoni** - Review semua testimoni
+- 👁️ **Lihat Testimoni** - Review semua testimoni
 - ✅ **Approve/Reject** - Setujui atau tolak testimoni
-- ✅ **Kategori** - Kelola kategori testimoni
-- ✅ **Rating** - Lihat rating testimoni
-- ✅ **Export** - Export data testimoni
+- 🔒 **Keaslian Terjamin** - Testimoni tidak dapat diedit untuk menjaga objektivitas
+- 🏷️ **Kategori** - Kelola kategori testimoni
+- ⭐ **Rating** - Lihat rating testimoni
+- 📥 **Export** - Export data testimoni
 
 ### **2. Statistik Testimoni**
 
