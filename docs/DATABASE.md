@@ -77,33 +77,42 @@ DB_COLLATION=utf8mb4_unicode_ci
 ### **Tables List**
 | Table Name | Description |
 |------------|-------------|
-| `penduduks` | Core resident data |
-| `mutasis` | Population mutations |
-| `kartu_keluargas` | KK Summary & Synchronization Cache |
-| `surat_pengajuans` | Letter applications |
-| `surats` | Letter templates |
+| `penduduks` | Core data penduduk (SoftDelete = mutasi) |
+| `mutasis` | Log semua mutasi penduduk |
+| `kartu_keluargas` | Ringkasan & cache KK (auto-sync via Observer) |
+| `histori_pisah_kk` | Riwayat pemisahan KK |
+| `surat_pengajuans` | Pengajuan surat online dari warga |
+| `surat_types` | Master jenis surat (template + form builder) |
+| `penduduk_domisilis` | Data warga domisili sementara |
 | `dusuns`, `rws`, `rts` | Master data wilayah (RT/RW/Dusun) |
-| `desa_settings` | Village settings |
-| `struktur_desas` | Village structure |
-| `kontak_desas` | Village contact info |
-| `beritas` | News articles |
-| `pengaduans` | Citizen complaints |
-| `bantuan_sosials` | Social assistance programs |
-| `penerima_bantuan_sosials` | Social assistance recipients |
-| `penduduk_domisilis` | Domicile/Residence management |
-| `apbdes` | Village budget |
-| `proyek_desas` | Village projects |
-| `histori_pengeluarans` | Financial expenditure logs |
-| `fasilitas_desas` | Village facilities |
-| `umkms` | UMKM data |
-| `histori_pisah_kk` | KK separation history |
-| `contact_messages` | Contact form messages |
-| `users` | System users |
-| `roles`, `permissions` | RBAC tables |
-| `activity_log` | System activity logs |
-| `migrations` | Migration records |
-| `sessions` | User sessions |
-| `cache`, `cache_locks` | Application cache |
+| `wilayah_change_logs` | Log perubahan data wilayah |
+| `desa_settings` | Pengaturan global desa (key-value) |
+| `struktur_desas` | Struktur organisasi perangkat desa |
+| `master_jabatans` | Master jabatan perangkat desa |
+| `kontak_desas` | Kontak person perangkat desa |
+| `beritas` | Artikel berita desa |
+| `testimonis` | Testimoni warga (read-only, tidak bisa diedit) |
+| `pengaduans` | Pengaduan/laporan warga |
+| `contact_messages` | Pesan masuk dari form kontak website |
+| `bantuan_sosials` | Program bantuan sosial |
+| `penerima_bantuan_sosials` | Penerima program bantuan sosial |
+| `apbdes` | Data APBDes per tahun anggaran |
+| `proyek_desas` | Proyek pembangunan desa |
+| `histori_pengeluarans` | Log pengeluaran realisasi anggaran |
+| `peraturan_desas` | Peraturan & regulasi desa |
+| `fasilitas_desas` | Fasilitas umum milik desa |
+| `umkms` | Data UMKM warga (termasuk koordinat peta) |
+| `aset_kategoris` | Kategori aset/inventaris desa |
+| `aset_barangs` | Katalog barang/aset |
+| `aset_inventaris` | Data inventaris aset desa |
+| `aset_mutasis` | Log mutasi/perpindahan aset |
+| `users` | Akun pengguna admin |
+| `roles`, `permissions` | Tabel RBAC (Spatie Permission) |
+| `activity_log` | Log aktivitas semua pengguna |
+| `sessions` | Sesi login pengguna |
+| `cache`, `cache_locks` | Cache aplikasi |
+| `personal_access_tokens` | Token API Sanctum |
+| `migrations` | Riwayat migrasi database |
 
 
 ---
@@ -1575,3 +1584,341 @@ HAVING count > 1;
 
 **Database Sistem Desa Cibatu - Optimized for Performance & Security!** 🗄️⚡
 
+---
+
+## 📊 TABEL BARU (Ditambahkan v1.7.0 — v1.9.1)
+
+> Tabel-tabel di bawah ini adalah penambahan setelah dokumentasi awal dibuat. Semua sudah aktif digunakan di sistem.
+
+---
+
+### **SURAT_TYPES (Master Jenis Surat)**
+
+> Primary key menggunakan string slug (`sku`, `ahli-waris`). Kolom ditambahkan bertahap via 5 migration berbeda.
+
+```sql
+CREATE TABLE surat_types (
+  id              VARCHAR(255) NOT NULL,     -- Slug unik, e.g. 'sku', 'ahli-waris'
+  nama            VARCHAR(255) NOT NULL,
+  kode            VARCHAR(255) NULL,         -- Kode singkat e.g. 'SKU', 'SKD'
+  deskripsi       TEXT         NULL,
+  persyaratan     TEXT         NULL,
+  has_template    TINYINT(1)   NOT NULL DEFAULT 0,
+  template_code   VARCHAR(255) NULL,
+  icon            VARCHAR(255) NULL,
+  color           VARCHAR(255) NULL,
+  is_active       TINYINT(1)   NOT NULL DEFAULT 1,
+  is_public       TINYINT(1)   NOT NULL DEFAULT 1,  -- Tampil di portal warga?
+  form_json       JSON         NULL,         -- Definisi field form dinamis
+  file_template   VARCHAR(255) NULL,         -- Path file .docx template
+  created_at      TIMESTAMP    NULL,
+  updated_at      TIMESTAMP    NULL,
+  PRIMARY KEY (id)
+) ENGINE=InnoDB;
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | VARCHAR(255) | Slug unik sebagai PK (bukan auto-increment) |
+| `nama` | VARCHAR(255) | Nama lengkap jenis surat |
+| `kode` | VARCHAR(255) | Kode singkat (SKU, SKD, dll) |
+| `form_json` | JSON | Definisi field formulir dinamis untuk web |
+| `file_template` | VARCHAR(255) | Path file `.docx` untuk generate surat |
+| `is_public` | TINYINT | Apakah tampil di portal warga |
+
+---
+
+### **PERATURAN_DESAS (Peraturan Desa)**
+
+> Workflow status mengikuti alur BPD: `draft → diajukan_bpd → dibahas → disetujui/ditolak`.
+
+```sql
+CREATE TABLE peraturan_desas (
+  id                  BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  jenis_peraturan     ENUM('APBDes','Perubahan APBDes','Lpj APBDes','Lainnya') NOT NULL DEFAULT 'APBDes',
+  tahun_anggaran      YEAR NOT NULL,
+  judul               VARCHAR(255) NOT NULL,
+  nomor_peraturan     VARCHAR(255) NULL,
+  tanggal_ditetapkan  DATE         NULL,
+  status              ENUM('draft','diajukan_bpd','dibahas','disetujui','ditolak') NOT NULL DEFAULT 'draft',
+  keterangan_bpd      TEXT         NULL,
+  file_dokumen        VARCHAR(255) NULL,     -- Path file PDF
+  created_at          TIMESTAMP    NULL,
+  updated_at          TIMESTAMP    NULL,
+  PRIMARY KEY (id),
+  INDEX idx_peraturan (tahun_anggaran, jenis_peraturan, status)
+) ENGINE=InnoDB;
+```
+
+---
+
+### **MASTER_JABATANS (Master Jabatan)**
+
+> Referensi nama jabatan perangkat desa. Di-seed otomatis (16 jabatan) saat migration berjalan.
+
+```sql
+CREATE TABLE master_jabatans (
+  id          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  nama        VARCHAR(255) NOT NULL,
+  slug        VARCHAR(255) NOT NULL UNIQUE,  -- e.g. 'kepala_desa', 'ketua_rt'
+  is_struktur TINYINT(1)   NOT NULL DEFAULT 1,
+  is_kontak   TINYINT(1)   NOT NULL DEFAULT 1,
+  urutan      INT          NOT NULL DEFAULT 0,
+  created_at  TIMESTAMP    NULL,
+  updated_at  TIMESTAMP    NULL,
+  PRIMARY KEY (id)
+) ENGINE=InnoDB;
+-- 16 jabatan seed: kepala_desa, sekretaris, bendahara, kasi_*, kepala_dusun, ketua_rw, ketua_rt, ketua_bumdes, dll.
+```
+
+---
+
+### **TESTIMONIS (Testimoni Warga)**
+
+> Testimoni warga. Perlu moderasi admin (`pending → approved/rejected`). **Tidak bisa diedit** setelah dibuat untuk menjaga objektivitas.
+
+```sql
+CREATE TABLE testimonis (
+  id           BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  nama         VARCHAR(255) NOT NULL,
+  email        VARCHAR(255) NULL,
+  telepon      VARCHAR(255) NULL,
+  rt_id        BIGINT UNSIGNED NULL,      -- FK nullable (tidak wajib isi)
+  rw_id        BIGINT UNSIGNED NULL,
+  dusun_id     BIGINT UNSIGNED NULL,
+  testimoni    TEXT        NOT NULL,
+  status       ENUM('pending','approved','rejected') NOT NULL DEFAULT 'pending',
+  rating       INT         NULL,           -- 1–5 bintang
+  kategori     VARCHAR(255) NULL,
+  is_anonymous TINYINT(1)  NOT NULL DEFAULT 0,
+  ip_address   VARCHAR(255) NULL,
+  user_agent   VARCHAR(255) NULL,
+  created_at   TIMESTAMP    NULL,
+  updated_at   TIMESTAMP    NULL,
+  PRIMARY KEY (id),
+  FOREIGN KEY (rt_id)    REFERENCES rts(id)    ON DELETE SET NULL,
+  FOREIGN KEY (rw_id)    REFERENCES rws(id)    ON DELETE SET NULL,
+  FOREIGN KEY (dusun_id) REFERENCES dusuns(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+```
+
+> [!IMPORTANT]
+> Fitur **Edit Testimoni** sudah dihapus permanen (v1.9.1). Admin hanya bisa **Approve / Reject / Hapus** testimoni — tidak bisa mengubah isinya.
+
+---
+
+### **APBDES (Anggaran Pendapatan & Belanja Desa)**
+
+> Versi terbaru menambahkan 3 kolom sesuai **Permendagri No. 20 Tahun 2018**: `bidang`, `sub_bidang`, dan `kegiatan`. Kolom `sumber_dana` diubah dari ENUM menjadi VARCHAR(50) agar fleksibel.
+
+```sql
+CREATE TABLE apbdes (
+  id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  tahun           YEAR NOT NULL,
+  bidang          TINYINT NULL,            -- 1=Pemerintahan, 2=Pembangunan, 3=Pembinaan, 4=Pemberdayaan, 5=Bencana
+  sub_bidang      VARCHAR(10)  NULL,       -- e.g. '1.1', '2.3'
+  kegiatan        VARCHAR(200) NULL,
+  jenis           ENUM('pendapatan','belanja','pembiayaan') NOT NULL,
+  kode_rekening   VARCHAR(255) NOT NULL,
+  nama_rekening   VARCHAR(255) NOT NULL,
+  sumber_dana     VARCHAR(50)  NULL,       -- Dana Desa, ADD, BHPR, Hibah, dll
+  anggaran        DECIMAL(15,2) NOT NULL,
+  realisasi       DECIMAL(15,2) NOT NULL DEFAULT 0,
+  sisa_anggaran   DECIMAL(15,2) NOT NULL DEFAULT 0,
+  keterangan      TEXT         NULL,
+  status          ENUM('draft','disetujui','ditolak') NOT NULL DEFAULT 'draft',
+  created_at      TIMESTAMP    NULL,
+  updated_at      TIMESTAMP    NULL,
+  PRIMARY KEY (id)
+) ENGINE=InnoDB;
+```
+
+> [!NOTE]
+> `sumber_dana` sebelumnya adalah ENUM. Diubah ke VARCHAR(50) via migration `2026_05_18_032917` untuk mengakomodasi sumber dana yang beragam.
+
+---
+
+### **PROYEK_DESAS (Proyek Pembangunan)**
+
+```sql
+CREATE TABLE proyek_desas (
+  id                BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  nama_proyek       VARCHAR(255) NOT NULL,
+  deskripsi         TEXT         NOT NULL,
+  jenis             ENUM('infrastruktur','sosial','ekonomi','lingkungan','lainnya') NOT NULL,
+  anggaran          DECIMAL(15,2) NOT NULL,
+  realisasi         DECIMAL(15,2) NOT NULL DEFAULT 0,
+  tanggal_mulai     DATE         NOT NULL,
+  tanggal_selesai   DATE         NULL,
+  status            ENUM('perencanaan','pelaksanaan','selesai','tertunda','dibatalkan') NOT NULL DEFAULT 'perencanaan',
+  progress          INT          NOT NULL DEFAULT 0,   -- 0–100 persen
+  lokasi            VARCHAR(255) NOT NULL,
+  penanggung_jawab  VARCHAR(255) NOT NULL,
+  kontraktor        VARCHAR(255) NULL,
+  dokumentasi       TEXT         NULL,                 -- JSON array path foto
+  catatan           TEXT         NULL,
+  apbdes_id         BIGINT UNSIGNED NULL,
+  created_at        TIMESTAMP    NULL,
+  updated_at        TIMESTAMP    NULL,
+  PRIMARY KEY (id),
+  FOREIGN KEY (apbdes_id) REFERENCES apbdes(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+```
+
+---
+
+### **HISTORI_PENGELUARANS (Log Realisasi Pengeluaran)**
+
+```sql
+CREATE TABLE histori_pengeluarans (
+  id                    BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  nama_pengeluaran      VARCHAR(255)    NOT NULL,
+  apbdes_id             BIGINT UNSIGNED NOT NULL,
+  jumlah                DECIMAL(15,2)   NOT NULL,
+  tanggal_pengeluaran   DATE            NOT NULL,
+  keterangan            TEXT            NULL,
+  dokumen               VARCHAR(255)    NULL,      -- File bukti pengeluaran (opsional)
+  no_referensi          VARCHAR(255)    NULL,      -- Nomor kwitansi/referensi
+  user_id               BIGINT UNSIGNED NOT NULL,
+  created_at            TIMESTAMP       NULL,
+  updated_at            TIMESTAMP       NULL,
+  PRIMARY KEY (id),
+  FOREIGN KEY (apbdes_id) REFERENCES apbdes(id)  ON DELETE CASCADE,
+  FOREIGN KEY (user_id)   REFERENCES users(id)   ON DELETE CASCADE
+) ENGINE=InnoDB;
+```
+
+---
+
+### **ASET_KATEGORIS (Kategori Aset)**
+
+```sql
+CREATE TABLE aset_kategoris (
+  id      BIGINT UNSIGNED  NOT NULL AUTO_INCREMENT,
+  kode    VARCHAR(10)      NOT NULL UNIQUE,  -- Kode golongan: 2, 3, 4, 5, 6
+  nama    VARCHAR(100)     NOT NULL,
+  urutan  TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  created_at TIMESTAMP NULL,
+  updated_at TIMESTAMP NULL,
+  PRIMARY KEY (id)
+) ENGINE=InnoDB;
+```
+
+---
+
+### **ASET_BARANGS (Katalog Barang Aset)**
+
+```sql
+CREATE TABLE aset_barangs (
+  id                BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  aset_kategori_id  BIGINT UNSIGNED NOT NULL,
+  kode_barang       VARCHAR(20)  NOT NULL UNIQUE,  -- Format: X.XX.XX.XX
+  nama_barang       VARCHAR(200) NOT NULL,
+  satuan_default    VARCHAR(30)  NULL,              -- m², unit, Buah, Lusin, dll
+  created_at        TIMESTAMP    NULL,
+  updated_at        TIMESTAMP    NULL,
+  deleted_at        TIMESTAMP    NULL,
+  PRIMARY KEY (id),
+  FOREIGN KEY (aset_kategori_id) REFERENCES aset_kategoris(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+```
+
+---
+
+### **ASET_INVENTARIS (Inventaris Aset Desa)**
+
+> [!IMPORTANT]
+> Tabel ini mengalami **redesign total** via migration `2026_05_22_120000`. Versi lama menyimpan data per-tahun. Versi baru (saat ini) menyimpan data aset **permanen per unit**. Semua perubahan kuantitas/nilai dipindah ke tabel `aset_mutasi`.
+
+```sql
+CREATE TABLE aset_inventaris (
+  id                    BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  aset_barang_id        BIGINT UNSIGNED NOT NULL,
+  nama_barang_override  VARCHAR(255) NULL,    -- Nama kustom (override master)
+  satuan                VARCHAR(255) NOT NULL,
+  lokasi                VARCHAR(255) NULL,
+  tanggal_perolehan     DATE         NULL,
+  asal_usul             ENUM('APBDes','Hibah','Aset Asli Desa','Bantuan Pemerintah','Lainnya') NOT NULL DEFAULT 'APBDes',
+  kondisi               ENUM('baik','rusak_ringan','rusak_berat') NOT NULL DEFAULT 'baik',
+  keterangan            TEXT         NULL,
+  created_at            TIMESTAMP    NULL,
+  updated_at            TIMESTAMP    NULL,
+  PRIMARY KEY (id),
+  FOREIGN KEY (aset_barang_id) REFERENCES aset_barangs(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+```
+
+---
+
+### **ASET_MUTASI (Log Mutasi Aset)**
+
+> Tabel baru hasil redesign inventaris. Mencatat setiap transaksi penambahan/pengurangan per semester.
+
+```sql
+CREATE TABLE aset_mutasi (
+  id                  BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  aset_inventaris_id  BIGINT UNSIGNED NOT NULL,
+  tahun               INT         NOT NULL,
+  semester            TINYINT     NOT NULL DEFAULT 1,   -- 1 atau 2
+  tanggal             DATE        NOT NULL,
+  jenis               ENUM('tambah','kurang') NOT NULL,
+  kwantitas           DECIMAL(15,2) NOT NULL DEFAULT 0,
+  nilai               DECIMAL(20,2) NOT NULL DEFAULT 0,
+  keterangan          VARCHAR(255) NULL,
+  created_at          TIMESTAMP    NULL,
+  updated_at          TIMESTAMP    NULL,
+  PRIMARY KEY (id),
+  FOREIGN KEY (aset_inventaris_id) REFERENCES aset_inventaris(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+```
+
+---
+
+### **PENDUDUK_DOMISILIS (Warga Domisili Sementara)**
+
+> Data warga pendatang yang tinggal sementara di desa (bukan penduduk KTP desa). Berbeda dari tabel `penduduks`.
+
+```sql
+CREATE TABLE penduduk_domisilis (
+  id                    BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  nik                   VARCHAR(16)  NOT NULL,
+  nama                  VARCHAR(255) NOT NULL,
+  tempat_lahir          VARCHAR(255) NULL,
+  tanggal_lahir         DATE         NULL,
+  jenis_kelamin         VARCHAR(20)  NOT NULL,
+  agama                 VARCHAR(255) NULL,
+  status_perkawinan     VARCHAR(100) NULL,
+  pekerjaan             VARCHAR(255) NULL,
+  asal_daerah           VARCHAR(255) NULL,
+  alamat_asal           TEXT         NULL,
+  rt_id                 BIGINT UNSIGNED NULL,
+  rw_id                 BIGINT UNSIGNED NULL,
+  dusun_id              BIGINT UNSIGNED NULL,
+  alamat_tinggal        TEXT         NULL,
+  keperluan_domisili    VARCHAR(255) NULL,
+  tanggal_masuk         DATE         NOT NULL,
+  tanggal_berlaku       DATE         NOT NULL,
+  status                ENUM('aktif','expired','dicabut') NOT NULL DEFAULT 'aktif',
+  perpanjangan_ke       INT UNSIGNED NOT NULL DEFAULT 0,
+  nomor_surat           VARCHAR(255) NULL,
+  surat_pengajuan_id    BIGINT UNSIGNED NULL,
+  catatan               TEXT         NULL,
+  created_by            BIGINT UNSIGNED NULL,
+  deleted_at            TIMESTAMP    NULL,
+  created_at            TIMESTAMP    NULL,
+  updated_at            TIMESTAMP    NULL,
+  PRIMARY KEY (id),
+  INDEX idx_nik (nik),
+  INDEX idx_status (status),
+  INDEX idx_berlaku (tanggal_berlaku),
+  FOREIGN KEY (rt_id)      REFERENCES rts(id)             ON DELETE SET NULL,
+  FOREIGN KEY (rw_id)      REFERENCES rws(id)             ON DELETE SET NULL,
+  FOREIGN KEY (dusun_id)   REFERENCES dusuns(id)          ON DELETE SET NULL,
+  FOREIGN KEY (created_by) REFERENCES users(id)           ON DELETE SET NULL,
+  FOREIGN KEY (surat_pengajuan_id) REFERENCES surat_pengajuans(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+```
+
+---
+
+> **📅 Terakhir Diperbarui:** 31 Mei 2026 — v1.9.1-beta
