@@ -15,7 +15,7 @@ import noDataAnimation from '@/assets/lottie/no-data-animation.json';
 
 const LottieComponent = Lottie?.default || Lottie;
 
-export default function Index({ auth, filters = {}, proyek, stats }) {
+export default function Index({ auth, filters = {}, proyek, stats, tahunList = [] }) {
     const [selectedProyek, setSelectedProyek] = useState(null);
 
     return (
@@ -51,7 +51,7 @@ export default function Index({ auth, filters = {}, proyek, stats }) {
                 {/* Filters */}
                 <KeuanganFilters
                     filters={filters}
-                    tahunList={[]}
+                    tahunList={tahunList}
                     routeName="transparansi-desa.proyek"
                     showSumberDana={false}
                     showJenis={true}

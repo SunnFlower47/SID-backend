@@ -36,7 +36,7 @@ export default function Index({ auth, testimonis, stats, filters }) {
     };
 
     const handleStatusUpdate = (id, status) => {
-        router.post(route('testimoni.update-status', id), { status }, {
+        router.patch(route('testimoni.update-status', id), { status }, {
             preserveScroll: true,
             onSuccess: () => {
                 Swal.fire({
@@ -148,9 +148,6 @@ export default function Index({ auth, testimonis, stats, filters }) {
                                                     )}
                                                     <Link href={route('testimoni.show', item.id)} className="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-colors text-left">
                                                         <Eye className="w-4 h-4 text-left" />
-                                                    </Link>
-                                                    <Link href={route('testimoni.edit', item.id)} className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 text-gray-600 hover:bg-gray-800 hover:text-white transition-colors text-left">
-                                                        <Edit2 className="w-4 h-4 text-left" />
                                                     </Link>
                                                     <button onClick={() => handleDelete(item.id, item.nama)} className="w-8 h-8 flex items-center justify-center rounded-lg bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition-colors text-left">
                                                         <Trash2 className="w-4 h-4 text-left" />

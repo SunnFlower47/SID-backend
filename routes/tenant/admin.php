@@ -26,7 +26,7 @@ Route::middleware([])->group(function () {
     Route::delete('/settings/roles/{role}', [SettingsController::class, 'deleteRole'])->name('settings.roles.delete');
     Route::post('/settings/clear-cache', function() {
         Artisan::call('cache:clear');
-        return response()->json(['success' => true, 'message' => 'Cache berhasil dibersihkan!']);
+        return redirect()->back()->with('success', 'Cache berhasil dibersihkan!');
     })->name('settings.clear-cache');
 
     // Trash

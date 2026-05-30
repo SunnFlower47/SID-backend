@@ -70,25 +70,7 @@ class TestimoniController extends Controller
     {
         Gate::authorize('surat.view');
 
-        $masterRwOptions = Rw::with('rts')->orderBy('kode')->get()->map(function($rw) {
-            return [
-                'id' => $rw->id,
-                'kode' => $rw->kode,
-                'nama' => $rw->nama,
-                'rts' => $rw->rts->map(function($rt) {
-                    return [
-                        'id' => $rt->id,
-                        'kode' => $rt->kode,
-                        'dusun_id' => $rt->dusun_id,
-                        'dusun' => optional($rt->dusun)->nama
-                    ];
-                })
-            ];
-        });
-
-        return Inertia::render('Tenant/Testimoni/Create', [
-            'masterRwOptions' => $masterRwOptions
-        ]);
+        return Inertia::render('Tenant/Testimoni/Create');
     }
 
     /**
@@ -102,9 +84,6 @@ class TestimoniController extends Controller
             'nama' => 'required|string|max:255',
             'email' => 'nullable|email|max:255',
             'telepon' => 'nullable|string|max:20',
-            'rt_id' => 'required|exists:rts,id',
-            'rw_id' => 'required|exists:rws,id',
-            'dusun_id' => 'required|exists:dusuns,id',
             'testimoni' => 'required|string',
             'rating' => 'nullable|integer|min:1|max:5',
             'kategori' => 'nullable|string|max:100',
@@ -115,9 +94,6 @@ class TestimoniController extends Controller
             'nama' => $request->nama,
             'email' => $request->email,
             'telepon' => $request->telepon,
-            'rt_id' => $request->rt_id,
-            'rw_id' => $request->rw_id,
-            'dusun_id' => $request->dusun_id,
             'testimoni' => $request->testimoni,
             'rating' => $request->rating,
             'kategori' => $request->kategori,
@@ -138,77 +114,11 @@ class TestimoniController extends Controller
     {
         Gate::authorize('surat.view');
         return Inertia::render('Tenant/Testimoni/Show', [
-            'testimoni' => $testimoni->load(['rt', 'rw', 'dusun'])
+            'testimoni' => $testimoni
         ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Testimoni $testimoni)
-    {
-        Gate::authorize('surat.view');
 
-        $masterRwOptions = Rw::with('rts')->orderBy('kode')->get()->map(function($rw) {
-            return [
-                'id' => $rw->id,
-                'kode' => $rw->kode,
-                'nama' => $rw->nama,
-                'rts' => $rw->rts->map(function($rt) {
-                    return [
-                        'id' => $rt->id,
-                        'kode' => $rt->kode,
-                        'dusun_id' => $rt->dusun_id,
-                        'dusun' => optional($rt->dusun)->nama
-                    ];
-                })
-            ];
-        });
-
-        return Inertia::render('Tenant/Testimoni/Edit', [
-            'testimoni' => $testimoni,
-            'masterRwOptions' => $masterRwOptions
-        ]);
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Testimoni $testimoni)
-    {
-        Gate::authorize('surat.view');
-
-        $request->validate([
-            'nama' => 'required|string|max:255',
-            'email' => 'nullable|email|max:255',
-            'telepon' => 'nullable|string|max:20',
-            'rt_id' => 'required|exists:rts,id',
-            'rw_id' => 'required|exists:rws,id',
-            'dusun_id' => 'required|exists:dusuns,id',
-            'testimoni' => 'required|string',
-            'rating' => 'nullable|integer|min:1|max:5',
-            'kategori' => 'nullable|string|max:100',
-            'status' => 'required|in:pending,approved,rejected',
-            'is_anonymous' => 'boolean',
-        ]);
-
-        $testimoni->update([
-            'nama' => $request->nama,
-            'email' => $request->email,
-            'telepon' => $request->telepon,
-            'rt_id' => $request->rt_id,
-            'rw_id' => $request->rw_id,
-            'dusun_id' => $request->dusun_id,
-            'testimoni' => $request->testimoni,
-            'rating' => $request->rating,
-            'kategori' => $request->kategori,
-            'status' => $request->status,
-            'is_anonymous' => $request->boolean('is_anonymous'),
-        ]);
-
-        return redirect()->route('testimoni.index')
-            ->with('success', 'Testimoni berhasil diperbarui.');
-    }
 
     /**
      * Remove the specified resource from storage.

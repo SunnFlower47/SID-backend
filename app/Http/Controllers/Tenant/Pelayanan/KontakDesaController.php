@@ -204,6 +204,8 @@ class KontakDesaController extends Controller
                 Storage::disk('public')->delete($kontakDesa->foto);
             }
             $data['foto'] = $request->file('foto')->store('kontak-desa', 'public');
+        } else {
+            unset($data['foto']);
         }
 
         $kontakDesa->update($data);

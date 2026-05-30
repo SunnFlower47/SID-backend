@@ -34,11 +34,11 @@ class TransparansiDesaController extends Controller
                 'total_pendapatan'     => (float) Apbdes::disetujui()->tahun($tahun)->jenis('pendapatan')->sum('anggaran'),
                 'total_belanja'        => (float) Apbdes::disetujui()->tahun($tahun)->jenis('belanja')->sum('anggaran'),
                 'total_pembiayaan'     => (float) Apbdes::disetujui()->tahun($tahun)->jenis('pembiayaan')->sum('anggaran'),
-                'total_proyek'         => ProyekDesa::count(),
-                'proyek_aktif'         => ProyekDesa::aktif()->count(),
-                'proyek_selesai'       => ProyekDesa::status('selesai')->count(),
-                'total_anggaran_proyek'=> (float) ProyekDesa::sum('anggaran'),
-                'total_realisasi_proyek'=> (float) ProyekDesa::sum('realisasi'),
+                'total_proyek'         => ProyekDesa::whereYear('tanggal_mulai', $tahun)->count(),
+                'proyek_aktif'         => ProyekDesa::whereYear('tanggal_mulai', $tahun)->aktif()->count(),
+                'proyek_selesai'       => ProyekDesa::whereYear('tanggal_mulai', $tahun)->status('selesai')->count(),
+                'total_anggaran_proyek'=> (float) ProyekDesa::whereYear('tanggal_mulai', $tahun)->sum('anggaran'),
+                'total_realisasi_proyek'=> (float) ProyekDesa::whereYear('tanggal_mulai', $tahun)->sum('realisasi'),
             ]),
 
             'apbdesByJenis' => Inertia::defer(fn () =>
@@ -57,6 +57,7 @@ class TransparansiDesaController extends Controller
 
             'proyekByStatus' => Inertia::defer(fn () =>
                 ProyekDesa::select('status', DB::raw('COUNT(*) as total'))
+                    ->whereYear('tanggal_mulai', $tahun)
                     ->groupBy('status')
                     ->get()
                     ->map(fn ($item) => [
@@ -74,7 +75,8 @@ class TransparansiDesaController extends Controller
             ),
 
             'recentProyek' => Inertia::defer(fn () =>
-                ProyekDesa::orderBy('created_at', 'desc')
+                ProyekDesa::whereYear('tanggal_mulai', $tahun)
+                    ->orderBy('created_at', 'desc')
                     ->limit(5)
                     ->get()
             ),
@@ -132,15 +134,20 @@ class TransparansiDesaController extends Controller
      */
     public function proyek(Request $request)
     {
+        $tahun  = $request->get('tahun', date('Y'));
         $status = $request->get('status', '');
         $jenis  = $request->get('jenis', '');
         $search = $request->get('search', '');
 
+        $tahunList = Apbdes::select('tahun')->distinct()->orderBy('tahun', 'desc')->pluck('tahun');
+
         return Inertia::render('Tenant/Keuangan/Proyek/Index', [
-            'filters' => $request->only(['status', 'jenis', 'search']),
+            'filters' => $request->only(['tahun', 'status', 'jenis', 'search']),
+            'tahunList' => $tahunList,
 
             'proyek' => Inertia::defer(fn () =>
                 ProyekDesa::query()
+                    ->whereYear('tanggal_mulai', $tahun)
                     ->when($status, fn ($q) => $q->status($status))
                     ->when($jenis,  fn ($q) => $q->jenis($jenis))
                     ->when($search, fn ($q) => $q->where('nama_proyek', 'like', "%{$search}%")
@@ -152,11 +159,11 @@ class TransparansiDesaController extends Controller
             ),
 
             'stats' => Inertia::defer(fn () => [
-                'total_proyek'          => ProyekDesa::count(),
-                'proyek_aktif'          => ProyekDesa::aktif()->count(),
-                'proyek_selesai'        => ProyekDesa::status('selesai')->count(),
-                'total_anggaran_proyek' => (float) ProyekDesa::sum('anggaran'),
-                'total_realisasi_proyek'=> (float) ProyekDesa::sum('realisasi'),
+                'total_proyek'          => ProyekDesa::whereYear('tanggal_mulai', $tahun)->count(),
+                'proyek_aktif'          => ProyekDesa::whereYear('tanggal_mulai', $tahun)->aktif()->count(),
+                'proyek_selesai'        => ProyekDesa::whereYear('tanggal_mulai', $tahun)->status('selesai')->count(),
+                'total_anggaran_proyek' => (float) ProyekDesa::whereYear('tanggal_mulai', $tahun)->sum('anggaran'),
+                'total_realisasi_proyek'=> (float) ProyekDesa::whereYear('tanggal_mulai', $tahun)->sum('realisasi'),
             ]),
         ]);
     }

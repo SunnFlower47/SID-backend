@@ -1,6 +1,7 @@
 import React from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { PageHeader } from '@/Components/Shared';
 import { MessageSquare, ArrowLeft, Edit, User, Mail, Phone, MapPin, Star, Clock, CheckCircle, XCircle, Trash2 } from 'lucide-react';
 import Swal from 'sweetalert2';
 
@@ -66,40 +67,12 @@ export default function Show({ auth, testimoni }) {
 
             <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-700 pb-20">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-indigo-600 via-indigo-700 to-indigo-900 rounded-[2.5rem] shadow-xl p-6 sm:p-8 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl pointer-events-none" />
-                    <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-                        <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-inner shrink-0 transform -rotate-6">
-                                <MessageSquare className="w-6 h-6 sm:w-7 sm:h-7 text-indigo-50" />
-                            </div>
-                            <div>
-                                <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight uppercase italic leading-none">
-                                    Detail Testimoni
-                                </h1>
-                                <p className="text-indigo-100 font-bold text-[10px] sm:text-xs uppercase tracking-widest mt-1 opacity-80">
-                                    ID: #{testimoni.id.toString().padStart(5, '0')} • {formatDateTime(testimoni.created_at)}
-                                </p>
-                            </div>
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                            <Link
-                                href={route('testimoni.index')}
-                                className="flex items-center px-4 py-2.5 bg-white/20 hover:bg-white/30 backdrop-blur-md border border-white/20 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
-                            >
-                                <ArrowLeft className="w-3.5 h-3.5 mr-2" />
-                                KEMBALI
-                            </Link>
-                            <Link
-                                href={route('testimoni.edit', testimoni.id)}
-                                className="flex items-center px-4 py-2.5 bg-white text-indigo-700 hover:bg-indigo-50 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg"
-                            >
-                                <Edit className="w-3.5 h-3.5 mr-2" />
-                                EDIT
-                            </Link>
-                        </div>
-                    </div>
-                </div>
+                <PageHeader
+                    title="Detail Testimoni"
+                    subtitle={`ID: #${testimoni.id.toString().padStart(5, '0')} • ${formatDateTime(testimoni.created_at)}`}
+                    icon={MessageSquare}
+                    backHref={route('testimoni.index')}
+                />
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
                     {/* Main Content */}
@@ -182,17 +155,6 @@ export default function Show({ auth, testimoni }) {
                                     <div className="overflow-hidden">
                                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Telepon</p>
                                         <p className="text-sm font-bold text-gray-900">{testimoni.telepon || '—'}</p>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-4 py-3">
-                                    <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center shrink-0">
-                                        <MapPin className="w-5 h-5 text-indigo-600" />
-                                    </div>
-                                    <div className="overflow-hidden">
-                                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Wilayah</p>
-                                        <p className="text-sm font-bold text-gray-900 truncate">
-                                            RT {testimoni.rt?.kode} RW {testimoni.rw?.kode}, {testimoni.dusun?.nama}
-                                        </p>
                                     </div>
                                 </div>
                             </div>

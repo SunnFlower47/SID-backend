@@ -175,6 +175,9 @@ class BeritaController extends Controller
             if ($uploadPath) {
                 $data['gambar'] = $uploadPath;
             }
+        } else {
+            // Prevent overwriting existing image with null if no new image is uploaded
+            unset($data['gambar']);
         }
 
         if ($request->status === 'published' && !$berita->published_at) {

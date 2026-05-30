@@ -130,6 +130,8 @@ class FasilitasDesaController extends Controller
             if ($uploadPath) {
                 $data['foto'] = $uploadPath;
             }
+        } else {
+            unset($data['foto']);
         }
 
         $fasilitasDesa->update($data);

@@ -157,26 +157,18 @@ class AnggaranController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validasi gagal',
-                'errors' => $validator->errors()
-            ], 422);
+            return redirect()->back()->withErrors($validator)->withInput();
         }
 
         try {
-            $result = $this->anggaranService->updateRealisasiProyek($proyek, $request->only(['realisasi']));
+            $this->anggaranService->updateRealisasiProyek($proyek, $request->only(['realisasi']));
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Realisasi proyek berhasil diperbarui',
-                'data' => $result
-            ]);
+            return redirect()->back()
+                ->with('success', 'Realisasi proyek berhasil diperbarui');
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
-            ], 500);
+            return redirect()->back()
+                ->withErrors(['error' => 'Terjadi kesalahan: ' . $e->getMessage()])
+                ->withInput();
         }
     }
 

@@ -86,10 +86,7 @@ Route::middleware([])->group(function () {
         Route::get('/create', 'create')->name('create');
         Route::post('/', 'store')->name('store');
         Route::get('/{testimoni}', 'show')->name('show');
-        Route::get('/{testimoni}/edit', 'edit')->name('edit');
-        Route::put('/{testimoni}', 'update')->name('update');
         Route::delete('/{testimoni}', 'destroy')->name('destroy');
-        Route::patch('/{testimoni}/approve', 'approve')->name('approve');
-        Route::patch('/{testimoni}/reject', 'reject')->name('reject');
+        Route::patch('/{testimoni}/status', 'updateStatus')->name('update-status');
     });
 });

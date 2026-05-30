@@ -138,7 +138,8 @@ class UmkmController extends Controller
         if ($request->hasFile('foto_usaha')) {
             // Delete old photos
             if ($umkm->foto_usaha) {
-                foreach ($umkm->foto_usaha as $foto) {
+                $oldFotos = is_array($umkm->foto_usaha) ? $umkm->foto_usaha : (is_string($umkm->foto_usaha) ? json_decode($umkm->foto_usaha, true) ?? [$umkm->foto_usaha] : []);
+                foreach ($oldFotos as $foto) {
                     $this->fileUploadService->delete($foto);
                 }
             }
@@ -151,6 +152,9 @@ class UmkmController extends Controller
                 }
             }
             $data['foto_usaha'] = $fotoPaths;
+        } else {
+            // Prevent overwriting existing photos with empty array if no new photos are uploaded
+            unset($data['foto_usaha']);
         }
 
         $umkm->update($data);
@@ -164,7 +168,8 @@ class UmkmController extends Controller
     {
         // Delete photos
         if ($umkm->foto_usaha) {
-            foreach ($umkm->foto_usaha as $foto) {
+            $oldFotos = is_array($umkm->foto_usaha) ? $umkm->foto_usaha : (is_string($umkm->foto_usaha) ? json_decode($umkm->foto_usaha, true) ?? [$umkm->foto_usaha] : []);
+            foreach ($oldFotos as $foto) {
                 $this->fileUploadService->delete($foto);
             }
         }

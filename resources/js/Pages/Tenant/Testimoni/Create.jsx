@@ -4,27 +4,11 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { PageHeader, FormCard, FormField } from '@/Components/Shared';
 import { MessageSquare, Save, User, MapPin, Star } from 'lucide-react';
 
-export default function Create({ auth, masterRwOptions }) {
+export default function Create({ auth }) {
     const { data, setData, post, processing, errors } = useForm({
-        nama: '', email: '', telepon: '', rw_id: '', rt_id: '', dusun_id: '',
+        nama: '', email: '', telepon: '',
         testimoni: '', rating: 5, kategori: 'umum', is_anonymous: false,
     });
-
-    const [availableRts, setAvailableRts] = useState([]);
-
-    useEffect(() => {
-        if (data.rw_id) {
-            const selectedRw = masterRwOptions.find(rw => rw.id === parseInt(data.rw_id));
-            setAvailableRts(selectedRw?.rts || []);
-        } else {
-            setAvailableRts([]);
-        }
-    }, [data.rw_id]);
-
-    const handleRtChange = (rtId) => {
-        const selectedRt = availableRts.find(rt => rt.id === parseInt(rtId));
-        setData(prev => ({ ...prev, rt_id: rtId, dusun_id: selectedRt ? selectedRt.dusun_id : '' }));
-    };
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -122,33 +106,7 @@ export default function Create({ auth, masterRwOptions }) {
                             </div>
                         </FormCard>
 
-                        <FormCard title="Lokasi / Wilayah" icon={MapPin} compact>
-                            <div className="space-y-4 text-left">
-                                <FormField.Select
-                                    value={data.rw_id}
-                                    onChange={e => setData('rw_id', e.target.value)}
-                                    options={[
-                                        { value: '', label: 'PILIH RW' },
-                                        ...masterRwOptions.map(rw => ({
-                                            value: rw.id,
-                                            label: `RW ${rw.kode} - ${rw.nama}`
-                                        }))
-                                    ]}
-                                />
-                                <FormField.Select
-                                    value={data.rt_id}
-                                    onChange={e => handleRtChange(e.target.value)}
-                                    disabled={!data.rw_id}
-                                    options={[
-                                        { value: '', label: 'PILIH RT' },
-                                        ...availableRts.map(rt => ({
-                                            value: rt.id,
-                                            label: `RT ${rt.kode}`
-                                        }))
-                                    ]}
-                                />
-                            </div>
-                        </FormCard>
+
                     </div>
                 </form>
             </div>

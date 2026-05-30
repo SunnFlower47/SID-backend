@@ -88,6 +88,27 @@ export default function Dashboard({ auth, tahun, tahunList = [], stats, apbdesBy
                     </select>
                 </PageHeader>
 
+                {/* ── Quick Actions ────────────────────────── */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                    {[
+                        { label: 'Tambah Anggaran',  desc: 'Input rekening APBDes baru',      href: route('anggaran.create-tahunan'),       color: 'green'  },
+                        { label: 'Catat Pengeluaran',desc: 'Realisasi rekening anggaran',      href: route('anggaran.create-pengeluaran'),   color: 'blue'   },
+                        { label: 'Buat Proyek',      desc: 'Tambah proyek desa baru',          href: route('anggaran.create-proyek'),        color: 'orange' },
+                        { label: 'Persetujuan BPD',  desc: 'Pengesahan Perdes APBDes',         href: route('peraturan-desa.index'),          color: 'teal'   },
+                        { label: 'Cetak Laporan',    desc: 'PDF Realisasi & Buku Kas',         href: route('laporan-keuangan.index'),        color: 'purple' },
+                    ].map((action) => (
+                        <Link key={action.label} href={action.href}
+                            className="flex items-center justify-between p-5 bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all group"
+                        >
+                            <div>
+                                <p className="text-xs font-black text-gray-900 uppercase italic tracking-tighter">{action.label}</p>
+                                <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">{action.desc}</p>
+                            </div>
+                            <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-green-500 group-hover:translate-x-1 transition-all" />
+                        </Link>
+                    ))}
+                </div>
+
                 {/* ── Stats Cards ─────────────────────────── */}
                 <Deferred data="stats" fallback={<SkeletonStats />}>
                     <KeuanganStats stats={stats} />
@@ -267,26 +288,7 @@ export default function Dashboard({ auth, tahun, tahunList = [], stats, apbdesBy
                     </Deferred>
                 </div>
 
-                {/* ── Quick Actions ────────────────────────── */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-                    {[
-                        { label: 'Tambah Anggaran',  desc: 'Input rekening APBDes baru',      href: route('anggaran.create-tahunan'),       color: 'green'  },
-                        { label: 'Catat Pengeluaran',desc: 'Realisasi rekening anggaran',      href: route('anggaran.create-pengeluaran'),   color: 'blue'   },
-                        { label: 'Buat Proyek',      desc: 'Tambah proyek desa baru',          href: route('anggaran.create-proyek'),        color: 'orange' },
-                        { label: 'Persetujuan BPD',  desc: 'Pengesahan Perdes APBDes',         href: route('peraturan-desa.index'),          color: 'teal'   },
-                        { label: 'Cetak Laporan',    desc: 'PDF Realisasi & Buku Kas',         href: route('laporan-keuangan.index'),        color: 'purple' },
-                    ].map((action) => (
-                        <Link key={action.label} href={action.href}
-                            className="flex items-center justify-between p-5 bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all group"
-                        >
-                            <div>
-                                <p className="text-xs font-black text-gray-900 uppercase italic tracking-tighter">{action.label}</p>
-                                <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">{action.desc}</p>
-                            </div>
-                            <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-green-500 group-hover:translate-x-1 transition-all" />
-                        </Link>
-                    ))}
-                </div>
+
 
             </div>
         </AuthenticatedLayout>

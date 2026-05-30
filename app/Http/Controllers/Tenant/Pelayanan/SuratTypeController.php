@@ -131,6 +131,8 @@ class SuratTypeController extends Controller
         if ($request->hasFile('file_template')) {
             $path = $request->file('file_template')->store('templates/surat', 'local');
             $validated['file_template'] = basename($path);
+        } else {
+            unset($validated['file_template']);
         }
 
         // Pastikan form_json terupdate meskipun kosong (dihapus semua)

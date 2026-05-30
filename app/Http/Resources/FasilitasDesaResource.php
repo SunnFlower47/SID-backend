@@ -26,11 +26,15 @@ class FasilitasDesaResource extends JsonResource
             'nama' => $this->nama,
             'jenis' => $this->jenis,
             'alamat' => $this->alamat,
-            'koordinat' => [
-                'lat' => $this->latitude,
-                'lng' => $this->longitude,
-            ],
-            'keterangan' => $this->keterangan,
+            'latitude' => $this->latitude,
+            'longitude' => $this->longitude,
+            'deskripsi' => $this->deskripsi ?? $this->keterangan,
+            'kontak' => $this->kontak,
+            'jam_operasional' => $this->jam_operasional,
+            'foto' => $this->foto,
+            'rt_label' => $this->rt_label,
+            'rw_label' => $this->rw_label,
+            'dusun_label' => $this->dusun_label,
         ];
     }
 }

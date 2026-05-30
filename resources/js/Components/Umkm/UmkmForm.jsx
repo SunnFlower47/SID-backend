@@ -1,5 +1,5 @@
 import React from 'react';
-import { useForm, Link } from '@inertiajs/react';
+import { useForm, Link, usePage } from '@inertiajs/react';
 import { 
     Store, User, MapPin, Phone, 
     Save, X, Image as ImageIcon,
@@ -7,11 +7,16 @@ import {
     Star, ShieldCheck, Mail, Calendar,
     Users, LayoutGrid
 } from 'lucide-react';
-import { FormCard, FormField } from '@/Components/Shared';
+import { FormCard, FormField, MapPicker } from '@/Components/Shared';
 import Swal from 'sweetalert2';
 import { cn } from '@/lib/utils';
 
 export default function UmkmForm({ umkm = null, jenisOptions = [], wilayah = {}, isEdit = false }) {
+    const { desa_settings } = usePage().props;
+    const kantorDesa = desa_settings?.latitude && desa_settings?.longitude 
+        ? { lat: parseFloat(desa_settings.latitude), lng: parseFloat(desa_settings.longitude) } 
+        : null;
+
     const { data, setData, post, processing, errors, clearErrors } = useForm({
         _method: isEdit ? 'PUT' : 'POST',
         nama_usaha: umkm?.nama_usaha ?? '',
@@ -21,13 +26,15 @@ export default function UmkmForm({ umkm = null, jenisOptions = [], wilayah = {},
         dusun_id: umkm?.dusun_id ?? '',
         rw_id: umkm?.rw_id ?? '',
         rt_id: umkm?.rt_id ?? '',
+        latitude: umkm?.latitude ?? (kantorDesa ? kantorDesa.lat.toString() : ''),
+        longitude: umkm?.longitude ?? (kantorDesa ? kantorDesa.lng.toString() : ''),
         no_telepon: umkm?.no_telepon ?? '',
         email: umkm?.email ?? '',
         jenis_usaha: umkm?.jenis_usaha ?? '',
         deskripsi_usaha: umkm?.deskripsi_usaha ?? '',
         jumlah_karyawan: umkm?.jumlah_karyawan ?? 0,
         status_usaha: umkm?.status_usaha ?? 'aktif',
-        tanggal_berdiri: umkm?.tanggal_berdiri ? new Date(umkm.tanggal_berdiri).toISOString().split('T')[0] : '',
+        tanggal_berdiri: umkm?.tanggal_berdiri && !isNaN(new Date(umkm.tanggal_berdiri)) ? new Date(umkm.tanggal_berdiri).toISOString().split('T')[0] : '',
         is_unggulan: umkm ? !!umkm.is_unggulan : false,
         is_verified: umkm ? !!umkm.is_verified : false,
         foto_usaha: [], // Array for new uploads
@@ -177,8 +184,38 @@ export default function UmkmForm({ umkm = null, jenisOptions = [], wilayah = {},
                             value={data.dusun_id}
                             onChange={e => setData('dusun_id', e.target.value)}
                             error={errors.dusun_id}
-                            options={[{ value: '', label: 'Semua Dusun' }, ...(wilayah.dusun?.map(d => ({ value: d.id, label: d.nama.toUpperCase() })) || [])]}
+                            options={[{ value: '', label: 'Semua Dusun' }, ...(wilayah.dusun?.map(d => ({ value: d.id, label: (d.nama || '').toUpperCase() })) || [])]}
                         />
+                    </FormCard>
+
+                    <FormCard icon={MapPin} title="Titik Koordinat Peta">
+                        <div className="space-y-4 text-left">
+                            <MapPicker 
+                                value={{ latitude: data.latitude, longitude: data.longitude }}
+                                onChange={(pos) => {
+                                    setData(prev => ({ ...prev, latitude: pos.latitude, longitude: pos.longitude }));
+                                }}
+                                kantorDesa={kantorDesa}
+                                geojsonUrl={desa_settings?.geojson_filename ? `/storage/${desa_settings.geojson_filename}` : null}
+                                height="250px"
+                            />
+                            <div className="grid grid-cols-2 gap-4 text-left">
+                                <FormField.Input
+                                    label="Latitude"
+                                    value={data.latitude}
+                                    onChange={e => setData('latitude', e.target.value)}
+                                    error={errors.latitude}
+                                    placeholder="-6.xxx"
+                                />
+                                <FormField.Input
+                                    label="Longitude"
+                                    value={data.longitude}
+                                    onChange={e => setData('longitude', e.target.value)}
+                                    error={errors.longitude}
+                                    placeholder="107.xxx"
+                                />
+                            </div>
+                        </div>
                     </FormCard>
 
                     <FormCard icon={Star} title="Atribut Khusus">
@@ -222,7 +259,7 @@ export default function UmkmForm({ umkm = null, jenisOptions = [], wilayah = {},
                                             <img key={i} src={URL.createObjectURL(file)} className="w-full h-full object-cover border-none" />
                                         ))}
                                     </div>
-                                ) : (umkm?.foto_usaha && umkm.foto_usaha.length > 0 && (
+                                ) : (umkm?.foto_usaha && Array.isArray(umkm.foto_usaha) && umkm.foto_usaha.length > 0 && (
                                     <div className="grid grid-cols-2 w-full h-full text-left">
                                         {umkm.foto_usaha.slice(0, 4).map((foto, i) => (
                                             <img key={i} src={`/storage/${foto}`} className="w-full h-full object-cover border-none text-left" />
