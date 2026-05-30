@@ -10,7 +10,8 @@ import {
     Heart, Map, Building, Building2, Landmark, Tent, Globe, Book, 
     BookOpen, Backpack, Calculator, HardHat, Baby, Accessibility, 
     Cross, Syringe, Gavel, ShieldCheck, Lock, Key, FileWarning, Inbox, 
-    Send, Archive, Printer, QrCode, Image, Camera
+    Send, Archive, Printer, QrCode, Image, Camera,
+    Eye, AlertTriangle, CheckCircle2, HelpCircle as HelpCircleIcon, Loader2
 } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -54,7 +55,29 @@ export default function Form({ auth, suratType = null }) {
     });
 
     const [showIconPicker, setShowIconPicker] = useState(false);
-    const [searchIcon, setSearchIcon] = useState('');
+    const [searchIcon, setSearchIcon]         = useState('');
+    const [editingOrder, setEditingOrder]     = useState(null);
+    const [previewModal, setPreviewModal]     = useState(false);
+    const [previewData, setPreviewData]       = useState(null);   // { variables, total, file, ... }
+    const [previewLoading, setPreviewLoading] = useState(false);
+    const [previewError, setPreviewError]     = useState(null);
+
+    const fetchPreview = async () => {
+        if (!suratType?.id) return;
+        setPreviewLoading(true);
+        setPreviewError(null);
+        setPreviewModal(true);
+        try {
+            const res = await fetch(route('admin.surat-type.preview-template', suratType.id));
+            const json = await res.json();
+            if (!res.ok) throw new Error(json.error || 'Gagal memuat preview.');
+            setPreviewData(json);
+        } catch (e) {
+            setPreviewError(e.message);
+        } finally {
+            setPreviewLoading(false);
+        }
+    };
 
     const iconList = [
         // Umum & Dokumen
@@ -132,6 +155,7 @@ export default function Form({ auth, suratType = null }) {
 
         // FIRST: rekam posisi sebelum swap
         pendingFlip.current = {
+            type: 'swap',
             fromRect: cardRefs.current[index]?.getBoundingClientRect(),
             toRect: cardRefs.current[targetIndex]?.getBoundingClientRect(),
             fromIndex: index,
@@ -143,41 +167,63 @@ export default function Form({ auth, suratType = null }) {
         setData('form_json', newFields);
     };
 
+    // Pindah ke posisi tertentu (dari input angka langsung)
+    const moveToPosition = (fromIndex, toIndex) => {
+        if (fromIndex === toIndex) return;
+
+        // Rekam semua posisi card sebelum move
+        pendingFlip.current = {
+            type: 'move',
+            allRects: data.form_json.map((_, i) => cardRefs.current[i]?.getBoundingClientRect()),
+        };
+
+        const newFields = [...data.form_json];
+        const [moved] = newFields.splice(fromIndex, 1);
+        newFields.splice(toIndex, 0, moved);
+        setData('form_json', newFields);
+    };
+
     // LAST → INVERT → PLAY  (runs after React commits DOM, before browser paint)
     useLayoutEffect(() => {
         const flip = pendingFlip.current;
-        if (!flip?.fromRect || !flip?.toRect) return;
+        if (!flip) return;
         pendingFlip.current = null;
 
-        // Setelah swap dengan stable key, DOM node berpindah:
-        // element yang tadinya di fromIndex kini ada di toIndex (dan sebaliknya)
-        const movedEl    = cardRefs.current[flip.toIndex];   // element yg diklik naik/turun
-        const displacedEl = cardRefs.current[flip.fromIndex]; // element yg tergeser
-        if (!movedEl || !displacedEl) return;
+        // Helper: terapkan FLIP ke array elemen + delta masing-masing
+        const applyFlip = (els, deltas, duration) => {
+            const valid = els.filter(Boolean);
+            if (!valid.length) return;
+            // INVERT — terapkan posisi lama seketika
+            valid.forEach((el, i) => { el.style.transition = 'none'; el.style.transform = `translateY(${deltas[i]}px)`; });
+            valid[0].getBoundingClientRect(); // force reflow
+            // PLAY — animasikan ke posisi baru
+            const ease = `transform ${duration}ms cubic-bezier(0.4, 0, 0.2, 1)`;
+            valid.forEach(el => { el.style.transition = ease; el.style.transform = ''; });
+            return setTimeout(() => valid.forEach(el => { el.style.transition = ''; el.style.transform = ''; }), duration + 10);
+        };
 
-        // Hitung delta (posisi lama - posisi baru)
-        const fromDelta = flip.fromRect.top - movedEl.getBoundingClientRect().top;
-        const toDelta   = flip.toRect.top   - displacedEl.getBoundingClientRect().top;
-
-        // Terapkan posisi lama seketika (INVERT)
-        movedEl.style.transition    = 'none';
-        displacedEl.style.transition = 'none';
-        movedEl.style.transform    = `translateY(${fromDelta}px)`;
-        displacedEl.style.transform = `translateY(${toDelta}px)`;
-
-        movedEl.getBoundingClientRect(); // force reflow agar transition 'none' efektif
-
-        // Animasikan ke posisi akhir (PLAY)
-        const easing = 'transform 240ms cubic-bezier(0.4, 0, 0.2, 1)';
-        movedEl.style.transition    = easing;
-        displacedEl.style.transition = easing;
-        movedEl.style.transform    = '';
-        displacedEl.style.transform = '';
-
-        const timer = setTimeout(() => {
-            if (movedEl)     { movedEl.style.transition = '';     movedEl.style.transform = ''; }
-            if (displacedEl) { displacedEl.style.transition = ''; displacedEl.style.transform = ''; }
-        }, 260);
+        let timer;
+        if (flip.type === 'swap') {
+            // 2-card swap (tombol panah)
+            const movedEl     = cardRefs.current[flip.toIndex];
+            const displacedEl = cardRefs.current[flip.fromIndex];
+            if (!movedEl || !displacedEl) return;
+            const fromDelta = flip.fromRect.top - movedEl.getBoundingClientRect().top;
+            const toDelta   = flip.toRect.top   - displacedEl.getBoundingClientRect().top;
+            timer = applyFlip([movedEl, displacedEl], [fromDelta, toDelta], 240);
+        } else if (flip.type === 'move') {
+            // Multi-card move (input angka langsung)
+            const els = [], deltas = [];
+            flip.allRects.forEach((oldRect, i) => {
+                const el = cardRefs.current[i];
+                if (!el || !oldRect) return;
+                const delta = oldRect.top - el.getBoundingClientRect().top;
+                if (delta === 0) return; // card tidak bergerak, skip
+                els.push(el);
+                deltas.push(delta);
+            });
+            timer = applyFlip(els, deltas, 280);
+        }
 
         return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -204,7 +250,7 @@ export default function Form({ auth, suratType = null }) {
         { value: 'textarea', label: 'Teks Panjang', icon: <AlignLeft className="w-4 h-4" /> }
     ];
 
-    return (
+    return (<>
         <AuthenticatedLayout user={auth.user} title={isEdit ? 'Edit Jenis Surat' : 'Tambah Jenis Surat'}>
             <Head title={isEdit ? 'Edit Jenis Surat' : 'Tambah Jenis Surat'} />
 
@@ -310,6 +356,17 @@ export default function Form({ auth, suratType = null }) {
                                     <p className="text-[9px] text-gray-400 font-bold uppercase mt-1 ml-1 tracking-widest italic">
                                         * Gunakan variabel seperti {'${nama}'}, {'${nik}'} di dalam file Word.
                                     </p>
+                                    {/* Tombol Preview Variabel — hanya tampil di Edit mode & sudah ada file template */}
+                                    {isEdit && suratType?.file_template && (
+                                        <button
+                                            type="button"
+                                            onClick={fetchPreview}
+                                            className="flex items-center gap-2 mt-2 px-4 py-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all border border-indigo-100"
+                                        >
+                                            <Eye className="w-3.5 h-3.5" />
+                                            PREVIEW VARIABEL TEMPLATE
+                                        </button>
+                                    )}
                                     {errors.file_template && <p className="text-red-500 text-[10px] font-bold uppercase mt-1 ml-1">{errors.file_template}</p>}
                                 </div>
                                 <div className="md:col-span-2 space-y-2">
@@ -404,9 +461,43 @@ export default function Form({ auth, suratType = null }) {
                                             >
                                                 <div className="flex items-center justify-between">
                                                     <div className="flex items-center gap-2">
-                                                        <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center text-[10px] font-black">
-                                                            {fIndex + 1}
-                                                        </div>
+                                                        {/* Badge urutan — klik untuk ketik langsung */}
+                                                        {editingOrder?.index === fIndex ? (
+                                                            <input
+                                                                type="number"
+                                                                min="1"
+                                                                max={data.form_json.length}
+                                                                value={editingOrder.value}
+                                                                autoFocus
+                                                                onChange={e => setEditingOrder({ index: fIndex, value: e.target.value })}
+                                                                onBlur={() => {
+                                                                    const target = parseInt(editingOrder.value, 10) - 1;
+                                                                    if (!isNaN(target) && target >= 0 && target < data.form_json.length) {
+                                                                        moveToPosition(fIndex, target);
+                                                                    }
+                                                                    setEditingOrder(null);
+                                                                }}
+                                                                onKeyDown={e => {
+                                                                    if (e.key === 'Enter') e.target.blur();
+                                                                    if (e.key === 'Escape') setEditingOrder(null);
+                                                                }}
+                                                                className={cn(
+                                                                    "w-8 h-8 rounded-lg text-[10px] font-black text-center border-2 focus:outline-none",
+                                                                    "[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none",
+                                                                    parseInt(editingOrder.value) >= 1 && parseInt(editingOrder.value) <= data.form_json.length
+                                                                        ? "bg-blue-600 text-white border-blue-600 focus:ring-2 focus:ring-blue-300"
+                                                                        : "bg-red-50 text-red-600 border-red-400 focus:ring-2 focus:ring-red-300 animate-pulse"
+                                                                )}
+                                                            />
+                                                        ) : (
+                                                            <div
+                                                                className="w-8 h-8 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center text-[10px] font-black cursor-pointer hover:bg-blue-600 hover:text-white transition-all select-none"
+                                                                title={`Field ke-${fIndex + 1} dari ${data.form_json.length}. Klik untuk ubah urutan.`}
+                                                                onClick={() => setEditingOrder({ index: fIndex, value: fIndex + 1 })}
+                                                            >
+                                                                {fIndex + 1}
+                                                            </div>
+                                                        )}
                                                         <span className="text-[10px] font-black text-gray-900 uppercase tracking-widest">Field Configuration</span>
                                                     </div>
                                                     <div className="flex items-center gap-1">
@@ -702,5 +793,127 @@ export default function Form({ auth, suratType = null }) {
                 </form>
             </div>
         </AuthenticatedLayout>
-    );
+
+        {/* ── Modal Preview Variabel Template ─────────────────────────────── */}
+        {previewModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+                <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+                    {/* Header */}
+                    <div className="flex items-center justify-between p-6 border-b border-gray-100 bg-gradient-to-r from-indigo-50 to-blue-50">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-indigo-600 rounded-2xl flex items-center justify-center">
+                                <Eye className="w-5 h-5 text-white" />
+                            </div>
+                            <div>
+                                <h2 className="text-sm font-black text-gray-900 uppercase tracking-tighter">Preview Variabel Template</h2>
+                                {previewData && (
+                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">
+                                        {previewData.file} &mdash; {previewData.total} variabel ditemukan
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+                        <button onClick={() => { setPreviewModal(false); setPreviewData(null); setPreviewError(null); }}
+                            className="p-2 hover:bg-white rounded-xl transition-all text-gray-400 hover:text-gray-700">
+                            <X className="w-5 h-5" />
+                        </button>
+                    </div>
+
+                    {/* Body */}
+                    <div className="flex-1 overflow-y-auto p-6 space-y-5">
+                        {previewLoading && (
+                            <div className="flex flex-col items-center justify-center py-16 gap-3 text-gray-400">
+                                <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+                                <p className="text-[10px] font-black uppercase tracking-widest">Membaca file template...</p>
+                            </div>
+                        )}
+
+                        {previewError && (
+                            <div className="flex items-start gap-3 p-4 bg-red-50 rounded-2xl border border-red-100">
+                                <AlertTriangle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+                                <p className="text-xs font-bold text-red-600">{previewError}</p>
+                            </div>
+                        )}
+
+                        {previewData && !previewLoading && (() => {
+                            const systemVars  = previewData.variables.filter(v => v.category === 'system');
+                            const formVars    = previewData.variables.filter(v => v.category === 'form');
+                            const unknownVars = previewData.variables.filter(v => v.category === 'unknown');
+
+                            return (
+                                <>
+                                    {/* Legend */}
+                                    <div className="flex flex-wrap gap-2">
+                                        {[
+                                            { color: 'bg-emerald-100 text-emerald-700 border-emerald-200', label: 'Sistem (otomatis)' },
+                                            { color: 'bg-blue-100 text-blue-700 border-blue-200', label: 'Form custom' },
+                                            { color: 'bg-amber-100 text-amber-700 border-amber-200', label: 'Tidak dikenali' },
+                                        ].map(l => (
+                                            <span key={l.label} className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${l.color}`}>{l.label}</span>
+                                        ))}
+                                    </div>
+
+                                    {/* Peringatan jika ada variabel tidak dikenali */}
+                                    {unknownVars.length > 0 && (
+                                        <div className="flex items-start gap-3 p-4 bg-amber-50 rounded-2xl border border-amber-100">
+                                            <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                                            <div>
+                                                <p className="text-[10px] font-black text-amber-700 uppercase tracking-widest">
+                                                    {unknownVars.length} variabel tidak dikenali
+                                                </p>
+                                                <p className="text-[9px] text-amber-600 mt-1">
+                                                    Tambahkan sebagai field di Form Builder, atau pastikan nama variabel sesuai dengan data sistem.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Semua variabel */}
+                                    <div>
+                                        <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-3">Daftar Semua Variabel</p>
+                                        <div className="flex flex-wrap gap-2">
+                                            {previewData.variables.map(v => {
+                                                const styles = {
+                                                    system:  'bg-emerald-50 text-emerald-700 border-emerald-200',
+                                                    form:    'bg-blue-50 text-blue-700 border-blue-200',
+                                                    unknown: 'bg-amber-50 text-amber-700 border-amber-200',
+                                                };
+                                                const icons = {
+                                                    system:  <CheckCircle2 className="w-3 h-3" />,
+                                                    form:    <FileText className="w-3 h-3" />,
+                                                    unknown: <AlertTriangle className="w-3 h-3" />,
+                                                };
+                                                return (
+                                                    <span key={v.name}
+                                                        title={v.label}
+                                                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black border ${styles[v.category]}`}>
+                                                        {icons[v.category]}
+                                                        {'${'}{v.name}{'}'}
+                                                    </span>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+
+                                    {/* Summary */}
+                                    <div className="grid grid-cols-3 gap-3">
+                                        {[
+                                            { count: systemVars.length,  label: 'Sistem',       color: 'text-emerald-600', bg: 'bg-emerald-50 border-emerald-100' },
+                                            { count: formVars.length,    label: 'Form Custom',  color: 'text-blue-600',    bg: 'bg-blue-50 border-blue-100' },
+                                            { count: unknownVars.length, label: 'Tdk Dikenali', color: 'text-amber-600',   bg: 'bg-amber-50 border-amber-100' },
+                                        ].map(s => (
+                                            <div key={s.label} className={`p-4 rounded-2xl border text-center ${s.bg}`}>
+                                                <p className={`text-2xl font-black ${s.color}`}>{s.count}</p>
+                                                <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mt-1">{s.label}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </>
+                            );
+                        })()}
+                    </div>
+                </div>
+            </div>
+        )}
+    </>);
 }

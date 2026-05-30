@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\SuratType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
+use PhpOffice\PhpWord\TemplateProcessor;
 
 class SuratTypeController extends Controller
 {
@@ -147,5 +149,70 @@ class SuratTypeController extends Controller
 
         return redirect()->route('admin.surat-type.index')
             ->with('success', 'Jenis surat berhasil dihapus.');
+    }
+
+    /**
+     * Baca variabel ${...} yang ada di dalam file .docx template.
+     * Menggunakan PhpWord TemplateProcessor::getVariables() — sangat ringan,
+     * hanya scan XML di dalam zip file, tidak ada rendering.
+     */
+    public function previewTemplate(SuratType $suratType)
+    {
+        Gate::authorize('settings.view');
+
+        if (!$suratType->file_template) {
+            return response()->json(['error' => 'Jenis surat ini belum memiliki template Word.'], 422);
+        }
+
+        $templatePath = Storage::disk('local')->path('templates/surat/' . $suratType->file_template);
+
+        if (!file_exists($templatePath)) {
+            return response()->json(['error' => 'File template tidak ditemukan di storage.'], 404);
+        }
+
+        try {
+            $processor  = new TemplateProcessor($templatePath);
+            $variables  = $processor->getVariables(); // ['nama', 'nik', 'alamat', ...]
+            $variables  = array_values(array_unique($variables));
+            sort($variables);
+
+            // Variabel yang selalu tersedia dari sistem (data penduduk + desa)
+            $systemVars = [
+                'nama', 'nik', 'tempat_lahir', 'tanggal_lahir', 'jenis_kelamin',
+                'agama', 'pekerjaan', 'kewarganegaraan', 'status_perkawinan',
+                'alamat', 'rt', 'rw', 'dusun', 'desa', 'kecamatan', 'kabupaten',
+                'provinsi', 'kode_pos', 'nama_desa', 'nama_kecamatan', 'nama_kabupaten',
+                'alamat_desa', 'nomor_surat', 'tanggal_surat', 'tahun_surat',
+                'bulan_romawi', 'keperluan', 'tujuan', 'ttd_atas', 'ttd_bawah', 'umur',
+            ];
+
+            // Variabel dari form_json (field tambahan yang dibuat admin)
+            $formVars = collect($suratType->form_json ?? [])->pluck('name')->toArray();
+
+            // Kategorisasi setiap variabel yang ditemukan di template
+            $categorized = array_map(function ($var) use ($systemVars, $formVars) {
+                if (in_array($var, $systemVars)) {
+                    $category = 'system';
+                    $label    = 'Sistem (otomatis)';
+                } elseif (in_array($var, $formVars)) {
+                    $category = 'form';
+                    $label    = 'Form custom';
+                } else {
+                    $category = 'unknown';
+                    $label    = 'Tidak dikenali';
+                }
+                return ['name' => $var, 'category' => $category, 'label' => $label];
+            }, $variables);
+
+            return response()->json([
+                'file'        => $suratType->file_template,
+                'total'       => count($variables),
+                'variables'   => $categorized,
+                'form_vars'   => $formVars,
+                'system_vars' => $systemVars,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Gagal membaca template: ' . $e->getMessage()], 500);
+        }
     }
 }
