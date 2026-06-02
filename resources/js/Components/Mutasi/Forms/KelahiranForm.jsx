@@ -29,7 +29,13 @@ export default function KelahiranForm({ mutasi = null }) {
     dusun_id_bayi: baby.dusun_id || '',
     keterangan_bayi: mutasi?.alasan || '',
     tanggal_mutasi: mutasi?.tanggal_mutasi ? new Date(mutasi.tanggal_mutasi).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-    jenis_mutasi: 'kelahiran'
+    jenis_mutasi: 'kelahiran',
+    golongan_darah: baby.golongan_darah || 'TIDAK TAHU',
+    no_akta_lahir: baby.no_akta_lahir || '',
+    status_asuransi: baby.status_asuransi || 'TIDAK ADA',
+    cacat_type: baby.cacat_type || '',
+    sakit_menahun: baby.sakit_menahun || '',
+    telepon: baby.telepon || ''
   });
 
   const [selectedKK, setSelectedKK] = useState(isEdit ? { 
@@ -216,7 +222,7 @@ export default function KelahiranForm({ mutasi = null }) {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Nama Lengkap Bayi</label>
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Nama Lengkap Bayi<span className="text-red-500 ml-0.5">*</span></label>
             <input 
               type="text"
               required
@@ -229,7 +235,7 @@ export default function KelahiranForm({ mutasi = null }) {
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">NIK Bayi</label>
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">NIK Bayi<span className="text-red-500 ml-0.5">*</span></label>
             <div className="relative">
               <input 
                 type="text"
@@ -279,7 +285,7 @@ export default function KelahiranForm({ mutasi = null }) {
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Tanggal Lahir</label>
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Tanggal Lahir<span className="text-red-500 ml-0.5">*</span></label>
             <div className="relative">
               <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input 
@@ -294,7 +300,7 @@ export default function KelahiranForm({ mutasi = null }) {
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Tempat Lahir</label>
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Tempat Lahir<span className="text-red-500 ml-0.5">*</span></label>
             <input 
               type="text"
               required
@@ -371,7 +377,7 @@ export default function KelahiranForm({ mutasi = null }) {
         <div className="mt-6 pt-6 border-t border-blue-100/50">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="md:col-span-2 space-y-2">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Alamat Bayi (Otomatis dari KK)</label>
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Alamat Bayi (Otomatis dari KK)<span className="text-red-500 ml-0.5">*</span></label>
               <textarea 
                 rows={2} required
                 className="w-full px-4 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-medium outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500"
@@ -403,6 +409,100 @@ export default function KelahiranForm({ mutasi = null }) {
         </div>
       </div>
 
+      {/* 2b. Informasi Kesehatan & Kontak (Opsional) */}
+      <div className="p-8 bg-gray-50 border border-gray-100 rounded-3xl space-y-6">
+        <h4 className="text-xs font-black text-gray-700 uppercase tracking-widest flex items-center gap-2">
+          <Heart className="w-4 h-4 text-red-500" />
+          Kesehatan & Kontak Tambahan (Opsional)
+        </h4>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Golongan Darah</label>
+            <select
+              className="w-full px-4 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none"
+              value={data.golongan_darah}
+              onChange={(e) => setData('golongan_darah', e.target.value)}
+            >
+              <option value="TIDAK TAHU">TIDAK TAHU</option>
+              <option value="A">A</option>
+              <option value="B">B</option>
+              <option value="AB">AB</option>
+              <option value="O">O</option>
+              <option value="A+">A+</option>
+              <option value="A-">A-</option>
+              <option value="B+">B+</option>
+              <option value="B-">B-</option>
+              <option value="AB+">AB+</option>
+              <option value="AB-">AB-</option>
+              <option value="O+">O+</option>
+              <option value="O-">O-</option>
+            </select>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Nomor Akta Kelahiran</label>
+            <input 
+              type="text"
+              placeholder="Contoh: 12345/LU/2026"
+              className="w-full px-4 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none"
+              value={data.no_akta_lahir}
+              onChange={(e) => setData('no_akta_lahir', e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Asuransi Kesehatan (BPJS)</label>
+            <select
+              className="w-full px-4 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none"
+              value={data.status_asuransi}
+              onChange={(e) => setData('status_asuransi', e.target.value)}
+            >
+              <option value="TIDAK ADA">TIDAK ADA</option>
+              <option value="BPJS MANDIRI">BPJS MANDIRI</option>
+              <option value="BPJS PBI / GRATIS">BPJS PBI / GRATIS</option>
+              <option value="NON-BPJS / SWASTA">NON-BPJS / SWASTA</option>
+            </select>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">No. Telepon / WA Orang Tua</label>
+            <input 
+              type="text"
+              placeholder="Contoh: 0812xxxxxxxx"
+              className="w-full px-4 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none"
+              value={data.telepon}
+              onChange={(e) => {
+                const val = e.target.value.replace(/[^0-9]/g, '');
+                setData('telepon', val);
+              }}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Jenis Cacat / Disabilitas (Jika Ada)</label>
+            <input 
+              type="text"
+              placeholder="Contoh: Cacat Fisik, Netra (kosongkan jika tidak ada)"
+              className="w-full px-4 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none"
+              value={data.cacat_type}
+              onChange={(e) => setData('cacat_type', e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Penyakit Menahun (Jika Ada)</label>
+            <input 
+              type="text"
+              placeholder="Contoh: Asma, Jantung (kosongkan jika tidak ada)"
+              className="w-full px-4 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none"
+              value={data.sakit_menahun}
+              onChange={(e) => setData('sakit_menahun', e.target.value)}
+            />
+          </div>
+        </div>
+      </div>
+
       {/* 3. Data Orang Tua */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-8 bg-gray-50 border border-gray-100 rounded-3xl">
         <div className="md:col-span-2">
@@ -413,7 +513,7 @@ export default function KelahiranForm({ mutasi = null }) {
         </div>
 
         <div className="space-y-2">
-          <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Nama Ayah</label>
+          <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Nama Ayah<span className="text-red-500 ml-0.5">*</span></label>
           <input 
             type="text"
             required
@@ -424,7 +524,7 @@ export default function KelahiranForm({ mutasi = null }) {
         </div>
 
         <div className="space-y-2">
-          <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Nama Ibu</label>
+          <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Nama Ibu<span className="text-red-500 ml-0.5">*</span></label>
           <input 
             type="text"
             required
@@ -435,7 +535,7 @@ export default function KelahiranForm({ mutasi = null }) {
         </div>
 
         <div className="space-y-2">
-          <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Tanggal Input Mutasi</label>
+          <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Tanggal Input Mutasi<span className="text-red-500 ml-0.5">*</span></label>
           <input 
             type="date"
             required

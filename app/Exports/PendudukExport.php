@@ -136,6 +136,14 @@ class PendudukExport implements FromCollection, WithHeadings, WithMapping, WithS
             'RT',
             'RW',
             'Dusun',
+            'Golongan Darah',
+            'Warganegara',
+            'No. Akta Lahir',
+            'Status Pendidikan',
+            'Telepon',
+            'Jenis Cacat',
+            'Sakit Menahun',
+            'Status Asuransi',
             'Keterangan'
         ];
     }
@@ -161,6 +169,14 @@ class PendudukExport implements FromCollection, WithHeadings, WithMapping, WithS
             $penduduk->rt_label,
             $penduduk->rw_label,
             $penduduk->dusun_label,
+            $penduduk->golongan_darah,
+            $penduduk->warganegara,
+            $penduduk->no_akta_lahir,
+            $penduduk->status_pendidikan,
+            $penduduk->telepon,
+            $penduduk->cacat_type,
+            $penduduk->sakit_menahun,
+            $penduduk->status_asuransi,
             $penduduk->keterangan,
         ];
     }

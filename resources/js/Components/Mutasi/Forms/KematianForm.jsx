@@ -112,7 +112,7 @@ export default function KematianForm({ mutasi = null }) {
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Tanggal</label>
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Tanggal<span className="text-red-500 ml-0.5">*</span></label>
                 <input type="date" required className="w-full px-4 py-3 bg-white border border-gray-100 rounded-2xl text-sm font-bold outline-none" 
                   value={data.tanggal_mutasi} 
                   onChange={(e) => {
@@ -132,15 +132,15 @@ export default function KematianForm({ mutasi = null }) {
               </div>
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Jam Meninggal</label>
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Jam Meninggal<span className="text-red-500 ml-0.5">*</span></label>
               <input type="time" lang="en-GB" required className="w-full px-4 py-3 bg-white border border-gray-100 rounded-2xl text-sm font-bold outline-none" value={data.jam_meninggal} onChange={e => setData('jam_meninggal', e.target.value)} />
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Bertempat Di</label>
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Bertempat Di<span className="text-red-500 ml-0.5">*</span></label>
               <input type="text" required placeholder="Contoh: Rumah Sakit Umum" className="w-full px-4 py-3 bg-white border border-gray-100 rounded-2xl text-sm font-bold outline-none" value={data.bertempat_di} onChange={e => setData('bertempat_di', e.target.value)} />
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Penyebab / Alasan</label>
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Penyebab / Alasan<span className="text-red-500 ml-0.5">*</span></label>
               <input type="text" required placeholder="Contoh: Sakit Tua" className="w-full px-4 py-3 bg-white border border-gray-100 rounded-2xl text-sm font-bold outline-none" value={data.alasan} onChange={e => setData('alasan', e.target.value)} />
             </div>
           </div>
@@ -155,7 +155,7 @@ export default function KematianForm({ mutasi = null }) {
             </h4>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Tanggal</label>
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Tanggal<span className="text-red-500 ml-0.5">*</span></label>
                 <input type="date" required className="w-full px-4 py-3 bg-white border border-gray-100 rounded-2xl text-sm font-bold outline-none" 
                   value={data.tanggal_pemakaman} 
                   onChange={(e) => {
@@ -176,11 +176,11 @@ export default function KematianForm({ mutasi = null }) {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Jam</label>
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Jam<span className="text-red-500 ml-0.5">*</span></label>
               <input type="time" lang="en-GB" required className="w-full px-4 py-3 bg-white border border-gray-100 rounded-2xl text-sm font-bold outline-none" value={data.jam_pemakaman} onChange={e => setData('jam_pemakaman', e.target.value)} />
               </div>
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Lokasi</label>
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Lokasi<span className="text-red-500 ml-0.5">*</span></label>
                 <input type="text" required placeholder="Lokasi Pemakaman" className="w-full px-4 py-3 bg-white border border-gray-100 rounded-2xl text-sm font-bold outline-none" value={data.lokasi_pemakaman} onChange={e => setData('lokasi_pemakaman', e.target.value)} />
               </div>
             </div>

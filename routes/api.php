@@ -120,7 +120,7 @@ Route::prefix('v1')->group(function () {
     Route::get('/surat-types', [SuratPengajuanApiController::class, 'index'])->middleware(['throttle:100,1', 'private.api']);
 
     // Search Penduduk (Verifikasi NIK - reCAPTCHA dinonaktifkan sementara untuk lomba #JuaraVibeCoding)
-    Route::post('/search-penduduk', [SuratPengajuanApiController::class, 'checkNik'])->middleware(['throttle:100,1', 'private.api'/*, 'captcha:v3'*/]);
+    Route::post('/search-penduduk', [SuratPengajuanApiController::class, 'checkNik'])->middleware(['throttle:100,1', 'private.api', 'captcha:v3']);
 
     // Admin Notifications (for header)
     Route::get('/contact-messages/notifications', [\App\Http\Controllers\Tenant\Pelayanan\ContactMessageController::class, 'notifications'])->middleware(['throttle:100,1', 'private.api']);
@@ -130,23 +130,23 @@ Route::prefix('v1')->group(function () {
     // ========================================
 
     // Contact Form
-    Route::post('/contact/submit', [ContactController::class, 'submit'])->middleware(['throttle:100,1', 'private.api']);
+    Route::post('/contact/submit', [ContactController::class, 'submit'])->middleware(['throttle:100,1', 'private.api', 'captcha:v2']);
 
     // Testimoni Form
-    Route::post('/testimoni', [TestimoniController::class, 'store'])->middleware(['throttle:100,1', 'private.api']);
+    Route::post('/testimoni', [TestimoniController::class, 'store'])->middleware(['throttle:100,1', 'private.api', 'captcha:v2']);
 
     // Pengaduan Form
     Route::get('/pengaduan', [PengaduanController::class, 'index'])->middleware(['throttle:300,1', 'private.api']);
-    Route::post('/pengaduan/submit', [PengaduanController::class, 'submit'])->middleware(['throttle:100,1', 'private.api']);
+    Route::post('/pengaduan/submit', [PengaduanController::class, 'submit'])->middleware(['throttle:100,1', 'private.api', 'captcha:v2']);
 
     // Surat Pengajuan Forms
-    Route::post('/surat-pengajuan', [SuratPengajuanApiController::class, 'store'])->middleware(['throttle:100,1', 'private.api']);
+    Route::post('/surat-pengajuan', [SuratPengajuanApiController::class, 'store'])->middleware(['throttle:100,1', 'private.api', 'captcha:v2']);
     Route::get('/surat-status', [SuratPengajuanApiController::class, 'checkStatus'])->middleware(['throttle:300,1', 'private.api']);
     Route::post('/surat-history', [SuratPengajuanApiController::class, 'getHistory'])->middleware(['throttle:100,1', 'private.api']);
     Route::post('/chat', [\App\Http\Controllers\Api\AiController::class, 'chat'])->middleware(['throttle:300,1', 'private.api']);
 
-    // Bantuan Sosial Check (reCAPTCHA dinonaktifkan sementara untuk lomba #JuaraVibeCoding)
-    Route::post('/bantuan-sosial/check', [BantuanSosialController::class, 'checkByNik'])->middleware(['throttle:100,1', 'private.api'/*, 'captcha:v2'*/]);
+    // Bantuan Sosial Check
+    Route::post('/bantuan-sosial/check', [BantuanSosialController::class, 'checkByNik'])->middleware(['throttle:100,1', 'private.api', 'captcha:v2']);
 
     // CSRF Token (Hanya untuk Web Desa Resmi)
     Route::get('/csrf-token', function() {

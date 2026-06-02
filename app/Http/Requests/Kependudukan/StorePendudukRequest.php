@@ -68,6 +68,14 @@ class StorePendudukRequest extends FormRequest
             'kk_option' => 'required|in:existing,manual',
             'nkk_existing' => 'nullable|string|size:16|required_if:kk_option,existing',
             'nkk' => 'nullable|string|size:16|required_if:kk_option,manual',
+            'golongan_darah' => 'nullable|string|max:5',
+            'warganegara' => 'nullable|string|max:10',
+            'no_akta_lahir' => 'nullable|string|max:50',
+            'status_pendidikan' => 'nullable|string|max:50',
+            'telepon' => 'nullable|string|max:20',
+            'cacat_type' => 'nullable|string|max:50',
+            'sakit_menahun' => 'nullable|string|max:100',
+            'status_asuransi' => 'nullable|string|max:50',
             'family_members' => 'nullable|array',
             'family_members.*.nik' => 'required|string|size:16',
             'family_members.*.nama' => 'required|string|max:255|min:2',
@@ -84,7 +92,15 @@ class StorePendudukRequest extends FormRequest
             'family_members.*.alamat' => 'nullable|string|max:500',
             'family_members.*.rt_id' => 'nullable|exists:rts,id',
             'family_members.*.rw_id' => 'nullable|exists:rws,id',
-            'family_members.*.dusun_id' => 'nullable|exists:dusuns,id'
+            'family_members.*.dusun_id' => 'nullable|exists:dusuns,id',
+            'family_members.*.golongan_darah' => 'nullable|string|max:5',
+            'family_members.*.warganegara' => 'nullable|string|max:10',
+            'family_members.*.no_akta_lahir' => 'nullable|string|max:50',
+            'family_members.*.status_pendidikan' => 'nullable|string|max:50',
+            'family_members.*.telepon' => 'nullable|string|max:20',
+            'family_members.*.cacat_type' => 'nullable|string|max:50',
+            'family_members.*.sakit_menahun' => 'nullable|string|max:100',
+            'family_members.*.status_asuransi' => 'nullable|string|max:50'
         ];
     }
 

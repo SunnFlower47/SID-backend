@@ -49,6 +49,12 @@ class StoreMutasiRequest extends FormRequest
                     'dusun_id_bayi' => 'nullable|exists:dusuns,id',
                     'keterangan_bayi' => 'nullable|string|max:1000',
                     'tanggal_mutasi' => 'required|date',
+                    'golongan_darah' => 'nullable|string|max:5',
+                    'no_akta_lahir' => 'nullable|string|max:50',
+                    'status_asuransi' => 'nullable|string|max:50',
+                    'cacat_type' => 'nullable|string|max:50',
+                    'sakit_menahun' => 'nullable|string|max:100',
+                    'telepon' => 'nullable|string|max:20',
                 ];
                 break;
 
@@ -102,6 +108,14 @@ class StoreMutasiRequest extends FormRequest
                     'tanggal_mutasi' => 'required|date',
                     'alasan' => 'nullable|string|max:500',
                     'keterangan' => 'nullable|string|max:1000',
+                    'golongan_darah' => 'nullable|string|max:5',
+                    'warganegara' => 'nullable|string|max:10',
+                    'no_akta_lahir' => 'nullable|string|max:50',
+                    'status_pendidikan' => 'nullable|string|max:50',
+                    'telepon' => 'nullable|string|max:20',
+                    'cacat_type' => 'nullable|string|max:50',
+                    'sakit_menahun' => 'nullable|string|max:100',
+                    'status_asuransi' => 'nullable|string|max:50',
                     'family_members' => 'nullable|array',
                     'family_members.*.nik' => [
                         'required',
@@ -114,6 +128,14 @@ class StoreMutasiRequest extends FormRequest
                     'family_members.*.kedudukan_keluarga' => 'required|string|max:50',
                     'family_members.*.tempat_lahir' => 'nullable|string|max:255',
                     'family_members.*.tanggal_lahir' => 'nullable|date',
+                    'family_members.*.golongan_darah' => 'nullable|string|max:5',
+                    'family_members.*.warganegara' => 'nullable|string|max:10',
+                    'family_members.*.no_akta_lahir' => 'nullable|string|max:50',
+                    'family_members.*.status_pendidikan' => 'nullable|string|max:50',
+                    'family_members.*.telepon' => 'nullable|string|max:20',
+                    'family_members.*.cacat_type' => 'nullable|string|max:50',
+                    'family_members.*.sakit_menahun' => 'nullable|string|max:100',
+                    'family_members.*.status_asuransi' => 'nullable|string|max:50',
                 ];
                 break;
 

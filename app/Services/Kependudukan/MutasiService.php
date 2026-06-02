@@ -101,6 +101,12 @@ class MutasiService
             'nama_ayah' => $validated['nama_ayah'],
             'nama_ibu' => $validated['nama_ibu'],
             'keterangan' => $validated['keterangan_bayi'],
+            'golongan_darah' => $validated['golongan_darah'] ?? null,
+            'no_akta_lahir' => $validated['no_akta_lahir'] ?? null,
+            'status_asuransi' => $validated['status_asuransi'] ?? null,
+            'cacat_type' => $validated['cacat_type'] ?? null,
+            'sakit_menahun' => $validated['sakit_menahun'] ?? null,
+            'telepon' => $validated['telepon'] ?? null,
         ]);
 
         // Buat log mutasi
@@ -257,6 +263,14 @@ class MutasiService
                 'nama_ayah' => $validated['nama_ayah'] ?? 'Tidak Diketahui',
                 'nama_ibu' => $validated['nama_ibu'] ?? 'Tidak Diketahui',
                 'keterangan' => $validated['alasan'] ?? null,
+                'golongan_darah' => $validated['golongan_darah'] ?? null,
+                'warganegara' => $validated['warganegara'] ?? 'WNI',
+                'no_akta_lahir' => $validated['no_akta_lahir'] ?? null,
+                'status_pendidikan' => $validated['status_pendidikan'] ?? null,
+                'telepon' => $validated['telepon'] ?? null,
+                'cacat_type' => $validated['cacat_type'] ?? null,
+                'sakit_menahun' => $validated['sakit_menahun'] ?? null,
+                'status_asuransi' => $validated['status_asuransi'] ?? null,
             ]);
 
             Mutasi::create([
@@ -290,6 +304,14 @@ class MutasiService
                         'pekerjaan' => $member['pekerjaan'] ?? 'Belum Bekerja',
                         'nama_ayah' => $member['nama_ayah'] ?? null,
                         'nama_ibu' => $member['nama_ibu'] ?? null,
+                        'golongan_darah' => $member['golongan_darah'] ?? null,
+                        'warganegara' => $member['warganegara'] ?? 'WNI',
+                        'no_akta_lahir' => $member['no_akta_lahir'] ?? null,
+                        'status_pendidikan' => $member['status_pendidikan'] ?? null,
+                        'telepon' => $member['telepon'] ?? null,
+                        'cacat_type' => $member['cacat_type'] ?? null,
+                        'sakit_menahun' => $member['sakit_menahun'] ?? null,
+                        'status_asuransi' => $member['status_asuransi'] ?? null,
                     ]);
 
                     Mutasi::create([

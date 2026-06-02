@@ -33,13 +33,20 @@ export default function Create({ auth, existingNKKs, masterRwOptions }) {
             'KEPOLISIAN NEGARA RI', 'PETANI/PEKEBUN', 'KARYAWAN SWASTA', 
             'BURUH HARIAN LEPAS', 'WIRASWASTA', 'PERANGKAT DESA'
         ],
+        golongan_darah: ['A', 'B', 'AB', 'O', 'TIDAK TAHU'],
+        warganegara: ['WNI', 'WNA'],
+        status_pendidikan: ['SEDANG SEKOLAH', 'TIDAK SEKOLAH', 'TAMAT SEKOLAH', 'PUTUS SEKOLAH'],
+        status_asuransi: ['BPJS MANDIRI', 'BPJS PBI/GRATIS', 'NON-BPJS', 'TIDAK ADA']
     };
 
     const getEmptyPerson = () => ({
         nik: '', nama: '', jenis_kelamin: 'LAKI-LAKI', tempat_lahir: '', tanggal_lahir: '',
         agama: 'ISLAM', pendidikan: 'TIDAK / BELUM SEKOLAH', pekerjaan: 'BELUM/TIDAK BEKERJA', 
         status_perkawinan: 'BELUM KAWIN', kedudukan_keluarga: 'Anak',
-        nama_ayah: '', nama_ibu: '', keterangan: ''
+        nama_ayah: '', nama_ibu: '', keterangan: '',
+        golongan_darah: 'TIDAK TAHU', warganegara: 'WNI', no_akta_lahir: '',
+        status_pendidikan: 'TAMAT SEKOLAH', telepon: '', cacat_type: '',
+        sakit_menahun: '', status_asuransi: 'TIDAK ADA'
     });
 
     const { data, setData, post, processing, errors } = useForm({
@@ -352,6 +359,73 @@ export default function Create({ auth, existingNKKs, masterRwOptions }) {
                     value={person.nama_ibu}
                     onChange={e => handleChange('nama_ibu', e.target.value.toUpperCase())}
                     error={errors[`${ePrefix}nama_ibu`]}
+                />
+
+                {/* Enrichment Fields */}
+                <div className="col-span-full border-t border-gray-100 my-4 pt-4">
+                    <h4 className="text-xs font-black uppercase tracking-widest text-gray-400">Informasi Tambahan, Kontak & Kesehatan</h4>
+                </div>
+
+                <FormField.Select
+                    label="Golongan Darah"
+                    value={person.golongan_darah}
+                    onChange={e => handleChange('golongan_darah', e.target.value)}
+                    options={OPTIONS.golongan_darah}
+                    error={errors[`${ePrefix}golongan_darah`]}
+                />
+
+                <FormField.Select
+                    label="Kewarganegaraan"
+                    value={person.warganegara}
+                    onChange={e => handleChange('warganegara', e.target.value)}
+                    options={OPTIONS.warganegara}
+                    error={errors[`${ePrefix}warganegara`]}
+                />
+
+                <FormField.Input
+                    label="Nomor Akta Lahir"
+                    value={person.no_akta_lahir}
+                    onChange={e => handleChange('no_akta_lahir', e.target.value.toUpperCase())}
+                    error={errors[`${ePrefix}no_akta_lahir`]}
+                />
+
+                <FormField.Select
+                    label="Status Pendidikan"
+                    value={person.status_pendidikan}
+                    onChange={e => handleChange('status_pendidikan', e.target.value)}
+                    options={OPTIONS.status_pendidikan}
+                    error={errors[`${ePrefix}status_pendidikan`]}
+                />
+
+                <FormField.Input
+                    label="Nomor Telepon/WA"
+                    value={person.telepon}
+                    onChange={e => handleChange('telepon', e.target.value.replace(/\D/g, ''))}
+                    error={errors[`${ePrefix}telepon`]}
+                />
+
+                <FormField.Input
+                    label="Jenis Cacat/Disabilitas"
+                    placeholder="Contoh: Netra, Rungu, dll (Kosongkan jika tidak ada)"
+                    value={person.cacat_type}
+                    onChange={e => handleChange('cacat_type', e.target.value.toUpperCase())}
+                    error={errors[`${ePrefix}cacat_type`]}
+                />
+
+                <FormField.Input
+                    label="Penyakit Menahun"
+                    placeholder="Contoh: Jantung, TBC, dll (Kosongkan jika tidak ada)"
+                    value={person.sakit_menahun}
+                    onChange={e => handleChange('sakit_menahun', e.target.value.toUpperCase())}
+                    error={errors[`${ePrefix}sakit_menahun`]}
+                />
+
+                <FormField.Select
+                    label="Status Asuransi Kesehatan"
+                    value={person.status_asuransi}
+                    onChange={e => handleChange('status_asuransi', e.target.value)}
+                    options={OPTIONS.status_asuransi}
+                    error={errors[`${ePrefix}status_asuransi`]}
                 />
             </div>
         );

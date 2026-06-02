@@ -350,6 +350,14 @@ class ImportService
         $pekerjaanIdx = $findIdx($headers, ['pekerjaan']);
         $namaAyahIdx = $findIdx($headers, ['nama ayah']);
         $namaIbuIdx = $findIdx($headers, ['nama ibu']);
+        $golonganDarahIdx = $findIdx($headers, ['golongan darah', 'gol darah', 'goldar']);
+        $warganegaraIdx = $findIdx($headers, ['warganegara', 'kewarganegaraan', 'wn']);
+        $noAktaLahirIdx = $findIdx($headers, ['no akta lahir', 'akta lahir', 'nomor akta']);
+        $statusPendidikanIdx = $findIdx($headers, ['status pendidikan', 'status sekolah']);
+        $teleponIdx = $findIdx($headers, ['telepon', 'no telepon', 'wa', 'no wa', 'hp', 'no hp']);
+        $cacatTypeIdx = $findIdx($headers, ['cacat', 'jenis cacat', 'disabilitas']);
+        $sakitMenahunIdx = $findIdx($headers, ['sakit menahun', 'penyakit menahun']);
+        $statusAsuransiIdx = $findIdx($headers, ['status asuransi', 'asuransi', 'bpjs']);
 
         if ($nikIdx === false || $namaIdx === false) {
             throw new \InvalidArgumentException('Header wajib NIK dan Nama tidak ditemukan.');
@@ -459,6 +467,14 @@ class ImportService
                 'pekerjaan'         => (string)($pekerjaanIdx !== false ? ($row[$pekerjaanIdx] ?? '') : ''),
                 'nama_ayah'         => (string)($namaAyahIdx !== false ? ($row[$namaAyahIdx] ?? '') : ''),
                 'nama_ibu'          => (string)($namaIbuIdx !== false ? ($row[$namaIbuIdx] ?? '') : ''),
+                'golongan_darah'    => (string)($golonganDarahIdx !== false ? ($row[$golonganDarahIdx] ?? '') : ''),
+                'warganegara'       => (string)($warganegaraIdx !== false ? ($row[$warganegaraIdx] ?? 'WNI') : 'WNI'),
+                'no_akta_lahir'     => (string)($noAktaLahirIdx !== false ? ($row[$noAktaLahirIdx] ?? '') : ''),
+                'status_pendidikan' => (string)($statusPendidikanIdx !== false ? ($row[$statusPendidikanIdx] ?? '') : ''),
+                'telepon'           => (string)($teleponIdx !== false ? ($row[$teleponIdx] ?? '') : ''),
+                'cacat_type'        => (string)($cacatTypeIdx !== false ? ($row[$cacatTypeIdx] ?? '') : ''),
+                'sakit_menahun'     => (string)($sakitMenahunIdx !== false ? ($row[$sakitMenahunIdx] ?? '') : ''),
+                'status_asuransi'   => (string)($statusAsuransiIdx !== false ? ($row[$statusAsuransiIdx] ?? '') : ''),
                 'deleted_at'        => null,
                 'created_at'        => $now,
                 'updated_at'        => $now,
@@ -496,7 +512,10 @@ class ImportService
                     Penduduk::upsert(
                         $chunk,
                         ['nik'],
-                        ['nama', 'kartu_keluarga_id', 'jenis_kelamin', 'tanggal_lahir', 'deleted_at', 'updated_at']
+                        [
+                            'nama', 'kartu_keluarga_id', 'jenis_kelamin', 'tanggal_lahir', 'deleted_at', 'updated_at',
+                            'golongan_darah', 'warganegara', 'no_akta_lahir', 'status_pendidikan', 'telepon', 'cacat_type', 'sakit_menahun', 'status_asuransi'
+                        ]
                     )
                 );
             }

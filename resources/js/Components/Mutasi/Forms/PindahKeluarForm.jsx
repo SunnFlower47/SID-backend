@@ -285,7 +285,7 @@ export default function PindahKeluarForm({ mutasi = null }) {
           {data.kategori_mutasi === 'luar_negeri' ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in slide-in-from-top-2">
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Negara Tujuan</label>
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Negara Tujuan<span className="text-red-500 ml-0.5">*</span></label>
                 <input 
                   type="text" required placeholder="Contoh: Malaysia, Jepang, dll"
                   className="w-full px-4 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 outline-none transition-all"
@@ -386,7 +386,7 @@ export default function PindahKeluarForm({ mutasi = null }) {
       {/* 3. Reason & Date */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 p-8 bg-white border border-gray-100 rounded-3xl shadow-sm">
         <div className="space-y-2">
-          <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Tanggal Pindah</label>
+          <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Tanggal Pindah<span className="text-red-500 ml-0.5">*</span></label>
           <input 
             type="date" required
             className="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-bold outline-none focus:bg-white focus:border-orange-500 transition-all"
@@ -395,7 +395,7 @@ export default function PindahKeluarForm({ mutasi = null }) {
           />
         </div>
         <div className="md:col-span-2 space-y-2">
-          <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Alasan Pindah</label>
+          <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Alasan Pindah<span className="text-red-500 ml-0.5">*</span></label>
           <input 
             type="text" required placeholder="Contoh: Ikut Suami, Pekerjaan, Pendidikan, dll..."
             className="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-bold outline-none focus:bg-white focus:border-orange-500 transition-all"

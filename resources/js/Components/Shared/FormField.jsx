@@ -60,6 +60,7 @@ FormField.Input = function FormFieldInput({
         <FormField label={label} error={error} required={required} className={className}>
             <input
                 className={inputClass(error, inputClassName)}
+                required={required}
                 {...props}
             />
         </FormField>
@@ -79,7 +80,7 @@ FormField.Select = function FormFieldSelect({
 }) {
     return (
         <FormField label={label} error={error} required={required} className={className}>
-            <select className={inputClass(error)} {...props}>
+            <select className={inputClass(error)} required={required} {...props}>
                 {placeholder && <option value="">{placeholder}</option>}
                 {options.map((opt) => {
                     // Support: string[] atau { value, label }[]
@@ -107,6 +108,7 @@ FormField.Textarea = function FormFieldTextarea({
             <textarea
                 rows={rows}
                 className={inputClass(error, 'resize-none')}
+                required={required}
                 {...props}
             />
         </FormField>

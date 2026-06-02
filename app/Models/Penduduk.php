@@ -34,6 +34,14 @@ class Penduduk extends Model
         // 'dusun_id',
         'keterangan',
         'kartu_keluarga_id',
+        'golongan_darah',
+        'warganegara',
+        'no_akta_lahir',
+        'status_pendidikan',
+        'telepon',
+        'cacat_type',
+        'sakit_menahun',
+        'status_asuransi',
     ];
 
     protected $appends = [
@@ -63,7 +71,13 @@ class Penduduk extends Model
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['nama', 'nik', 'nkk', 'jenis_kelamin', 'tempat_lahir', 'tanggal_lahir', 'agama', 'status_perkawinan', 'kedudukan_keluarga', 'pendidikan', 'pekerjaan', 'alamat', 'rt_id', 'rw_id', 'dusun_id', 'kartu_keluarga_id'])
+            ->logOnly([
+                'nama', 'nik', 'nkk', 'jenis_kelamin', 'tempat_lahir', 'tanggal_lahir', 
+                'agama', 'status_perkawinan', 'kedudukan_keluarga', 'pendidikan', 'pekerjaan', 
+                'alamat', 'rt_id', 'rw_id', 'dusun_id', 'kartu_keluarga_id',
+                'golongan_darah', 'warganegara', 'no_akta_lahir', 'status_pendidikan', 
+                'telepon', 'cacat_type', 'sakit_menahun', 'status_asuransi'
+            ])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
     }

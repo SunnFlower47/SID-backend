@@ -148,4 +148,96 @@ class PendudukControllerTest extends TestCase
         $response->assertRedirect(route('penduduk.index'));
         $this->assertSoftDeleted('penduduks', ['id' => $penduduk->id]);
     }
+
+    public function test_store_penduduk_with_enrichment_fields()
+    {
+        $rt = Rt::factory()->create();
+        
+        $data = [
+            'nik' => '3205051111110003',
+            'nama' => 'Jane Enrichment Doe',
+            'nkk' => '3205052222220003',
+            'jenis_kelamin' => 'PEREMPUAN',
+            'tempat_lahir' => 'Cibatu',
+            'tanggal_lahir' => '1995-05-05',
+            'agama' => 'Islam',
+            'status_perkawinan' => 'Belum Kawin',
+            'kedudukan_keluarga' => 'Kepala Keluarga',
+            'pendidikan' => 'S1',
+            'pekerjaan' => 'PNS',
+            'nama_ayah' => 'Father',
+            'nama_ibu' => 'Mother',
+            'alamat' => 'Jl. Mawar',
+            'rt_id' => $rt->id,
+            'rw_id' => $rt->rw_id,
+            'kk_option' => 'manual',
+            'golongan_darah' => 'O',
+            'warganegara' => 'WNI',
+            'no_akta_lahir' => 'AKT-999',
+            'status_pendidikan' => 'Tamat Sekolah',
+            'telepon' => '0812345678',
+            'cacat_type' => 'Tidak Ada',
+            'sakit_menahun' => 'Tidak Ada',
+            'status_asuransi' => 'BPJS Mandiri'
+        ];
+
+        $response = $this->actingAs($this->user)
+            ->post(route('penduduk.store'), $data);
+
+        $response->assertRedirect(route('penduduk.index'));
+        
+        $this->assertDatabaseHas('penduduks', [
+            'nik' => '3205051111110003',
+            'golongan_darah' => 'O',
+            'warganegara' => 'WNI',
+            'no_akta_lahir' => 'AKT-999',
+            'status_pendidikan' => 'Tamat Sekolah',
+            'telepon' => '0812345678',
+            'cacat_type' => 'Tidak Ada',
+            'sakit_menahun' => 'Tidak Ada',
+            'status_asuransi' => 'BPJS Mandiri'
+        ]);
+    }
+
+    public function test_update_penduduk_with_enrichment_fields()
+    {
+        $kk = KartuKeluarga::factory()->create();
+        $penduduk = Penduduk::factory()->create([
+            'kartu_keluarga_id' => $kk->id,
+            'nama' => 'Enriched Resident',
+            'golongan_darah' => 'A'
+        ]);
+
+        $data = $penduduk->toArray();
+        $data['golongan_darah'] = 'AB';
+        $data['warganegara'] = 'WNA';
+        $data['no_akta_lahir'] = 'AKT-888';
+        $data['status_pendidikan'] = 'Sedang Sekolah';
+        $data['telepon'] = '089999999';
+        $data['cacat_type'] = 'Fisik';
+        $data['sakit_menahun'] = 'Diabetes';
+        $data['status_asuransi'] = 'BPJS PBI';
+        
+        unset($data['nkk'], $data['alamat'], $data['rt_id'], $data['rw_id'], $data['dusun_id']);
+        $data['tanggal_lahir'] = $penduduk->tanggal_lahir->format('Y-m-d');
+        $data['kk_option'] = 'existing';
+        $data['nkk_existing'] = $kk->nkk;
+
+        $response = $this->actingAs($this->user)
+            ->put(route('penduduk.update', $penduduk->id), $data);
+
+        $response->assertRedirect(route('penduduk.index'));
+        
+        $this->assertDatabaseHas('penduduks', [
+            'id' => $penduduk->id,
+            'golongan_darah' => 'AB',
+            'warganegara' => 'WNA',
+            'no_akta_lahir' => 'AKT-888',
+            'status_pendidikan' => 'Sedang Sekolah',
+            'telepon' => '089999999',
+            'cacat_type' => 'Fisik',
+            'sakit_menahun' => 'Diabetes',
+            'status_asuransi' => 'BPJS PBI'
+        ]);
+    }
 }

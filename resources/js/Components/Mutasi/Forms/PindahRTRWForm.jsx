@@ -122,7 +122,7 @@ export default function PindahRTRWForm({ wilayahTree, mutasi = null }) {
 
         <div className="space-y-6">
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Alamat Tujuan Baru</label>
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Alamat Tujuan Baru<span className="text-red-500 ml-0.5">*</span></label>
             <textarea 
               rows={2} required
               placeholder="Contoh: Jl. Merdeka No 123 (Kosongkan jika hanya ganti RT/RW)"
@@ -145,7 +145,7 @@ export default function PindahRTRWForm({ wilayahTree, mutasi = null }) {
       {/* 3. Detail Ekstra */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-8 bg-gray-50 border border-gray-100 rounded-3xl">
          <div className="space-y-2">
-          <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Tanggal Pindah</label>
+          <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Tanggal Pindah<span className="text-red-500 ml-0.5">*</span></label>
           <input 
             type="date" required
             className="w-full px-4 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-gray-500/10 outline-none"
@@ -154,7 +154,7 @@ export default function PindahRTRWForm({ wilayahTree, mutasi = null }) {
           />
         </div>
         <div className="space-y-2">
-          <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Alasan Pindah</label>
+          <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Alasan Pindah<span className="text-red-500 ml-0.5">*</span></label>
           <input 
             type="text" required
             className="w-full px-4 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-gray-500/10 outline-none"

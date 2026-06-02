@@ -34,6 +34,14 @@ class PendudukTemplateExport implements FromArray, WithHeadings, WithStyles, Wit
             'RT',
             'RW',
             'Dusun',
+            'Golongan Darah',
+            'Warganegara',
+            'No. Akta Lahir',
+            'Status Pendidikan',
+            'Telepon',
+            'Jenis Cacat',
+            'Sakit Menahun',
+            'Status Asuransi',
             'Keterangan'
         ];
     }
@@ -59,6 +67,14 @@ class PendudukTemplateExport implements FromArray, WithHeadings, WithStyles, Wit
                 '001',
                 '001',
                 'Dusun Satu',
+                'B',
+                'WNI',
+                '12345/LU/2000',
+                'Tamat Sekolah',
+                '081234567890',
+                '-',
+                '-',
+                'BPJS Mandiri',
                 ''
             ]
         ];

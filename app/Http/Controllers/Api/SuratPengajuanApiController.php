@@ -74,27 +74,13 @@ class SuratPengajuanApiController extends Controller
             'tanggal_surat' => 'required|date',
             'email_pengaju' => 'nullable|email|max:255',
             'file_lampiran' => 'nullable|file|mimes:pdf|max:2048',
-            // Manual Captcha Fields
-            'captcha_n1' => 'required|integer',
-            'captcha_n2' => 'required|integer',
-            'captcha_ans' => 'required|integer',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['success' => false, 'message' => 'Validasi gagal', 'errors' => $validator->errors()], 422);
         }
 
-        /**
-         * VALIDASI CAPTCHA MANUAL (Backend Level)
-         * Keamanan Tambahan untuk keperluan Lomba #JuaraVibeCoding
-         * Memastikan request benar-benar berasal dari interaksi manusia di frontend.
-         */
-        if (($request->captcha_n1 + $request->captcha_n2) !== (int)$request->captcha_ans) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Verifikasi keamanan gagal (Captcha Salah). Silakan coba lagi.'
-            ], 422);
-        }
+
 
         // Verifikasi Ganda: Pastikan ID, NIK, dan Tanggal Lahir MATCH
         $penduduk = Penduduk::where('id', $request->penduduk_id)

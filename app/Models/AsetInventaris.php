@@ -19,6 +19,11 @@ class AsetInventaris extends Model
         'asal_usul',
         'kondisi',
         'keterangan',
+        'no_polisi',
+        'no_mesin',
+        'no_rangka',
+        'no_bpkb',
+        'no_sertifikat',
     ];
 
     protected $casts = [

@@ -59,6 +59,11 @@ class AsetInventarisController extends Controller
             'tanggal_perolehan'    => $validated['tanggal_perolehan'] ?? null,
             'asal_usul'            => $validated['asal_usul'],
             'keterangan'           => $validated['keterangan'] ?? null,
+            'no_polisi'            => $validated['no_polisi'] ?? null,
+            'no_mesin'             => $validated['no_mesin'] ?? null,
+            'no_rangka'            => $validated['no_rangka'] ?? null,
+            'no_bpkb'              => $validated['no_bpkb'] ?? null,
+            'no_sertifikat'        => $validated['no_sertifikat'] ?? null,
         ]);
 
         // Otomatis buat mutasi "tambah" pertama (perolehan awal)
@@ -99,6 +104,11 @@ class AsetInventarisController extends Controller
                 'tanggal_perolehan'    => $inventaris->tanggal_perolehan?->format('Y-m-d'),
                 'asal_usul'            => $inventaris->asal_usul,
                 'keterangan'           => $inventaris->keterangan,
+                'no_polisi'            => $inventaris->no_polisi,
+                'no_mesin'             => $inventaris->no_mesin,
+                'no_rangka'            => $inventaris->no_rangka,
+                'no_bpkb'              => $inventaris->no_bpkb,
+                'no_sertifikat'        => $inventaris->no_sertifikat,
                 'nama_display'         => $inventaris->nama_display,
                 'barang'               => $inventaris->barang,
                 'saldo_kwantitas'      => $inventaris->saldo_kwantitas,

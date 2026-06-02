@@ -67,7 +67,15 @@ class UpdatePendudukRequest extends FormRequest
             'rw_id' => 'nullable|exists:rws,id',
             'dusun_id' => 'nullable|exists:dusuns,id',
             'keterangan' => 'nullable|string|max:500',
-            'nkk' => 'nullable|string|size:16'
+            'nkk' => 'nullable|string|size:16',
+            'golongan_darah' => 'nullable|string|max:5',
+            'warganegara' => 'nullable|string|max:10',
+            'no_akta_lahir' => 'nullable|string|max:50',
+            'status_pendidikan' => 'nullable|string|max:50',
+            'telepon' => 'nullable|string|max:20',
+            'cacat_type' => 'nullable|string|max:50',
+            'sakit_menahun' => 'nullable|string|max:100',
+            'status_asuransi' => 'nullable|string|max:50'
         ];
     }
 

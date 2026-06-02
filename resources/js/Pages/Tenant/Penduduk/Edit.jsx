@@ -46,6 +46,10 @@ export default function Edit(props) {
             'KEPOLISIAN NEGARA RI', 'PETANI/PEKEBUN', 'KARYAWAN SWASTA', 
             'BURUH HARIAN LEPAS', 'WIRASWASTA', 'PERANGKAT DESA'
         ],
+        golongan_darah: ['A', 'B', 'AB', 'O', 'TIDAK TAHU'],
+        warganegara: ['WNI', 'WNA'],
+        status_pendidikan: ['SEDANG SEKOLAH', 'TIDAK SEKOLAH', 'TAMAT SEKOLAH', 'PUTUS SEKOLAH'],
+        status_asuransi: ['BPJS MANDIRI', 'BPJS PBI/GRATIS', 'NON-BPJS', 'TIDAK ADA']
     };
 
     // Handle manual input state for "LAINNYA"
@@ -126,7 +130,15 @@ export default function Edit(props) {
         kedudukan_keluarga: penduduk.kedudukan_keluarga || '',
         nama_ayah: penduduk.nama_ayah || '',
         nama_ibu: penduduk.nama_ibu || '',
-        keterangan: penduduk.keterangan || ''
+        keterangan: penduduk.keterangan || '',
+        golongan_darah: penduduk.golongan_darah || 'TIDAK TAHU',
+        warganegara: penduduk.warganegara || 'WNI',
+        no_akta_lahir: penduduk.no_akta_lahir || '',
+        status_pendidikan: penduduk.status_pendidikan || 'TAMAT SEKOLAH',
+        telepon: penduduk.telepon || '',
+        cacat_type: penduduk.cacat_type || '',
+        sakit_menahun: penduduk.sakit_menahun || '',
+        status_asuransi: penduduk.status_asuransi || 'TIDAK ADA'
     });
 
     // NIK Check
@@ -334,6 +346,73 @@ export default function Edit(props) {
                             </div>
                         </FormCard>
                     </div>
+
+                    {/* Informasi Tambahan, Kontak & Kesehatan */}
+                    <FormCard icon={Info} title="Informasi Tambahan, Kontak & Kesehatan">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <FormField.Select
+                                label="Golongan Darah"
+                                value={data.golongan_darah}
+                                onChange={e => setData('golongan_darah', e.target.value)}
+                                options={OPTIONS.golongan_darah}
+                                error={errors.golongan_darah}
+                            />
+
+                            <FormField.Select
+                                label="Kewarganegaraan"
+                                value={data.warganegara}
+                                onChange={e => setData('warganegara', e.target.value)}
+                                options={OPTIONS.warganegara}
+                                error={errors.warganegara}
+                            />
+
+                            <FormField.Input
+                                label="Nomor Akta Lahir"
+                                value={data.no_akta_lahir}
+                                onChange={e => setData('no_akta_lahir', e.target.value.toUpperCase())}
+                                error={errors.no_akta_lahir}
+                            />
+
+                            <FormField.Select
+                                label="Status Pendidikan"
+                                value={data.status_pendidikan}
+                                onChange={e => setData('status_pendidikan', e.target.value)}
+                                options={OPTIONS.status_pendidikan}
+                                error={errors.status_pendidikan}
+                            />
+
+                            <FormField.Input
+                                label="Nomor Telepon/WA"
+                                value={data.telepon}
+                                onChange={e => setData('telepon', e.target.value.replace(/\D/g, ''))}
+                                error={errors.telepon}
+                            />
+
+                            <FormField.Input
+                                label="Jenis Cacat/Disabilitas"
+                                placeholder="Kosongkan jika tidak ada"
+                                value={data.cacat_type}
+                                onChange={e => setData('cacat_type', e.target.value.toUpperCase())}
+                                error={errors.cacat_type}
+                            />
+
+                            <FormField.Input
+                                label="Penyakit Menahun"
+                                placeholder="Kosongkan jika tidak ada"
+                                value={data.sakit_menahun}
+                                onChange={e => setData('sakit_menahun', e.target.value.toUpperCase())}
+                                error={errors.sakit_menahun}
+                            />
+
+                            <FormField.Select
+                                label="Status Asuransi Kesehatan"
+                                value={data.status_asuransi}
+                                onChange={e => setData('status_asuransi', e.target.value)}
+                                options={OPTIONS.status_asuransi}
+                                error={errors.status_asuransi}
+                            />
+                        </div>
+                    </FormCard>
 
                     {/* Alamat (Read-only view) */}
                     <FormCard icon={MapPin} title="Alamat Domisili (Terkunci)" className="bg-gray-50/70">

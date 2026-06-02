@@ -22,6 +22,11 @@ class UpdateAsetInventarisRequest extends FormRequest
             'tanggal_perolehan'    => ['nullable', 'date'],
             'asal_usul'            => ['required', 'in:APBDes,Hibah,Aset Asli Desa,Bantuan Pemerintah,Lainnya'],
             'keterangan'           => ['nullable', 'string'],
+            'no_polisi'            => ['nullable', 'string', 'max:100'],
+            'no_mesin'             => ['nullable', 'string', 'max:100'],
+            'no_rangka'            => ['nullable', 'string', 'max:100'],
+            'no_bpkb'              => ['nullable', 'string', 'max:100'],
+            'no_sertifikat'        => ['nullable', 'string', 'max:100'],
         ];
     }
 
@@ -33,6 +38,11 @@ class UpdateAsetInventarisRequest extends FormRequest
             'satuan'               => 'satuan',
             'kondisi'              => 'kondisi',
             'asal_usul'            => 'asal usul',
+            'no_polisi'            => 'nomor polisi',
+            'no_mesin'             => 'nomor mesin',
+            'no_rangka'            => 'nomor rangka',
+            'no_bpkb'              => 'nomor BPKB',
+            'no_sertifikat'        => 'nomor sertifikat',
         ];
     }
 }

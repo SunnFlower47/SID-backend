@@ -449,7 +449,7 @@ export default function PisahKKForm({ wilayahTree, mutasi = null }) {
               <div className="space-y-6 animate-in slide-in-from-top-2">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Nomor KK Baru</label>
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Nomor KK Baru<span className="text-red-500 ml-0.5">*</span></label>
                     <input 
                       type="text" required maxLength={16}
                       placeholder="Masukkan 16 digit No KK..."
@@ -479,7 +479,7 @@ export default function PisahKKForm({ wilayahTree, mutasi = null }) {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Alamat Tinggal Baru</label>
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Alamat Tinggal Baru<span className="text-red-500 ml-0.5">*</span></label>
                     <input 
                       type="text" required
                       className="w-full px-4 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-bold outline-none focus:border-emerald-500"
@@ -604,7 +604,7 @@ export default function PisahKKForm({ wilayahTree, mutasi = null }) {
       </div>
 
       <div className="p-8 bg-white border border-gray-100 rounded-3xl shadow-sm space-y-4">
-        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Alasan Pisah KK</label>
+        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Alasan Pisah KK<span className="text-red-500 ml-0.5">*</span></label>
         <input 
           type="text" required placeholder="Contoh: Membentuk Rumah Tangga Baru, Pindah Domisili, dll..."
           className="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-bold outline-none focus:bg-white focus:border-emerald-500 transition-all"

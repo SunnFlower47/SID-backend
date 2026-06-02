@@ -21,6 +21,11 @@ export default function Create({ auth, kategoris, tahun, semester }) {
         tanggal_perolehan:    '',   // ← KOSONG, user wajib isi tanggal asli perolehan
         asal_usul:            'APBDes',
         keterangan:           '',
+        no_polisi:            '',
+        no_mesin:             '',
+        no_rangka:            '',
+        no_bpkb:              '',
+        no_sertifikat:        '',
         // Mutasi pertama — auto-sync dari tanggal_perolehan
         tahun:                tahun ?? new Date().getFullYear(),
         semester:             semester ?? (new Date().getMonth() < 6 ? 1 : 2),
@@ -34,7 +39,16 @@ export default function Create({ auth, kategoris, tahun, semester }) {
         setSelectedKategori(val);
         const kat = kategoris.find((k) => k.id === Number(val));
         setBarangOptions(kat?.barangs ?? []);
-        setData({ ...data, aset_barang_id: '', satuan: '' });
+        setData({
+            ...data,
+            aset_barang_id: '',
+            satuan: '',
+            no_polisi: '',
+            no_mesin: '',
+            no_rangka: '',
+            no_bpkb: '',
+            no_sertifikat: ''
+        });
         setSelectedBarang(null);
     };
 
@@ -64,6 +78,10 @@ export default function Create({ auth, kategoris, tahun, semester }) {
 
     const saldoAkhirQty   = parseFloat(data.kwantitas) || 0;
     const saldoAkhirNilai = parseFloat(data.nilai)     || 0;
+
+    const selectedKategoriObj = kategoris.find((k) => k.id === Number(selectedKategori));
+    const showVehicleFields   = selectedKategoriObj?.kode === '3';
+    const showLandFields      = selectedKategoriObj?.kode === '2';
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -198,6 +216,53 @@ export default function Create({ auth, kategoris, tahun, semester }) {
                                 onChange={(e) => handleTanggalPerolehanChange(e.target.value)}
                                 error={errors.tanggal_perolehan}
                             />
+
+                            {/* Conditional Fields for Peralatan & Mesin */}
+                            {showVehicleFields && (
+                                <>
+                                    <FormField.Input
+                                        label="Nomor Polisi (Opsional)"
+                                        placeholder="Contoh: T 1234 AB"
+                                        value={data.no_polisi}
+                                        onChange={(e) => setData('no_polisi', e.target.value)}
+                                        error={errors.no_polisi}
+                                    />
+                                    <FormField.Input
+                                        label="Nomor BPKB (Opsional)"
+                                        placeholder="Contoh: N-1234567"
+                                        value={data.no_bpkb}
+                                        onChange={(e) => setData('no_bpkb', e.target.value)}
+                                        error={errors.no_bpkb}
+                                    />
+                                    <FormField.Input
+                                        label="Nomor Mesin (Opsional)"
+                                        placeholder="Masukkan nomor mesin..."
+                                        value={data.no_mesin}
+                                        onChange={(e) => setData('no_mesin', e.target.value)}
+                                        error={errors.no_mesin}
+                                    />
+                                    <FormField.Input
+                                        label="Nomor Rangka (Opsional)"
+                                        placeholder="Masukkan nomor rangka..."
+                                        value={data.no_rangka}
+                                        onChange={(e) => setData('no_rangka', e.target.value)}
+                                        error={errors.no_rangka}
+                                    />
+                                </>
+                            )}
+
+                            {/* Conditional Fields for Tanah */}
+                            {showLandFields && (
+                                <div className="sm:col-span-2">
+                                    <FormField.Input
+                                        label="Nomor Sertifikat / Bukti Kepemilikan (Opsional)"
+                                        placeholder="Contoh: Sertifikat Hak Pakai No. 12/Cibatu"
+                                        value={data.no_sertifikat}
+                                        onChange={(e) => setData('no_sertifikat', e.target.value)}
+                                        error={errors.no_sertifikat}
+                                    />
+                                </div>
+                            )}
 
                             <div className="sm:col-span-2">
                                 <FormField.Textarea

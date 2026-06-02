@@ -114,7 +114,15 @@ export default function PindahMasukForm({ wilayahTree, mutasi = null }) {
     alasan: mutasi?.alasan || 'Pindah masuk',
     tanggal_mutasi: mutasi?.tanggal_mutasi ? new Date(mutasi.tanggal_mutasi).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
     jenis_mutasi: 'pindah_masuk',
-    family_members: snapshot.family_members || [] // Batch input array
+    family_members: snapshot.family_members || [], // Batch input array
+    golongan_darah: resident.golongan_darah || 'TIDAK TAHU',
+    warganegara: resident.warganegara || 'WNI',
+    no_akta_lahir: resident.no_akta_lahir || '',
+    status_pendidikan: resident.status_pendidikan || 'Tamat Sekolah',
+    telepon: resident.telepon || '',
+    cacat_type: resident.cacat_type || '',
+    sakit_menahun: resident.sakit_menahun || '',
+    status_asuransi: resident.status_asuransi || 'TIDAK ADA'
   });
 
   const [nikStatus, setNikStatus] = useState({ status: 'default', message: '' }); // 'default', 'loading', 'valid', 'error'
@@ -227,6 +235,14 @@ export default function PindahMasukForm({ wilayahTree, mutasi = null }) {
         pekerjaan: 'MENGURUS RUMAH TANGGA',
         nama_ayah: '',
         nama_ibu: '',
+        golongan_darah: 'TIDAK TAHU',
+        warganegara: 'WNI',
+        no_akta_lahir: '',
+        status_pendidikan: 'Tamat Sekolah',
+        telepon: '',
+        cacat_type: '',
+        sakit_menahun: '',
+        status_asuransi: 'TIDAK ADA'
       }
     ]);
   };
@@ -331,7 +347,7 @@ export default function PindahMasukForm({ wilayahTree, mutasi = null }) {
         {kkOption === 'new' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in slide-in-from-top-4 duration-500">
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Nomor KK Baru</label>
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Nomor KK Baru<span className="text-red-500 ml-0.5">*</span></label>
               <input 
                 type="text" required maxLength={16}
                 placeholder="Masukkan 16 digit No KK..."
@@ -418,7 +434,7 @@ export default function PindahMasukForm({ wilayahTree, mutasi = null }) {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2 relative">
-            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">NIK</label>
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">NIK<span className="text-red-500 ml-0.5">*</span></label>
             <input 
               type="text" required maxLength={16}
               className={cn(
@@ -454,7 +470,7 @@ export default function PindahMasukForm({ wilayahTree, mutasi = null }) {
             </div>
           </div>
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Nama Lengkap</label>
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Nama Lengkap<span className="text-red-500 ml-0.5">*</span></label>
             <input 
               type="text" required
               className="w-full px-4 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-bold outline-none focus:border-green-500 focus:ring-4 focus:ring-green-500/10"
@@ -484,11 +500,11 @@ export default function PindahMasukForm({ wilayahTree, mutasi = null }) {
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Tempat Lahir</label>
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Tempat Lahir<span className="text-red-500 ml-0.5">*</span></label>
             <input type="text" required className="w-full px-4 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-bold outline-none" value={data.tempat_lahir} onChange={(e) => setData('tempat_lahir', e.target.value.toUpperCase())} />
           </div>
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Tanggal Lahir</label>
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Tanggal Lahir<span className="text-red-500 ml-0.5">*</span></label>
             <input type="date" required className="w-full px-4 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-bold outline-none" value={data.tanggal_lahir} onChange={(e) => setData('tanggal_lahir', e.target.value)} />
           </div>
 
@@ -514,21 +530,131 @@ export default function PindahMasukForm({ wilayahTree, mutasi = null }) {
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Pendidikan</label>
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Pendidikan<span className="text-red-500 ml-0.5">*</span></label>
             <input type="text" placeholder="Contoh: SMA / S1" required className="w-full px-4 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-bold outline-none" value={data.pendidikan} onChange={(e) => setData('pendidikan', e.target.value.toUpperCase())} />
           </div>
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Pekerjaan</label>
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Pekerjaan<span className="text-red-500 ml-0.5">*</span></label>
             <input type="text" placeholder="Contoh: WIRASWASTA" required className="w-full px-4 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-bold outline-none" value={data.pekerjaan} onChange={(e) => setData('pekerjaan', e.target.value.toUpperCase())} />
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Nama Ayah</label>
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Nama Ayah<span className="text-red-500 ml-0.5">*</span></label>
             <input type="text" placeholder="Nama Ayah Kandung" required className="w-full px-4 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-bold outline-none" value={data.nama_ayah} onChange={(e) => setData('nama_ayah', e.target.value.toUpperCase())} />
           </div>
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Nama Ibu</label>
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Nama Ibu<span className="text-red-500 ml-0.5">*</span></label>
             <input type="text" placeholder="Nama Ibu Kandung" required className="w-full px-4 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-bold outline-none" value={data.nama_ibu} onChange={(e) => setData('nama_ibu', e.target.value.toUpperCase())} />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Golongan Darah</label>
+            <select
+              className="w-full px-4 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none"
+              value={data.golongan_darah}
+              onChange={(e) => setData('golongan_darah', e.target.value)}
+            >
+              <option value="TIDAK TAHU">TIDAK TAHU</option>
+              <option value="A">A</option>
+              <option value="B">B</option>
+              <option value="AB">AB</option>
+              <option value="O">O</option>
+              <option value="A+">A+</option>
+              <option value="A-">A-</option>
+              <option value="B+">B+</option>
+              <option value="B-">B-</option>
+              <option value="AB+">AB+</option>
+              <option value="AB-">AB-</option>
+              <option value="O+">O+</option>
+              <option value="O-">O-</option>
+            </select>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Kewarganegaraan</label>
+            <select
+              className="w-full px-4 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none"
+              value={data.warganegara}
+              onChange={(e) => setData('warganegara', e.target.value)}
+            >
+              <option value="WNI">WNI</option>
+              <option value="WNA">WNA</option>
+            </select>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Nomor Akta Kelahiran</label>
+            <input 
+              type="text"
+              placeholder="Contoh: 12345/LU/2026"
+              className="w-full px-4 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none"
+              value={data.no_akta_lahir}
+              onChange={(e) => setData('no_akta_lahir', e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Status Pendidikan (Sekolah)</label>
+            <select
+              className="w-full px-4 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none"
+              value={data.status_pendidikan}
+              onChange={(e) => setData('status_pendidikan', e.target.value)}
+            >
+              <option value="Tamat Sekolah">Tamat Sekolah / Tidak Sekolah Lagi</option>
+              <option value="Sedang Sekolah">Sedang Sekolah</option>
+              <option value="Putus Sekolah">Putus Sekolah</option>
+              <option value="Belum Sekolah">Belum Sekolah</option>
+            </select>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">No. Telepon / WhatsApp</label>
+            <input 
+              type="text"
+              placeholder="Contoh: 0812xxxxxxxx"
+              className="w-full px-4 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none"
+              value={data.telepon}
+              onChange={(e) => {
+                const val = e.target.value.replace(/[^0-9]/g, '');
+                setData('telepon', val);
+              }}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Jenis Cacat / Disabilitas (Jika Ada)</label>
+            <input 
+              type="text"
+              placeholder="Contoh: Cacat Fisik (kosongkan jika tidak ada)"
+              className="w-full px-4 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none"
+              value={data.cacat_type}
+              onChange={(e) => setData('cacat_type', e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Penyakit Menahun (Jika Ada)</label>
+            <input 
+              type="text"
+              placeholder="Contoh: Jantung (kosongkan jika tidak ada)"
+              className="w-full px-4 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none"
+              value={data.sakit_menahun}
+              onChange={(e) => setData('sakit_menahun', e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Asuransi Kesehatan (BPJS)</label>
+            <select
+              className="w-full px-4 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none"
+              value={data.status_asuransi}
+              onChange={(e) => setData('status_asuransi', e.target.value)}
+            >
+              <option value="TIDAK ADA">TIDAK ADA</option>
+              <option value="BPJS MANDIRI">BPJS MANDIRI</option>
+              <option value="BPJS PBI / GRATIS">BPJS PBI / GRATIS</option>
+              <option value="NON-BPJS / SWASTA">NON-BPJS / SWASTA</option>
+            </select>
           </div>
         </div>
       </div>
@@ -565,7 +691,7 @@ export default function PindahMasukForm({ wilayahTree, mutasi = null }) {
                     error={errors[`family_members.${index}.nik`]}
                   />
                   <div className="space-y-1">
-                    <label className="text-[9px] font-black text-gray-400 uppercase">Nama Lengkap</label>
+                    <label className="text-[9px] font-black text-gray-400 uppercase">Nama Lengkap<span className="text-red-500 ml-0.5">*</span></label>
                     <input 
                       type="text" required placeholder="Nama Lengkap"
                       className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold outline-none focus:bg-white focus:border-blue-500"
@@ -598,7 +724,7 @@ export default function PindahMasukForm({ wilayahTree, mutasi = null }) {
                     </select>
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[9px] font-black text-gray-400 uppercase">Tempat Lahir</label>
+                    <label className="text-[9px] font-black text-gray-400 uppercase">Tempat Lahir<span className="text-red-500 ml-0.5">*</span></label>
                     <input 
                       type="text" required placeholder="Tempat Lahir"
                       className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold outline-none focus:bg-white focus:border-blue-500"
@@ -606,7 +732,7 @@ export default function PindahMasukForm({ wilayahTree, mutasi = null }) {
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[9px] font-black text-gray-400 uppercase">Tanggal Lahir</label>
+                    <label className="text-[9px] font-black text-gray-400 uppercase">Tanggal Lahir<span className="text-red-500 ml-0.5">*</span></label>
                     <input 
                       type="date" required
                       className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold outline-none focus:bg-white focus:border-blue-500"
@@ -673,6 +799,88 @@ export default function PindahMasukForm({ wilayahTree, mutasi = null }) {
                       value={member.nama_ibu} onChange={(e) => updateFamilyMember(index, 'nama_ibu', e.target.value.toUpperCase())}
                     />
                   </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black text-gray-400 uppercase">Golongan Darah</label>
+                    <select 
+                      className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold outline-none focus:bg-white focus:border-blue-500"
+                      value={member.golongan_darah} onChange={(e) => updateFamilyMember(index, 'golongan_darah', e.target.value)}
+                    >
+                      <option value="TIDAK TAHU">TIDAK TAHU</option>
+                      <option value="A">A</option>
+                      <option value="B">B</option>
+                      <option value="AB">AB</option>
+                      <option value="O">O</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black text-gray-400 uppercase">Kewarganegaraan</label>
+                    <select 
+                      className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold outline-none focus:bg-white focus:border-blue-500"
+                      value={member.warganegara} onChange={(e) => updateFamilyMember(index, 'warganegara', e.target.value)}
+                    >
+                      <option value="WNI">WNI</option>
+                      <option value="WNA">WNA</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black text-gray-400 uppercase">No. Akta Lahir</label>
+                    <input 
+                      type="text" placeholder="No Akta Lahir"
+                      className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold outline-none focus:bg-white focus:border-blue-500"
+                      value={member.no_akta_lahir} onChange={(e) => updateFamilyMember(index, 'no_akta_lahir', e.target.value)}
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black text-gray-400 uppercase">Status Sekolah</label>
+                    <select 
+                      className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold outline-none focus:bg-white focus:border-blue-500"
+                      value={member.status_pendidikan} onChange={(e) => updateFamilyMember(index, 'status_pendidikan', e.target.value)}
+                    >
+                      <option value="Tamat Sekolah">Tamat Sekolah</option>
+                      <option value="Sedang Sekolah">Sedang Sekolah</option>
+                      <option value="Putus Sekolah">Putus Sekolah</option>
+                      <option value="Belum Sekolah">Belum Sekolah</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black text-gray-400 uppercase">No. Telepon / WA</label>
+                    <input 
+                      type="text" placeholder="No Telepon"
+                      className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold outline-none focus:bg-white focus:border-blue-500"
+                      value={member.telepon} onChange={(e) => updateFamilyMember(index, 'telepon', e.target.value.replace(/\D/g, ''))}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black text-gray-400 uppercase">Jenis Cacat</label>
+                    <input 
+                      type="text" placeholder="Jenis Cacat"
+                      className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold outline-none focus:bg-white focus:border-blue-500"
+                      value={member.cacat_type} onChange={(e) => updateFamilyMember(index, 'cacat_type', e.target.value)}
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black text-gray-400 uppercase">Penyakit Menahun</label>
+                    <input 
+                      type="text" placeholder="Penyakit Menahun"
+                      className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold outline-none focus:bg-white focus:border-blue-500"
+                      value={member.sakit_menahun} onChange={(e) => updateFamilyMember(index, 'sakit_menahun', e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black text-gray-400 uppercase">BPJS / Asuransi</label>
+                    <select 
+                      className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold outline-none focus:bg-white focus:border-blue-500"
+                      value={member.status_asuransi} onChange={(e) => updateFamilyMember(index, 'status_asuransi', e.target.value)}
+                    >
+                      <option value="TIDAK ADA">TIDAK ADA</option>
+                      <option value="BPJS MANDIRI">BPJS MANDIRI</option>
+                      <option value="BPJS PBI / GRATIS">BPJS PBI / GRATIS</option>
+                      <option value="NON-BPJS / SWASTA">NON-BPJS / SWASTA</option>
+                    </select>
+                  </div>
                 </div>
                 <div className="mt-4 pt-4 border-t border-gray-50 flex justify-end">
                   <button type="button" onClick={() => removeFamilyMember(index)} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-red-500 hover:bg-red-50 rounded-lg transition-colors">
@@ -700,7 +908,7 @@ export default function PindahMasukForm({ wilayahTree, mutasi = null }) {
         {/* Gunakan Komponen WilayahSelect */}
         <div className="space-y-6">
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Alamat Lengkap</label>
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Alamat Lengkap<span className="text-red-500 ml-0.5">*</span></label>
             <textarea 
               rows={2} required
               readOnly={kkOption === 'existing'}
@@ -745,15 +953,15 @@ export default function PindahMasukForm({ wilayahTree, mutasi = null }) {
             </select>
           </div>
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Alamat Asal Pindah</label>
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Alamat Asal Pindah<span className="text-red-500 ml-0.5">*</span></label>
             <input type="text" required placeholder="Contoh: Bandung, Jawa Barat" className="w-full px-4 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-bold outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10" value={data.asal_tujuan} onChange={(e) => setData('asal_tujuan', e.target.value)} />
           </div>
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Tanggal Pindah Masuk</label>
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Tanggal Pindah Masuk<span className="text-red-500 ml-0.5">*</span></label>
             <input type="date" required className="w-full px-4 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-bold outline-none" value={data.tanggal_mutasi} onChange={(e) => setData('tanggal_mutasi', e.target.value)} />
           </div>
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Alasan Pindah</label>
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Alasan Pindah<span className="text-red-500 ml-0.5">*</span></label>
             <input type="text" required className="w-full px-4 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-bold outline-none focus:border-orange-500" value={data.alasan} onChange={(e) => setData('alasan', e.target.value)} />
           </div>
         </div>

@@ -23,6 +23,11 @@ class StoreAsetInventarisRequest extends FormRequest
             'tanggal_perolehan'    => ['nullable', 'date'],
             'asal_usul'            => ['required', 'in:APBDes,Hibah,Aset Asli Desa,Bantuan Pemerintah,Lainnya'],
             'keterangan'           => ['nullable', 'string'],
+            'no_polisi'            => ['nullable', 'string', 'max:100'],
+            'no_mesin'             => ['nullable', 'string', 'max:100'],
+            'no_rangka'            => ['nullable', 'string', 'max:100'],
+            'no_bpkb'              => ['nullable', 'string', 'max:100'],
+            'no_sertifikat'        => ['nullable', 'string', 'max:100'],
 
             // ── Mutasi pertama (perolehan awal) ────────────────────────────
             'tahun'             => ['required', 'integer', 'min:1945', 'max:2100'],
@@ -47,6 +52,11 @@ class StoreAsetInventarisRequest extends FormRequest
             'tanggal'              => 'tanggal transaksi',
             'kwantitas'            => 'kwantitas',
             'nilai'                => 'nilai',
+            'no_polisi'            => 'nomor polisi',
+            'no_mesin'             => 'nomor mesin',
+            'no_rangka'            => 'nomor rangka',
+            'no_bpkb'              => 'nomor BPKB',
+            'no_sertifikat'        => 'nomor sertifikat',
         ];
     }
 }

@@ -5,7 +5,8 @@ import {
     User, IdCard, Calendar, MapPin, Briefcase, 
     Edit, GraduationCap, Heart, 
     Users, Clock, ShieldCheck, Map,
-    ChevronRight, FileText, History, Activity, Info
+    ChevronRight, FileText, History, Activity, Info,
+    AlertTriangle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -128,6 +129,27 @@ export default function Show({ auth, penduduk }) {
                                 <InfoRow label="Alamat / Dusun" value={`${penduduk.alamat} (${penduduk.dusun_label})`} icon={MapPin} color="orange" />
                                 <InfoRow label="RT / RW" value={`RT ${penduduk.rt_label} / RW ${penduduk.rw_label}`} icon={Map} color="purple" />
                                 <InfoRow label="Orang Tua (Ayah/Ibu)" value={`${penduduk.nama_ayah || '-'} / ${penduduk.nama_ibu || '-'}`} icon={Users} color="green" />
+                            </div>
+                        </div>
+
+                        {/* HEALTH, CONTACT & LEGALITY SECTION */}
+                        <div className="bg-white rounded-3xl border border-gray-100 shadow-xl overflow-hidden">
+                            <div className="p-6 md:p-8 border-b border-gray-50 flex items-center justify-between bg-gray-50/20">
+                                <h3 className="text-sm font-black text-gray-900 uppercase tracking-[0.2em] flex items-center gap-3 italic">
+                                    <Info className="w-5 h-5 text-blue-600" />
+                                    Informasi Tambahan & Kesehatan
+                                </h3>
+                                <Info className="w-4 h-4 text-gray-200" />
+                            </div>
+                            <div className="p-6 md:p-8 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                                <InfoRow label="Golongan Darah" value={penduduk.golongan_darah || 'TIDAK TAHU'} icon={Heart} color="red" />
+                                <InfoRow label="Kewarganegaraan" value={penduduk.warganegara || 'WNI'} icon={ShieldCheck} color="blue" />
+                                <InfoRow label="Nomor Akta Lahir" value={penduduk.no_akta_lahir || '-'} icon={FileText} color="orange" />
+                                <InfoRow label="Status Pendidikan" value={penduduk.status_pendidikan || '-'} icon={GraduationCap} color="purple" />
+                                <InfoRow label="Nomor Telepon/WA" value={penduduk.telepon || '-'} icon={User} color="green" />
+                                <InfoRow label="Jenis Cacat/Disabilitas" value={penduduk.cacat_type || 'Tidak Ada'} icon={AlertTriangle} color="orange" />
+                                <InfoRow label="Penyakit Menahun" value={penduduk.sakit_menahun || 'Tidak Ada'} icon={Activity} color="red" />
+                                <InfoRow label="Asuransi Kesehatan" value={penduduk.status_asuransi || 'Tidak Ada'} icon={ShieldCheck} color="green" />
                             </div>
                         </div>
 
