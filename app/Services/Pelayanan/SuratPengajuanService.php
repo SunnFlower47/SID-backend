@@ -162,6 +162,14 @@ class SuratPengajuanService
             $data['dm_tanggal_berlaku'] = Carbon::parse($data['dm_tanggal_berlaku'])->isoFormat('D MMMM Y');
         }
 
+        // Format tanggal kematian & pemakaman
+        if (isset($data['kematian_tanggal'])) {
+            $data['kematian_tanggal'] = Carbon::parse($data['kematian_tanggal'])->isoFormat('D MMMM Y');
+        }
+        if (isset($data['pemakaman_tanggal'])) {
+            $data['pemakaman_tanggal'] = Carbon::parse($data['pemakaman_tanggal'])->isoFormat('D MMMM Y');
+        }
+
         return $data;
     }
 
