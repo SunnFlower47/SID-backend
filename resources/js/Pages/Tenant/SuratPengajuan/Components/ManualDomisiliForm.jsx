@@ -125,22 +125,53 @@ const ManualDomisiliForm = ({ data, updateDataTambahan, isCheckingNik, wilayah, 
                     placeholder="Indonesia"
                 />
             </div>
-            <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Tanggal Masuk <span className="text-red-500">*</span></label>
+            <div className="md:col-span-2 border-t border-gray-100 mt-2 pt-6">
+                <h4 className="text-xs font-black uppercase tracking-widest text-green-600 mb-4 flex items-center"><span className="w-6 h-1 bg-green-500 rounded-full mr-2"></span> DATA DAERAH ASAL</h4>
+            </div>
+            
+            <div className="md:col-span-2 space-y-2">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Kota / Kabupaten Asal <span className="text-red-500">*</span></label>
                 <input 
-                    type="date"
-                    value={data.data_tambahan.tanggal_masuk || ''}
-                    onChange={e => updateDataTambahan('tanggal_masuk', e.target.value)}
+                    type="text"
+                    value={data.data_tambahan.asal_daerah || ''}
+                    onChange={e => updateDataTambahan('asal_daerah', e.target.value)}
                     className="w-full px-5 py-3.5 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-green-500 transition-all shadow-inner"
+                    placeholder="Contoh: Bandung / Jakarta Selatan"
                     required
                 />
             </div>
+            <div className="md:col-span-2 space-y-2">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Alamat Asal Lengkap</label>
+                <textarea 
+                    value={data.data_tambahan.alamat_asal || ''}
+                    onChange={e => updateDataTambahan('alamat_asal', e.target.value)}
+                    className="w-full px-5 py-3.5 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-green-500 transition-all shadow-inner"
+                    rows="2"
+                    placeholder="Alamat lengkap di daerah asal..."
+                ></textarea>
+            </div>
+
+            <div className="md:col-span-2 border-t border-gray-100 mt-2 pt-6">
+                <h4 className="text-xs font-black uppercase tracking-widest text-blue-600 mb-4 flex items-center"><span className="w-6 h-1 bg-blue-500 rounded-full mr-2"></span> TUJUAN DOMISILI</h4>
+            </div>
+
+            <div className="md:col-span-2 space-y-2">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Alamat Tinggal Sekarang</label>
+                <textarea 
+                    value={data.data_tambahan.alamat_tinggal || ''}
+                    onChange={e => updateDataTambahan('alamat_tinggal', e.target.value)}
+                    className="w-full px-5 py-3.5 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500 transition-all shadow-inner"
+                    rows="2"
+                    placeholder="Alamat domisili saat ini di Desa Cibatu..."
+                ></textarea>
+            </div>
+            
             <div className="space-y-2">
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Dusun Tujuan</label>
                 <select 
                     value={data.data_tambahan.dusun_id || ''}
                     onChange={e => updateDataTambahan('dusun_id', e.target.value)}
-                    className="w-full px-5 py-3.5 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-green-500 transition-all shadow-inner"
+                    className="w-full px-5 py-3.5 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500 transition-all shadow-inner"
                 >
                     <option value="">Pilih Dusun...</option>
                     {wilayah.dusun.map(d => <option key={d.id} value={d.id}>{d.nama}</option>)}
@@ -155,13 +186,15 @@ const ManualDomisiliForm = ({ data, updateDataTambahan, isCheckingNik, wilayah, 
                             updateDataTambahan('rw_id', e.target.value);
                             updateDataTambahan('rt_id', '');
                         }}
-                        className="flex-1 px-5 py-3.5 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-green-500 transition-all shadow-inner"
+                        className="flex-1 px-5 py-3.5 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500 transition-all shadow-inner"
                     >
                         <option value="">RW...</option>
                         {(() => {
-                            const availableRwIds = [...new Set(wilayah.rt
-                                .filter(r => String(r.dusun_id) === String(data.data_tambahan.dusun_id))
-                                .map(r => r.rw_id))];
+                            const dusunFilter = data.data_tambahan.dusun_id;
+                            const availableRwIds = dusunFilter 
+                                ? [...new Set(wilayah.rt.filter(r => !r.dusun_id || String(r.dusun_id) === String(dusunFilter)).map(r => r.rw_id))]
+                                : wilayah.rw.map(r => r.id);
+                                
                             return wilayah.rw
                                 .filter(rw => availableRwIds.includes(rw.id))
                                 .map(rw => <option key={rw.id} value={rw.id}>{rw.kode}</option>);
@@ -170,45 +203,25 @@ const ManualDomisiliForm = ({ data, updateDataTambahan, isCheckingNik, wilayah, 
                     <select 
                         value={data.data_tambahan.rt_id || ''}
                         onChange={e => updateDataTambahan('rt_id', e.target.value)}
-                        className="flex-1 px-5 py-3.5 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-green-500 transition-all shadow-inner"
+                        className="flex-1 px-5 py-3.5 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500 transition-all shadow-inner"
                     >
                         <option value="">RT...</option>
                         {wilayah.rt
-                            .filter(r => String(r.rw_id) === String(data.data_tambahan.rw_id) && String(r.dusun_id) === String(data.data_tambahan.dusun_id))
+                            .filter(r => String(r.rw_id) === String(data.data_tambahan.rw_id))
                             .map(r => <option key={r.id} value={r.id}>{r.kode}</option>)}
                     </select>
                 </div>
             </div>
-            <div className="md:col-span-2 space-y-2">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Kota / Kabupaten Asal <span className="text-red-500">*</span></label>
+            
+            <div className="space-y-2">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Tanggal Masuk (Tiba) <span className="text-red-500">*</span></label>
                 <input 
-                    type="text"
-                    value={data.data_tambahan.asal_daerah || ''}
-                    onChange={e => updateDataTambahan('asal_daerah', e.target.value)}
-                    className="w-full px-5 py-3.5 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-green-500 transition-all shadow-inner"
-                    placeholder="Contoh: Bandung / Jakarta Selatan"
+                    type="date"
+                    value={data.data_tambahan.tanggal_masuk || ''}
+                    onChange={e => updateDataTambahan('tanggal_masuk', e.target.value)}
+                    className="w-full px-5 py-3.5 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500 transition-all shadow-inner"
                     required
                 />
-            </div>
-            <div className="md:col-span-2 space-y-2">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Alamat Asal</label>
-                <textarea 
-                    value={data.data_tambahan.alamat_asal || ''}
-                    onChange={e => updateDataTambahan('alamat_asal', e.target.value)}
-                    className="w-full px-5 py-3.5 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-green-500 transition-all shadow-inner"
-                    rows="2"
-                    placeholder="Alamat lengkap di daerah asal..."
-                ></textarea>
-            </div>
-            <div className="md:col-span-2 space-y-2">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Alamat Tinggal Sekarang</label>
-                <textarea 
-                    value={data.data_tambahan.alamat_tinggal || ''}
-                    onChange={e => updateDataTambahan('alamat_tinggal', e.target.value)}
-                    className="w-full px-5 py-3.5 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-green-500 transition-all shadow-inner"
-                    rows="2"
-                    placeholder="Alamat domisili saat ini di Desa Cibatu..."
-                ></textarea>
             </div>
         </div>
     );
