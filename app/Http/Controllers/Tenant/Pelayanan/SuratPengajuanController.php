@@ -42,7 +42,7 @@ class SuratPengajuanController extends Controller
     public function create()
     {
         return Inertia::render('Tenant/SuratPengajuan/Create', [
-            'suratTypes' => SuratType::where('is_active', true)->orderBy('nama')->get(),
+            'suratTypes' => SuratType::with('templates')->where('is_active', true)->orderBy('nama')->get(),
             'wilayah'    => [
                 'dusun' => \App\Models\Dusun::all(),
                 'rw'    => \App\Models\Rw::all(),
@@ -87,10 +87,13 @@ class SuratPengajuanController extends Controller
     public function show(SuratPengajuan $suratPengajuan)
     {
         $suratPengajuan->load(['penduduk', 'admin']);
+        
+        $suratType = SuratType::with('templates')->find($suratPengajuan->jenis_surat);
 
         return Inertia::render('Tenant/SuratPengajuan/Show', [
             'suratPengajuan' => $suratPengajuan,
             'statusList'     => SuratPengajuan::STATUS_LIST,
+            'suratType'      => $suratType,
         ]);
     }
 
@@ -291,5 +294,20 @@ class SuratPengajuanController extends Controller
         }
 
         abort(404, 'File lampiran fisik tidak ditemukan di server.');
+    }
+
+    /**
+     * Generate multi-dokumen (sebagai ZIP) untuk SuratType dengan has_multi_template.
+     */
+    public function generateMultiPdf(Request $request, SuratPengajuan $suratPengajuan)
+    {
+        Gate::authorize('surat.view');
+
+        $request->validate([
+            'template_ids'   => 'required|array|min:1',
+            'template_ids.*' => 'exists:surat_type_templates,id',
+        ]);
+
+        return $this->suratService->generateMultiDocument($suratPengajuan, $request->template_ids);
     }
 }

@@ -76,21 +76,22 @@ export default function Create({ auth, suratTypes, wilayah }) {
             setIsManualInput(false);
         }
 
-        // Flatten form_json if it's sectioned
-        let flatFields = [];
+        // Collect all fields for initialization
+        let allFields = [];
         if (Array.isArray(type.form_json)) {
-            type.form_json.forEach(item => {
-                if (item.fields && Array.isArray(item.fields)) {
-                    flatFields = [...flatFields, ...item.fields];
-                } else {
-                    flatFields.push(item);
+            allFields = [...type.form_json];
+        }
+        if (type.has_multi_template && Array.isArray(type.templates)) {
+            type.templates.filter(t => t.is_active).forEach(t => {
+                if (Array.isArray(t.form_json)) {
+                    allFields = [...allFields, ...t.form_json];
                 }
             });
         }
 
         // Initialize data_tambahan from flat fields
         const initialData = {};
-        flatFields.forEach(field => {
+        allFields.forEach(field => {
             if (field.name) initialData[field.name] = '';
         });
         
@@ -136,10 +137,6 @@ export default function Create({ auth, suratTypes, wilayah }) {
         }
         
         setData('data_tambahan', initialData);
-        setSelectedType({
-            ...type,
-            form_json: flatFields
-        });
         setStep(2);
     };
 
@@ -324,16 +321,11 @@ export default function Create({ auth, suratTypes, wilayah }) {
                                 />
                             )}
 
-                            {/* Dynamic Fields from form_json (Only for non-kematian or specific additional fields) */}
-                            {selectedType.form_json && selectedType.form_json.length > 0 && (
-                                <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden animate-in slide-in-from-bottom-4 duration-500">
-                                    <div className="p-6 border-b border-gray-100 bg-gray-50/50 flex items-center gap-3">
-                                        <Layers className="w-5 h-5 text-green-600" />
-                                        <h3 className="text-sm font-black text-gray-900 uppercase italic tracking-tighter">Data Tambahan Surat</h3>
-                                    </div>
-
+                            {/* Dynamic Fields Section(s) */}
+                            {(() => {
+                                const renderFields = (fields) => (
                                     <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        {selectedType.form_json.map((field, idx) => (
+                                        {fields.map((field, idx) => (
                                             <div key={idx} className={cn("space-y-2", field.type === 'textarea' && "md:col-span-2")}>
                                                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
                                                     {field.label} {field.required && <span className="text-red-500">*</span>}
@@ -373,8 +365,44 @@ export default function Create({ auth, suratTypes, wilayah }) {
                                             </div>
                                         ))}
                                     </div>
-                                </div>
-                            )}
+                                );
+
+                                const sections = [];
+                                
+                                // Global fields
+                                if (selectedType.form_json && selectedType.form_json.length > 0) {
+                                    sections.push(
+                                        <div key="global" className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden animate-in slide-in-from-bottom-4 duration-500 mb-6">
+                                            <div className="p-6 border-b border-gray-100 bg-gray-50/50 flex items-center gap-3">
+                                                <Layers className="w-5 h-5 text-green-600" />
+                                                <h3 className="text-sm font-black text-gray-900 uppercase italic tracking-tighter">Data Umum / Tambahan</h3>
+                                            </div>
+                                            {renderFields(selectedType.form_json)}
+                                        </div>
+                                    );
+                                }
+
+                                // Sub-template fields
+                                if (selectedType.has_multi_template && Array.isArray(selectedType.templates)) {
+                                    selectedType.templates.filter(t => t.is_active && Array.isArray(t.form_json) && t.form_json.length > 0).forEach(t => {
+                                        // Cek gender_filter
+                                        if (t.gender_filter === 'L' && selectedResident?.jenis_kelamin === 'P') return;
+                                        if (t.gender_filter === 'P' && selectedResident?.jenis_kelamin === 'L') return;
+                                        
+                                        sections.push(
+                                            <div key={`sub_${t.id}`} className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden animate-in slide-in-from-bottom-4 duration-500 mb-6">
+                                                <div className="p-6 border-b border-indigo-100 bg-indigo-50/50 flex items-center gap-3">
+                                                    <FileText className="w-5 h-5 text-indigo-600" />
+                                                    <h3 className="text-sm font-black text-indigo-900 uppercase italic tracking-tighter">DATA TAMBAHAN — {t.kode} • {t.nama}</h3>
+                                                </div>
+                                                {renderFields(t.form_json)}
+                                            </div>
+                                        );
+                                    });
+                                }
+
+                                return sections;
+                            })()}
 
                             {/* Additional Letter Settings */}
                             <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">

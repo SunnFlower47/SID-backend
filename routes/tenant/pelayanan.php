@@ -39,6 +39,17 @@ Route::middleware([])->group(function () {
         Route::get('surat-type/{surat_type}/preview-template', [SuratTypeController::class, 'previewTemplate'])->name('surat-type.preview-template');
         Route::resource('surat-type', SuratTypeController::class);
         Route::post('surat-type/{surat_type}', [SuratTypeController::class, 'update'])->name('surat-type.update.post');
+
+        // Sub-template management (JSON API)
+        Route::prefix('surat-type/{surat_type}/templates')->name('surat-type.templates.')->group(function () {
+            Route::get('/',                      [SuratTypeController::class, 'listTemplates'])->name('index');
+            Route::post('/',                     [SuratTypeController::class, 'storeTemplate'])->name('store');
+            Route::post('/{template}',           [SuratTypeController::class, 'updateTemplate'])->name('update');
+            Route::delete('/{template}',         [SuratTypeController::class, 'destroyTemplate'])->name('destroy');
+        });
+
+        // Generate multi-dokumen (ZIP / docx)
+        Route::post('/surat-pengajuan/{suratPengajuan}/generate-multi', [SuratPengajuanController::class, 'generateMultiPdf'])->name('surat-pengajuan.generate-multi');
         
         // Legacy Surat Routes
         Route::get('/surat-pengajuan/legacy/{id}', 'downloadLegacy')->name('surat-pengajuan.download-legacy');

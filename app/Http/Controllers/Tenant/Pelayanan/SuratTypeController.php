@@ -217,4 +217,109 @@ class SuratTypeController extends Controller
             return response()->json(['error' => 'Gagal membaca template: ' . $e->getMessage()], 500);
         }
     }
+
+    // ─────────────────────────────────────────────────────────
+    //  SUB-TEMPLATE CRUD (JSON API)
+    // ─────────────────────────────────────────────────────────
+
+    /**
+     * List semua sub-template untuk jenis surat tertentu.
+     */
+    public function listTemplates(SuratType $suratType)
+    {
+        return response()->json(
+            $suratType->templates()->orderBy('urutan')->get()
+        );
+    }
+
+    /**
+     * Tambah sub-template baru (+ upload file .docx opsional).
+     */
+    public function storeTemplate(Request $request, SuratType $suratType)
+    {
+        Gate::authorize('settings.view');
+
+        // Handle FormData form_json string
+        if (is_string($request->form_json)) {
+            $request->merge(['form_json' => json_decode($request->form_json, true)]);
+        }
+
+        $validated = $request->validate([
+            'kode'          => 'required|string|max:20',
+            'nama'          => 'required|string|max:150',
+            'deskripsi'     => 'nullable|string',
+            'file_template' => 'nullable|file|mimes:docx|max:5120',
+            'form_json'     => 'nullable|array',
+            'urutan'        => 'nullable|integer',
+            'is_active'     => 'nullable|boolean',
+            'gender_filter' => 'nullable|in:all,L,P',
+        ]);
+
+        if ($request->hasFile('file_template')) {
+            $path = $request->file('file_template')->store('templates/surat', 'local');
+            $validated['file_template'] = basename($path);
+        }
+
+        $validated['surat_type_id'] = $suratType->id;
+        $validated['is_active']     = $validated['is_active'] ?? true;
+        $validated['gender_filter'] = $validated['gender_filter'] ?? 'all';
+        $validated['urutan']        = $validated['urutan'] ?? 0;
+
+        $template = \App\Models\SuratTypeTemplate::create($validated);
+
+        return response()->json($template, 201);
+    }
+
+    /**
+     * Update sub-template (+ opsional re-upload file .docx).
+     */
+    public function updateTemplate(Request $request, SuratType $suratType, $templateId)
+    {
+        Gate::authorize('settings.view');
+
+        $template = \App\Models\SuratTypeTemplate::where('surat_type_id', $suratType->id)
+            ->findOrFail($templateId);
+
+        // Handle FormData form_json string
+        if (is_string($request->form_json)) {
+            $request->merge(['form_json' => json_decode($request->form_json, true)]);
+        }
+
+        $validated = $request->validate([
+            'kode'          => 'sometimes|string|max:20',
+            'nama'          => 'sometimes|string|max:150',
+            'deskripsi'     => 'nullable|string',
+            'file_template' => 'nullable|file|mimes:docx|max:5120',
+            'form_json'     => 'nullable|array',
+            'urutan'        => 'nullable|integer',
+            'is_active'     => 'nullable|boolean',
+            'gender_filter' => 'nullable|in:all,L,P',
+        ]);
+
+        if ($request->hasFile('file_template')) {
+            $path = $request->file('file_template')->store('templates/surat', 'local');
+            $validated['file_template'] = basename($path);
+        } else {
+            unset($validated['file_template']);
+        }
+
+        $template->update($validated);
+
+        return response()->json($template->fresh());
+    }
+
+    /**
+     * Hapus sub-template (+ cleanup file dari storage).
+     */
+    public function destroyTemplate(SuratType $suratType, $templateId)
+    {
+        Gate::authorize('settings.view');
+
+        $template = \App\Models\SuratTypeTemplate::where('surat_type_id', $suratType->id)
+            ->findOrFail($templateId);
+
+        $template->delete();
+
+        return response()->json(['message' => 'Sub-template berhasil dihapus.']);
+    }
 }
