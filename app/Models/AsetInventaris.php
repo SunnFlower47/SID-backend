@@ -12,18 +12,29 @@ class AsetInventaris extends Model
 
     protected $fillable = [
         'aset_barang_id',
-        'nama_barang_override',   // nama SPESIFIK aset milik desa (wajib)
+        'nama_barang_override',
         'satuan',
         'lokasi',
         'tanggal_perolehan',
+        // asal_usul: APBDes | Hibah | Aset Asli Desa | Bantuan Pemerintah | Bantuan Provinsi | Bantuan Kabupaten | Lainnya
         'asal_usul',
         'kondisi',
         'keterangan',
+        // Golongan 3.02 — Kendaraan
         'no_polisi',
         'no_mesin',
         'no_rangka',
         'no_bpkb',
+        // Golongan 2 — Tanah
         'no_sertifikat',
+        // Golongan 4 — Gedung & Bangunan
+        'no_imb',
+        'luas_bangunan',
+        'tahun_dibangun',
+        // Golongan 5 — Jalan, Jaringan & Irigasi
+        'panjang',
+        'lebar',
+        'volume',
     ];
 
     protected $casts = [

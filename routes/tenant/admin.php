@@ -119,4 +119,12 @@ Route::middleware([])->group(function () {
         Route::post('/update', 'update')->name('update');
         Route::post('/update-logos', 'updateLogos')->name('update-logos');
     });
+
+    // Buku Administrasi Desa
+    Route::prefix('administrasi/buku')->name('administrasi.buku.')->controller(\App\Http\Controllers\Tenant\Administrasi\BukuAdministrasiController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/{jenis_buku}', 'show')->name('show');
+        Route::get('/{jenis_buku}/export/excel', 'exportExcel')->name('export.excel');
+        Route::get('/{jenis_buku}/export/pdf', 'exportPdf')->name('export.pdf');
+    });
 });

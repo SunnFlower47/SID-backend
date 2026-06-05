@@ -212,11 +212,13 @@ export default function Create({ auth, suratTypes, wilayah }) {
     };
 
     const updateDataTambahan = (key, value) => {
-        const newData = {
-            ...data.data_tambahan,
-            [key]: value
-        };
-        setData('data_tambahan', newData);
+        setData(prevData => ({
+            ...prevData,
+            data_tambahan: {
+                ...prevData.data_tambahan,
+                [key]: value
+            }
+        }));
 
         // Trigger NIK check for domisili manual input
         if (key === 'nik' && value.length === 16 && selectedType?.id === 'keterangan-domisili') {

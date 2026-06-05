@@ -30,26 +30,35 @@ export default function Edit({ auth, inventaris, kategoris }) {
         tanggal_perolehan:     inventaris.tanggal_perolehan ?? '',
         asal_usul:             inventaris.asal_usul ?? 'APBDes',
         keterangan:            inventaris.keterangan ?? '',
+        // Golongan 3.02 — Kendaraan
         no_polisi:             inventaris.no_polisi ?? '',
         no_mesin:              inventaris.no_mesin ?? '',
         no_rangka:             inventaris.no_rangka ?? '',
         no_bpkb:               inventaris.no_bpkb ?? '',
+        // Golongan 2 — Tanah
         no_sertifikat:         inventaris.no_sertifikat ?? '',
+        // Golongan 4 — Gedung & Bangunan
+        no_imb:                inventaris.no_imb ?? '',
+        luas_bangunan:         inventaris.luas_bangunan ?? '',
+        tahun_dibangun:        inventaris.tahun_dibangun ?? '',
+        // Golongan 5 — Jalan, Jaringan & Irigasi
+        panjang:               inventaris.panjang ?? '',
+        lebar:                 inventaris.lebar ?? '',
+        volume:                inventaris.volume ?? '',
     });
 
     const handleKategoriChange = (val) => {
         setSelectedKategori(val);
         const kat = kategoris.find((k) => k.id === Number(val));
         setBarangOptions(kat?.barangs ?? []);
-        setData({
-            ...data,
+        setData(prev => ({
+            ...prev,
             aset_barang_id: '',
-            no_polisi: '',
-            no_mesin: '',
-            no_rangka: '',
-            no_bpkb: '',
-            no_sertifikat: ''
-        });
+            no_polisi: '', no_mesin: '', no_rangka: '', no_bpkb: '',
+            no_sertifikat: '',
+            no_imb: '', luas_bangunan: '', tahun_dibangun: '',
+            panjang: '', lebar: '', volume: '',
+        }));
     };
 
     const handleSubmit = (e) => {
@@ -58,8 +67,13 @@ export default function Edit({ auth, inventaris, kategoris }) {
     };
 
     const selectedKategoriObj = kategoris.find((k) => k.id === Number(selectedKategori));
-    const showVehicleFields   = selectedKategoriObj?.kode === '3';
+    // Deteksi jenis barang berdasarkan kode_barang yang dipilih
+    const selectedBarang      = barangOptions.find((b) => b.id === Number(data.aset_barang_id))
+                             ?? inventaris.barang;
+    const showVehicleFields   = selectedBarang?.kode_barang?.startsWith('3.02');
     const showLandFields      = selectedKategoriObj?.kode === '2';
+    const showBuildingFields  = selectedKategoriObj?.kode === '4';
+    const showRoadFields      = selectedKategoriObj?.kode === '5';
 
     const handleDeleteMutasi = (mutasi) => {
         Swal.fire({
@@ -199,11 +213,13 @@ export default function Edit({ auth, inventaris, kategoris }) {
                                 onChange={(e) => setData('asal_usul', e.target.value)}
                                 error={errors.asal_usul}
                                 options={[
-                                    { value: 'APBDes',             label: 'APBDes (Anggaran Desa)' },
-                                    { value: 'Hibah',              label: 'Hibah' },
-                                    { value: 'Aset Asli Desa',     label: 'Aset Asli Desa' },
-                                    { value: 'Bantuan Pemerintah', label: 'Bantuan Pemerintah' },
-                                    { value: 'Lainnya',            label: 'Lainnya' },
+                                    { value: 'APBDes',              label: 'APBDes (Anggaran Desa)' },
+                                    { value: 'Bantuan Pemerintah',  label: 'Bantuan Pemerintah Pusat' },
+                                    { value: 'Bantuan Provinsi',    label: 'Bantuan Provinsi' },
+                                    { value: 'Bantuan Kabupaten',   label: 'Bantuan Kabupaten/Kota' },
+                                    { value: 'Hibah',               label: 'Hibah / Sumbangan' },
+                                    { value: 'Aset Asli Desa',      label: 'Aset Asli Desa' },
+                                    { value: 'Lainnya',             label: 'Lainnya' },
                                 ]}
                             />
 
@@ -251,13 +267,72 @@ export default function Edit({ auth, inventaris, kategoris }) {
                             {showLandFields && (
                                 <div className="sm:col-span-2">
                                     <FormField.Input
-                                        label="Nomor Sertifikat / Bukti Kepemilikan (Opsional)"
+                                        label="Nomor Sertifikat / Bukti Kepemilikan"
                                         placeholder="Contoh: Sertifikat Hak Pakai No. 12/Cibatu"
                                         value={data.no_sertifikat}
                                         onChange={(e) => setData('no_sertifikat', e.target.value)}
                                         error={errors.no_sertifikat}
                                     />
                                 </div>
+                            )}
+
+                            {/* Gedung & Bangunan (kode 4.xx) */}
+                            {showBuildingFields && (
+                                <>
+                                    <FormField.Input
+                                        label="Nomor IMB (Opsional)"
+                                        placeholder="No. Izin Mendirikan Bangunan"
+                                        value={data.no_imb}
+                                        onChange={(e) => setData('no_imb', e.target.value)}
+                                        error={errors.no_imb}
+                                    />
+                                    <FormField.Input
+                                        label="Luas Bangunan (m²)"
+                                        type="number" step="0.01" min="0"
+                                        placeholder="0.00"
+                                        value={data.luas_bangunan}
+                                        onChange={(e) => setData('luas_bangunan', e.target.value)}
+                                        error={errors.luas_bangunan}
+                                    />
+                                    <FormField.Input
+                                        label="Tahun Dibangun"
+                                        type="number" min="1900" max={new Date().getFullYear()}
+                                        placeholder="2020"
+                                        value={data.tahun_dibangun}
+                                        onChange={(e) => setData('tahun_dibangun', e.target.value)}
+                                        error={errors.tahun_dibangun}
+                                    />
+                                </>
+                            )}
+
+                            {/* Jalan, Jaringan & Irigasi (kode 5.xx) */}
+                            {showRoadFields && (
+                                <>
+                                    <FormField.Input
+                                        label="Panjang (meter)"
+                                        type="number" step="0.01" min="0"
+                                        placeholder="0.00"
+                                        value={data.panjang}
+                                        onChange={(e) => setData('panjang', e.target.value)}
+                                        error={errors.panjang}
+                                    />
+                                    <FormField.Input
+                                        label="Lebar (meter)"
+                                        type="number" step="0.01" min="0"
+                                        placeholder="0.00"
+                                        value={data.lebar}
+                                        onChange={(e) => setData('lebar', e.target.value)}
+                                        error={errors.lebar}
+                                    />
+                                    <FormField.Input
+                                        label="Volume / Luas Total (m² atau m³)"
+                                        type="number" step="0.01" min="0"
+                                        placeholder="0.00"
+                                        value={data.volume}
+                                        onChange={(e) => setData('volume', e.target.value)}
+                                        error={errors.volume}
+                                    />
+                                </>
                             )}
 
                             <div className="sm:col-span-2">

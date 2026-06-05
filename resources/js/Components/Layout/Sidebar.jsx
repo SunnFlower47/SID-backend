@@ -39,6 +39,30 @@ const menuGroups = [
         ]
     },
     {
+        name: 'Sekretariat Desa',
+        icon: 'Landmark',
+        color: 'from-blue-600 to-blue-700',
+        hoverBg: 'hover:from-blue-50 hover:to-blue-100 hover:text-blue-700',
+        items: [
+            { name: 'Buku Agenda Surat',  href: 'sekretariat.buku-agenda.index', icon: 'Mails' },
+            { name: 'Peraturan Desa', href: 'sekretariat.peraturan-desa.index', icon: 'BookOpen' },
+            { name: 'Keputusan Kades', href: 'sekretariat.keputusan-kades.index', icon: 'Scale' },
+            { name: 'Tanah di Desa', href: 'sekretariat.tanah-di-desa.index', icon: 'MapPin' },
+            { name: 'Kader Pemberdayaan', href: 'sekretariat.kader-pemberdayaan.index', icon: 'Users2' },
+            { name: 'Anggota BPD', href: 'sekretariat.anggota-bpd.index', icon: 'Users' },
+            { name: 'Inventaris Aset', href: 'aset.inventaris.index', icon: 'Archive' },
+        ]
+    },
+    {
+        name: 'Buku Administrasi',
+        icon: 'Library',
+        color: 'from-amber-600 to-amber-700',
+        hoverBg: 'hover:from-amber-50 hover:to-amber-100 hover:text-amber-700',
+        items: [
+            { name: 'Koleksi Buku', href: 'administrasi.buku.index', icon: 'BookMarked' },
+        ]
+    },
+    {
         name: 'Pusat Komunikasi',
         icon: 'MessagesSquare',
         color: 'from-indigo-600 to-indigo-700',
@@ -75,16 +99,7 @@ const menuGroups = [
             { name: 'Proyek Pembangunan', href: 'anggaran.create-proyek', icon: 'Construction' },
         ]
     },
-    {
-        name: 'Aset Desa',
-        icon: 'Archive',
-        color: 'from-teal-600 to-teal-700',
-        hoverBg: 'hover:from-teal-50 hover:to-teal-100 hover:text-teal-700',
-        items: [
-            { name: 'Buku Inventaris', href: 'aset.inventaris.index', icon: 'BookOpen' },
-            { name: 'Master Kode Barang', href: 'aset.barang.index', icon: 'Package' },
-        ]
-    },
+
     {
         name: 'Laporan & Analisis',
         icon: 'TrendingUp',
@@ -160,7 +175,7 @@ export default function Sidebar({ collapsed, isMobile = false, closeMobile, togg
                 }
                 return routeParts[0] === currentParts[0] && routeParts[1] === currentParts[1];
             }
-            
+
             return false;
         } catch (e) {
             return false;
@@ -169,7 +184,7 @@ export default function Sidebar({ collapsed, isMobile = false, closeMobile, togg
 
     // Auto-open active group
     useEffect(() => {
-        const activeGroup = menuGroups.find(group => 
+        const activeGroup = menuGroups.find(group =>
             group.items && group.items.some(item => isRouteActive(item.href))
         );
         if (activeGroup) {
@@ -230,8 +245,8 @@ export default function Sidebar({ collapsed, isMobile = false, closeMobile, togg
                                 className={cn(
                                     "flex items-center rounded-2xl transition-all duration-300",
                                     collapsed ? "justify-center p-3" : "px-4 py-3",
-                                    active 
-                                        ? `bg-gradient-to-r ${group.color} text-white shadow-lg shadow-green-200` 
+                                    active
+                                        ? `bg-gradient-to-r ${group.color} text-white shadow-lg shadow-green-200`
                                         : `text-gray-700 ${group.hoverBg}`
                                 )}
                             >
@@ -280,8 +295,8 @@ export default function Sidebar({ collapsed, isMobile = false, closeMobile, togg
                                                 className={cn(
                                                     "flex items-center rounded-xl transition-all duration-300 relative",
                                                     collapsed ? "justify-center p-2.5" : "px-4 py-2.5",
-                                                    active 
-                                                        ? `bg-gradient-to-r ${group.color} text-white shadow-md shadow-gray-200` 
+                                                    active
+                                                        ? `bg-gradient-to-r ${group.color} text-white shadow-md shadow-gray-200`
                                                         : `text-gray-600 ${group.hoverBg}`
                                                 )}
                                             >

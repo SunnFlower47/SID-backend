@@ -50,6 +50,7 @@ export default function Index({ auth, grouped, grandTotal, tahun, semester, tahu
                     title="Inventaris Aset Desa"
                     subtitle="Buku Inventaris Barang Milik Desa (BMD)"
                     actions={[
+                        { label: 'Master Kode Barang', icon: Package, href: route('aset.barang.index'), variant: 'ghost' },
                         { label: 'Tambah Aset Baru', icon: Plus, href: route('aset.inventaris.create', { tahun, semester }), variant: 'white' },
                     ]}
                 />

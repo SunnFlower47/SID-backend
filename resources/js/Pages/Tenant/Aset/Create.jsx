@@ -18,14 +18,24 @@ export default function Create({ auth, kategoris, tahun, semester }) {
         satuan:               '',
         kondisi:              'baik',
         lokasi:               '',
-        tanggal_perolehan:    '',   // ← KOSONG, user wajib isi tanggal asli perolehan
+        tanggal_perolehan:    '',
         asal_usul:            'APBDes',
         keterangan:           '',
+        // Golongan 3.02 — Kendaraan
         no_polisi:            '',
         no_mesin:             '',
         no_rangka:            '',
         no_bpkb:              '',
+        // Golongan 2 — Tanah
         no_sertifikat:        '',
+        // Golongan 4 — Gedung & Bangunan
+        no_imb:               '',
+        luas_bangunan:        '',
+        tahun_dibangun:       '',
+        // Golongan 5 — Jalan, Jaringan & Irigasi
+        panjang:              '',
+        lebar:                '',
+        volume:               '',
         // Mutasi pertama — auto-sync dari tanggal_perolehan
         tahun:                tahun ?? new Date().getFullYear(),
         semester:             semester ?? (new Date().getMonth() < 6 ? 1 : 2),
@@ -39,16 +49,15 @@ export default function Create({ auth, kategoris, tahun, semester }) {
         setSelectedKategori(val);
         const kat = kategoris.find((k) => k.id === Number(val));
         setBarangOptions(kat?.barangs ?? []);
-        setData({
-            ...data,
+        setData(prev => ({
+            ...prev,
             aset_barang_id: '',
             satuan: '',
-            no_polisi: '',
-            no_mesin: '',
-            no_rangka: '',
-            no_bpkb: '',
-            no_sertifikat: ''
-        });
+            no_polisi: '', no_mesin: '', no_rangka: '', no_bpkb: '',
+            no_sertifikat: '',
+            no_imb: '', luas_bangunan: '', tahun_dibangun: '',
+            panjang: '', lebar: '', volume: '',
+        }));
         setSelectedBarang(null);
     };
 
@@ -80,8 +89,14 @@ export default function Create({ auth, kategoris, tahun, semester }) {
     const saldoAkhirNilai = parseFloat(data.nilai)     || 0;
 
     const selectedKategoriObj = kategoris.find((k) => k.id === Number(selectedKategori));
-    const showVehicleFields   = selectedKategoriObj?.kode === '3';
+    // Field kendaraan hanya muncul untuk kode 3.02.xx (Alat Angkutan)
+    const showVehicleFields   = selectedBarang?.kode_barang?.startsWith('3.02');
+    // Field tanah untuk kode 2.xx
     const showLandFields      = selectedKategoriObj?.kode === '2';
+    // Field gedung untuk kode 4.xx
+    const showBuildingFields  = selectedKategoriObj?.kode === '4';
+    // Field jalan/irigasi untuk kode 5.xx
+    const showRoadFields      = selectedKategoriObj?.kode === '5';
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -200,11 +215,13 @@ export default function Create({ auth, kategoris, tahun, semester }) {
                                 onChange={(e) => setData('asal_usul', e.target.value)}
                                 error={errors.asal_usul}
                                 options={[
-                                    { value: 'APBDes',             label: 'APBDes (Anggaran Desa)' },
-                                    { value: 'Hibah',              label: 'Hibah' },
-                                    { value: 'Aset Asli Desa',     label: 'Aset Asli Desa' },
-                                    { value: 'Bantuan Pemerintah', label: 'Bantuan Pemerintah' },
-                                    { value: 'Lainnya',            label: 'Lainnya' },
+                                    { value: 'APBDes',              label: 'APBDes (Anggaran Desa)' },
+                                    { value: 'Bantuan Pemerintah',  label: 'Bantuan Pemerintah Pusat' },
+                                    { value: 'Bantuan Provinsi',    label: 'Bantuan Provinsi' },
+                                    { value: 'Bantuan Kabupaten',   label: 'Bantuan Kabupaten/Kota' },
+                                    { value: 'Hibah',               label: 'Hibah / Sumbangan' },
+                                    { value: 'Aset Asli Desa',      label: 'Aset Asli Desa' },
+                                    { value: 'Lainnya',             label: 'Lainnya' },
                                 ]}
                             />
 
@@ -251,17 +268,76 @@ export default function Create({ auth, kategoris, tahun, semester }) {
                                 </>
                             )}
 
-                            {/* Conditional Fields for Tanah */}
+                            {/* Conditional Fields for Tanah (kode 2.xx) */}
                             {showLandFields && (
                                 <div className="sm:col-span-2">
                                     <FormField.Input
-                                        label="Nomor Sertifikat / Bukti Kepemilikan (Opsional)"
+                                        label="Nomor Sertifikat / Bukti Kepemilikan"
                                         placeholder="Contoh: Sertifikat Hak Pakai No. 12/Cibatu"
                                         value={data.no_sertifikat}
                                         onChange={(e) => setData('no_sertifikat', e.target.value)}
                                         error={errors.no_sertifikat}
                                     />
                                 </div>
+                            )}
+
+                            {/* Conditional Fields for Gedung & Bangunan (kode 4.xx) */}
+                            {showBuildingFields && (
+                                <>
+                                    <FormField.Input
+                                        label="Nomor IMB (Opsional)"
+                                        placeholder="No. Izin Mendirikan Bangunan"
+                                        value={data.no_imb}
+                                        onChange={(e) => setData('no_imb', e.target.value)}
+                                        error={errors.no_imb}
+                                    />
+                                    <FormField.Input
+                                        label="Luas Bangunan (m²)"
+                                        type="number" step="0.01" min="0"
+                                        placeholder="0.00"
+                                        value={data.luas_bangunan}
+                                        onChange={(e) => setData('luas_bangunan', e.target.value)}
+                                        error={errors.luas_bangunan}
+                                    />
+                                    <FormField.Input
+                                        label="Tahun Dibangun"
+                                        type="number" min="1900" max={new Date().getFullYear()}
+                                        placeholder="2020"
+                                        value={data.tahun_dibangun}
+                                        onChange={(e) => setData('tahun_dibangun', e.target.value)}
+                                        error={errors.tahun_dibangun}
+                                    />
+                                </>
+                            )}
+
+                            {/* Conditional Fields for Jalan, Jaringan & Irigasi (kode 5.xx) */}
+                            {showRoadFields && (
+                                <>
+                                    <FormField.Input
+                                        label="Panjang (meter)"
+                                        type="number" step="0.01" min="0"
+                                        placeholder="0.00"
+                                        value={data.panjang}
+                                        onChange={(e) => setData('panjang', e.target.value)}
+                                        error={errors.panjang}
+                                    />
+                                    <FormField.Input
+                                        label="Lebar (meter)"
+                                        type="number" step="0.01" min="0"
+                                        placeholder="0.00"
+                                        value={data.lebar}
+                                        onChange={(e) => setData('lebar', e.target.value)}
+                                        error={errors.lebar}
+                                    />
+                                    <FormField.Input
+                                        label="Volume / Luas Total (m² atau m³)"
+                                        type="number" step="0.01" min="0"
+                                        placeholder="0.00"
+                                        value={data.volume}
+                                        onChange={(e) => setData('volume', e.target.value)}
+                                        error={errors.volume}
+                                    />
+                                </>
                             )}
 
                             <div className="sm:col-span-2">
