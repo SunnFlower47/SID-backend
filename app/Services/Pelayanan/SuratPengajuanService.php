@@ -247,4 +247,78 @@ class SuratPengajuanService
         $type = SuratType::find($suratTypeId);
         return $type?->template_code;
     }
+
+    /**
+     * Generate banyak dokumen Word dari sub-template yang dipilih.
+     * Jika 1 file → download .docx langsung.
+     * Jika >1 file → buat ZIP → download ZIP.
+     */
+    public function generateMultiDocument(SuratPengajuan $suratPengajuan, array $templateIds)
+    {
+        $subTemplates = \App\Models\SuratTypeTemplate::whereIn('id', $templateIds)
+            ->where('is_active', true)
+            ->whereNotNull('file_template')
+            ->orderBy('urutan')
+            ->get();
+
+        if ($subTemplates->isEmpty()) {
+            throw new \RuntimeException('Tidak ada sub-template aktif yang dipilih atau file template belum diupload.');
+        }
+
+        // Build data surat (sama untuk semua sub-template)
+        $data = $this->buildSuratData($suratPengajuan);
+        $data = $this->formatDataForWord($data, $suratPengajuan);
+
+        $generatedFiles = [];
+        $nomorSafe = str_replace(['/', '\\', ':', '*', '?', '"', '<', '>', '|'], '-', $suratPengajuan->nomor_surat);
+
+        try {
+            foreach ($subTemplates as $subTemplate) {
+                $filename = "{$subTemplate->kode}_{$nomorSafe}.docx";
+                $outputPath = $this->suratService->generate(
+                    $subTemplate->file_template,
+                    $data,
+                    $filename,
+                    $suratPengajuan->penandatangan ?? 'kepala_desa'
+                );
+                $generatedFiles[] = [
+                    'path'     => $outputPath,
+                    'filename' => $filename,
+                ];
+            }
+
+            // Jika hanya 1 file, langsung download .docx
+            if (count($generatedFiles) === 1) {
+                return response()->download(
+                    $generatedFiles[0]['path'],
+                    $generatedFiles[0]['filename']
+                )->deleteFileAfterSend(false);
+            }
+
+            // Jika >1 file, buat ZIP
+            $zipFilename = "surat_{$nomorSafe}.zip";
+            $zipPath = storage_path('app/private/generated_surat/' . $zipFilename);
+
+            $zip = new \ZipArchive();
+            if ($zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
+                throw new \RuntimeException('Gagal membuat file ZIP.');
+            }
+
+            foreach ($generatedFiles as $file) {
+                $zip->addFile($file['path'], $file['filename']);
+            }
+            $zip->close();
+
+            return response()->download($zipPath, $zipFilename)->deleteFileAfterSend(true);
+
+        } catch (\Exception $e) {
+            // Cleanup generated files on error
+            foreach ($generatedFiles as $file) {
+                if (file_exists($file['path'])) {
+                    @unlink($file['path']);
+                }
+            }
+            throw $e;
+        }
+    }
 }
