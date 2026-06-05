@@ -17,6 +17,7 @@ import * as LucideIcons from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Modal from '@/Components/Shared/Modal';
 import { PageHeader } from '@/Components/Shared';
+import SubTemplateManager from './Components/SubTemplateManager';
 
 export default function Form({ auth, suratType = null }) {
     const isEdit = !!suratType;
@@ -42,6 +43,7 @@ export default function Form({ auth, suratType = null }) {
         deskripsi: suratType?.deskripsi || '',
         persyaratan: suratType?.persyaratan || '',
         has_template: suratType?.has_template ?? true,
+        has_multi_template: suratType?.has_multi_template ?? false,
         template_code: suratType?.template_code || '',
         icon: suratType?.icon || 'file-text',
         color: suratType?.color || 'blue',
@@ -632,6 +634,15 @@ export default function Form({ auth, suratType = null }) {
                                 )}
                             </div>
                         </div>
+
+                        {/* Sub-Template Manager */}
+                        {isEdit && data.has_multi_template && (
+                            <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden mt-6">
+                                <div className="p-6">
+                                    <SubTemplateManager suratType={suratType} />
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     {/* Sidebar / Options */}
@@ -698,6 +709,26 @@ export default function Form({ auth, suratType = null }) {
                                         <div className={cn(
                                             "absolute top-1 w-4 h-4 bg-white rounded-full transition-all shadow-sm",
                                             data.has_template ? "left-7" : "left-1"
+                                        )}></div>
+                                    </button>
+                                </div>
+
+                                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                                    <div>
+                                        <p className="text-[10px] font-black text-gray-900 uppercase tracking-widest">Multi Template (Sub-Template)</p>
+                                        <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest mt-1">Banyak file Word dalam 1 surat</p>
+                                    </div>
+                                    <button 
+                                        type="button"
+                                        onClick={() => setData('has_multi_template', !data.has_multi_template)}
+                                        className={cn(
+                                            "w-12 h-6 rounded-full transition-all relative",
+                                            data.has_multi_template ? "bg-indigo-500 shadow-lg shadow-indigo-200" : "bg-gray-300"
+                                        )}
+                                    >
+                                        <div className={cn(
+                                            "absolute top-1 w-4 h-4 bg-white rounded-full transition-all shadow-sm",
+                                            data.has_multi_template ? "left-7" : "left-1"
                                         )}></div>
                                     </button>
                                 </div>

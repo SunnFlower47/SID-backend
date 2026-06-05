@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 
@@ -28,6 +29,7 @@ class SuratType extends Model
         'color',
         'is_active',
         'is_public',
+        'has_multi_template',
         'form_json'
     ];
 
@@ -35,6 +37,7 @@ class SuratType extends Model
         'has_template' => 'boolean',
         'is_active' => 'boolean',
         'is_public' => 'boolean',
+        'has_multi_template' => 'boolean',
         'form_json' => 'array'
     ];
 
@@ -47,6 +50,14 @@ class SuratType extends Model
             ->logOnly(['id', 'nama', 'persyaratan', 'has_template', 'template_code', 'is_active'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
+    }
+
+    /**
+     * Relasi ke sub-template dokumen.
+     */
+    public function templates(): HasMany
+    {
+        return $this->hasMany(SuratTypeTemplate::class, 'surat_type_id')->orderBy('urutan');
     }
 
     /**

@@ -15,10 +15,11 @@ import Swal from 'sweetalert2';
 
 // Shared Components
 import { PageHeader, InfoRow } from '@/Components/Shared';
+import MultiTemplatePrintPanel from './Components/MultiTemplatePrintPanel';
 
 dayjs.locale('id');
 
-export default function Show({ auth, suratPengajuan, statusList }) {
+export default function Show({ auth, suratPengajuan, statusList, suratType }) {
     const p = suratPengajuan;
     
     const getStatusStyle = (status) => {
@@ -61,13 +62,13 @@ export default function Show({ auth, suratPengajuan, statusList }) {
                             href: route('admin.surat-pengajuan.edit', p.id),
                             variant: 'white'
                         },
-                        {
+                        (!suratType?.has_multi_template) ? {
                             label: 'CETAK SURAT',
                             icon: Printer,
                             href: route('admin.surat-pengajuan.pdf', p.id),
                             external: true,
                             variant: 'primary'
-                        }
+                        } : null
                     ].filter(Boolean)}
                 />
 
@@ -147,6 +148,14 @@ export default function Show({ auth, suratPengajuan, statusList }) {
                                     </div>
                                 </div>
                             </div>
+                        )}
+
+                        {/* Multi-Template Print Panel */}
+                        {suratType?.has_multi_template && (
+                            <MultiTemplatePrintPanel 
+                                suratPengajuan={p} 
+                                suratType={suratType} 
+                            />
                         )}
                     </div>
 
