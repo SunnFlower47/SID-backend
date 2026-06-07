@@ -8,11 +8,11 @@ export default function Show({ auth, objek }) {
     return (
         <AuthenticatedLayout
             user={auth.user}
-            title={`Detail PBB - ${objek.nop}`}
+            title={`Detail PBB - ${objek.formatted_nop}`}
         >
             <div className="space-y-6 animate-in fade-in duration-700 pb-20">
                 <PageHeader 
-                    title={`Detail PBB NOP: ${objek.nop}`} 
+                    title={`Detail PBB NOP: ${objek.formatted_nop}`} 
                     subtitle="Informasi detail wajib pajak dan histori pembayaran SPPT."
                     icon={Landmark}
                     actions={[

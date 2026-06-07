@@ -73,6 +73,11 @@ export default function ImportData() {
         }
     };
 
+    const formatNop = (nop) => {
+        if (!nop || nop.length !== 18) return nop;
+        return `${nop.substring(0,2)}.${nop.substring(2,4)}.${nop.substring(4,7)}.${nop.substring(7,10)}.${nop.substring(10,13)}-${nop.substring(13,17)}.${nop.substring(17,18)}`;
+    };
+
     const handleImportPenduduk = (e) => {
         e.preventDefault();
         const file = fileInputRef.current?.files[0];
@@ -490,7 +495,7 @@ export default function ImportData() {
                                                         <ul className="list-disc ml-4 text-[11px] text-red-700 space-y-1.5 font-medium">
                                                             {previewPbbData.preview.invalid.map((item, idx) => (
                                                                 <li key={idx}>
-                                                                    Baris {item.row} ({item.nop || '-'} / {item.nama || '-'}): 
+                                                                    Baris {item.row} ({formatNop(item.nop) || '-'} / {item.nama || '-'}): 
                                                                     <span className="font-bold ml-1 text-red-800">
                                                                         {item.errors_by_column ? Object.entries(item.errors_by_column)
                                                                             .filter(([k]) => k !== 'nop_info' && k !== 'nama_info')
@@ -513,7 +518,7 @@ export default function ImportData() {
                                                         <ul className="list-disc ml-4 text-[11px] text-green-700 space-y-1.5 font-medium">
                                                             {previewPbbData.preview.valid.map((item, idx) => (
                                                                 <li key={idx}>
-                                                                    Baris {item.row} ({item.nop || '-'} / {item.nama || '-'}) 
+                                                                    Baris {item.row} ({formatNop(item.nop) || '-'} / {item.nama || '-'}) 
                                                                     {item.info && <span className="text-blue-600 font-bold ml-1">[{item.info}]</span>}
                                                                 </li>
                                                             ))}

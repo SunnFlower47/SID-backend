@@ -214,7 +214,7 @@ export default function Index({ auth, objeks, stats, filters }) {
                                                     </button>
                                                 </td>
                                                 <td className="px-4 py-3">
-                                                    <div className="font-mono text-xs font-bold text-gray-900 bg-gray-100 px-2 py-1 rounded inline-block border border-gray-200">{objek.nop}</div>
+                                                    <div className="font-mono text-xs font-bold text-gray-900 bg-gray-100 px-2 py-1 rounded inline-block border border-gray-200">{objek.formatted_nop}</div>
                                                 </td>
                                                 <td className="px-4 py-3 font-bold text-gray-900">
                                                     {objek.nama_wp || <span className="italic text-gray-400 font-normal">Belum disinkronisasi</span>}
