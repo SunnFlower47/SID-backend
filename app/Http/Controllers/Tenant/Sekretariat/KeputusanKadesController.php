@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\KeputusanKades;
 use App\Http\Requests\Sekretariat\KeputusanKadesRequest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Storage;
 
@@ -16,6 +17,8 @@ class KeputusanKadesController extends Controller
      */
     public function index(Request $request)
     {
+        Gate::authorize('keputusan_kades.view');
+
         $query = KeputusanKades::query()
             ->with('author:id,name')
             ->orderBy('tanggal_ditetapkan', 'desc');
@@ -40,6 +43,8 @@ class KeputusanKadesController extends Controller
      */
     public function create()
     {
+        Gate::authorize('keputusan_kades.create');
+
         return Inertia::render('Tenant/Sekretariat/KeputusanKades/Form', [
             'keputusan' => new KeputusanKades(),
             'is_edit' => false
@@ -51,6 +56,8 @@ class KeputusanKadesController extends Controller
      */
     public function store(KeputusanKadesRequest $request)
     {
+        Gate::authorize('keputusan_kades.create');
+
         $data = $request->validated();
         $data['author_id'] = auth()->id();
 
@@ -69,6 +76,8 @@ class KeputusanKadesController extends Controller
      */
     public function edit($id)
     {
+        Gate::authorize('keputusan_kades.edit');
+
         $keputusan = KeputusanKades::findOrFail($id);
 
         return Inertia::render('Tenant/Sekretariat/KeputusanKades/Form', [
@@ -82,6 +91,8 @@ class KeputusanKadesController extends Controller
      */
     public function update(KeputusanKadesRequest $request, $id)
     {
+        Gate::authorize('keputusan_kades.edit');
+
         $keputusan = KeputusanKades::findOrFail($id);
         $data = $request->validated();
 
@@ -104,6 +115,8 @@ class KeputusanKadesController extends Controller
      */
     public function destroy($id)
     {
+        Gate::authorize('keputusan_kades.delete');
+
         $keputusan = KeputusanKades::findOrFail($id);
         
         // Soft delete will keep the file, if we want to physically delete the file we can do it here,

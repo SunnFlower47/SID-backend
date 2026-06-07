@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Head, Link, useForm, router } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { PageHeader, FormCard, FormField } from '@/Components/Shared';
-import { Package, Save, Info, TrendingUp, TrendingDown, FileText, Gavel, Trash2 } from 'lucide-react';
+import { Package, Save, Info, TrendingUp, TrendingDown, FileText, Gavel, Trash2, Edit2 } from 'lucide-react';
 import Swal from 'sweetalert2';
 
 const fmt = (n) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(n ?? 0);
@@ -23,6 +23,7 @@ export default function Edit({ auth, inventaris, kategoris }) {
 
     const { data, setData, put, processing, errors } = useForm({
         aset_barang_id:        inventaris.aset_barang_id ?? '',
+        nup:                   inventaris.nup ?? '',
         nama_barang_override:  inventaris.nama_barang_override ?? '',
         satuan:                inventaris.satuan ?? '',
         kondisi:               inventaris.kondisi ?? 'baik',
@@ -30,50 +31,19 @@ export default function Edit({ auth, inventaris, kategoris }) {
         tanggal_perolehan:     inventaris.tanggal_perolehan ?? '',
         asal_usul:             inventaris.asal_usul ?? 'APBDes',
         keterangan:            inventaris.keterangan ?? '',
-        // Golongan 3.02 — Kendaraan
-        no_polisi:             inventaris.no_polisi ?? '',
-        no_mesin:              inventaris.no_mesin ?? '',
-        no_rangka:             inventaris.no_rangka ?? '',
-        no_bpkb:               inventaris.no_bpkb ?? '',
-        // Golongan 2 — Tanah
-        no_sertifikat:         inventaris.no_sertifikat ?? '',
-        // Golongan 4 — Gedung & Bangunan
-        no_imb:                inventaris.no_imb ?? '',
-        luas_bangunan:         inventaris.luas_bangunan ?? '',
-        tahun_dibangun:        inventaris.tahun_dibangun ?? '',
-        // Golongan 5 — Jalan, Jaringan & Irigasi
-        panjang:               inventaris.panjang ?? '',
-        lebar:                 inventaris.lebar ?? '',
-        volume:                inventaris.volume ?? '',
     });
 
     const handleKategoriChange = (val) => {
         setSelectedKategori(val);
         const kat = kategoris.find((k) => k.id === Number(val));
         setBarangOptions(kat?.barangs ?? []);
-        setData(prev => ({
-            ...prev,
-            aset_barang_id: '',
-            no_polisi: '', no_mesin: '', no_rangka: '', no_bpkb: '',
-            no_sertifikat: '',
-            no_imb: '', luas_bangunan: '', tahun_dibangun: '',
-            panjang: '', lebar: '', volume: '',
-        }));
+        setData('aset_barang_id', '');
     };
 
     const handleSubmit = (e) => {
         e.preventDefault();
         put(route('aset.inventaris.update', inventaris.id));
     };
-
-    const selectedKategoriObj = kategoris.find((k) => k.id === Number(selectedKategori));
-    // Deteksi jenis barang berdasarkan kode_barang yang dipilih
-    const selectedBarang      = barangOptions.find((b) => b.id === Number(data.aset_barang_id))
-                             ?? inventaris.barang;
-    const showVehicleFields   = selectedBarang?.kode_barang?.startsWith('3.02');
-    const showLandFields      = selectedKategoriObj?.kode === '2';
-    const showBuildingFields  = selectedKategoriObj?.kode === '4';
-    const showRoadFields      = selectedKategoriObj?.kode === '5';
 
     const handleDeleteMutasi = (mutasi) => {
         Swal.fire({
@@ -169,6 +139,17 @@ export default function Edit({ auth, inventaris, kategoris }) {
                     <FormCard icon={Package} title="Nama & Identitas Aset Desa">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
+                            {/* NUP */}
+                            <div className="sm:col-span-2">
+                                <FormField.Input
+                                    label="NUP (Nomor Urut Pendaftaran)"
+                                    placeholder="Contoh: 0001/INV/2026 atau kosongkan jika belum ada"
+                                    value={data.nup}
+                                    onChange={(e) => setData('nup', e.target.value)}
+                                    error={errors.nup}
+                                />
+                            </div>
+
                             <div className="sm:col-span-2">
                                 <FormField.Input
                                     label="Nama Spesifik Aset"
@@ -213,13 +194,11 @@ export default function Edit({ auth, inventaris, kategoris }) {
                                 onChange={(e) => setData('asal_usul', e.target.value)}
                                 error={errors.asal_usul}
                                 options={[
-                                    { value: 'APBDes',              label: 'APBDes (Anggaran Desa)' },
-                                    { value: 'Bantuan Pemerintah',  label: 'Bantuan Pemerintah Pusat' },
-                                    { value: 'Bantuan Provinsi',    label: 'Bantuan Provinsi' },
-                                    { value: 'Bantuan Kabupaten',   label: 'Bantuan Kabupaten/Kota' },
-                                    { value: 'Hibah',               label: 'Hibah / Sumbangan' },
-                                    { value: 'Aset Asli Desa',      label: 'Aset Asli Desa' },
-                                    { value: 'Lainnya',             label: 'Lainnya' },
+                                    { value: 'APBDes',             label: 'Dibeli Sendiri / APBDes' },
+                                    { value: 'Bantuan Pusat',      label: 'Bantuan Pemerintah (Pusat)' },
+                                    { value: 'Bantuan Provinsi',   label: 'Bantuan Pemerintah Provinsi' },
+                                    { value: 'Bantuan Kab/Kota',   label: 'Bantuan Pemerintah Kab/Kota' },
+                                    { value: 'Sumbangan',          label: 'Sumbangan / Aset Asli Desa' },
                                 ]}
                             />
 
@@ -230,110 +209,6 @@ export default function Edit({ auth, inventaris, kategoris }) {
                                 onChange={(e) => setData('tanggal_perolehan', e.target.value)}
                                 error={errors.tanggal_perolehan}
                             />
-
-                            {showVehicleFields && (
-                                <>
-                                    <FormField.Input
-                                        label="Nomor Polisi (Opsional)"
-                                        placeholder="Contoh: T 1234 AB"
-                                        value={data.no_polisi}
-                                        onChange={(e) => setData('no_polisi', e.target.value)}
-                                        error={errors.no_polisi}
-                                    />
-                                    <FormField.Input
-                                        label="Nomor BPKB (Opsional)"
-                                        placeholder="Contoh: N-1234567"
-                                        value={data.no_bpkb}
-                                        onChange={(e) => setData('no_bpkb', e.target.value)}
-                                        error={errors.no_bpkb}
-                                    />
-                                    <FormField.Input
-                                        label="Nomor Mesin (Opsional)"
-                                        placeholder="Masukkan nomor mesin..."
-                                        value={data.no_mesin}
-                                        onChange={(e) => setData('no_mesin', e.target.value)}
-                                        error={errors.no_mesin}
-                                    />
-                                    <FormField.Input
-                                        label="Nomor Rangka (Opsional)"
-                                        placeholder="Masukkan nomor rangka..."
-                                        value={data.no_rangka}
-                                        onChange={(e) => setData('no_rangka', e.target.value)}
-                                        error={errors.no_rangka}
-                                    />
-                                </>
-                            )}
-
-                            {showLandFields && (
-                                <div className="sm:col-span-2">
-                                    <FormField.Input
-                                        label="Nomor Sertifikat / Bukti Kepemilikan"
-                                        placeholder="Contoh: Sertifikat Hak Pakai No. 12/Cibatu"
-                                        value={data.no_sertifikat}
-                                        onChange={(e) => setData('no_sertifikat', e.target.value)}
-                                        error={errors.no_sertifikat}
-                                    />
-                                </div>
-                            )}
-
-                            {/* Gedung & Bangunan (kode 4.xx) */}
-                            {showBuildingFields && (
-                                <>
-                                    <FormField.Input
-                                        label="Nomor IMB (Opsional)"
-                                        placeholder="No. Izin Mendirikan Bangunan"
-                                        value={data.no_imb}
-                                        onChange={(e) => setData('no_imb', e.target.value)}
-                                        error={errors.no_imb}
-                                    />
-                                    <FormField.Input
-                                        label="Luas Bangunan (m²)"
-                                        type="number" step="0.01" min="0"
-                                        placeholder="0.00"
-                                        value={data.luas_bangunan}
-                                        onChange={(e) => setData('luas_bangunan', e.target.value)}
-                                        error={errors.luas_bangunan}
-                                    />
-                                    <FormField.Input
-                                        label="Tahun Dibangun"
-                                        type="number" min="1900" max={new Date().getFullYear()}
-                                        placeholder="2020"
-                                        value={data.tahun_dibangun}
-                                        onChange={(e) => setData('tahun_dibangun', e.target.value)}
-                                        error={errors.tahun_dibangun}
-                                    />
-                                </>
-                            )}
-
-                            {/* Jalan, Jaringan & Irigasi (kode 5.xx) */}
-                            {showRoadFields && (
-                                <>
-                                    <FormField.Input
-                                        label="Panjang (meter)"
-                                        type="number" step="0.01" min="0"
-                                        placeholder="0.00"
-                                        value={data.panjang}
-                                        onChange={(e) => setData('panjang', e.target.value)}
-                                        error={errors.panjang}
-                                    />
-                                    <FormField.Input
-                                        label="Lebar (meter)"
-                                        type="number" step="0.01" min="0"
-                                        placeholder="0.00"
-                                        value={data.lebar}
-                                        onChange={(e) => setData('lebar', e.target.value)}
-                                        error={errors.lebar}
-                                    />
-                                    <FormField.Input
-                                        label="Volume / Luas Total (m² atau m³)"
-                                        type="number" step="0.01" min="0"
-                                        placeholder="0.00"
-                                        value={data.volume}
-                                        onChange={(e) => setData('volume', e.target.value)}
-                                        error={errors.volume}
-                                    />
-                                </>
-                            )}
 
                             <div className="sm:col-span-2">
                                 <FormField.Textarea
@@ -448,6 +323,14 @@ export default function Edit({ auth, inventaris, kategoris }) {
                                                                 <Gavel className="w-3.5 h-3.5" /> SKPA
                                                             </a>
                                                         )}
+                                                        {/* Tombol Edit Mutasi */}
+                                                        <Link
+                                                            href={route('aset.mutasi.edit', m.id)}
+                                                            className="p-1 hover:bg-blue-50 text-gray-400 hover:text-blue-500 rounded-lg transition-all"
+                                                            title="Edit Transaksi Mutasi"
+                                                        >
+                                                            <Edit2 className="w-4 h-4" />
+                                                        </Link>
                                                         {/* Tombol Hapus Mutasi (hanya jika bukan mutasi pertama/awal) */}
                                                         <button
                                                             type="button"

@@ -14,13 +14,13 @@ export default function KematianForm({ mutasi = null }) {
 
   const { data, setData, post, put, processing, errors } = useForm({
     penduduk_id: mutasi?.penduduk_id || '',
-    tanggal_mutasi: mutasi?.tanggal_mutasi ? new Date(mutasi.tanggal_mutasi).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+    tanggal_mutasi: mutasi?.tanggal_mutasi ? mutasi.tanggal_mutasi.substring(0, 10) : new Date().toISOString().split('T')[0],
     hari_meninggal: deathData.hari || 'Senin',
     jam_meninggal: deathData.jam || '12:00',
     bertempat_di: deathData.bertempat_di || 'RUMAH SAKIT',
     alasan: mutasi?.alasan || 'Sakit',
     hari_pemakaman: burialData.hari || 'Senin',
-    tanggal_pemakaman: burialData.tanggal ? new Date(burialData.tanggal).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+    tanggal_pemakaman: burialData.tanggal ? burialData.tanggal.substring(0, 10) : new Date().toISOString().split('T')[0],
     jam_pemakaman: burialData.jam || '15:00',
     lokasi_pemakaman: burialData.lokasi || 'TPU Desa',
     pelapor_nama: pelaporData.nama || '',

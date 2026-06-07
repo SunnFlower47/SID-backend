@@ -2,7 +2,7 @@ import React from 'react';
 import { Head, Link } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { PageHeader } from '@/Components/Shared';
-import { BookOpen, FileBadge, Building2, Users, FileText, ChevronRight, MapPin, Archive, Mails } from 'lucide-react';
+import { BookOpen, FileBadge, Building2, Users, FileText, ChevronRight, MapPin, Archive, Mails, CreditCard } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const BookCard = ({ title, desc, icon: Icon, href, color = 'blue' }) => {
@@ -146,14 +146,35 @@ export default function BukuAdministrasiIndex({ auth }) {
                             desc="Laporan data profil seluruh penduduk aktif di wilayah desa."
                             icon={Users} 
                             color="blue"
-                            href="#"
+                            href={route('administrasi.buku.show', 'buku-induk-penduduk')}
                         />
                         <BookCard 
                             title="Buku Mutasi Penduduk" 
                             desc="Daftar warga yang mengalami pindah, datang, lahir, dan wafat."
                             icon={Users} 
                             color="purple"
-                            href="#"
+                            href={route('administrasi.buku.show', 'buku-mutasi-penduduk')}
+                        />
+                        <BookCard 
+                            title="Buku Rekapitulasi Jumlah Penduduk" 
+                            desc="Laporan statistik bulanan tentang mutasi penduduk per dusun."
+                            icon={FileText} 
+                            color="emerald"
+                            href={route('administrasi.buku.show', 'buku-rekapitulasi-penduduk')}
+                        />
+                        <BookCard 
+                            title="Buku Penduduk Sementara" 
+                            desc="Mencatat warga pendatang sementara (domisili/tamu wajib lapor)."
+                            icon={Users} 
+                            color="amber"
+                            href={route('administrasi.buku.show', 'buku-penduduk-sementara')}
+                        />
+                        <BookCard 
+                            title="Buku KTP dan KK" 
+                            desc="Mencatat daftar warga yang memiliki KTP dan Kartu Keluarga."
+                            icon={CreditCard} 
+                            color="indigo"
+                            href={route('administrasi.buku.show', 'buku-ktp-kk')}
                         />
                     </div>
                 </div>

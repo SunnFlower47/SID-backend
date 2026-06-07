@@ -16,19 +16,10 @@ class PendudukResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            // Masking NIK untuk keamanan jika diakses publik
-            'nik' => $this->nik ? substr($this->nik, 0, 6) . '******' . substr($this->nik, -4) : null,
             'nama' => $this->nama,
-            'jenis_kelamin' => $this->jenis_kelamin,
-            'tempat_lahir' => $this->tempat_lahir,
-            'tanggal_lahir' => $this->tanggal_lahir,
-            'agama' => $this->agama,
-            'pendidikan' => $this->pendidikan,
-            'pekerjaan' => $this->pekerjaan,
-            'golongan_darah' => $this->golongan_darah,
-            'status_perkawinan' => $this->status_perkawinan,
-            'status_keluarga' => $this->status_keluarga,
-            'kewarganegaraan' => $this->kewarganegaraan,
+            'alamat' => $this->alamat_lengkap ?? $this->alamat,
+            'rt' => $this->rt_label,
+            'rw' => $this->rw_label,
         ];
     }
 }

@@ -1,13 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { PageHeader, TableCard, EmptyState, ActionButtons } from '@/Components/Shared';
+import { PageHeader, TableCard, EmptyState, ActionButtons, Pagination } from '@/Components/Shared';
+import SkeletonTable from '@/Components/Shared/Skeleton/SkeletonTable';
 import { Users, Plus, Search, MapPin, GraduationCap } from 'lucide-react';
 import Swal from 'sweetalert2';
 
 export default function Index({ auth, anggotas, filters }) {
     const [search, setSearch] = useState(filters?.search || '');
     const [status, setStatus] = useState(filters?.status || '');
+    const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        const removeStart = router.on('start', () => setIsLoading(true));
+        const removeFinish = router.on('finish', () => setIsLoading(false));
+        return () => {
+            removeStart();
+            removeFinish();
+        };
+    }, []);
 
     const handleSearch = (e) => {
         e.preventDefault();
@@ -64,32 +75,46 @@ export default function Index({ auth, anggotas, filters }) {
                     ]}
                 />
 
-                <form onSubmit={handleSearch} className="bg-white p-4 rounded-3xl shadow-sm border border-gray-100 flex gap-3 flex-wrap">
-                    <div className="relative flex-1 min-w-[200px]">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                        <input
-                            type="text"
-                            placeholder="Cari nama, NIK, atau jabatan..."
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            className="w-full pl-11 pr-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-2xl focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-sm"
-                        />
+                <form onSubmit={handleSearch} className="bg-white p-4 rounded-3xl shadow-sm border border-gray-100 flex flex-col sm:flex-row gap-4 items-end mb-6">
+                    <div className="flex-1 w-full space-y-2 text-left">
+                        <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Pencarian</label>
+                        <div className="relative">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                            <input
+                                type="text"
+                                placeholder="Cari nama, NIK, atau jabatan..."
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                className="w-full pl-11 pr-4 py-3 bg-gray-50 border-none rounded-2xl text-xs font-bold focus:ring-2 focus:ring-green-500 transition-all shadow-inner"
+                            />
+                        </div>
                     </div>
-                    <select
-                        value={status}
-                        onChange={(e) => setStatus(e.target.value)}
-                        className="px-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-2xl text-sm text-gray-700 focus:ring-blue-500 focus:border-blue-500"
-                    >
-                        <option value="">Semua Status</option>
-                        <option value="aktif">Aktif</option>
-                        <option value="tidak_aktif">Purna Tugas / Tidak Aktif</option>
-                    </select>
-                    <button type="submit" className="px-6 py-2.5 bg-gray-900 text-white font-bold rounded-2xl hover:bg-gray-800 transition-colors">
-                        Cari
+                    <div className="w-full sm:w-64 space-y-2 text-left">
+                        <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Status</label>
+                        <select
+                            value={status}
+                            onChange={(e) => setStatus(e.target.value)}
+                            className="w-full px-4 py-3 bg-gray-50 border-none rounded-2xl text-xs font-bold focus:ring-2 focus:ring-green-500 transition-all shadow-inner"
+                        >
+                            <option value="">Semua Status</option>
+                            <option value="aktif">Aktif</option>
+                            <option value="tidak_aktif">Purna Tugas / Tidak Aktif</option>
+                        </select>
+                    </div>
+                    <button type="submit" className="flex items-center justify-center gap-2 w-full sm:w-auto px-8 py-3 bg-green-600 text-white rounded-2xl text-[10px] font-black hover:bg-green-700 active:scale-95 transition-all uppercase tracking-widest shadow-md shadow-green-200">
+                        <Search className="w-3.5 h-3.5" /> CARI
                     </button>
                 </form>
 
-                <TableCard>
+                {isLoading ? (
+                    <SkeletonTable rows={5} columns={5} />
+                ) : (
+                <TableCard
+                    icon={Users}
+                    title="Daftar Anggota BPD"
+                    total={anggotas.total}
+                    totalLabel="Anggota"
+                >
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
                             <thead className="text-xs text-gray-700 uppercase bg-gray-50 border-b">
@@ -162,23 +187,16 @@ export default function Index({ auth, anggotas, filters }) {
                     {/* Pagination */}
                     {anggotas.links && anggotas.links.length > 3 && (
                         <div className="p-4 border-t border-gray-100 flex justify-center bg-gray-50/50 rounded-b-2xl">
-                            <div className="flex gap-1">
-                                {anggotas.links.map((link, k) => (
-                                    <Link
-                                        key={k}
-                                        href={link.url}
-                                        className={`px-4 py-2 text-sm font-medium rounded-xl transition-all duration-300 ${
-                                            link.active 
-                                            ? 'bg-gray-900 text-white shadow-md' 
-                                            : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
-                                        } ${!link.url && 'opacity-50 cursor-not-allowed'}`}
-                                        dangerouslySetInnerHTML={{ __html: link.label }}
-                                    />
-                                ))}
-                            </div>
+                            <Pagination 
+                                links={anggotas.links} 
+                                from={anggotas.from} 
+                                to={anggotas.to} 
+                                total={anggotas.total} 
+                            />
                         </div>
                     )}
                 </TableCard>
+                )}
             </div>
         </AuthenticatedLayout>
     );

@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Tenant\Administrasi;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use App\Services\BukuAdministrasiService;
+use App\Services\Administrasi\BukuAdministrasiService;
 
 class BukuAdministrasiController extends Controller
 {
@@ -34,10 +34,9 @@ class BukuAdministrasiController extends Controller
             $tahun = (int) $request->get('tahun', date('Y'));
             $data  = $this->bukuService->getInventarisKekayaanPdf($tahun)->values();
 
-            return Inertia::render('Tenant/Administrasi/Buku/Show', [
-                'jenis_buku' => $jenis_buku,
-                'filters'    => ['tahun' => $tahun],
+            return Inertia::render('Tenant/Administrasi/Buku/InventarisKekayaan/Index', [
                 'data'       => $data,
+                'filters'    => ['tahun' => $tahun],
             ]);
         }
 
@@ -56,28 +55,122 @@ class BukuAdministrasiController extends Controller
                 'keterangan'          => $item->keterangan,
             ]);
 
-            return Inertia::render('Tenant/Administrasi/Buku/Show', [
-                'jenis_buku' => $jenis_buku,
-                'filters'    => $request->only(['search']),
+            return Inertia::render('Tenant/Administrasi/Buku/TanahKasDesa/Index', [
                 'data'       => $data,
+                'filters'    => $request->only(['search']),
+            ]);
+        }
+
+        if ($jenis_buku === 'buku-induk-penduduk') {
+            $data = $this->bukuService->getData($jenis_buku, $request->all(), false);
+            
+            return Inertia::render('Tenant/Administrasi/Buku/BukuIndukPenduduk/Index', [
+                'data'       => $data,
+                'filters'    => $request->all(),
+                'rtList'     => \App\Models\Rt::all(),
+                'rwList'     => \App\Models\Rw::all(),
+                'dusunList'  => \App\Models\Dusun::all(),
             ]);
         }
 
         $data = $this->bukuService->getData($jenis_buku, $request->all());
 
-        return Inertia::render('Tenant/Administrasi/Buku/Show', [
+        // Mapping views
+        $viewMap = [
+            'peraturan-desa' => 'Tenant/Administrasi/Buku/PeraturanDesa/Index',
+            'keputusan-kades' => 'Tenant/Administrasi/Buku/KeputusanKades/Index',
+            'buku-agenda' => 'Tenant/Administrasi/Buku/BukuAgenda/Index',
+            'aparat-pemerintah' => 'Tenant/Administrasi/Buku/AparatPemerintah/Index',
+            'tanah-di-desa' => 'Tenant/Administrasi/Buku/TanahDiDesa/Index',
+            'buku-mutasi-penduduk' => 'Tenant/Administrasi/Buku/BukuMutasiPenduduk/Index',
+            'buku-rekapitulasi-penduduk' => 'Tenant/Administrasi/Buku/BukuRekapitulasiPenduduk/Index',
+            'buku-penduduk-sementara' => 'Tenant/Administrasi/Buku/BukuPendudukSementara/Index',
+            'buku-ktp-kk' => 'Tenant/Administrasi/Buku/BukuKtpKk/Index',
+        ];
+
+        $viewName = $viewMap[$jenis_buku] ?? 'Tenant/Administrasi/Buku/BukuStandard/Index';
+
+        return Inertia::render($viewName, [
             'jenis_buku' => $jenis_buku,
             'filters'    => $request->only(['start_date', 'end_date', 'search', 'tahun']),
             'data'       => $data
         ]);
     }
 
-    /**
-     * Export data ke Excel
-     */
     public function exportExcel($jenis_buku, Request $request)
     {
-        // TODO: Integrasi dengan Maatwebsite Excel
+        // Inventaris Kekayaan pakai kalkulasi per-tahun
+        if ($jenis_buku === 'inventaris-kekayaan') {
+            $tahun = (int) $request->get('tahun', date('Y'));
+            $data  = $this->bukuService->getInventarisKekayaanPdf($tahun);
+            
+            $viewName = 'pdf.buku-administrasi.inventaris-kekayaan';
+            $viewData = [
+                'data'  => $data,
+                'tahun' => $tahun,
+            ];
+            
+            return \Maatwebsite\Excel\Facades\Excel::download(
+                new \App\Exports\Buku\InventarisKekayaanExport($viewName, $viewData), 
+                "Buku_Inventaris_Kekayaan_{$tahun}.xlsx"
+            );
+        }
+
+        // Buku-buku lain
+        $data = $this->bukuService->getData($jenis_buku, $request->all(), true);
+        $viewName = 'pdf.buku-administrasi.' . $jenis_buku;
+        
+        if (!view()->exists($viewName)) {
+            abort(404, "Template ekspor untuk buku ini belum tersedia.");
+        }
+
+        $viewData = [
+            'data'       => $data,
+            'filters'    => $request->only(['start_date', 'end_date', 'search']),
+            'jenis_buku' => $jenis_buku
+        ];
+
+        // Kependudukan khusus via Query Generator (Induk, Mutasi, Sementara, KTP KK) atau Rekapitulasi
+        if (in_array($jenis_buku, ['buku-induk-penduduk', 'buku-mutasi-penduduk', 'buku-rekapitulasi-penduduk', 'buku-penduduk-sementara', 'buku-ktp-kk'])) {
+            if ($jenis_buku === 'buku-rekapitulasi-penduduk') {
+                $exportClass = \App\Exports\Buku\BukuRekapitulasiPendudukExport::class;
+                return \Maatwebsite\Excel\Facades\Excel::download(new $exportClass($request->all()), "Rekapitulasi_Penduduk.xlsx");
+            }
+            $query = $this->bukuService->getQuery($jenis_buku, $request->all());
+            
+            if ($jenis_buku === 'buku-induk-penduduk') $exportClass = \App\Exports\Buku\BukuIndukPendudukExport::class;
+            elseif ($jenis_buku === 'buku-mutasi-penduduk') $exportClass = \App\Exports\Buku\BukuMutasiPendudukExport::class;
+            elseif ($jenis_buku === 'buku-penduduk-sementara') $exportClass = \App\Exports\Buku\BukuPendudukSementaraExport::class;
+            else $exportClass = \App\Exports\Buku\BukuKtpKkExport::class;
+            
+            if ($jenis_buku === 'buku-induk-penduduk') $fileName = "Induk_Penduduk.xlsx";
+            elseif ($jenis_buku === 'buku-mutasi-penduduk') $fileName = "Mutasi_Penduduk.xlsx";
+            elseif ($jenis_buku === 'buku-penduduk-sementara') $fileName = "Penduduk_Sementara.xlsx";
+            else $fileName = "Buku_KTP_dan_KK.xlsx";
+            
+            return \Maatwebsite\Excel\Facades\Excel::download(new $exportClass($query), $fileName);
+        }
+
+        // Pemetaan kelas export spesifik (Buku selain Penduduk dan Inventaris)
+        $exportMap = [
+            'peraturan-desa' => \App\Exports\Buku\PeraturanDesaExport::class,
+            'keputusan-kades' => \App\Exports\Buku\KeputusanKadesExport::class,
+            'buku-agenda' => \App\Exports\Buku\BukuAgendaExport::class,
+            'aparat-pemerintah' => \App\Exports\Buku\AparatPemerintahExport::class,
+            'tanah-kas-desa' => \App\Exports\Buku\TanahKasDesaExport::class,
+            'tanah-di-desa' => \App\Exports\Buku\TanahDiDesaExport::class,
+        ];
+
+        // Default fallback
+        $exportClass = $exportMap[$jenis_buku] ?? \App\Exports\Buku\BukuAgendaExport::class;
+
+        // Potong nama agar tidak lebih dari 31 karakter (limit sheet Excel)
+        $shortName = substr(str_replace('-', '_', $jenis_buku), 0, 20);
+
+        return \Maatwebsite\Excel\Facades\Excel::download(
+            new $exportClass($viewName, $viewData), 
+            $shortName . "_" . date('Ymd') . ".xlsx"
+        );
     }
 
     /**
@@ -90,6 +183,11 @@ class BukuAdministrasiController extends Controller
             $tahun = (int) $request->get('tahun', date('Y'));
             $data  = $this->bukuService->getInventarisKekayaanPdf($tahun);
 
+            // Fallback proteksi RAM
+            if ($data->count() > 500) {
+                $data = $data->take(500);
+            }
+
             $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.buku-administrasi.inventaris-kekayaan', [
                 'data'   => $data,
                 'tahun'  => $tahun,
@@ -98,8 +196,17 @@ class BukuAdministrasiController extends Controller
             return $pdf->stream("buku-inventaris-kekayaan-{$tahun}.pdf");
         }
 
-        // Buku-buku lain: gunakan query standar
-        $data = $this->bukuService->getData($jenis_buku, $request->all(), true);
+        // Buku-buku lain: Batasi kueri untuk kependudukan agar memori tidak habis
+        if (in_array($jenis_buku, ['buku-induk-penduduk', 'buku-mutasi-penduduk', 'buku-penduduk-sementara', 'buku-ktp-kk'])) {
+            $data = $this->bukuService->getQuery($jenis_buku, $request->all())->limit(500)->get();
+        } else if ($jenis_buku === 'buku-rekapitulasi-penduduk') {
+            $data = $this->bukuService->getData($jenis_buku, $request->all(), true);
+        } else {
+            $data = $this->bukuService->getData($jenis_buku, $request->all(), true);
+            if ($data->count() > 500) {
+                $data = $data->take(500);
+            }
+        }
 
         $viewName = 'pdf.buku-administrasi.' . $jenis_buku;
         if (!view()->exists($viewName)) {
@@ -112,8 +219,10 @@ class BukuAdministrasiController extends Controller
             'jenis_buku' => $jenis_buku
         ]);
 
-        // Tanah kas desa butuh A3 landscape karena banyak kolom
-        $paper = $jenis_buku === 'tanah-kas-desa' ? ['A3', 'landscape'] : ['Legal', 'landscape'];
+        $paper = ['Legal', 'landscape'];
+        if ($jenis_buku === 'tanah-kas-desa') $paper = ['A3', 'landscape'];
+        if ($jenis_buku === 'buku-mutasi-penduduk') $paper = ['Legal', 'landscape'];
+
         $pdf->setPaper($paper[0], $paper[1]);
 
         return $pdf->stream("buku-{$jenis_buku}-" . date('YmdHis') . ".pdf");

@@ -11,6 +11,8 @@ export default function Edit({ auth, kk, nkk, masterRwOptions }) {
         alamat: kk.alamat || '',
         rt_id: kk.rt_id || '',
         rw_id: kk.rw_id || '',
+        tempat_dikeluarkan: kk.tempat_dikeluarkan || '',
+        tanggal_dikeluarkan: kk.tanggal_dikeluarkan || '',
     });
 
     const [availableRts, setAvailableRts] = useState([]);
@@ -137,6 +139,35 @@ export default function Edit({ auth, kk, nkk, masterRwOptions }) {
                                         ))}
                                     </select>
                                     {errors.rt_id && <p className="mt-2 text-[10px] font-bold text-red-600 uppercase italic px-1">{errors.rt_id}</p>}
+                                </div>
+
+                                {/* Tempat Dikeluarkan */}
+                                <div>
+                                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">Tempat Dikeluarkan KK</label>
+                                    <div className="relative">
+                                        <input 
+                                            type="text"
+                                            value={data.tempat_dikeluarkan}
+                                            onChange={e => setData('tempat_dikeluarkan', e.target.value.toUpperCase())}
+                                            className={`w-full px-4 py-3.5 bg-gray-50 border rounded-2xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all font-black text-sm uppercase italic tracking-tight ${errors.tempat_dikeluarkan ? 'border-red-500' : 'border-gray-100'}`}
+                                            placeholder="CONTOH: GARUT"
+                                        />
+                                    </div>
+                                    {errors.tempat_dikeluarkan && <p className="mt-2 text-[10px] font-bold text-red-600 uppercase italic px-1">{errors.tempat_dikeluarkan}</p>}
+                                </div>
+
+                                {/* Tanggal Dikeluarkan */}
+                                <div>
+                                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">Tanggal Dikeluarkan KK</label>
+                                    <div className="relative">
+                                        <input 
+                                            type="date"
+                                            value={data.tanggal_dikeluarkan}
+                                            onChange={e => setData('tanggal_dikeluarkan', e.target.value)}
+                                            className={`w-full px-4 py-3.5 bg-gray-50 border rounded-2xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all font-black text-sm uppercase italic tracking-tight ${errors.tanggal_dikeluarkan ? 'border-red-500' : 'border-gray-100'}`}
+                                        />
+                                    </div>
+                                    {errors.tanggal_dikeluarkan && <p className="mt-2 text-[10px] font-bold text-red-600 uppercase italic px-1">{errors.tanggal_dikeluarkan}</p>}
                                 </div>
                             </div>
                         </div>

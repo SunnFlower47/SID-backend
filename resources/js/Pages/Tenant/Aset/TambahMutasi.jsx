@@ -12,16 +12,6 @@ const JENIS_OPTIONS = [
     { value: 'kurang', label: '➖ Berkurang — rusak total, dijual, hilang' },
 ];
 
-const ALASAN_KURANG_OPTIONS = [
-    { value: '',               label: '— Pilih alasan —' },
-    { value: 'rusak',          label: '🔴 Rusak / Dihapus' },
-    { value: 'dijual',         label: '💰 Dijual / Dilelang' },
-    { value: 'disumbangkan',   label: '🤝 Disumbangkan / Hibah Keluar' },
-    { value: 'dipindahkan',    label: '🔄 Dipindahkan ke Instansi Lain' },
-    { value: 'hilang',         label: '❓ Hilang' },
-    { value: 'lainnya',        label: '📝 Lainnya' },
-];
-
 const KONDISI_OPTIONS = [
     { value: 'baik',         label: '✅ Baik' },
     { value: 'rusak_ringan', label: '⚠️ Rusak Ringan' },
@@ -30,15 +20,15 @@ const KONDISI_OPTIONS = [
 
 export default function TambahMutasi({ auth, inventaris, tahun, semester }) {
     const { data, setData, post, processing, errors } = useForm({
-        tahun:          tahun,
-        semester:       semester,
-        tanggal:        '',
-        jenis:          'tambah',
-        kwantitas:      '',
-        nilai:          '',
-        keterangan:     '',
-        kondisi:        '',
-        alasan_kurang:  '',
+        tahun:      tahun,
+        semester:   semester,
+        tanggal:    '',   // user isi tanggal kejadian mutasi
+        jenis:      'tambah',
+        kwantitas:  '',
+        nilai:      '',
+        keterangan: '',
+        kondisi:    '',
+        alasan_kurang: '',
     });
 
     const handleSubmit = (e) => {
@@ -203,46 +193,47 @@ export default function TambahMutasi({ auth, inventaris, tahun, semester }) {
                                 placeholder="0"
                             />
 
-                            <div className="sm:col-span-2">
+                            {!isTambah && (
+                                <FormField.Select
+                                    label="Alasan Pengurangan"
+                                    required
+                                    value={data.alasan_kurang}
+                                    onChange={(e) => setData('alasan_kurang', e.target.value)}
+                                    error={errors.alasan_kurang}
+                                    options={[
+                                        { value: '', label: 'Pilih Alasan...' },
+                                        { value: 'rusak', label: 'Rusak / Afkir' },
+                                        { value: 'dijual', label: 'Dijual / Dilelang' },
+                                        { value: 'disumbangkan', label: 'Disumbangkan / Hibah Keluar' },
+                                        { value: 'lainnya', label: 'Lainnya (Hilang, dll)' },
+                                    ]}
+                                />
+                            )}
+
+                            <div className={!isTambah ? "sm:col-span-1" : "sm:col-span-2"}>
                                 <FormField.Input
-                                    label="Keterangan / Alasan"
-                                    placeholder={isTambah ? 'Pengadaan APBDes 2025, Hibah dari Kabupaten...' : 'Rusak total, dijual, hilang, disumbangkan...'}
+                                    label="Keterangan Tambahan"
+                                    placeholder={isTambah ? 'Pengadaan APBDes 2025, Hibah dari Kabupaten...' : 'Detail penjelasan...'}
                                     value={data.keterangan}
                                     onChange={(e) => setData('keterangan', e.target.value)}
                                     error={errors.keterangan}
                                 />
                             </div>
 
-                            {/* alasan_kurang — hanya tampil saat berkurang */}
-                            {!isTambah && (
-                                <div className="sm:col-span-2">
-                                    <FormField.Select
-                                        label="Alasan Pengurangan"
-                                        required
-                                        value={data.alasan_kurang}
-                                        onChange={(e) => setData('alasan_kurang', e.target.value)}
-                                        error={errors.alasan_kurang}
-                                        options={ALASAN_KURANG_OPTIONS}
-                                    />
-                                    <p className="text-[10px] text-gray-400 font-semibold ml-1 mt-1">
-                                        Alasan ini digunakan untuk mengisi laporan PDF Buku Inventaris secara otomatis.
-                                    </p>
-                                </div>
-                            )}
-
-                            {/* Update kondisi hanya saat berkurang */}
-                            {!isTambah && (
-                                <div className="sm:col-span-2">
-                                    <FormField.Select
-                                        label="Update Kondisi Aset (opsional)"
-                                        value={data.kondisi}
-                                        onChange={(e) => setData('kondisi', e.target.value)}
-                                        error={errors.kondisi}
-                                        placeholder="Biarkan kondisi saat ini"
-                                        options={KONDISI_OPTIONS}
-                                    />
-                                </div>
-                            )}
+                            <div className="sm:col-span-2">
+                                <FormField.Select
+                                    label="Kondisi Barang Saat Mutasi"
+                                    value={data.kondisi}
+                                    onChange={(e) => setData('kondisi', e.target.value)}
+                                    error={errors.kondisi}
+                                    options={[
+                                        { value: '',             label: 'Pilih Kondisi (Opsional)...' },
+                                        { value: 'baik',         label: '✅ Baik' },
+                                        { value: 'rusak_ringan', label: '⚠️ Rusak Ringan' },
+                                        { value: 'rusak_berat',  label: '❌ Rusak Berat' },
+                                    ]}
+                                />
+                            </div>
                         </div>
                     </FormCard>
 

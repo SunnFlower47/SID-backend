@@ -145,6 +145,15 @@ export default function SubTemplateManager({ suratType }) {
         setFormData(prev => ({ ...prev, form_json: newFields }));
     };
 
+    const moveField = (index, direction) => {
+        const newFields = [...formData.form_json];
+        if (index + direction < 0 || index + direction >= newFields.length) return;
+        const temp = newFields[index];
+        newFields[index] = newFields[index + direction];
+        newFields[index + direction] = temp;
+        setFormData(prev => ({ ...prev, form_json: newFields }));
+    };
+
     if (loading) return (
         <div className="p-8 text-center bg-gray-50 rounded-2xl border border-gray-100 flex flex-col items-center justify-center">
             <Loader2 className="w-8 h-8 text-blue-500 animate-spin mb-3" />
@@ -232,7 +241,7 @@ export default function SubTemplateManager({ suratType }) {
             {/* Form Editor */}
             {editingId && (
                 <div className="bg-indigo-50/30 border border-indigo-100 rounded-3xl p-6 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-300">
-                    <form onSubmit={handleSave} className="space-y-6">
+                    <div className="space-y-6">
                         <div className="flex items-center justify-between border-b border-indigo-100 pb-4">
                             <h4 className="font-black text-indigo-900 uppercase italic tracking-tighter">
                                 {editingId === 'new' ? 'Buat Sub-Template Baru' : 'Edit Sub-Template'}
@@ -332,29 +341,56 @@ export default function SubTemplateManager({ suratType }) {
                             ) : (
                                 <div className="space-y-3">
                                     {formData.form_json.map((field, idx) => (
-                                        <div key={idx} className="flex flex-wrap md:flex-nowrap items-center gap-3 bg-gray-50 p-3 rounded-xl border border-gray-100">
-                                            <input 
-                                                type="text" placeholder="DB Name (misal: nama_ayah)" 
-                                                value={field.name} onChange={e => updateField(idx, 'name', e.target.value)}
-                                                className="w-full md:w-1/4 px-3 py-2 text-xs font-bold border-gray-200 rounded-lg"
-                                            />
-                                            <input 
-                                                type="text" placeholder="Label Form (misal: Nama Ayah)" 
-                                                value={field.label} onChange={e => updateField(idx, 'label', e.target.value)}
-                                                className="w-full md:w-1/3 px-3 py-2 text-xs font-bold border-gray-200 rounded-lg"
-                                            />
-                                            <select 
-                                                value={field.type} onChange={e => updateField(idx, 'type', e.target.value)}
-                                                className="w-full md:w-1/4 px-3 py-2 text-xs font-bold border-gray-200 rounded-lg"
-                                            >
-                                                <option value="text">Teks Pendek</option>
-                                                <option value="textarea">Teks Panjang</option>
-                                                <option value="date">Tanggal</option>
-                                                <option value="number">Angka</option>
-                                            </select>
-                                            <button type="button" onClick={() => removeField(idx)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg">
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
+                                        <div key={idx} className="flex flex-col gap-2 bg-gray-50 p-3 rounded-xl border border-gray-100 relative">
+                                            <div className="absolute top-2 right-2 flex items-center gap-1">
+                                                <button type="button" onClick={() => moveField(idx, -1)} disabled={idx === 0} className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-100 rounded-lg transition-all disabled:opacity-30 disabled:hover:bg-transparent">
+                                                    <ChevronUp className="w-4 h-4" />
+                                                </button>
+                                                <button type="button" onClick={() => moveField(idx, 1)} disabled={idx === formData.form_json.length - 1} className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-100 rounded-lg transition-all disabled:opacity-30 disabled:hover:bg-transparent">
+                                                    <ChevronDown className="w-4 h-4" />
+                                                </button>
+                                                <div className="w-px h-4 bg-gray-300 mx-1"></div>
+                                                <button type="button" onClick={() => removeField(idx)} className="p-1.5 text-red-500 hover:bg-red-100 rounded-lg transition-all">
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                            <div className="flex flex-wrap md:flex-nowrap items-center gap-3 pr-[100px]">
+                                                <input 
+                                                    type="text" placeholder="DB Name (misal: nama_ayah)" 
+                                                    value={field.name} onChange={e => updateField(idx, 'name', e.target.value)}
+                                                    className="w-full md:w-1/4 px-3 py-2 text-xs font-bold border-gray-200 rounded-lg focus:ring-indigo-500"
+                                                />
+                                                <input 
+                                                    type="text" placeholder="Label Form (misal: Nama Ayah)" 
+                                                    value={field.label} onChange={e => updateField(idx, 'label', e.target.value)}
+                                                    className="w-full md:w-1/3 px-3 py-2 text-xs font-bold border-gray-200 rounded-lg focus:ring-indigo-500"
+                                                />
+                                                <select 
+                                                    value={field.type} onChange={e => updateField(idx, 'type', e.target.value)}
+                                                    className="w-full md:w-1/4 px-3 py-2 text-xs font-bold border-gray-200 rounded-lg focus:ring-indigo-500"
+                                                >
+                                                    <option value="text">Teks Pendek</option>
+                                                    <option value="textarea">Teks Panjang</option>
+                                                    <option value="date">Tanggal</option>
+                                                    <option value="number">Angka</option>
+                                                    <option value="select">Dropdown (Select)</option>
+                                                </select>
+                                            </div>
+                                            <div className="flex flex-col gap-2 w-full">
+                                                <input 
+                                                    type="text" placeholder="Placeholder (Petunjuk Pengisian)..." 
+                                                    value={field.placeholder || ''} onChange={e => updateField(idx, 'placeholder', e.target.value)}
+                                                    className="w-full px-3 py-2 text-xs font-bold border-gray-200 rounded-lg focus:ring-indigo-500 bg-white"
+                                                />
+                                                {field.type === 'select' && (
+                                                    <input 
+                                                        type="text" placeholder="Opsi Dropdown (pisahkan dengan koma, misal: Islam,Kristen,Katolik)" 
+                                                        value={Array.isArray(field.options) ? field.options.join(',') : (field.options || '')} 
+                                                        onChange={e => updateField(idx, 'options', e.target.value.split(',').map(s => s.trim()))}
+                                                        className="w-full px-3 py-2 text-xs font-bold border-orange-200 bg-orange-50 text-orange-800 rounded-lg focus:ring-orange-500"
+                                                    />
+                                                )}
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
@@ -365,12 +401,12 @@ export default function SubTemplateManager({ suratType }) {
                             <button type="button" onClick={handleCancelEdit} className="px-5 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest text-gray-600 bg-gray-100 hover:bg-gray-200 transition-all">
                                 Batal
                             </button>
-                            <button type="submit" disabled={saving} className="px-5 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest text-white bg-indigo-600 hover:bg-indigo-700 transition-all flex items-center gap-2 disabled:opacity-50 shadow-md shadow-indigo-200">
+                            <button type="button" onClick={handleSave} disabled={saving} className="px-5 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest text-white bg-indigo-600 hover:bg-indigo-700 transition-all flex items-center gap-2 disabled:opacity-50 shadow-md shadow-indigo-200">
                                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                                 Simpan Sub-Template
                             </button>
                         </div>
-                    </form>
+                    </div>
                 </div>
             )}
         </div>

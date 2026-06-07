@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { FileText, Plus, Edit, Trash2, Search, CheckCircle2, XCircle, Layout, Palette, Type, Info, Users, Briefcase, MapPin, Heart, Baby, Ghost, ShieldAlert, School, Wallet, Home, Truck, Building, Skull, ClipboardList, Footprints, HelpCircle } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
+import { FileText, Plus, Edit, Trash2, Search, CheckCircle2, XCircle, Layout, Palette, Type, Info, HelpCircle } from 'lucide-react';
 import Swal from 'sweetalert2';
 import Lottie from 'lottie-react';
 import noDataAnimation from '@/assets/lottie/no-data-animation.json';
@@ -49,35 +50,52 @@ export default function Index({ auth, suratTypes, storageInfo }) {
     const getIcon = (iconName) => {
         if (!iconName) return <FileText className="w-6 h-6" />;
         
-        // Bersihkan prefix FontAwesome jika ada (fas fa-baby -> baby)
-        const cleanName = iconName.replace('fas fa-', '').replace('fa-', '').toLowerCase();
+        // Render dinamik menggunakan LucideIcons
+        const IconComponent = LucideIcons[iconName] || FileText;
+        return <IconComponent className="w-6 h-6" />;
+    };
 
-        const icons = {
-            'filetext': <FileText className="w-6 h-6" />,
-            'file-text': <FileText className="w-6 h-6" />,
-            'file-alt': <FileText className="w-6 h-6" />,
-            'plus': <Plus className="w-6 h-6" />,
-            'users': <Users className="w-6 h-6" />,
-            'briefcase': <Briefcase className="w-6 h-6" />,
-            'mappin': <MapPin className="w-6 h-6" />,
-            'map-pin': <MapPin className="w-6 h-6" />,
-            'heart': <Heart className="w-6 h-6" />,
-            'baby': <Baby className="w-6 h-6" />,
-            'ghost': <Ghost className="w-6 h-6" />,
-            'skull': <Skull className="w-6 h-6" />,
-            'home': <Home className="w-6 h-6" />,
-            'building': <Building className="w-6 h-6" />,
-            'clipboardlist': <ClipboardList className="w-6 h-6" />,
-            'clipboard-list': <ClipboardList className="w-6 h-6" />,
-            'walking': <Footprints className="w-6 h-6" />,
-            'hand-holding-heart': <Heart className="w-6 h-6" />,
-            'school': <School className="w-6 h-6" />,
-            'wallet': <Wallet className="w-6 h-6" />,
-            'truck': <Truck className="w-6 h-6" />,
+    const getColorClasses = (colorName, isActive) => {
+        if (!isActive) return "bg-gray-50 text-gray-400";
+        
+        const colors = {
+            blue: "bg-blue-50 text-blue-600",
+            green: "bg-green-50 text-green-600",
+            purple: "bg-purple-50 text-purple-600",
+            orange: "bg-orange-50 text-orange-600",
+            red: "bg-red-50 text-red-600",
+            pink: "bg-pink-50 text-pink-600",
+            yellow: "bg-yellow-50 text-yellow-600",
         };
+        return colors[colorName] || "bg-green-50 text-green-600";
+    };
 
-        // Coba cari dengan nama asli atau nama yang sudah dibersihkan
-        return icons[cleanName] || icons[iconName.toLowerCase()] || <FileText className="w-6 h-6" />;
+    const getHoverTitleClass = (colorName) => {
+        const colors = {
+            blue: "group-hover:text-blue-700",
+            green: "group-hover:text-green-700",
+            purple: "group-hover:text-purple-700",
+            orange: "group-hover:text-orange-700",
+            red: "group-hover:text-red-700",
+            pink: "group-hover:text-pink-700",
+            yellow: "group-hover:text-yellow-700",
+        };
+        return colors[colorName] || "group-hover:text-green-700";
+    };
+
+    const getBorderBottomClass = (colorName, isActive) => {
+        if (!isActive) return "bg-gray-200 h-1";
+        
+        const colors = {
+            blue: "bg-blue-500 h-1",
+            green: "bg-green-500 h-1",
+            purple: "bg-purple-500 h-1",
+            orange: "bg-orange-500 h-1",
+            red: "bg-red-500 h-1",
+            pink: "bg-pink-500 h-1",
+            yellow: "bg-yellow-500 h-1",
+        };
+        return colors[colorName] || "bg-green-500 h-1";
     };
 
     return (
@@ -178,7 +196,7 @@ export default function Index({ auth, suratTypes, storageInfo }) {
                         <div key={type.id} className="group bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-500 overflow-hidden flex flex-col">
                             <div className="p-6 flex-1">
                                 <div className="flex justify-between items-start mb-4">
-                                    <div className={type.is_active ? "p-3 bg-green-50 text-green-600 rounded-2xl" : "p-3 bg-gray-50 text-gray-400 rounded-2xl"}>
+                                    <div className={`p-3 rounded-2xl ${getColorClasses(type.color, type.is_active)}`}>
                                         {getIcon(type.icon)}
                                     </div>
                                     <div className="flex gap-1">
@@ -198,7 +216,7 @@ export default function Index({ auth, suratTypes, storageInfo }) {
                                 </div>
                                 
                                 <div className="mb-4">
-                                    <h3 className="text-lg font-black text-gray-900 tracking-tight uppercase italic leading-tight group-hover:text-green-700 transition-colors">{type.nama}</h3>
+                                    <h3 className={`text-lg font-black text-gray-900 tracking-tight uppercase italic leading-tight transition-colors ${getHoverTitleClass(type.color)}`}>{type.nama}</h3>
                                     <div className="flex items-center gap-2 mt-1">
                                         <span className="px-2 py-0.5 bg-gray-100 text-gray-500 text-[10px] font-bold rounded uppercase tracking-wider">{type.id}</span>
                                         <span className="px-2 py-0.5 bg-blue-100 text-blue-600 text-[10px] font-bold rounded uppercase tracking-wider">{type.kode}</span>
@@ -231,7 +249,7 @@ export default function Index({ auth, suratTypes, storageInfo }) {
                                 </div>
                             </div>
 
-                            <div className={type.is_active ? "bg-green-500 h-1" : "bg-gray-200 h-1"}></div>
+                            <div className={getBorderBottomClass(type.color, type.is_active)}></div>
                         </div>
                     ))}
                 </div>

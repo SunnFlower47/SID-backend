@@ -62,6 +62,8 @@ Route::middleware([])->group(function () {
         Route::post('/{conflict}/resolve', 'resolveImportConflict')->name('resolve');
         Route::post('/{conflict}/reset', 'resetImportConflict')->name('reset');
         Route::post('/{conflict}/reprocess', 'reprocessImportIssue')->name('reprocess');
+        Route::delete('/{conflict}', 'destroy')->name('destroy');
+        Route::delete('/', 'destroyAll')->name('destroy-all');
     });
 
     // Import & Export Data
@@ -73,6 +75,9 @@ Route::middleware([])->group(function () {
         Route::post('/penduduk', 'importPenduduk')->name('penduduk');
         Route::post('/bantuan-sosial', 'importBantuanSosial')->name('bantuan-sosial');
         Route::post('/umkm', 'importUmkm')->name('umkm');
+        Route::post('/pajak-pbb', 'importPajakPbb')->name('pajak-pbb');
+        Route::post('/pajak-pbb/preview', 'previewPajakPbb')->name('pajak-pbb.preview');
+        Route::post('/pajak-pbb/preview-invalid-report', 'downloadPajakPbbInvalidReport')->name('pajak-pbb.preview-invalid-report');
     });
 
     Route::prefix('export')->name('export.')->controller(ExportController::class)->group(function () {

@@ -285,7 +285,9 @@ export default function ResolveModal({ isOpen, onClose, conflict, rws }) {
 
     if (!isOpen || !conflict) return null;
 
-    const isSimple = ['invalid_nik', 'invalid_nkk', 'wilayah_conflict'].includes(conflict.issue_type);
+    const isMissingNik = conflict.issue_type === 'required_field_missing' && conflict.reason?.toUpperCase().includes('NIK');
+    const isMissingNkk = conflict.issue_type === 'required_field_missing' && conflict.reason?.toUpperCase().includes('NKK');
+    const isSimple = ['invalid_nik', 'invalid_nkk', 'wilayah_conflict'].includes(conflict.issue_type) || isMissingNik || isMissingNkk;
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -300,6 +302,7 @@ export default function ResolveModal({ isOpen, onClose, conflict, rws }) {
         invalid_nkk: { label: 'NKK Tidak Valid', color: 'text-amber-700 bg-amber-100', icon: User },
         wilayah_conflict: { label: 'Wilayah Tidak Dikenal', color: 'text-orange-700 bg-orange-100', icon: MapPin },
         nik_conflict: { label: 'NIK Sudah Terdaftar', color: 'text-rose-700 bg-rose-100', icon: User },
+        required_field_missing: { label: 'Data Wajib Tidak Valid', color: 'text-amber-700 bg-amber-100', icon: AlertTriangle },
     };
     const cfg = typeConfig[conflict.issue_type] || { label: conflict.issue_type, color: 'text-gray-600 bg-gray-100', icon: AlertTriangle };
     const Icon = cfg.icon;
@@ -316,7 +319,7 @@ export default function ResolveModal({ isOpen, onClose, conflict, rws }) {
                             <Icon className="w-5 h-5" />
                         </div>
                         <div>
-                            <h2 className="text-sm font-black text-gray-900 uppercase tracking-tight">{conflict.nama || 'Data Bermasalah'}</h2>
+                            <h2 className="text-sm font-black text-gray-900 uppercase tracking-tight">Nama di Excel: {conflict.nama || 'Tanpa Nama'}</h2>
                             <span className={cn('text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full', cfg.color)}>{cfg.label}</span>
                         </div>
                     </div>
@@ -327,11 +330,11 @@ export default function ResolveModal({ isOpen, onClose, conflict, rws }) {
 
                 {/* Body */}
                 <form id="resolveForm" onSubmit={handleSubmit} className="p-6 overflow-y-auto flex-1 space-y-6">
-                    {conflict.issue_type === 'invalid_nik' && <InvalidNikPanel conflict={conflict} data={data} setData={setData} errors={errors} />}
-                    {conflict.issue_type === 'invalid_nkk' && <InvalidNkkPanel conflict={conflict} data={data} setData={setData} errors={errors} />}
+                    {(!conflict.nik || conflict.nik.length !== 16 || conflict.issue_type === 'invalid_nik' || isMissingNik) && conflict.issue_type !== 'nik_conflict' && <InvalidNikPanel conflict={conflict} data={data} setData={setData} errors={errors} />}
+                    {(!conflict.nkk || conflict.nkk.length !== 16 || conflict.issue_type === 'invalid_nkk' || isMissingNkk) && conflict.issue_type !== 'nik_conflict' && <InvalidNkkPanel conflict={conflict} data={data} setData={setData} errors={errors} />}
                     {conflict.issue_type === 'wilayah_conflict' && <WilayahConflictPanel conflict={conflict} data={data} setData={setData} errors={errors} rws={rws} />}
                     {conflict.issue_type === 'nik_conflict' && <NikConflictPanel conflict={conflict} data={data} setData={setData} errors={errors} />}
-                    {!['invalid_nik', 'invalid_nkk', 'wilayah_conflict', 'nik_conflict'].includes(conflict.issue_type) && (
+                    {!isSimple && conflict.issue_type !== 'nik_conflict' && (
                         <div className="bg-gray-50 rounded-2xl p-4">
                             <p className="text-xs font-bold text-gray-500">Jenis issue ini tidak memerlukan tindakan khusus. Klik "Lewati" untuk mengabaikan.</p>
                         </div>

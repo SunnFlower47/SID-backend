@@ -18,6 +18,10 @@ export default function ImportData() {
     const [previewData, setPreviewData] = useState(null);
     const fileInputRef = useRef(null);
 
+    const [previewPbbLoading, setPreviewPbbLoading] = useState(false);
+    const [previewPbbData, setPreviewPbbData] = useState(null);
+    const fileInputPbbRef = useRef(null);
+
     const handleFileChange = async (e) => {
         const file = e.target.files[0];
         if (!file) {
@@ -80,6 +84,75 @@ export default function ImportData() {
             onSuccess: () => {
                 setPreviewData(null);
                 if (fileInputRef.current) fileInputRef.current.value = '';
+            },
+            onFinish: () => {
+                setIsImporting(false);
+            }
+        });
+    };
+
+    const handleFileChangePbb = async (e) => {
+        const file = e.target.files[0];
+        if (!file) {
+            setPreviewPbbData(null);
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        setPreviewPbbLoading(true);
+        try {
+            const res = await axios.post(route('import.pajak-pbb.preview'), formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            if (res.data.success) {
+                setPreviewPbbData(res.data);
+            }
+        } catch (error) {
+            const msg = error.response?.data?.message || error.message || 'Gagal memproses preview';
+            Swal.fire('Preview Gagal', msg, 'error');
+            setPreviewPbbData(null);
+            if (fileInputPbbRef.current) fileInputPbbRef.current.value = '';
+        } finally {
+            setPreviewPbbLoading(false);
+        }
+    };
+
+    const handleDownloadInvalidPbb = async () => {
+        const file = fileInputPbbRef.current?.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const res = await axios.post(route('import.pajak-pbb.preview-invalid-report'), formData, {
+                responseType: 'blob'
+            });
+            const url = window.URL.createObjectURL(new Blob([res.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `invalid_rows_pajak_pbb_${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}.xlsx`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+        } catch (error) {
+            Swal.fire('Gagal', 'Tidak dapat mengunduh laporan invalid.', 'error');
+        }
+    };
+
+    const handleImportPajakPbb = (e) => {
+        e.preventDefault();
+        const file = fileInputPbbRef.current?.files[0];
+        if (!file) return;
+
+        setIsImporting(true);
+        router.post(route('import.pajak-pbb'), { file: file }, {
+            forceFormData: true,
+            onSuccess: () => {
+                setPreviewPbbData(null);
+                if (fileInputPbbRef.current) fileInputPbbRef.current.value = '';
             },
             onFinish: () => {
                 setIsImporting(false);
@@ -156,7 +229,7 @@ export default function ImportData() {
 
                                     {previewData && (
                                         <div className="mb-5 bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
-                                            <div className="grid grid-cols-3 gap-3 text-xs mb-4">
+                                            <div className="grid grid-cols-4 gap-3 text-xs mb-4">
                                                 <div className="bg-gray-50 rounded-xl p-3 border border-gray-100 text-center">
                                                     <span className="block text-gray-500 mb-1">Total Baris</span>
                                                     <span className="font-black text-gray-900 text-base">{previewData.summary.total_data_rows}</span>
@@ -164,6 +237,10 @@ export default function ImportData() {
                                                 <div className="bg-green-50 rounded-xl p-3 border border-green-100 text-center text-green-700">
                                                     <span className="block text-green-600/80 mb-1">Valid</span>
                                                     <span className="font-black text-base">{previewData.summary.valid_rows}</span>
+                                                </div>
+                                                <div className="bg-orange-50 rounded-xl p-3 border border-orange-100 text-center text-orange-700">
+                                                    <span className="block text-orange-600/80 mb-1">Konflik</span>
+                                                    <span className="font-black text-base">{previewData.summary.conflict_rows}</span>
                                                 </div>
                                                 <div className="bg-red-50 rounded-xl p-3 border border-red-100 text-center text-red-700">
                                                     <span className="block text-red-600/80 mb-1">Invalid</span>
@@ -187,7 +264,7 @@ export default function ImportData() {
                                             </div>
 
                                             <p className="text-[11px] text-gray-500 mb-3 font-medium">
-                                                Menampilkan {previewData.preview.invalid_shown} dari {previewData.preview.invalid_total} baris invalid, dan {previewData.preview.valid_shown} dari {previewData.preview.valid_total} baris valid.
+                                                Menampilkan {previewData.preview.invalid_shown} dari {previewData.preview.invalid_total} baris invalid, {previewData.preview.conflict_shown} dari {previewData.preview.conflict_total} baris konflik, dan {previewData.preview.valid_shown} dari {previewData.preview.valid_total} baris valid.
                                             </p>
 
                                             {previewData.preview.invalid?.length > 0 && (
@@ -208,6 +285,26 @@ export default function ImportData() {
                                                                             .map(([k, v]) => `${k.toUpperCase()}: ${Array.isArray(v) ? v.join(' | ') : v}`).join(' ; ') 
                                                                             : (item.errors || []).join(', ')}
                                                                     </span>
+                                                                </li>
+                                                            ))}
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {previewData.preview.conflict?.length > 0 && (
+                                                <div className="mb-4">
+                                                    <p className="text-xs font-bold text-orange-600 mb-2 flex items-center">
+                                                        <Icons.AlertTriangle className="w-3.5 h-3.5 mr-1.5" /> Detail baris konflik (Bisa Di-Import):
+                                                    </p>
+                                                    <div className="border border-orange-100 rounded-xl bg-orange-50/40 p-3 max-h-48 overflow-y-auto custom-scrollbar">
+                                                        <ul className="list-disc ml-4 text-[11px] text-orange-700 space-y-1.5 font-medium">
+                                                            {previewData.preview.conflict.map((item, idx) => (
+                                                                <li key={idx}>
+                                                                    Baris {item.row} ({item.nik || '-'} / {item.nama || '-'}) 
+                                                                    {(item.rt || item.rw) && ` (RT ${item.rt}/RW ${item.rw})`}
+                                                                    {item.alamat && ` [${item.alamat}]`}
+                                                                    {item.info && <span className="text-blue-600 font-bold ml-1">[{item.info}]</span>}
                                                                 </li>
                                                             ))}
                                                         </ul>
@@ -248,10 +345,10 @@ export default function ImportData() {
                                         </button>
                                         <button 
                                             type="submit" 
-                                            disabled={!previewData || previewData.summary.valid_rows === 0}
+                                            disabled={!previewData || (previewData.summary.valid_rows === 0 && previewData.summary.conflict_rows === 0)}
                                             className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold rounded-xl transition-all shadow-sm active:scale-95"
                                         >
-                                            <Icons.Upload className="w-4 h-4 mr-2" /> Import Valid
+                                            <Icons.Upload className="w-4 h-4 mr-2" /> Import Data
                                         </button>
                                         <a 
                                             href={route('import.template', 'penduduk')} 
@@ -319,6 +416,134 @@ export default function ImportData() {
                                             <Icons.Upload className="w-4 h-4 mr-2" /> Import
                                         </button>
                                         <a href={route('import.template', 'umkm')} className="inline-flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl transition-all active:scale-95">
+                                            <Icons.Download className="w-4 h-4 mr-2" /> Template
+                                        </a>
+                                    </div>
+                                </form>
+                            </div>
+
+                            {/* Import Pajak PBB */}
+                            <div className="bg-gradient-to-br from-green-50 to-white rounded-2xl p-5 border border-green-100 shadow-sm">
+                                <div className="flex items-center mb-4">
+                                    <div className="w-10 h-10 bg-green-500 rounded-xl flex items-center justify-center mr-3 shadow-sm">
+                                        <Icons.Wallet className="w-5 h-5 text-white" />
+                                    </div>
+                                    <h6 className="text-sm font-bold text-gray-900">Import Data Pajak PBB</h6>
+                                </div>
+                                <form onSubmit={handleImportPajakPbb}>
+                                    <div className="mb-4">
+                                        <label className="block text-sm font-bold text-gray-700 mb-2">Pilih File Excel</label>
+                                        <input 
+                                            type="file" 
+                                            name="file" 
+                                            accept=".xlsx,.xls" 
+                                            required
+                                            ref={fileInputPbbRef}
+                                            onChange={handleFileChangePbb}
+                                            className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 bg-white text-sm file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
+                                        />
+                                        <p className="text-xs text-gray-500 mt-2 font-medium">Format: .xlsx atau .xls (Max: 10MB). Preview otomatis saat file dipilih.</p>
+                                    </div>
+
+                                    {previewPbbLoading && (
+                                        <div className="mb-4 text-xs font-bold text-green-700 bg-green-50 border border-green-100 rounded-xl px-4 py-3 flex items-center">
+                                            <Icons.Loader2 className="w-4 h-4 animate-spin mr-2" /> Memproses preview PBB...
+                                        </div>
+                                    )}
+
+                                    {previewPbbData && (
+                                        <div className="mb-5 bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
+                                            <div className="grid grid-cols-3 gap-3 text-xs mb-4">
+                                                <div className="bg-gray-50 rounded-xl p-3 border border-gray-100 text-center">
+                                                    <span className="block text-gray-500 mb-1">Total Baris</span>
+                                                    <span className="font-black text-gray-900 text-base">{previewPbbData.summary.total_data_rows}</span>
+                                                </div>
+                                                <div className="bg-green-50 rounded-xl p-3 border border-green-100 text-center text-green-700">
+                                                    <span className="block text-green-600/80 mb-1">Valid</span>
+                                                    <span className="font-black text-base">{previewPbbData.summary.valid_rows}</span>
+                                                </div>
+                                                <div className="bg-red-50 rounded-xl p-3 border border-red-100 text-center text-red-700">
+                                                    <span className="block text-red-600/80 mb-1">Invalid</span>
+                                                    <span className="font-black text-base">{previewPbbData.summary.invalid_rows}</span>
+                                                </div>
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-2 text-[10px] font-bold mb-4">
+                                                <div className="bg-red-50/50 rounded-lg p-2 border border-red-100 text-red-800">
+                                                    Error NOP: <span className="float-right">{previewPbbData.summary.column_error_counts?.nop || 0}</span>
+                                                </div>
+                                                <div className="bg-red-50/50 rounded-lg p-2 border border-red-100 text-red-800">
+                                                    Error Nama: <span className="float-right">{previewPbbData.summary.column_error_counts?.nama || 0}</span>
+                                                </div>
+                                            </div>
+
+                                            <p className="text-[11px] text-gray-500 mb-3 font-medium">
+                                                Menampilkan {previewPbbData.preview.invalid_shown} dari {previewPbbData.preview.invalid_total} baris invalid, dan {previewPbbData.preview.valid_shown} dari {previewPbbData.preview.valid_total} baris valid.
+                                            </p>
+
+                                            {previewPbbData.preview.invalid?.length > 0 && (
+                                                <div className="mb-4">
+                                                    <p className="text-xs font-bold text-red-600 mb-2 flex items-center">
+                                                        <Icons.AlertCircle className="w-3.5 h-3.5 mr-1.5" /> Detail baris invalid:
+                                                    </p>
+                                                    <div className="border border-red-100 rounded-xl bg-red-50/40 p-3 max-h-48 overflow-y-auto custom-scrollbar">
+                                                        <ul className="list-disc ml-4 text-[11px] text-red-700 space-y-1.5 font-medium">
+                                                            {previewPbbData.preview.invalid.map((item, idx) => (
+                                                                <li key={idx}>
+                                                                    Baris {item.row} ({item.nop || '-'} / {item.nama || '-'}): 
+                                                                    <span className="font-bold ml-1 text-red-800">
+                                                                        {item.errors_by_column ? Object.entries(item.errors_by_column)
+                                                                            .filter(([k]) => k !== 'nop_info' && k !== 'nama_info')
+                                                                            .map(([k, v]) => `${k.toUpperCase()}: ${Array.isArray(v) ? v.join(' | ') : v}`).join(' ; ') 
+                                                                            : (item.errors || []).join(', ')}
+                                                                    </span>
+                                                                </li>
+                                                            ))}
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {previewPbbData.preview.valid?.length > 0 && (
+                                                <div className="mb-2">
+                                                    <p className="text-xs font-bold text-green-600 mb-2 flex items-center">
+                                                        <Icons.CheckCircle2 className="w-3.5 h-3.5 mr-1.5" /> Detail baris valid (Siap Import):
+                                                    </p>
+                                                    <div className="border border-green-100 rounded-xl bg-green-50/40 p-3 max-h-48 overflow-y-auto custom-scrollbar">
+                                                        <ul className="list-disc ml-4 text-[11px] text-green-700 space-y-1.5 font-medium">
+                                                            {previewPbbData.preview.valid.map((item, idx) => (
+                                                                <li key={idx}>
+                                                                    Baris {item.row} ({item.nop || '-'} / {item.nama || '-'}) 
+                                                                    {item.info && <span className="text-blue-600 font-bold ml-1">[{item.info}]</span>}
+                                                                </li>
+                                                            ))}
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    <div className="flex flex-wrap gap-2">
+                                        <button 
+                                            type="button" 
+                                            onClick={handleDownloadInvalidPbb}
+                                            disabled={!previewPbbData || previewPbbData.summary.invalid_rows === 0}
+                                            className="inline-flex items-center px-4 py-2 bg-red-500 hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold rounded-xl transition-all shadow-sm active:scale-95"
+                                        >
+                                            <Icons.FileX className="w-4 h-4 mr-2" /> Download Invalid
+                                        </button>
+                                        <button 
+                                            type="submit" 
+                                            disabled={!previewPbbData || previewPbbData.summary.valid_rows === 0}
+                                            className="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold rounded-xl transition-all shadow-sm active:scale-95"
+                                        >
+                                            <Icons.Upload className="w-4 h-4 mr-2" /> Import Valid
+                                        </button>
+                                        <a 
+                                            href={route('import.template', 'pajak_pbb')} 
+                                            className="inline-flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl transition-all active:scale-95 ml-auto"
+                                        >
                                             <Icons.Download className="w-4 h-4 mr-2" /> Template
                                         </a>
                                     </div>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Head, Link, router, Deferred } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { PageHeader, StatCard, TableCard, EmptyState, Badge } from '@/Components/Shared';
@@ -6,7 +6,7 @@ import SkeletonStats from '@/Components/Shared/Skeleton/SkeletonStats';
 import SkeletonTable from '@/Components/Shared/Skeleton/SkeletonTable';
 import {
     Archive, Plus, Edit2, Trash2, TrendingUp, TrendingDown,
-    BookOpen, Package, ChevronDown,
+    BookOpen, Package, ChevronDown, Search, Filter
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 
@@ -22,8 +22,15 @@ const KONDISI_MAP = {
 export default function Index({ auth, grouped, grandTotal, tahun, semester, tahunList }) {
     const totalItems = grouped.reduce((s, g) => s + g.items.length, 0);
 
-    const handleFilterChange = (newTahun, newSemester) =>
-        router.get(route('aset.inventaris.index'), { tahun: newTahun, semester: newSemester });
+    const [localTahun, setLocalTahun] = useState(tahun);
+    const [localSemester, setLocalSemester] = useState(semester);
+
+    const handleApplyFilter = () => {
+        router.get(route('aset.inventaris.index'), { tahun: localTahun, semester: localSemester }, {
+            preserveState: true,
+            preserveScroll: true
+        });
+    };
 
     const handleDelete = (item) => {
         Swal.fire({
@@ -50,7 +57,6 @@ export default function Index({ auth, grouped, grandTotal, tahun, semester, tahu
                     title="Inventaris Aset Desa"
                     subtitle="Buku Inventaris Barang Milik Desa (BMD)"
                     actions={[
-                        { label: 'Master Kode Barang', icon: Package, href: route('aset.barang.index'), variant: 'ghost' },
                         { label: 'Tambah Aset Baru', icon: Plus, href: route('aset.inventaris.create', { tahun, semester }), variant: 'white' },
                     ]}
                 />
@@ -66,32 +72,38 @@ export default function Index({ auth, grouped, grandTotal, tahun, semester, tahu
                 </Deferred>
 
                 {/* Filter Tahun & Semester */}
-                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-5 py-4 flex flex-wrap items-center gap-4">
-                    <div className="flex items-center gap-3">
-                        <ChevronDown className="w-4 h-4 text-gray-400" />
-                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Tahun:</label>
-                        <select
-                            value={tahun}
-                            onChange={(e) => handleFilterChange(Number(e.target.value), semester)}
-                            className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold focus:ring-green-500 focus:border-green-500"
-                        >
-                            {tahunList.map((t) => <option key={t} value={t}>{t}</option>)}
-                        </select>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Semester:</label>
-                        <div className="flex rounded-xl overflow-hidden border border-gray-200">
-                            {[1, 2].map((s) => (
-                                <button key={s} onClick={() => handleFilterChange(tahun, s)}
-                                    className={`px-5 py-2 text-xs font-black uppercase tracking-widest transition-all ${semester === s ? 'bg-green-600 text-white' : 'bg-gray-50 text-gray-500 hover:bg-gray-100'}`}>
-                                    SM {s}
-                                </button>
-                            ))}
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex flex-col sm:flex-row gap-4 items-center justify-between">
+                    <div className="flex flex-wrap items-center gap-4">
+                        <div className="flex items-center gap-3">
+                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Tahun:</label>
+                            <input
+                                type="number"
+                                value={localTahun}
+                                onChange={(e) => setLocalTahun(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && handleApplyFilter()}
+                                placeholder="Contoh: 2026"
+                                className="w-24 px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold focus:ring-green-500 focus:border-green-500"
+                            />
                         </div>
+                        <div className="flex items-center gap-2">
+                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Semester:</label>
+                            <div className="flex rounded-xl overflow-hidden border border-gray-200">
+                                {[1, 2].map((s) => (
+                                    <button key={s} onClick={() => setLocalSemester(s)}
+                                        className={`px-5 py-2 text-xs font-black uppercase tracking-widest transition-all ${localSemester === s ? 'bg-green-600 text-white' : 'bg-gray-50 text-gray-500 hover:bg-gray-100'}`}>
+                                        SM {s}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                        <Badge color={localSemester === 1 ? 'blue' : 'emerald'} dot={localSemester === 1 ? 'blue' : 'emerald'}>
+                            {localSemester === 1 ? `Jan – Jun ${localTahun}` : `Jul – Des ${localTahun}`}
+                        </Badge>
                     </div>
-                    <Badge color={semester === 1 ? 'blue' : 'emerald'} dot={semester === 1 ? 'blue' : 'emerald'}>
-                        {semester === 1 ? `Jan – Jun ${tahun}` : `Jul – Des ${tahun}`}
-                    </Badge>
+
+                    <button onClick={handleApplyFilter} className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-green-600 text-white text-xs font-black uppercase tracking-widest hover:bg-green-700 transition-all shadow-md shadow-green-200 active:scale-95">
+                        <Search className="w-4 h-4" /> CARI DATA
+                    </button>
                 </div>
 
                 {/* TableCard buku inventaris */}
@@ -114,6 +126,7 @@ export default function Index({ auth, grouped, grandTotal, tahun, semester, tahu
                                     <thead>
                                         <tr className="bg-gray-50/80 border-b border-gray-100">
                                             <th className="px-4 py-3 text-left font-black text-gray-500 uppercase tracking-widest w-28">Kode</th>
+                                            <th className="px-4 py-3 text-left font-black text-gray-500 uppercase tracking-widest w-24">NUP</th>
                                             <th className="px-4 py-3 text-left font-black text-gray-500 uppercase tracking-widest">Nama Barang</th>
                                             <th className="px-3 py-3 text-center font-black text-gray-500 uppercase tracking-widest w-14">Sat.</th>
                                             <th colSpan={2} className="px-3 py-3 text-center font-black text-blue-500 uppercase tracking-widest border-l border-blue-100">Saldo Awal</th>
@@ -124,7 +137,7 @@ export default function Index({ auth, grouped, grandTotal, tahun, semester, tahu
                                             <th className="px-3 py-3 text-center font-black text-gray-500 uppercase tracking-widest">Aksi</th>
                                         </tr>
                                         <tr className="border-b border-gray-100 bg-gray-50/40 text-[10px]">
-                                            <th colSpan={3} />
+                                            <th colSpan={4} />
                                             <th className="px-3 py-1.5 text-center text-gray-400 font-black border-l border-blue-100">Qty</th>
                                             <th className="px-3 py-1.5 text-center text-gray-400 font-black">Nilai (Rp)</th>
                                             <th className="px-3 py-1.5 text-center text-gray-400 font-black border-l border-emerald-100">Qty</th>
@@ -141,7 +154,7 @@ export default function Index({ auth, grouped, grandTotal, tahun, semester, tahu
                                             <React.Fragment key={grup.kategori.id}>
                                                 {/* Kategori header row */}
                                                 <tr className="bg-gray-100/70">
-                                                    <td colSpan={13} className="px-4 py-2.5 font-black text-gray-700 text-xs uppercase tracking-widest">
+                                                    <td colSpan={14} className="px-4 py-2.5 font-black text-gray-700 text-xs uppercase tracking-widest">
                                                         {grup.kategori.kode}. {grup.kategori.nama}
                                                     </td>
                                                 </tr>
@@ -151,6 +164,7 @@ export default function Index({ auth, grouped, grandTotal, tahun, semester, tahu
                                                     return (
                                                         <tr key={item.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors group">
                                                             <td className="px-4 py-2.5 font-mono font-bold text-green-700">{item.barang?.kode_barang}</td>
+                                                            <td className="px-4 py-2.5 font-mono font-semibold text-gray-500">{item.nup || '-'}</td>
                                                             <td className="px-4 py-2.5 font-semibold text-gray-800">{item.nama_display}</td>
                                                             <td className="px-3 py-2.5 text-center text-gray-500">{item.satuan}</td>
                                                             <td className="px-3 py-2.5 text-right border-l border-blue-50 text-blue-700 font-semibold">{fmtQty(item.saldo_awal_kwantitas)}</td>
@@ -192,7 +206,7 @@ export default function Index({ auth, grouped, grandTotal, tahun, semester, tahu
                                                 })}
                                                 {/* Subtotal kategori */}
                                                 <tr className="bg-green-50/80 border-b border-green-100">
-                                                    <td colSpan={3} className="px-4 py-2 font-black text-green-700 text-[10px] uppercase tracking-widest text-right">TOTAL {grup.kategori.nama}</td>
+                                                    <td colSpan={4} className="px-4 py-2 font-black text-green-700 text-[10px] uppercase tracking-widest text-right">TOTAL {grup.kategori.nama}</td>
                                                     <td className="px-3 py-2 text-right font-black text-green-700 border-l border-green-100">{fmtQty(grup.subtotal.saldo_awal_kwantitas)}</td>
                                                     <td className="px-3 py-2 text-right font-black text-green-700">{fmt(grup.subtotal.saldo_awal_nilai)}</td>
                                                     <td className="px-3 py-2 text-right font-black text-green-700 border-l border-green-100">{fmtQty(grup.subtotal.mutasi_tambah_kwantitas)}</td>
@@ -207,7 +221,7 @@ export default function Index({ auth, grouped, grandTotal, tahun, semester, tahu
                                         ))}
                                         {/* Grand Total */}
                                         <tr className="bg-gradient-to-r from-green-700 to-green-800">
-                                            <td colSpan={3} className="px-4 py-3 font-black text-white text-[10px] uppercase tracking-widest text-right">GRAND TOTAL</td>
+                                            <td colSpan={4} className="px-4 py-3 font-black text-white text-[10px] uppercase tracking-widest text-right">GRAND TOTAL</td>
                                             <td className="px-3 py-3 text-right font-black text-yellow-300 border-l border-white/10">{fmtQty(grandTotal?.saldo_awal_kwantitas)}</td>
                                             <td className="px-3 py-3 text-right font-black text-yellow-300">{fmt(grandTotal?.saldo_awal_nilai)}</td>
                                             <td className="px-3 py-3 text-right font-black text-yellow-300 border-l border-white/10">{fmtQty(grandTotal?.mutasi_tambah_kwantitas)}</td>

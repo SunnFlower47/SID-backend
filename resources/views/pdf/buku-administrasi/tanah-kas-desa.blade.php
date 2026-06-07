@@ -8,7 +8,8 @@
         body { font-family: 'Times New Roman', Times, serif; font-size: 10px; margin: 0; padding: 0; }
         h3, h4 { text-align: center; margin: 3px 0; text-transform: uppercase; letter-spacing: 1px; }
         .subtitle { font-size: 10px; text-align: center; margin: 2px 0; }
-        .header { margin-bottom: 14px; border-bottom: 2px solid #000; padding-bottom: 8px; }
+        .header { text-align: center; margin-bottom: 14px; border-bottom: 2px solid #000; padding-bottom: 8px; }
+        .header h3, .header h4 { margin: 0; padding: 0; }
         table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
         table, th, td { border: 1px solid black; }
         th { text-align: center; font-weight: bold; font-size: 9px; padding: 4px 3px; vertical-align: middle; background-color: #f0f0f0; }
@@ -101,17 +102,23 @@
     </table>
 
     <div class="ttd-container">
-        <div class="ttd-left">
+                <div class="ttd-left">
             <p>Mengetahui,</p>
-            <p><strong>KEPALA DESA CIBATU</strong></p>
+            <p><strong>KEPALA DESA {{ strtoupper(\App\Models\DesaSetting::getValue('nama_desa', 'CIBATU')) }}</strong></p>
             <br><br><br><br>
-            <p>( .......................................... )</p>
+            @php
+                $kades = \App\Models\StrukturDesa::where('kategori', 'kepala_desa')->where('status_aktif', true)->first();
+            @endphp
+            <p><u><strong>{{ $kades ? $kades->nama : '..........................................' }}</strong></u></p>
         </div>
         <div class="ttd-right">
-            <p>Cibatu, {{ \Carbon\Carbon::now()->translatedFormat('d F Y') }}</p>
+            <p>{{ \App\Models\DesaSetting::getValue('nama_desa', 'Cibatu') }}, {{ \Carbon\Carbon::now()->translatedFormat('d F Y') }}</p>
             <p><strong>SEKRETARIS DESA</strong></p>
             <br><br><br><br>
-            <p>( .......................................... )</p>
+            @php
+                $sekdes = \App\Models\StrukturDesa::where('kategori', 'sekretaris')->where('status_aktif', true)->first();
+            @endphp
+            <p><u><strong>{{ $sekdes ? $sekdes->nama : '..........................................' }}</strong></u></p>
         </div>
         <div class="clear"></div>
     </div>

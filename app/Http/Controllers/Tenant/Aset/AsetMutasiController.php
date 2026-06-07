@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Tenant\Aset;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Aset\StoreAsetMutasiRequest;
+use App\Http\Requests\Aset\UpdateAsetMutasiRequest;
 use App\Models\AsetInventaris;
 use App\Models\AsetMutasi;
 use Inertia\Inertia;
@@ -107,6 +108,8 @@ class AsetMutasiController extends Controller
             'semester'              => $validated['semester'],
             'tanggal'               => $validated['tanggal'],
             'jenis'                 => $validated['jenis'],
+            'alasan_kurang'         => $validated['alasan_kurang'] ?? null,
+            'kondisi'               => $validated['kondisi'] ?? null,
             'kwantitas'             => $validated['kwantitas'],
             'nilai'                 => $validated['nilai'],
             'keterangan'            => $validated['keterangan'] ?? null,
@@ -126,6 +129,67 @@ class AsetMutasiController extends Controller
         return redirect()
             ->route('aset.inventaris.index', compact('tahun', 'semester'))
             ->with('success', "{$jenis} aset \"{$inventaris->nama_display}\" berhasil dicatat.");
+    }
+
+    /**
+     * Form edit mutasi existing.
+     */
+    public function edit(AsetMutasi $mutasi)
+    {
+        $mutasi->load('inventaris.barang.kategori');
+        $inventaris = $mutasi->inventaris;
+
+        return Inertia::render('Tenant/Aset/EditMutasi', [
+            'mutasi' => $mutasi,
+            'inventaris' => [
+                'id'              => $inventaris->id,
+                'nama_display'    => $inventaris->nama_display,
+                'satuan'          => $inventaris->satuan,
+                'kondisi'         => $inventaris->kondisi,
+                'barang'          => $inventaris->barang,
+                'saldo_kwantitas' => $inventaris->saldo_kwantitas,
+                'saldo_nilai'     => $inventaris->saldo_nilai,
+            ]
+        ]);
+    }
+
+    /**
+     * Simpan perubahan mutasi.
+     */
+    public function update(UpdateAsetMutasiRequest $request, AsetMutasi $mutasi)
+    {
+        $validated = $request->validated();
+        $inventaris = $mutasi->inventaris;
+
+        $mutasi->update([
+            'tahun'         => $validated['tahun'],
+            'semester'      => $validated['semester'],
+            'tanggal'       => $validated['tanggal'],
+            // jenis tidak diubah secara request form, tapi bisa di set
+            'jenis'         => $validated['jenis'] ?? $mutasi->jenis,
+            'alasan_kurang' => $validated['alasan_kurang'] ?? null,
+            'kondisi'       => $validated['kondisi'] ?? null,
+            'kwantitas'     => $validated['kwantitas'],
+            'nilai'         => $validated['nilai'],
+            'keterangan'    => $validated['keterangan'] ?? null,
+        ]);
+
+        // Update kondisi fisik aset jika diisi
+        if (!empty($validated['kondisi'])) {
+            $inventaris->update(['kondisi' => $validated['kondisi']]);
+        }
+
+        // Jika surat-surat perlu diperbarui?
+        // Saat ini kita belum memfasilitasi regenerasi surat secara otomatis saat mutasi diedit.
+        // Bisa ditambahkan keterangan di BAPA bahwa nilainya berubah. Tapi biarkan dulu.
+
+        $jenis    = $mutasi->jenis === 'tambah' ? 'Penambahan' : 'Pengurangan';
+        $tahun    = $validated['tahun'];
+        $semester = $validated['semester'];
+
+        return redirect()
+            ->route('aset.inventaris.index', compact('tahun', 'semester'))
+            ->with('success', "Mutasi {$jenis} aset \"{$inventaris->nama_display}\" berhasil diperbarui.");
     }
 
     /**

@@ -80,6 +80,7 @@ Route::middleware('auth')->group(function () {
     require __DIR__ . '/tenant/kependudukan.php';
     require __DIR__ . '/tenant/pelayanan.php';
     require __DIR__ . '/tenant/keuangan.php';
+    require __DIR__ . '/tenant/pajak_pbb.php';
     require __DIR__ . '/tenant/laporan.php';
     require __DIR__ . '/tenant/admin.php';
     require __DIR__ . '/tenant/aset.php';

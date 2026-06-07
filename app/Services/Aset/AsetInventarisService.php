@@ -80,6 +80,7 @@ class AsetInventarisService
 
                 $rows[] = [
                     'id'                      => $inv->id,
+                    'nup'                     => $inv->nup,
                     'barang'                  => $inv->barang,
                     'nama_display'            => $inv->nama_display,
                     'satuan'                  => $inv->satuan,

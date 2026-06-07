@@ -83,19 +83,21 @@ export default function Form({ auth, suratType = null }) {
 
     const iconList = [
         // Umum & Dokumen
-        'FileText', 'File', 'FileEdit', 'Clipboard', 'ClipboardCheck', 'ClipboardList', 'Stamp', 'Files',
+        'FileText', 'File', 'FileEdit', 'Clipboard', 'ClipboardCheck', 'ClipboardList', 'Stamp', 'Files', 'Folder', 'FolderOpen', 'Newspaper', 'BookCopy',
         // Penduduk & Sosial
-        'User', 'Users', 'UserCheck', 'UserPlus', 'Contact', 'Fingerprint', 'Smile', 'Heart',
+        'User', 'Users', 'UserCheck', 'UserPlus', 'Contact', 'Fingerprint', 'Smile', 'Heart', 'VenetianMask', 'UsersRound', 'Baby',
         // Wilayah & Bangunan
-        'MapPin', 'Map', 'Home', 'Building', 'Building2', 'Landmark', 'Tent', 'Globe',
+        'MapPin', 'Map', 'Home', 'Building', 'Building2', 'Landmark', 'Tent', 'Globe', 'Store', 'Church', 'Castle', 'Fence', 'Trees', 'Flag', 'School',
         // Pekerjaan & Pendidikan
-        'Briefcase', 'GraduationCap', 'Book', 'BookOpen', 'Backpack', 'Calculator', 'HardHat',
+        'Briefcase', 'GraduationCap', 'Book', 'BookOpen', 'Backpack', 'Calculator', 'HardHat', 'Factory', 'Wrench', 'Hammer', 'Tractor', 'Truck',
         // Kesehatan
-        'HeartPulse', 'Stethoscope', 'Activity', 'Baby', 'Accessibility', 'Cross', 'Syringe',
+        'HeartPulse', 'Stethoscope', 'Activity', 'Accessibility', 'Cross', 'Syringe', 'Pill', 'Skull', 'Bone', 'Thermometer',
         // Hukum & Keamanan
-        'Scale', 'Gavel', 'Shield', 'ShieldCheck', 'Lock', 'Key', 'FileWarning',
+        'Scale', 'Gavel', 'Shield', 'ShieldCheck', 'Lock', 'Key', 'FileWarning', 'AlertTriangle', 'Eye', 'BadgeAlert', 'BadgeCheck',
+        // Keuangan & Ekonomi
+        'CreditCard', 'Wallet', 'Banknote', 'Coins', 'Receipt', 'ShoppingBag', 'ShoppingCart',
         // Komunikasi & Lainnya
-        'Mail', 'Phone', 'Inbox', 'Send', 'Archive', 'Printer', 'QrCode', 'Image', 'Camera'
+        'Mail', 'Phone', 'Inbox', 'Send', 'Archive', 'Printer', 'QrCode', 'Image', 'Camera', 'Wifi', 'Megaphone', 'Bell', 'Calendar', 'Clock'
     ];
 
     const filteredIcons = iconList.filter(icon => 
@@ -262,7 +264,7 @@ export default function Form({ auth, suratType = null }) {
                     title={isEdit ? 'Edit Jenis Surat' : 'Tambah Jenis Surat'}
                     subtitle={isEdit ? `Memperbarui konfigurasi ${suratType.nama}` : 'Buat konfigurasi surat baru untuk warga'}
                     icon={FileText}
-                    gradient="from-blue-600 via-blue-700 to-blue-800"
+                    gradient="from-green-600 via-green-700 to-green-800"
                     backHref={route('admin.surat-type.index')}
                     actions={[
                         {
@@ -358,6 +360,15 @@ export default function Form({ auth, suratType = null }) {
                                     <p className="text-[9px] text-gray-400 font-bold uppercase mt-1 ml-1 tracking-widest italic">
                                         * Gunakan variabel seperti {'${nama}'}, {'${nik}'} di dalam file Word.
                                     </p>
+                                    {/* Peringatan jika mode multi-template aktif */}
+                                    {data.has_multi_template && (
+                                        <div className="mt-2 flex items-start gap-2 px-3 py-2.5 bg-amber-50 border border-amber-200 rounded-xl">
+                                            <svg className="w-3.5 h-3.5 text-amber-500 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" /></svg>
+                                            <p className="text-[9px] font-black text-amber-700 uppercase tracking-widest leading-relaxed">
+                                                Mode Multi-Template aktif — template ini <span className="text-amber-900">tidak dipakai</span> saat cetak. Upload file .docx di masing-masing sub-template di bawah.
+                                            </p>
+                                        </div>
+                                    )}
                                     {/* Tombol Preview Variabel — hanya tampil di Edit mode & sudah ada file template */}
                                     {isEdit && suratType?.file_template && (
                                         <button
@@ -400,7 +411,19 @@ export default function Form({ auth, suratType = null }) {
                             <div className="p-6 border-b border-gray-100 bg-gray-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                 <div className="flex items-center gap-3">
                                     <Layout className="w-5 h-5 text-blue-600" />
-                                    <h3 className="text-sm font-black text-gray-900 uppercase italic tracking-tighter">Formulir Dinamis (Custom Fields)</h3>
+                                    <div>
+                                        <div className="flex items-center gap-2">
+                                            <h3 className="text-sm font-black text-gray-900 uppercase italic tracking-tighter">Formulir Dinamis (Custom Fields)</h3>
+                                            {data.has_multi_template && (
+                                                <span className="px-2 py-0.5 bg-indigo-100 text-indigo-700 text-[8px] font-black uppercase tracking-widest rounded-full border border-indigo-200">🌐 GLOBAL</span>
+                                            )}
+                                        </div>
+                                        {data.has_multi_template && (
+                                            <p className="text-[9px] text-indigo-500 font-bold mt-0.5">
+                                                Field di sini bersifat global — tampil &amp; dipakai oleh semua sub-template
+                                            </p>
+                                        )}
+                                    </div>
                                 </div>
                                 <div className="flex flex-wrap gap-2">
                                     <button 
@@ -713,24 +736,50 @@ export default function Form({ auth, suratType = null }) {
                                     </button>
                                 </div>
 
-                                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
-                                    <div>
-                                        <p className="text-[10px] font-black text-gray-900 uppercase tracking-widest">Multi Template (Sub-Template)</p>
-                                        <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest mt-1">Banyak file Word dalam 1 surat</p>
+                                <div className={cn(
+                                    "p-4 rounded-2xl border transition-all",
+                                    data.has_multi_template
+                                        ? "bg-indigo-50 border-indigo-200"
+                                        : "bg-gray-50 border-gray-100"
+                                )}>
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <p className={cn(
+                                                "text-[10px] font-black uppercase tracking-widest",
+                                                data.has_multi_template ? "text-indigo-900" : "text-gray-900"
+                                            )}>Multi Template (Sub-Template)</p>
+                                            <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest mt-1">Banyak file Word dalam 1 surat</p>
+                                        </div>
+                                        <button 
+                                            type="button"
+                                            onClick={() => setData('has_multi_template', !data.has_multi_template)}
+                                            className={cn(
+                                                "w-12 h-6 rounded-full transition-all relative shrink-0",
+                                                data.has_multi_template ? "bg-indigo-500 shadow-lg shadow-indigo-200" : "bg-gray-300"
+                                            )}
+                                        >
+                                            <div className={cn(
+                                                "absolute top-1 w-4 h-4 bg-white rounded-full transition-all shadow-sm",
+                                                data.has_multi_template ? "left-7" : "left-1"
+                                            )}></div>
+                                        </button>
                                     </div>
-                                    <button 
-                                        type="button"
-                                        onClick={() => setData('has_multi_template', !data.has_multi_template)}
-                                        className={cn(
-                                            "w-12 h-6 rounded-full transition-all relative",
-                                            data.has_multi_template ? "bg-indigo-500 shadow-lg shadow-indigo-200" : "bg-gray-300"
-                                        )}
-                                    >
-                                        <div className={cn(
-                                            "absolute top-1 w-4 h-4 bg-white rounded-full transition-all shadow-sm",
-                                            data.has_multi_template ? "left-7" : "left-1"
-                                        )}></div>
-                                    </button>
+                                    {data.has_multi_template && (
+                                        <div className="mt-3 pt-3 border-t border-indigo-100 space-y-1">
+                                            <p className="text-[9px] font-black text-indigo-700 uppercase tracking-widest flex items-center gap-1">
+                                                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clipRule="evenodd" /></svg>
+                                                Cara pakai:
+                                            </p>
+                                            <p className="text-[9px] text-indigo-600 font-bold leading-relaxed">
+                                                1. Simpan form ini dulu<br />
+                                                2. Buka kembali halaman Edit<br />
+                                                3. Kelola sub-template di bagian bawah
+                                            </p>
+                                            <p className="text-[9px] text-indigo-400 font-bold mt-1">
+                                                ⚠ Template utama &amp; Form JSON bersifat global untuk semua sub-template
+                                            </p>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>

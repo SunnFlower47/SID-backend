@@ -1,12 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { PageHeader, FormCard, FormField } from '@/Components/Shared';
-import { MapPin, Save, ArrowLeft, Layers, ShieldCheck, Map, User, Ruler } from 'lucide-react';
+import { MapPin, Save, ArrowLeft, Layers, ShieldCheck, Map, User, Ruler, Search } from 'lucide-react';
 import Swal from 'sweetalert2';
+import axios from 'axios';
 
 export default function Form({ auth, tanahDiDesa }) {
     const isEdit = !!tanahDiDesa;
+    const [isSearchingNop, setIsSearchingNop] = useState(false);
 
     const { data, setData, post, put, processing, errors } = useForm({
         nop: tanahDiDesa?.nop || '',
@@ -60,6 +62,45 @@ export default function Form({ auth, tanahDiDesa }) {
         });
     };
 
+    const handleSearchNop = async () => {
+        if (!data.nop) return;
+        setIsSearchingNop(true);
+        try {
+            const response = await axios.get(route('pajak-pbb.search-nop', { nop: data.nop }));
+            const pbb = response.data;
+            
+            // Auto fill data
+            setData(prev => ({
+                ...prev,
+                nama_pemilik: pbb.nama_wp || prev.nama_pemilik,
+                lokasi_tanah: pbb.alamat_objek || prev.lokasi_tanah,
+                luas_sawah: pbb.luas_bumi > 0 ? String(pbb.luas_bumi) : prev.luas_sawah,
+                luas_perumahan: pbb.luas_bangunan > 0 ? String(pbb.luas_bangunan) : prev.luas_perumahan,
+                // Kita tambahkan informasi tambahan di keterangan jika belum ada
+                keterangan: prev.keterangan 
+                    ? prev.keterangan 
+                    : `Diisi otomatis dari data PBB (Alamat WP: ${pbb.alamat_wp})`
+            }));
+            
+            Swal.fire({
+                icon: 'success',
+                title: 'Data Ditemukan!',
+                text: `Data untuk NOP ${data.nop} atas nama ${pbb.nama_wp} berhasil disalin ke form.`,
+                timer: 3000,
+                showConfirmButton: false
+            });
+        } catch (error) {
+            console.error(error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Tidak Ditemukan',
+                text: error.response?.data?.error || 'Data PBB untuk NOP tersebut tidak ditemukan.',
+            });
+        } finally {
+            setIsSearchingNop(false);
+        }
+    };
+
     return (
         <AuthenticatedLayout user={auth.user} title={isEdit ? "Edit Tanah di Desa" : "Tambah Tanah di Desa"}>
             <Head title={isEdit ? "Edit Tanah di Desa" : "Tambah Tanah di Desa"} />
@@ -79,14 +120,30 @@ export default function Form({ auth, tanahDiDesa }) {
                         {/* Section 1: Identitas Pemilik */}
                         <FormCard title="1. Data Identitas dan Pemilik" icon={User}>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <FormField.Input 
-                                    label="NOP (Nomor Objek Pajak)" 
-                                    name="nop" 
-                                    value={data.nop} 
-                                    onChange={e => setData('nop', e.target.value)} 
-                                    error={errors.nop}
-                                    placeholder="Opsional, untuk auto-fill Pajak PBB"
-                                />
+                                <div className="flex items-start gap-2">
+                                    <div className="flex-1">
+                                        <FormField.Input 
+                                            label="NOP (Nomor Objek Pajak)" 
+                                            name="nop" 
+                                            value={data.nop} 
+                                            onChange={e => setData('nop', e.target.value)} 
+                                            error={errors.nop}
+                                            placeholder="Ketik NOP..."
+                                        />
+                                    </div>
+                                    <div className="pt-6">
+                                        <button 
+                                            type="button" 
+                                            onClick={handleSearchNop}
+                                            disabled={isSearchingNop || !data.nop}
+                                            className="px-4 py-3 bg-blue-50 text-blue-700 border border-blue-200 rounded-2xl text-xs font-bold hover:bg-blue-100 transition-colors disabled:opacity-50 flex items-center justify-center h-[46px]"
+                                            title="Tarik data otomatis dari menu Pajak PBB"
+                                        >
+                                            <Search className="w-4 h-4 mr-1.5" />
+                                            {isSearchingNop ? 'Mencari...' : 'Autofill'}
+                                        </button>
+                                    </div>
+                                </div>
                                 <FormField.Input 
                                     label="Nama Pemegang Hak / Badan Hukum" 
                                     name="nama_pemilik" 

@@ -22,10 +22,16 @@ export default function MultiTemplatePrintPanel({ suratPengajuan, suratType }) {
         return true;
     });
 
-    // Pilih otomatis semua pada render pertama
+    // Pre-select berdasarkan pilihan saat Create, atau pilih semua jika belum ada
     useEffect(() => {
         if (activeTemplates.length > 0 && selectedTemplates.length === 0) {
-            setSelectedTemplates(activeTemplates.map(t => t.id));
+            const savedIds = suratPengajuan.data_tambahan?._selected_template_ids;
+            if (Array.isArray(savedIds) && savedIds.length > 0) {
+                const preselect = activeTemplates.filter(t => savedIds.includes(t.id)).map(t => t.id);
+                setSelectedTemplates(preselect.length > 0 ? preselect : activeTemplates.map(t => t.id));
+            } else {
+                setSelectedTemplates(activeTemplates.map(t => t.id));
+            }
         }
     }, [activeTemplates]);
 

@@ -31,7 +31,7 @@ export default function TableCard({
     noPadding = false,
 }) {
     return (
-        <div className={cn('bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden', className)}>
+        <div className={cn('table-card-wrapper bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden', className)}>
             {/* Header section */}
             <div className="px-6 py-5 border-b border-gray-50 flex items-center justify-between bg-gradient-to-r from-gray-50/50 to-white shrink-0">
                 <h3 className="text-base font-black text-gray-900 uppercase italic tracking-tighter flex items-center gap-3">

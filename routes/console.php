@@ -32,4 +32,4 @@ Schedule::command('backup:clean')->daily()->at('01:00');
 Schedule::command('backup:run')->daily()->at('02:00');
 Schedule::command('wilayah-backup:prune --days=30')->daily()->at('03:00');
 Schedule::command('domisili:check-expiry')->daily()->at('00:00');
-
+Schedule::command('pbb:sync --limit=10')->everyMinute();

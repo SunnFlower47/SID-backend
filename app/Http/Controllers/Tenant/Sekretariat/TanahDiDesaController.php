@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\TanahDiDesa;
 use App\Models\TanahDiDesaMutasi;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
 
@@ -13,6 +14,8 @@ class TanahDiDesaController extends Controller
 {
     public function index(Request $request)
     {
+        Gate::authorize('tanah_di_desa.view');
+
         $query = TanahDiDesa::query()->orderBy('created_at', 'desc');
 
         if ($request->filled('search')) {
@@ -36,11 +39,15 @@ class TanahDiDesaController extends Controller
 
     public function create()
     {
+        Gate::authorize('tanah_di_desa.create');
+
         return Inertia::render('Tenant/Sekretariat/TanahDiDesa/Form');
     }
 
     public function store(Request $request)
     {
+        Gate::authorize('tanah_di_desa.create');
+
         $validated = $this->validateTanahRequest($request);
         $validated['created_by'] = auth()->id();
 
@@ -52,6 +59,8 @@ class TanahDiDesaController extends Controller
 
     public function show($id)
     {
+        Gate::authorize('tanah_di_desa.view');
+
         $tanahDiDesa = TanahDiDesa::findOrFail($id);
         
         $mutasi = TanahDiDesaMutasi::where('tanah_di_desa_id', $id)
@@ -70,6 +79,8 @@ class TanahDiDesaController extends Controller
 
     public function edit($id)
     {
+        Gate::authorize('tanah_di_desa.edit');
+
         $tanahDiDesa = TanahDiDesa::findOrFail($id);
         return Inertia::render('Tenant/Sekretariat/TanahDiDesa/Form', [
             'tanahDiDesa' => $tanahDiDesa
@@ -78,6 +89,8 @@ class TanahDiDesaController extends Controller
 
     public function update(Request $request, $id)
     {
+        Gate::authorize('tanah_di_desa.edit');
+
         $validated = $this->validateTanahRequest($request);
         
         $tanahDiDesa = TanahDiDesa::findOrFail($id);
@@ -89,6 +102,8 @@ class TanahDiDesaController extends Controller
 
     public function destroy($id)
     {
+        Gate::authorize('tanah_di_desa.delete');
+
         $tanahDiDesa = TanahDiDesa::findOrFail($id);
         $tanahDiDesa->delete();
 
@@ -98,6 +113,8 @@ class TanahDiDesaController extends Controller
     
     public function storeMutasi(Request $request, $id)
     {
+        Gate::authorize('tanah_di_desa.mutasi');
+
         $validated = $request->validate([
             'pemilik_lama' => 'required|string|max:255',
             'pemilik_baru' => 'required|string|max:255',

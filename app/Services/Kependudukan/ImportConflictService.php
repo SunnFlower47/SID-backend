@@ -351,6 +351,17 @@ class ImportConflictService
         $keterangan = trim((string)($fixed['keterangan'] ?? $this->extractPayloadValue($raw, ['keterangan', 'catatan']) ?? ''));
         $alamat = trim((string)($fixed['alamat'] ?? $this->extractPayloadValue($raw, ['alamat']) ?? ''));
 
+        // Missing fields mapped:
+        $dapatMembaca = trim((string)($fixed['dapat_membaca_huruf'] ?? $this->extractPayloadValue($raw, ['dapat membaca', 'membaca huruf']) ?? '-'));
+        $golonganDarah = trim((string)($fixed['golongan_darah'] ?? $this->extractPayloadValue($raw, ['golongan darah', 'gol darah', 'goldar']) ?? ''));
+        $warganegara = trim((string)($fixed['warganegara'] ?? $this->extractPayloadValue($raw, ['warganegara', 'kewarganegaraan', 'wn']) ?? 'WNI'));
+        $noAktaLahir = trim((string)($fixed['no_akta_lahir'] ?? $this->extractPayloadValue($raw, ['no akta lahir', 'akta lahir', 'nomor akta']) ?? ''));
+        $statusPendidikan = trim((string)($fixed['status_pendidikan'] ?? $this->extractPayloadValue($raw, ['status pendidikan', 'status sekolah']) ?? ''));
+        $telepon = trim((string)($fixed['telepon'] ?? $this->extractPayloadValue($raw, ['telepon', 'no telepon', 'wa', 'no wa', 'hp', 'no hp']) ?? ''));
+        $cacatType = trim((string)($fixed['cacat_type'] ?? $this->extractPayloadValue($raw, ['cacat', 'jenis cacat', 'disabilitas']) ?? ''));
+        $sakitMenahun = trim((string)($fixed['sakit_menahun'] ?? $this->extractPayloadValue($raw, ['sakit menahun', 'penyakit menahun']) ?? ''));
+        $statusAsuransi = trim((string)($fixed['status_asuransi'] ?? $this->extractPayloadValue($raw, ['status asuransi', 'asuransi', 'bpjs']) ?? ''));
+
         $rwKode = $this->normalizeKodeWilayah((string)($fixed['rw'] ?? $fixed['rw_raw'] ?? $conflict->rw_raw), '001');
         $rtKode = $this->normalizeKodeWilayah((string)($fixed['rt'] ?? $fixed['rt_raw'] ?? $conflict->rt_raw), '001');
         $dusunNama = trim((string)($fixed['dusun'] ?? $fixed['dusun_raw'] ?? $conflict->dusun_raw ?? ''));
@@ -405,8 +416,17 @@ class ImportConflictService
             'kedudukan_keluarga' => $kedudukanKeluarga !== '' ? $kedudukanKeluarga : null,
             'pendidikan' => $pendidikan !== '' ? $pendidikan : 'Tidak/Belum Sekolah',
             'pekerjaan' => $pekerjaan !== '' ? $pekerjaan : '-',
+            'dapat_membaca_huruf' => $dapatMembaca !== '' ? $dapatMembaca : '-',
             'nama_ayah' => $namaAyah !== '' ? $namaAyah : null,
             'nama_ibu' => $namaIbu !== '' ? $namaIbu : null,
+            'golongan_darah' => $golonganDarah !== '' ? $golonganDarah : null,
+            'warganegara' => $warganegara !== '' ? $warganegara : 'WNI',
+            'no_akta_lahir' => $noAktaLahir !== '' ? $noAktaLahir : null,
+            'status_pendidikan' => $statusPendidikan !== '' ? $statusPendidikan : null,
+            'telepon' => $telepon !== '' ? $telepon : null,
+            'cacat_type' => $cacatType !== '' ? $cacatType : null,
+            'sakit_menahun' => $sakitMenahun !== '' ? $sakitMenahun : null,
+            'status_asuransi' => $statusAsuransi !== '' ? $statusAsuransi : null,
             'keterangan' => $keterangan !== '' ? $keterangan : null,
             'alamat' => $alamat !== '' ? $alamat : 'Alamat tidak diketahui',
             'kartu_keluarga_id' => KartuKeluarga::where('nkk', $nkk)->value('id'),
@@ -418,7 +438,7 @@ class ImportConflictService
     private function shouldAutoReprocess(string $issueType, string $action): bool
     {
         if (in_array($action, ['skip', 'keep_existing_nik'])) return false;
-        return in_array($issueType, ['invalid_nik', 'invalid_nkk', 'wilayah_conflict', 'fix_fields']);
+        return in_array($issueType, ['invalid_nik', 'invalid_nkk', 'wilayah_conflict', 'required_field_missing', 'fix_fields']);
     }
 
     private function upsertKartuKeluargaAndGetId(string $nkk, array $attrs = []): void

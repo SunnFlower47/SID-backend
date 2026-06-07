@@ -1,6 +1,14 @@
 <?php
 
 return [
+    'Administrasi Umum (Sekretariat)' => [
+        'keputusan_kades.view', 'keputusan_kades.create', 'keputusan_kades.edit', 'keputusan_kades.delete',
+        'buku_agenda.view', 'buku_agenda.create', 'buku_agenda.edit', 'buku_agenda.delete',
+        'tanah_di_desa.view', 'tanah_di_desa.create', 'tanah_di_desa.edit', 'tanah_di_desa.delete', 'tanah_di_desa.mutasi',
+        'kader_pemberdayaan.view', 'kader_pemberdayaan.create', 'kader_pemberdayaan.edit', 'kader_pemberdayaan.delete',
+        'anggota_bpd.view', 'anggota_bpd.create', 'anggota_bpd.edit', 'anggota_bpd.delete',
+        'peraturan_desa.view', 'peraturan_desa.create', 'peraturan_desa.edit', 'peraturan_desa.delete',
+    ],
     'Kependudukan & Wilayah' => [
         'penduduk.view', 'penduduk.create', 'penduduk.edit', 'penduduk.delete', 'penduduk.export', 'penduduk.import', 'penduduk.restore', 'penduduk.force_delete',
         'penduduk_domisili.view', 'penduduk_domisili.create', 'penduduk_domisili.edit', 'penduduk_domisili.delete',
@@ -32,8 +40,8 @@ return [
         'aset_mutasi.view', 'aset_mutasi.create', 'aset_mutasi.edit', 'aset_mutasi.delete',
         'anggaran.view', 'anggaran.create', 'anggaran.edit', 'anggaran.delete',
         'laporan_keuangan.view', 'laporan_keuangan.export',
-        'peraturan_desa.view', 'peraturan_desa.create', 'peraturan_desa.edit', 'peraturan_desa.delete',
         'transparansi-desa.view', 'transparansi-desa.create', 'transparansi-desa.edit', 'transparansi-desa.delete',
+        'pajak_pbb.view', 'pajak_pbb.sync', 'pajak_pbb.delete',
     ],
     'Laporan & Statistik' => [
         'laporan.view', 'laporan.penduduk', 'laporan.mutasi', 'laporan.pisah_kk', 'laporan.export',

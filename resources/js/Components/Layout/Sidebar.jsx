@@ -97,6 +97,7 @@ const menuGroups = [
             { name: 'Perencanaan (APBDes)', href: 'anggaran.create-tahunan', icon: 'FileSignature' },
             { name: 'Realisasi Pengeluaran', href: 'anggaran.create-pengeluaran', icon: 'Wallet' },
             { name: 'Proyek Pembangunan', href: 'anggaran.create-proyek', icon: 'Construction' },
+            { name: 'Pajak PBB', href: 'pajak-pbb.index', icon: 'Landmark' },
         ]
     },
 

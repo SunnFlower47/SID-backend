@@ -20,6 +20,8 @@ class KartuKeluarga extends Model
         'nama_kepala_keluarga',
         'nik_kepala_keluarga',
         'alamat',
+        'tempat_dikeluarkan',
+        'tanggal_dikeluarkan',
         'rt_id',
         'rw_id',
         'dusun_id',

@@ -1,18 +1,20 @@
 import React, { useState } from 'react';
 import { Head, router, Deferred } from '@inertiajs/react';
+import Swal from 'sweetalert2';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { PageHeader } from '@/Components/Shared';
 import { 
     AlertCircle, 
     CheckCircle2, 
     RefreshCcw, 
-    Eye, 
+    Pen, 
     MapPin,
     AlertTriangle,
     User,
     Loader2,
     Filter,
-    FileWarning
+    FileWarning,
+    Trash2
 } from 'lucide-react';
 import ResolveModal from '@/Components/Import/ResolveModal';
 import { cn } from '@/lib/utils';
@@ -25,10 +27,11 @@ const LottieComponent = Lottie?.default || Lottie;
 
 // ── Issue Type Config ──────────────────────────────────────────────
 const ISSUE_TYPES = {
-    invalid_nik:      { label: 'NIK Tidak Valid',      badgeClass: 'bg-amber-100 text-amber-700',  icon: User    },
-    invalid_nkk:      { label: 'NKK Tidak Valid',      badgeClass: 'bg-amber-100 text-amber-700',  icon: User    },
-    wilayah_conflict: { label: 'Wilayah Tidak Dikenal', badgeClass: 'bg-orange-100 text-orange-700', icon: MapPin },
-    nik_conflict:     { label: 'NIK Sudah Terdaftar',  badgeClass: 'bg-rose-100 text-rose-700',    icon: User    },
+    invalid_nik:            { label: 'NIK Tidak Valid',        badgeClass: 'bg-amber-100 text-amber-700',  icon: User    },
+    invalid_nkk:            { label: 'NKK Tidak Valid',        badgeClass: 'bg-amber-100 text-amber-700',  icon: User    },
+    wilayah_conflict:       { label: 'Wilayah Tidak Dikenal',  badgeClass: 'bg-orange-100 text-orange-700', icon: MapPin  },
+    nik_conflict:           { label: 'NIK Sudah Terdaftar',    badgeClass: 'bg-rose-100 text-rose-700',   icon: User    },
+    required_field_missing: { label: 'Data Wajib Kosong',      badgeClass: 'bg-amber-100 text-amber-700',  icon: AlertCircle },
 };
 
 const REPROCESS_STATUS = {
@@ -75,6 +78,26 @@ export default function ImportConflictsIndex({ auth, conflicts, rws, filters, st
                     subtitle="Selesaikan isu sinkronisasi data kependudukan"
                     icon={FileWarning}
                     actions={[
+                        {
+                            label: 'Hapus Semua Konflik',
+                            icon: Trash2,
+                            variant: 'danger',
+                            onClick: () => {
+                                Swal.fire({
+                                    title: 'Hapus Semua Konflik?',
+                                    text: 'Yakin ingin menghapus SEMUA data konflik? Tindakan ini tidak dapat dibatalkan.',
+                                    icon: 'warning',
+                                    showCancelButton: true,
+                                    confirmButtonColor: '#ef4444',
+                                    confirmButtonText: 'Ya, Hapus Semua!',
+                                    cancelButtonText: 'Batal'
+                                }).then((result) => {
+                                    if (result.isConfirmed) {
+                                        router.delete(route('import-conflicts.destroy-all'));
+                                    }
+                                });
+                            }
+                        },
                         {
                             label: `${stats?.pending ?? 0} Menunggu`,
                             icon: AlertCircle,
@@ -170,7 +193,7 @@ export default function ImportConflictsIndex({ auth, conflicts, rws, filters, st
                                                     </div>
                                                     <div className="space-y-1 min-w-0">
                                                         <div className="flex flex-wrap items-center gap-2">
-                                                            <p className="font-bold text-gray-900 leading-tight">{conflict.nama || 'Tanpa Nama'}</p>
+                                                            <p className="font-bold text-gray-900 leading-tight">Nama: {conflict.nama || 'Tanpa Nama'}</p>
                                                             <span className={cn('inline-flex items-center px-2 py-0.5 mt-0.5 rounded text-[10px] font-bold tracking-wider shrink-0', typeCfg.badgeClass)}>
                                                                 {typeCfg.label}
                                                             </span>
@@ -191,12 +214,33 @@ export default function ImportConflictsIndex({ auth, conflicts, rws, filters, st
                                                 {/* Actions */}
                                                 <div className="flex items-center gap-2 shrink-0 justify-end">
                                                     {conflict.status === 'pending' ? (
-                                                        <button
-                                                            onClick={() => setResolvingConflict(conflict)}
-                                                            className="w-8 h-8 flex items-center justify-center rounded-lg bg-orange-50 text-orange-600 hover:bg-orange-500 hover:text-white transition-colors"
-                                                            title="Perbaiki">
-                                                            <Eye className="w-4 h-4" />
-                                                        </button>
+                                                        <>
+                                                            <button
+                                                                onClick={() => setResolvingConflict(conflict)}
+                                                                className="w-8 h-8 flex items-center justify-center rounded-lg bg-orange-50 text-orange-600 hover:bg-orange-500 hover:text-white transition-colors"
+                                                                title="Perbaiki">
+                                                                <Pen className="w-4 h-4" />
+                                                            </button>
+                                                            <button onClick={() => {
+                                                                Swal.fire({
+                                                                    title: 'Hapus Konflik?',
+                                                                    text: 'Baris data ini akan ditolak dan dihapus dari antrean konflik.',
+                                                                    icon: 'warning',
+                                                                    showCancelButton: true,
+                                                                    confirmButtonColor: '#ef4444',
+                                                                    confirmButtonText: 'Ya, Hapus!',
+                                                                    cancelButtonText: 'Batal'
+                                                                }).then((result) => {
+                                                                    if (result.isConfirmed) {
+                                                                        router.delete(route('import-conflicts.destroy', conflict.id));
+                                                                    }
+                                                                });
+                                                            }}
+                                                                className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 text-gray-500 hover:bg-red-600 hover:text-white transition-colors"
+                                                                title="Hapus Konflik">
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </button>
+                                                        </>
                                                     ) : (
                                                         <>
                                                             {!isAutoType && !isSuccess && (
@@ -212,7 +256,7 @@ export default function ImportConflictsIndex({ auth, conflicts, rws, filters, st
                                                                 <button onClick={() => setResolvingConflict(conflict)}
                                                                     className="w-8 h-8 flex items-center justify-center rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white transition-colors"
                                                                     title="Edit Ulang">
-                                                                    <Eye className="w-4 h-4" />
+                                                                    <Pen className="w-4 h-4" />
                                                                 </button>
                                                             )}
                                                             {!isSuccess && (
@@ -222,6 +266,25 @@ export default function ImportConflictsIndex({ auth, conflicts, rws, filters, st
                                                                     <RefreshCcw className="w-4 h-4" />
                                                                 </button>
                                                             )}
+                                                            <button onClick={() => {
+                                                                Swal.fire({
+                                                                    title: 'Hapus Konflik?',
+                                                                    text: 'Baris data ini akan ditolak dan dihapus dari antrean konflik.',
+                                                                    icon: 'warning',
+                                                                    showCancelButton: true,
+                                                                    confirmButtonColor: '#ef4444',
+                                                                    confirmButtonText: 'Ya, Hapus!',
+                                                                    cancelButtonText: 'Batal'
+                                                                }).then((result) => {
+                                                                    if (result.isConfirmed) {
+                                                                        router.delete(route('import-conflicts.destroy', conflict.id));
+                                                                    }
+                                                                });
+                                                            }}
+                                                                className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 text-gray-500 hover:bg-red-600 hover:text-white transition-colors"
+                                                                title="Hapus Konflik">
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </button>
                                                         </>
                                                     )}
                                                 </div>

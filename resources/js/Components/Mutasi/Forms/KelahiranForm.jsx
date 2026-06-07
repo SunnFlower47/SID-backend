@@ -15,7 +15,7 @@ export default function KelahiranForm({ mutasi = null }) {
     nik_bayi: baby.nik || '', 
     jenis_kelamin_bayi: baby.jenis_kelamin || 'LAKI-LAKI',
     tempat_lahir: baby.tempat_lahir || 'CIBATU',
-    tanggal_lahir: baby.tanggal_lahir || new Date().toISOString().split('T')[0],
+    tanggal_lahir: baby.tanggal_lahir ? baby.tanggal_lahir.substring(0, 10) : new Date().toISOString().split('T')[0],
     agama_bayi: baby.agama || 'ISLAM',
     status_perkawinan_bayi: baby.status_perkawinan || 'BELUM KAWIN',
     kedudukan_keluarga_bayi: baby.kedudukan_keluarga || 'ANAK',
@@ -28,14 +28,15 @@ export default function KelahiranForm({ mutasi = null }) {
     rw_id_bayi: baby.rw_id || '',
     dusun_id_bayi: baby.dusun_id || '',
     keterangan_bayi: mutasi?.alasan || '',
-    tanggal_mutasi: mutasi?.tanggal_mutasi ? new Date(mutasi.tanggal_mutasi).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+    tanggal_mutasi: mutasi?.tanggal_mutasi ? mutasi.tanggal_mutasi.substring(0, 10) : new Date().toISOString().split('T')[0],
     jenis_mutasi: 'kelahiran',
     golongan_darah: baby.golongan_darah || 'TIDAK TAHU',
     no_akta_lahir: baby.no_akta_lahir || '',
     status_asuransi: baby.status_asuransi || 'TIDAK ADA',
     cacat_type: baby.cacat_type || '',
     sakit_menahun: baby.sakit_menahun || '',
-    telepon: baby.telepon || ''
+    telepon: baby.telepon || '',
+    dapat_membaca_huruf: baby.dapat_membaca_huruf || ''
   });
 
   const [selectedKK, setSelectedKK] = useState(isEdit ? { 
@@ -49,6 +50,87 @@ export default function KelahiranForm({ mutasi = null }) {
   const [nikChecking, setNikChecking] = useState(false);
   const [nikError, setNikError] = useState('');
   const [nikValid, setNikValid] = useState(false);
+
+  // Manual input state
+  const [manualFields, setManualFields] = useState({});
+
+  const toggleManual = (field, isOther) => {
+    setManualFields(prev => ({ ...prev, [field]: isOther }));
+  };
+
+  const OPTIONS = {
+      agama: ['ISLAM', 'KRISTEN', 'KATOLIK', 'HINDU', 'BUDDHA', 'KONGHUCU'],
+      pendidikan: [
+          'TIDAK / BELUM SEKOLAH', 'BELUM TAMAT SD/SEDERAJAT', 'TAMAT SD / SEDERAJAT',
+          'SLTP/SEDERAJAT', 'SLTA / SEDERAJAT', 'DIPLOMA I / II',
+          'AKADEMI / DIPLOMA III / S. MUDA', 'DIPLOMA IV / STRATA I', 'STRATA II', 'STRATA III'
+      ],
+      status_perkawinan: ['BELUM KAWIN', 'KAWIN TERCATAT', 'KAWIN BELUM TERCATAT', 'CERAI HIDUP TERCATAT', 'CERAI HIDUP BELUM TERCATAT', 'CERAI MATI'],
+      kedudukan_keluarga: ['KEPALA KELUARGA', 'ISTRI', 'ANAK', 'MENANTU', 'CUCU', 'ORANG TUA', 'MERTUA', 'FAMILI LAIN', 'PEMBANTU'],
+      pekerjaan: [
+          'BELUM/TIDAK BEKERJA', 'MENGURUS RUMAH TANGGA', 'PELAJAR/MAHASISWA', 
+          'PENSIUNAN', 'PEGAWAI NEGERI SIPIL', 'TENTARA NASIONAL INDONESIA', 
+          'KEPOLISIAN NEGARA RI', 'PETANI/PEKEBUN', 'KARYAWAN SWASTA', 
+          'BURUH HARIAN LEPAS', 'WIRASWASTA', 'PERANGKAT DESA'
+      ],
+      golongan_darah: ['A', 'B', 'AB', 'O', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'TIDAK TAHU'],
+      warganegara: ['WNI', 'WNA'],
+      status_pendidikan: ['SEDANG SEKOLAH', 'TIDAK SEKOLAH', 'TAMAT SEKOLAH', 'PUTUS SEKOLAH'],
+      status_asuransi: ['BPJS MANDIRI', 'BPJS PBI/GRATIS', 'NON-BPJS', 'TIDAK ADA'],
+      dapat_membaca_huruf: ['HURUF LATIN', 'HURUF ARAB', 'HURUF LAINNYA', 'BELUM/TIDAK DAPAT MEMBACA']
+  };
+
+  const renderSelectWithOther = (label, field, options, required = false) => {
+      const isManual = manualFields[field] || (!options.includes(data[field]) && data[field] !== '');
+      
+      return (
+          <div className="space-y-2">
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{label}{required && <span className="text-red-500 ml-0.5">*</span>}</label>
+              <select 
+                  value={isManual ? 'LAINNYA' : data[field]}
+                  onChange={e => {
+                      if (e.target.value === 'LAINNYA') {
+                          toggleManual(field, true);
+                          setData(field, '');
+                      } else {
+                          toggleManual(field, false);
+                          setData(field, e.target.value);
+                      }
+                  }}
+                  className={`w-full px-4 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-bold outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all ${errors[field] ? 'border-red-500' : ''}`}
+                  required={required && !isManual}
+              >
+                  <option value="">Pilih {label}</option>
+                  {options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                  <option value="LAINNYA" className="text-blue-600 font-bold">--- LAINNYA (KETIK MANUAL) ---</option>
+              </select>
+
+              {isManual && (
+                  <div className="relative animate-in slide-in-from-top-2 duration-200 mt-2">
+                      <input 
+                          type="text"
+                          placeholder={`Ketik ${label} manual...`}
+                          value={data[field]}
+                          onChange={e => setData(field, e.target.value.toUpperCase())}
+                          className="w-full px-4 py-3 bg-blue-50 border border-blue-200 rounded-2xl text-sm font-bold outline-none focus:ring-4 focus:ring-blue-500/10"
+                          required={required}
+                          autoFocus
+                      />
+                      <button 
+                          type="button"
+                          onClick={() => {
+                              toggleManual(field, false);
+                              setData(field, options[0]);
+                          }}
+                          className="absolute right-3 top-3 text-[10px] font-black text-blue-500 hover:text-blue-700"
+                      >
+                          KEMBALI
+                      </button>
+                  </div>
+              )}
+          </div>
+      );
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -311,66 +393,11 @@ export default function KelahiranForm({ mutasi = null }) {
             {errors.tempat_lahir && <p className="text-xs text-red-500 mt-1 ml-1">{errors.tempat_lahir}</p>}
           </div>
 
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Agama</label>
-            <select
-              className="w-full px-4 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-bold outline-none"
-              value={data.agama_bayi}
-              onChange={(e) => setData('agama_bayi', e.target.value)}
-            >
-              <option value="ISLAM">ISLAM</option>
-              <option value="KRISTEN">KRISTEN</option>
-              <option value="KATOLIK">KATOLIK</option>
-              <option value="HINDU">HINDU</option>
-              <option value="BUDHA">BUDHA</option>
-              <option value="KONGHUCU">KONGHUCU</option>
-            </select>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Status Perkawinan</label>
-            <select
-              className="w-full px-4 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-bold outline-none"
-              value={data.status_perkawinan_bayi}
-              onChange={(e) => setData('status_perkawinan_bayi', e.target.value)}
-            >
-              <option value="BELUM KAWIN">BELUM KAWIN</option>
-              <option value="KAWIN">KAWIN</option>
-            </select>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Kedudukan Keluarga</label>
-            <select
-              className="w-full px-4 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-bold outline-none"
-              value={data.kedudukan_keluarga_bayi}
-              onChange={(e) => setData('kedudukan_keluarga_bayi', e.target.value)}
-            >
-              <option value="ANAK">ANAK</option>
-              <option value="CUCU">CUCU</option>
-              <option value="LAINNYA">LAINNYA</option>
-            </select>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Pendidikan</label>
-            <input 
-              type="text" 
-              className="w-full px-4 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-bold outline-none" 
-              value={data.pendidikan_bayi} 
-              onChange={(e) => setData('pendidikan_bayi', e.target.value.toUpperCase())} 
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Pekerjaan</label>
-            <input 
-              type="text" 
-              className="w-full px-4 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-bold outline-none" 
-              value={data.pekerjaan_bayi} 
-              onChange={(e) => setData('pekerjaan_bayi', e.target.value.toUpperCase())} 
-            />
-          </div>
+          {renderSelectWithOther('Agama', 'agama_bayi', OPTIONS.agama)}
+          {renderSelectWithOther('Status Perkawinan', 'status_perkawinan_bayi', OPTIONS.status_perkawinan)}
+          {renderSelectWithOther('Kedudukan Keluarga', 'kedudukan_keluarga_bayi', OPTIONS.kedudukan_keluarga)}
+          {renderSelectWithOther('Pendidikan', 'pendidikan_bayi', OPTIONS.pendidikan)}
+          {renderSelectWithOther('Pekerjaan', 'pekerjaan_bayi', OPTIONS.pekerjaan)}
         </div>
 
         {/* Alamat Info */}
@@ -417,28 +444,8 @@ export default function KelahiranForm({ mutasi = null }) {
         </h4>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Golongan Darah</label>
-            <select
-              className="w-full px-4 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none"
-              value={data.golongan_darah}
-              onChange={(e) => setData('golongan_darah', e.target.value)}
-            >
-              <option value="TIDAK TAHU">TIDAK TAHU</option>
-              <option value="A">A</option>
-              <option value="B">B</option>
-              <option value="AB">AB</option>
-              <option value="O">O</option>
-              <option value="A+">A+</option>
-              <option value="A-">A-</option>
-              <option value="B+">B+</option>
-              <option value="B-">B-</option>
-              <option value="AB+">AB+</option>
-              <option value="AB-">AB-</option>
-              <option value="O+">O+</option>
-              <option value="O-">O-</option>
-            </select>
-          </div>
+          {renderSelectWithOther('Golongan Darah', 'golongan_darah', OPTIONS.golongan_darah)}
+          {renderSelectWithOther('Dapat Membaca Huruf', 'dapat_membaca_huruf', OPTIONS.dapat_membaca_huruf)}
 
           <div className="space-y-2">
             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Nomor Akta Kelahiran</label>
@@ -451,19 +458,7 @@ export default function KelahiranForm({ mutasi = null }) {
             />
           </div>
 
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Asuransi Kesehatan (BPJS)</label>
-            <select
-              className="w-full px-4 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none"
-              value={data.status_asuransi}
-              onChange={(e) => setData('status_asuransi', e.target.value)}
-            >
-              <option value="TIDAK ADA">TIDAK ADA</option>
-              <option value="BPJS MANDIRI">BPJS MANDIRI</option>
-              <option value="BPJS PBI / GRATIS">BPJS PBI / GRATIS</option>
-              <option value="NON-BPJS / SWASTA">NON-BPJS / SWASTA</option>
-            </select>
-          </div>
+          {renderSelectWithOther('Asuransi Kesehatan (BPJS)', 'status_asuransi', OPTIONS.status_asuransi)}
 
           <div className="space-y-2">
             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">No. Telepon / WA Orang Tua</label>

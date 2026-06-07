@@ -14,6 +14,14 @@ const KEPERLUAN_OPTIONS = [
     { value: 'lainnya',     label: 'Lainnya' },
 ];
 
+const STATUS_PERKAWINAN_OPTIONS = ['BELUM KAWIN', 'KAWIN TERCATAT', 'KAWIN BELUM TERCATAT', 'CERAI HIDUP TERCATAT', 'CERAI HIDUP BELUM TERCATAT', 'CERAI MATI'];
+const PEKERJAAN_OPTIONS = [
+    'BELUM/TIDAK BEKERJA', 'MENGURUS RUMAH TANGGA', 'PELAJAR/MAHASISWA', 
+    'PENSIUNAN', 'PEGAWAI NEGERI SIPIL', 'TENTARA NASIONAL INDONESIA', 
+    'KEPOLISIAN NEGARA RI', 'PETANI/PEKEBUN', 'KARYAWAN SWASTA', 
+    'BURUH HARIAN LEPAS', 'WIRASWASTA', 'PERANGKAT DESA'
+];
+
 export default function Form({ auth, domisili, rtList, rwList, dusunList }) {
     const isEdit = !!domisili;
     const formatDateForInput = (dateStr) => {
@@ -34,9 +42,9 @@ export default function Form({ auth, domisili, rtList, rwList, dusunList }) {
         tanggal_lahir:      formatDateForInput(domisili?.tanggal_lahir),
         jenis_kelamin:      domisili?.jenis_kelamin ?? '',
         agama:              domisili?.agama ?? '',
-        status_perkawinan:  domisili?.status_perkawinan ?? 'Belum Kawin',
+        status_perkawinan:  domisili?.status_perkawinan ?? 'BELUM KAWIN',
         kewarganegaraan:    domisili?.kewarganegaraan ?? 'Indonesia',
-        pekerjaan:          domisili?.pekerjaan ?? '',
+        pekerjaan:          domisili?.pekerjaan ?? 'BELUM/TIDAK BEKERJA',
         asal_daerah:        domisili?.asal_daerah ?? '',
         alamat_asal:        domisili?.alamat_asal ?? '',
         rt_id:              domisili?.rt_id ?? '',
@@ -51,23 +59,13 @@ export default function Form({ auth, domisili, rtList, rwList, dusunList }) {
     const [nikStatus, setNikStatus] = useState(null); // null | 'checking' | 'available' | 'blocked' | 'duplicate'
 
     // Filtered lists for dependent dropdowns
-    const filteredRws = data.dusun_id 
-        ? rwList?.filter(rw => rtList?.some(rt => String(rt.rw_id) === String(rw.id) && String(rt.dusun_id) === String(data.dusun_id)))
-        : rwList;
+    const filteredRws = rwList;
 
-    const filteredRts = (data.dusun_id && data.rw_id)
-        ? rtList?.filter(rt => String(rt.dusun_id) === String(data.dusun_id) && String(rt.rw_id) === String(data.rw_id))
-        : (data.rw_id ? rtList?.filter(rt => String(rt.rw_id) === String(data.rw_id)) : rtList);
+    const filteredRts = data.rw_id 
+        ? rtList?.filter(rt => String(rt.rw_id) === String(data.rw_id)) 
+        : rtList;
 
     // Geographic selection handlers
-    const handleDusunChange = (dusunId) => {
-        setData(prev => ({
-            ...prev,
-            dusun_id: dusunId,
-            rw_id: '', // Reset children on parent change
-            rt_id: ''
-        }));
-    };
 
     const handleRwChange = (rwId) => {
         setData(prev => ({
@@ -107,6 +105,62 @@ export default function Form({ auth, domisili, rtList, rwList, dusunList }) {
         } else {
             post(route('domisili.store'));
         }
+    };
+
+    const [manualFields, setManualFields] = useState({});
+
+    const toggleManual = (field, isManual) => {
+        setManualFields(prev => ({ ...prev, [field]: isManual }));
+    };
+
+    const renderSelectWithOther = (label, field, options, placeholder = '', required = false) => {
+        const isManual = manualFields[field] || (!options.includes(data[field]) && data[field] !== '');
+        
+        return (
+            <FormField label={label} required={required} error={errors[field]}>
+                <select 
+                    value={isManual ? 'LAINNYA' : data[field]}
+                    onChange={e => {
+                        if (e.target.value === 'LAINNYA') {
+                            toggleManual(field, true);
+                            setData(field, '');
+                        } else {
+                            toggleManual(field, false);
+                            setData(field, e.target.value);
+                        }
+                    }}
+                    className={`w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-bold uppercase outline-none focus:ring-4 focus:ring-green-500/10 focus:border-green-500 transition-all ${errors[field] ? 'border-red-500' : ''}`}
+                    required={required && !isManual}
+                >
+                    <option value="">{placeholder}</option>
+                    {options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                    <option value="LAINNYA" className="text-blue-600 font-bold">--- LAINNYA (KETIK MANUAL) ---</option>
+                </select>
+
+                {isManual && (
+                    <div className="relative animate-in slide-in-from-top-2 duration-200 mt-2">
+                        <input
+                            type="text"
+                            value={data[field]}
+                            onChange={e => setData(field, e.target.value.toUpperCase())}
+                            className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm font-bold uppercase focus:ring-2 focus:ring-blue-500 bg-white"
+                            placeholder={`Ketik ${label.toLowerCase()}...`}
+                            required={required}
+                        />
+                        <button
+                            type="button"
+                            onClick={() => {
+                                toggleManual(field, false);
+                                setData(field, '');
+                            }}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-gray-400 hover:text-red-500 flex items-center gap-1"
+                        >
+                            <XCircle className="w-3 h-3" /> BATAL
+                        </button>
+                    </div>
+                )}
+            </FormField>
+        );
     };
 
     const nikIndicator = () => {
@@ -181,30 +235,19 @@ export default function Form({ auth, domisili, rtList, rwList, dusunList }) {
                                     onChange={e => setData('jenis_kelamin', e.target.value)}
                                     error={errors.jenis_kelamin}
                                     options={[
-                                        { value: '', label: '-- Pilih --' },
+                                        { value: '', label: 'PILIH JENIS KELAMIN' },
                                         { value: 'L', label: 'Laki-Laki' },
                                         { value: 'P', label: 'Perempuan' }
                                     ]}
                                 />
-                                <FormField.Select
-                                    label="Status Perkawinan *"
-                                    value={data.status_perkawinan}
-                                    onChange={e => setData('status_perkawinan', e.target.value)}
-                                    error={errors.status_perkawinan}
-                                    options={[
-                                        { value: 'Belum Kawin', label: 'Belum Kawin' },
-                                        { value: 'Kawin', label: 'Kawin' },
-                                        { value: 'Cerai Hidup', label: 'Cerai Hidup' },
-                                        { value: 'Cerai Mati', label: 'Cerai Mati' }
-                                    ]}
-                                />
+                                {renderSelectWithOther('Status Perkawinan', 'status_perkawinan', STATUS_PERKAWINAN_OPTIONS, 'PILIH STATUS PERKAWINAN', true)}
                                 <FormField.Select
                                     label="Agama"
                                     value={data.agama}
                                     onChange={e => setData('agama', e.target.value)}
                                     error={errors.agama}
                                     options={[
-                                        { value: '', label: '-- Pilih --' },
+                                        { value: '', label: 'PILIH AGAMA' },
                                         ...AGAMA_OPTIONS.map(a => ({ value: a, label: a }))
                                     ]}
                                 />
@@ -215,13 +258,7 @@ export default function Form({ auth, domisili, rtList, rwList, dusunList }) {
                                     placeholder="Indonesia"
                                     error={errors.kewarganegaraan}
                                 />
-                                <FormField.Input
-                                    label="Pekerjaan"
-                                    value={data.pekerjaan}
-                                    onChange={e => setData('pekerjaan', e.target.value)}
-                                    placeholder="Pekerjaan saat ini"
-                                    error={errors.pekerjaan}
-                                />
+                                {renderSelectWithOther('Pekerjaan', 'pekerjaan', PEKERJAAN_OPTIONS, 'PILIH PEKERJAAN', false)}
                                 <FormField.Input
                                     label="Asal Daerah"
                                     value={data.asal_daerah}
@@ -252,22 +289,12 @@ export default function Form({ auth, domisili, rtList, rwList, dusunList }) {
                             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest -mt-4 mb-6 ml-[3.25rem]">Lokasi & keperluan tinggal sementara</p>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                 <FormField.Select
-                                    label="Dusun"
-                                    value={data.dusun_id}
-                                    onChange={e => handleDusunChange(e.target.value)}
-                                    error={errors.dusun_id}
-                                    options={[
-                                        { value: '', label: '-- Pilih Dusun --' },
-                                        ...(dusunList?.map(d => ({ value: d.id, label: d.nama })) || [])
-                                    ]}
-                                />
-                                <FormField.Select
                                     label="RW *"
                                     value={data.rw_id}
                                     onChange={e => handleRwChange(e.target.value)}
                                     error={errors.rw_id}
                                     options={[
-                                        { value: '', label: '-- Pilih RW --' },
+                                        { value: '', label: 'PILIH RW' },
                                         ...(filteredRws?.map(rw => ({ value: rw.id, label: `RW ${rw.kode}` })) || [])
                                     ]}
                                 />
@@ -276,8 +303,9 @@ export default function Form({ auth, domisili, rtList, rwList, dusunList }) {
                                     value={data.rt_id}
                                     onChange={e => handleRtChange(e.target.value)}
                                     error={errors.rt_id}
+                                    disabled={!data.rw_id}
                                     options={[
-                                        { value: '', label: '-- Pilih RT --' },
+                                        { value: '', label: 'PILIH RT' },
                                         ...(filteredRts?.map(rt => ({ value: rt.id, label: `RT ${rt.kode}` })) || [])
                                     ]}
                                 />
@@ -287,7 +315,7 @@ export default function Form({ auth, domisili, rtList, rwList, dusunList }) {
                                     onChange={e => setData('keperluan_domisili', e.target.value)}
                                     error={errors.keperluan_domisili}
                                     options={[
-                                        { value: '', label: '-- Pilih Keperluan --' },
+                                        { value: '', label: 'PILIH KEPERLUAN' },
                                         ...KEPERLUAN_OPTIONS
                                     ]}
                                 />

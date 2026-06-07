@@ -15,7 +15,7 @@ class PendudukDomisiliController extends Controller
 {
     public function __construct(private PendudukDomisiliService $service)
     {
-        $this->middleware(['auth', 'can:penduduk.view']);
+        $this->middleware(['auth', 'can:penduduk_domisili.view']);
     }
 
     /**
@@ -73,6 +73,8 @@ class PendudukDomisiliController extends Controller
      */
     public function create()
     {
+        Gate::authorize('penduduk_domisili.create');
+
         return Inertia::render('Tenant/Domisili/Form', [
             'domisili'   => null,
             'rtList'     => \App\Models\Rt::with('rw')->orderBy('kode')->get(['id', 'kode', 'rw_id', 'dusun_id']),
@@ -86,6 +88,8 @@ class PendudukDomisiliController extends Controller
      */
     public function store(StorePendudukDomisiliRequest $request)
     {
+        Gate::authorize('penduduk_domisili.create');
+
         try {
             // Resolve dusun_id dari rt jika tidak diisi
             if (empty($request->dusun_id) && $request->rt_id) {
@@ -109,6 +113,8 @@ class PendudukDomisiliController extends Controller
      */
     public function edit(PendudukDomisili $domisili)
     {
+        Gate::authorize('penduduk_domisili.edit');
+
         return Inertia::render('Tenant/Domisili/Form', [
             'domisili'  => $domisili->load(['rt', 'rw', 'dusun']),
             'rtList'    => \App\Models\Rt::with('rw')->orderBy('kode')->get(['id', 'kode', 'rw_id', 'dusun_id']),
@@ -122,6 +128,8 @@ class PendudukDomisiliController extends Controller
      */
     public function update(StorePendudukDomisiliRequest $request, PendudukDomisili $domisili)
     {
+        Gate::authorize('penduduk_domisili.edit');
+
         try {
             $data = $request->validated();
             if (empty($data['dusun_id']) && !empty($data['rt_id'])) {
@@ -142,6 +150,8 @@ class PendudukDomisiliController extends Controller
      */
     public function perpanjang(PendudukDomisili $domisili)
     {
+        Gate::authorize('penduduk_domisili.edit');
+
         try {
             $this->service->perpanjang($domisili);
             return redirect()->route('domisili.index')
@@ -156,6 +166,8 @@ class PendudukDomisiliController extends Controller
      */
     public function cabut(Request $request, PendudukDomisili $domisili)
     {
+        Gate::authorize('penduduk_domisili.edit');
+
         $request->validate([
             'alasan' => 'required|string|min:10|max:500',
         ], [
@@ -177,6 +189,8 @@ class PendudukDomisiliController extends Controller
      */
     public function destroy(PendudukDomisili $domisili)
     {
+        Gate::authorize('penduduk_domisili.delete');
+
         try {
             \Illuminate\Support\Facades\DB::beginTransaction();
 

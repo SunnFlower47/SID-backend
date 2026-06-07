@@ -188,29 +188,79 @@ export default function Panduan({ auth, suratTypes }) {
                         <>
                             <div className="h-px bg-gray-100 w-full my-6"></div>
                             <section>
-                                <h4 className="text-xs font-black text-purple-600 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
-                                    <div className="w-2 h-2 bg-purple-600 rounded-full"></div>
-                                    Variabel Custom (Berdasarkan Master Surat)
+                                <h4 className="text-xs font-black text-indigo-600 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                                    <div className="w-2 h-2 bg-indigo-600 rounded-full"></div>
+                                    Variabel Custom (Otomatis dari Form Builder)
                                 </h4>
-                                <div className="space-y-6">
+                                <div className="space-y-8">
                                     {suratTypes.map((type) => {
-                                        if (!type.form_json || type.form_json.length === 0) return null;
+                                        const hasGlobalForm = Array.isArray(type.form_json) && type.form_json.length > 0;
+                                        const templatesWithForm = (type.templates || []).filter(t => Array.isArray(t.form_json) && t.form_json.length > 0);
+                                        
+                                        if (!hasGlobalForm && templatesWithForm.length === 0) return null;
+
                                         return (
-                                            <div key={type.id} className="bg-purple-50/30 p-5 rounded-3xl border border-purple-100">
-                                                <h5 className="text-[11px] font-black text-purple-800 uppercase tracking-widest mb-3 italic">
-                                                    {type.nama} ({type.id})
-                                                </h5>
-                                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                                                    {type.form_json.map((field, index) => (
-                                                        <div key={index} className="flex items-center justify-between p-3 bg-white rounded-xl shadow-sm border border-purple-50">
-                                                            <code className="text-purple-700 font-bold bg-purple-50 px-2 py-1 rounded-md text-xs">
-                                                                {`\${${field.name}}`}
-                                                            </code>
-                                                            <span className="text-gray-500 text-[10px] font-bold text-right truncate ml-2" title={field.label}>
-                                                                {field.label}
-                                                            </span>
+                                            <div key={type.id} className="bg-indigo-50/20 p-6 rounded-3xl border border-indigo-100/50 shadow-sm">
+                                                <div className="flex items-center gap-2 mb-4">
+                                                    <div className="w-1.5 h-6 bg-indigo-500 rounded-full"></div>
+                                                    <h5 className="text-sm font-black text-indigo-900 uppercase tracking-widest italic">
+                                                        {type.nama} 
+                                                        <span className="text-[10px] text-indigo-400 font-bold ml-2 not-italic bg-indigo-50 px-2 py-0.5 rounded-md">
+                                                            {type.kode || type.id}
+                                                        </span>
+                                                    </h5>
+                                                </div>
+
+                                                <div className="space-y-4">
+                                                    {/* Global Form Variables */}
+                                                    {hasGlobalForm && (
+                                                        <div className="bg-white p-4 rounded-2xl border border-indigo-100 shadow-sm">
+                                                            <div className="flex items-center gap-2 mb-3">
+                                                                <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest bg-indigo-50 px-2 py-1 rounded">
+                                                                    🌐 Form Utama (Global)
+                                                                </span>
+                                                            </div>
+                                                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                                                {type.form_json.map((field, index) => (
+                                                                    <div key={`global-${index}`} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100 hover:border-indigo-200 transition-colors">
+                                                                        <code className="text-indigo-700 font-bold bg-indigo-100/50 px-2 py-1 rounded-md text-xs truncate max-w-[150px]" title={`\${${field.name}}`}>
+                                                                            {`\${${field.name}}`}
+                                                                        </code>
+                                                                        <span className="text-gray-500 text-[10px] font-bold text-right truncate ml-2" title={field.label}>
+                                                                            {field.label}
+                                                                        </span>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
                                                         </div>
-                                                    ))}
+                                                    )}
+
+                                                    {/* Sub-template Form Variables */}
+                                                    {templatesWithForm.length > 0 && (
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                            {templatesWithForm.map(template => (
+                                                                <div key={template.id} className="bg-white p-4 rounded-2xl border border-pink-100 shadow-sm hover:border-pink-200 transition-colors">
+                                                                    <div className="flex items-center gap-2 mb-3">
+                                                                        <span className="text-[10px] font-black text-pink-600 uppercase tracking-widest bg-pink-50 px-2 py-1 rounded">
+                                                                            📄 Sub: {template.nama}
+                                                                        </span>
+                                                                    </div>
+                                                                    <div className="flex flex-col gap-2">
+                                                                        {template.form_json.map((field, index) => (
+                                                                            <div key={`sub-${template.id}-${index}`} className="flex items-center justify-between p-2.5 bg-gray-50 rounded-xl border border-gray-100">
+                                                                                <code className="text-pink-700 font-bold bg-pink-100/50 px-2 py-1 rounded-md text-xs truncate max-w-[120px]" title={`\${${field.name}}`}>
+                                                                                    {`\${${field.name}}`}
+                                                                                </code>
+                                                                                <span className="text-gray-500 text-[9px] font-bold text-right truncate ml-2" title={field.label}>
+                                                                                    {field.label}
+                                                                                </span>
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
                                         );

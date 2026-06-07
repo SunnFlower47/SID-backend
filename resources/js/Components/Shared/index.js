@@ -12,6 +12,7 @@ export { default as StatCard }       from './StatCard';
 export { default as InfoRow }        from './InfoRow';
 export { default as FormCard }       from './FormCard';
 export { default as FormField }      from './FormField';
+export { default as DataTable }      from './DataTable';
 export { default as Pagination }     from './Pagination';
 export { default as Modal }          from './Modal';
 export { default as MapPicker }      from './MapPicker';

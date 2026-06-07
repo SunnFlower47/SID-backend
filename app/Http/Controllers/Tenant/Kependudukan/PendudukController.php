@@ -33,6 +33,8 @@ class PendudukController extends Controller
      */
     public function index(Request $request)
     {
+        Gate::authorize('penduduk.view');
+
         session(['penduduk_index_query' => $request->query()]);
 
         $query = Penduduk::withWilayah()
@@ -113,6 +115,8 @@ class PendudukController extends Controller
      */
     public function show(Penduduk $penduduk)
     {
+        Gate::authorize('penduduk.view');
+
         $penduduk->load([
             'mutasis', 
             'kartuKeluarga.rtMaster', 

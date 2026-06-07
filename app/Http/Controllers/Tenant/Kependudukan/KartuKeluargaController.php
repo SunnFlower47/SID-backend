@@ -88,6 +88,8 @@ class KartuKeluargaController extends Controller
      */
     public function create()
     {
+        Gate::authorize('kartu_keluarga.create');
+
         return Inertia::render('Tenant/KartuKeluarga/Create', [
             'masterRwOptions' => $this->kkService->getMasterRwOptions()
         ]);
@@ -98,6 +100,8 @@ class KartuKeluargaController extends Controller
      */
     public function store(Request $request)
     {
+        Gate::authorize('kartu_keluarga.create');
+
         $validated = $request->validate([
             'nkk' => 'required|string|size:16|unique:kartu_keluargas,nkk',
             'nama_kepala_keluarga' => 'required|string|max:255',
@@ -112,6 +116,12 @@ class KartuKeluargaController extends Controller
             'status_perkawinan' => 'required|string',
             'pekerjaan' => 'required|string',
             'pendidikan' => 'required|string',
+            'tempat_dikeluarkan' => 'nullable|string|max:100',
+            'tanggal_dikeluarkan' => 'nullable|date',
+            'golongan_darah' => 'required|string',
+            'warganegara' => 'required|string',
+            'nama_ayah' => 'required|string|max:255',
+            'nama_ibu' => 'required|string|max:255',
         ]);
 
         try {
@@ -133,14 +143,14 @@ class KartuKeluargaController extends Controller
         $kartuKeluarga = Penduduk::withTrashed()
             ->where('kartu_keluarga_id', $kk->id)
             ->with(['mutasis' => fn($q) => $q->latest('tanggal_mutasi')->latest('id')])
-            ->orderByRaw("CASE WHEN kedudukan_keluarga = 'Kepala Keluarga' THEN 1 ELSE 2 END")
+            ->orderByRaw("CASE WHEN LOWER(kedudukan_keluarga) = 'kepala keluarga' THEN 1 ELSE 2 END")
             ->get();
 
         return Inertia::render('Tenant/KartuKeluarga/Show', [
             'kk' => $kk,
             'kartuKeluarga' => $kartuKeluarga,
-            'kepalaKeluarga' => $kartuKeluarga->where('kedudukan_keluarga', 'Kepala Keluarga')->first(),
-            'anggotaKeluarga' => $kartuKeluarga->where('kedudukan_keluarga', '!=', 'Kepala Keluarga')->values(),
+            'kepalaKeluarga' => $kartuKeluarga->filter(fn($p) => strtolower($p->kedudukan_keluarga) === 'kepala keluarga')->first(),
+            'anggotaKeluarga' => $kartuKeluarga->filter(fn($p) => strtolower($p->kedudukan_keluarga) !== 'kepala keluarga')->values(),
             'nkk' => $nkk,
         ]);
     }
@@ -150,6 +160,8 @@ class KartuKeluargaController extends Controller
      */
     public function edit($nkk)
     {
+        Gate::authorize('kartu_keluarga.edit');
+
         $kk = KartuKeluarga::where('nkk', $nkk)->firstOrFail();
         $members = Penduduk::where('kartu_keluarga_id', $kk->id)->get();
         
@@ -170,11 +182,15 @@ class KartuKeluargaController extends Controller
      */
     public function update(Request $request, $nkk)
     {
+        Gate::authorize('kartu_keluarga.edit');
+
         $validated = $request->validate([
             'nama_kepala_keluarga' => 'required|string|max:255',
             'alamat' => 'required|string|max:500',
             'rt_id' => 'required|exists:rts,id',
             'rw_id' => 'required|exists:rws,id',
+            'tempat_dikeluarkan' => 'nullable|string|max:100',
+            'tanggal_dikeluarkan' => 'nullable|date',
         ]);
 
         $kk = KartuKeluarga::where('nkk', $nkk)->firstOrFail();
@@ -323,6 +339,8 @@ class KartuKeluargaController extends Controller
      */
     public function resolveKkSementara(Request $request, $nkk)
     {
+        Gate::authorize('kartu_keluarga.edit');
+
         $request->validate(['kandidat_id' => 'required|exists:penduduks,id']);
         $kk = KartuKeluarga::where('nkk', $nkk)->firstOrFail();
 
@@ -340,6 +358,8 @@ class KartuKeluargaController extends Controller
      */
     public function resolveKkPermanen(Request $request, $nkk)
     {
+        Gate::authorize('kartu_keluarga.edit');
+
         $request->validate(['nkk_baru' => 'required|string|size:16|unique:kartu_keluargas,nkk']);
         $kk = KartuKeluarga::where('nkk', $nkk)->firstOrFail();
 
@@ -357,6 +377,8 @@ class KartuKeluargaController extends Controller
      */
     public function batalkanSementara($nkk)
     {
+        Gate::authorize('kartu_keluarga.edit');
+
         $kk = KartuKeluarga::where('nkk', $nkk)->firstOrFail();
 
         try {

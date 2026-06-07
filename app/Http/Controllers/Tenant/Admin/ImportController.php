@@ -85,6 +85,25 @@ class ImportController extends Controller
     }
 
     /**
+     * Import Pajak PBB
+     */
+    public function importPajakPbb(Request $request)
+    {
+        Gate::authorize('pajak_pbb.sync');
+
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls|max:10240'
+        ]);
+
+        try {
+            $this->importService->importPajakPbb($request->file('file'));
+            return redirect()->back()->with('success', 'Data Pajak PBB berhasil diimport dan sistem sedang mengunduh tagihan Mapagbumi di latar belakang!');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error importing data: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * Preview Import Penduduk (valid/invalid summary)
      */
     public function previewPenduduk(Request $request)
@@ -95,6 +114,26 @@ class ImportController extends Controller
 
         try {
             $previewResult = $this->importService->previewPenduduk($request->file('file'));
+            return response()->json(array_merge(['success' => true], $previewResult));
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal membaca file: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Preview Import Pajak PBB
+     */
+    public function previewPajakPbb(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls|max:10240'
+        ]);
+
+        try {
+            $previewResult = $this->importService->previewPajakPbb($request->file('file'));
             return response()->json(array_merge(['success' => true], $previewResult));
         } catch (\Throwable $e) {
             return response()->json([
@@ -136,6 +175,37 @@ class ImportController extends Controller
     }
 
     /**
+     * Download invalid rows report from Pajak PBB preview file
+     */
+    public function downloadPajakPbbInvalidReport(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls|max:10240'
+        ]);
+
+        try {
+            $invalidRows = $this->importService->getPajakPbbInvalidRows($request->file('file'));
+
+            if (empty($invalidRows)) {
+                return redirect()->back()->with('success', 'Tidak ada baris invalid.');
+            }
+
+            $filename = 'invalid_rows_pajak_pbb_' . now()->format('Ymd_His') . '.xlsx';
+            return Excel::download(new class($invalidRows) implements \Maatwebsite\Excel\Concerns\FromArray, \Maatwebsite\Excel\Concerns\WithHeadings {
+                public function __construct(private array $rows) {}
+                public function headings(): array { return ['Baris', 'NOP', 'Nama Wajib Pajak', 'Error Details']; }
+                public function array(): array {
+                    return array_map(function ($r) {
+                        return [ $r['row'], $r['nop'], $r['nama'], json_encode($r['errors']) ];
+                    }, $this->rows);
+                }
+            }, $filename);
+        } catch (\Throwable $e) {
+            return redirect()->back()->with('error', 'Gagal membuat laporan: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * Import Penduduk
      */
     public function importPenduduk(Request $request)
@@ -167,6 +237,10 @@ class ImportController extends Controller
     {
         if ($type === 'penduduk') {
             return Excel::download(new PendudukTemplateExport, 'template_penduduk.xlsx');
+        }
+
+        if ($type === 'pajak_pbb') {
+            return Excel::download(new \App\Exports\PajakPbbTemplateExport, 'template_pajak_pbb.xlsx');
         }
 
         try {

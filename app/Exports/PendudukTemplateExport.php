@@ -28,6 +28,7 @@ class PendudukTemplateExport implements FromArray, WithHeadings, WithStyles, Wit
             'Kedudukan Keluarga',
             'Pendidikan',
             'Pekerjaan',
+            'Dapat Membaca Huruf',
             'Nama Ayah',
             'Nama Ibu',
             'Alamat',
@@ -61,6 +62,7 @@ class PendudukTemplateExport implements FromArray, WithHeadings, WithStyles, Wit
                 'Anak',
                 'SMA/Sederajat',
                 'Pelajar',
+                'Latin',
                 'Nama Ayah',
                 'Nama Ibu',
                 'Jl. Contoh No.1',
@@ -114,8 +116,13 @@ class PendudukTemplateExport implements FromArray, WithHeadings, WithStyles, Wit
                 $highestRow = $event->sheet->getDelegate()->getHighestRow();
                 $highestColumn = $event->sheet->getDelegate()->getHighestColumn();
 
-                foreach (range('A', $highestColumn) as $column) {
-                    $event->sheet->getDelegate()->getColumnDimension($column)->setAutoSize(true);
+                $col = 'A';
+                while (true) {
+                    $event->sheet->getDelegate()->getColumnDimension($col)->setAutoSize(true);
+                    if ($col === $highestColumn) {
+                        break;
+                    }
+                    $col++;
                 }
 
                 $event->sheet->getDelegate()->getRowDimension(1)->setRowHeight(25);

@@ -65,6 +65,8 @@ class KartuKeluargaService
                 'rt_id' => $data['rt_id'],
                 'rw_id' => $data['rw_id'],
                 'dusun_id' => optional($rtModel)->dusun_id,
+                'tempat_dikeluarkan' => $data['tempat_dikeluarkan'] ?? null,
+                'tanggal_dikeluarkan' => $data['tanggal_dikeluarkan'] ?? null,
             ]);
 
             // 2. Create the Kepala Keluarga
@@ -79,6 +81,10 @@ class KartuKeluargaService
                 'status_perkawinan' => $data['status_perkawinan'],
                 'pekerjaan' => $data['pekerjaan'],
                 'pendidikan' => $data['pendidikan'],
+                'golongan_darah' => $data['golongan_darah'],
+                'kewarganegaraan' => $data['warganegara'],
+                'nama_ayah' => $data['nama_ayah'],
+                'nama_ibu' => $data['nama_ibu'],
                 'kedudukan_keluarga' => 'Kepala Keluarga',
             ]);
 
@@ -100,6 +106,8 @@ class KartuKeluargaService
                 'rt_id' => $data['rt_id'],
                 'rw_id' => $data['rw_id'],
                 'dusun_id' => optional($rtModel)->dusun_id,
+                'tempat_dikeluarkan' => $data['tempat_dikeluarkan'] ?? null,
+                'tanggal_dikeluarkan' => $data['tanggal_dikeluarkan'] ?? null,
             ]);
 
             // Sync Head of Family name if it matches the KK head name

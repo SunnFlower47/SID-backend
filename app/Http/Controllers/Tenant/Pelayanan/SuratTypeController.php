@@ -51,10 +51,15 @@ class SuratTypeController extends Controller
 
     public function panduan()
     {
-        // Ambil semua surat type yang memiliki form_json untuk ditampilkan di panduan variabel
-        $suratTypes = SuratType::whereNotNull('form_json')
-            ->where('form_json', '!=', '[]')
-            ->get(['id', 'nama', 'form_json']);
+        // Ambil semua surat type yang memiliki form_json ATAU memiliki sub-template
+        $suratTypes = SuratType::with(['templates' => function($q) {
+                $q->whereNotNull('form_json')->where('form_json', '!=', '[]');
+            }])
+            ->where(function($query) {
+                $query->whereNotNull('form_json')->where('form_json', '!=', '[]')
+                      ->orWhere('has_multi_template', true);
+            })
+            ->get();
 
         return Inertia::render('Tenant/SuratType/Panduan', [
             'suratTypes' => $suratTypes
@@ -78,6 +83,7 @@ class SuratTypeController extends Controller
             'deskripsi' => 'nullable|string',
             'persyaratan' => 'nullable|string',
             'has_template' => 'boolean',
+            'has_multi_template' => 'boolean',
             'template_code' => 'nullable|string|max:50',
             'icon' => 'nullable|string|max:50',
             'color' => 'nullable|string|max:20',
@@ -119,6 +125,7 @@ class SuratTypeController extends Controller
             'deskripsi' => 'nullable|string',
             'persyaratan' => 'nullable|string',
             'has_template' => 'boolean',
+            'has_multi_template' => 'boolean',
             'template_code' => 'nullable|string|max:50',
             'icon' => 'nullable|string|max:50',
             'color' => 'nullable|string|max:20',

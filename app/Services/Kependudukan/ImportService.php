@@ -46,179 +46,50 @@ class ImportService
     }
 
     /**
+     * Import Pajak PBB Excel
+     */
+    public function importPajakPbb($file): void
+    {
+        Excel::import(new \App\Imports\PajakPbbImport, $file);
+    }
+
+    /**
      * Generate preview of penduduk data from Excel
      */
     public function previewPenduduk($file): array
     {
-        $sheets = Excel::toArray([], $file);
-        $rows = $sheets[0] ?? [];
+        set_time_limit(0);
 
-        if (count($rows) < 2) {
-            throw new \InvalidArgumentException('File kosong atau tidak memiliki data baris.');
-        }
+        $import = new \App\Imports\PreviewPendudukImport($this);
+        Excel::import($import, $file);
 
-        $rawHeader = $rows[0] ?? [];
-        $headers = array_map(function ($h) {
-            $text = trim((string) $h);
-            $text = Str::lower($text);
-            $text = preg_replace('/[^a-z0-9\s]/', ' ', $text);
-            $text = preg_replace('/\s+/', ' ', $text);
-            return trim($text);
-        }, $rawHeader);
+        return $import->getResult();
+    }
 
-        $findHeaderIndex = function (array $headers, array $candidates) {
-            foreach ($headers as $idx => $h) {
-                foreach ($candidates as $candidate) {
-                    if ($h === $candidate || str_contains($h, $candidate)) {
-                        return $idx;
-                    }
-                }
-            }
-            return false;
-        };
+    /**
+     * Generate preview of Pajak PBB data from Excel
+     */
+    public function previewPajakPbb($file): array
+    {
+        set_time_limit(0);
 
-        $nikIndex = $findHeaderIndex($headers, ['nik', 'nomor induk kependudukan']);
-        $namaIndex = $findHeaderIndex($headers, ['nama', 'nama lengkap']);
-        $nkkIndex = $findHeaderIndex($headers, ['nkk', 'no kk', 'nomor kk', 'kartu keluarga']);
-        $alamatIndex = $findHeaderIndex($headers, ['alamat', 'domisili']);
-        $rtIndex = $findHeaderIndex($headers, ['rt']);
-        $rwIndex = $findHeaderIndex($headers, ['rw']);
-        $dusunIndex = $findHeaderIndex($headers, ['dusun', 'lingkungan']);
+        $import = new \App\Imports\PreviewPajakPbbImport();
+        Excel::import($import, $file);
 
-        if ($nikIndex === false || $namaIndex === false) {
-            throw new \InvalidArgumentException('Header wajib tidak ditemukan. Gunakan kolom yang mengandung NIK dan Nama (contoh: NIK, Nama, No. KK, dst).');
-        }
+        return $import->getResult();
+    }
 
-        $seenNik = [];
-        $validRows = [];
-        $invalidRows = [];
-        $columnErrorCounts = [
-            'nik' => 0,
-            'nama' => 0,
-            'nkk' => 0,
-            'wilayah' => 0,
-        ];
+    /**
+     * Get invalid rows for Pajak PBB report generation
+     */
+    public function getPajakPbbInvalidRows($file): array
+    {
+        set_time_limit(0);
 
-        foreach (array_slice($rows, 1) as $i => $row) {
-            $rowNumber = $i + 2;
+        $import = new \App\Imports\PreviewPajakPbbImport(true); // fullReport = true
+        Excel::import($import, $file);
 
-            $nikRaw = isset($row[$nikIndex]) ? trim((string) $row[$nikIndex]) : '';
-            $nik = preg_replace('/\D+/', '', $nikRaw);
-            $nama = isset($row[$namaIndex]) ? trim((string) $row[$namaIndex]) : '';
-            $nkk = ($nkkIndex !== false && isset($row[$nkkIndex])) ? trim((string) $row[$nkkIndex]) : null;
-            $alamat = ($alamatIndex !== false && isset($row[$alamatIndex])) ? trim((string) $row[$alamatIndex]) : '';
-            $rtRaw = ($rtIndex !== false && isset($row[$rtIndex])) ? trim((string) $row[$rtIndex]) : '';
-            $rwRaw = ($rwIndex !== false && isset($row[$rwIndex])) ? trim((string) $row[$rwIndex]) : '';
-            $dusunRaw = ($dusunIndex !== false && isset($row[$dusunIndex])) ? trim((string) $row[$dusunIndex]) : '';
-
-            if ($nik === '' && $nama === '') {
-                continue;
-            }
-
-            $errors = [];
-            if ($nik === '') {
-                $errors['nik'][] = 'NIK wajib diisi';
-                $columnErrorCounts['nik']++;
-            }
-            if ($nama === '') {
-                $errors['nama'][] = 'Nama wajib diisi';
-                $columnErrorCounts['nama']++;
-            }
-            if ($nik !== '' && strlen($nik) !== 16) {
-                $errors['nik'][] = 'NIK harus 16 karakter';
-                $columnErrorCounts['nik']++;
-            }
-            if ($nik !== '' && isset($seenNik[$nik])) {
-                $errors['nik'][] = 'NIK duplikat di file';
-                $columnErrorCounts['nik']++;
-            }
-
-            if ($nkk !== null && $nkk !== '') {
-                $nkkClean = preg_replace('/\D+/', '', $nkk);
-                if (strlen($nkkClean) !== 16) {
-                    $errors['nkk'][] = 'No. KK harus 16 digit';
-                    $columnErrorCounts['nkk']++;
-                }
-            }
-
-            $wilayahRes = $this->resolveWilayahForWebImport($rwRaw, $rtRaw, $dusunRaw);
-            if ($wilayahRes['status'] === 'conflict') {
-                $errors['wilayah'][] = $wilayahRes['reason'];
-                $columnErrorCounts['wilayah']++;
-            } else {
-                $rwObj = Rw::find($wilayahRes['rw_id']);
-                $rtObj = Rt::find($wilayahRes['rt_id']);
-                if (($rwObj && $rwObj->needs_review) || ($rtObj && $rtObj->needs_review)) {
-                    $errors['wilayah_info'] = 'Peringatan: Wilayah ini belum diverifikasi di Master';
-                }
-            }
-
-            if ($nik !== '') {
-                $existingAny = Penduduk::withTrashed()->where('nik', $nik)->first();
-                if ($existingAny) {
-                    $permanentMutasi = Mutasi::where('penduduk_id', $existingAny->id)
-                        ->whereIn('jenis_mutasi', ['kematian', 'pindah_keluar'])
-                        ->exists();
-
-                    if ($permanentMutasi) {
-                        $errors['nik'][] = "Terlarang: Penduduk ini sudah berstatus Meninggal/Pindah (Mutasi)";
-                        $columnErrorCounts['nik']++;
-                    } else {
-                        $errors['nik'][] = "Review: NIK sudah ada di sistem (Perlu keputusan)";
-                        $columnErrorCounts['nik']++;
-                    }
-                }
-            }
-
-            $preview = [
-                'row' => $rowNumber,
-                'nik' => $nik,
-                'nama' => $nama,
-                'nkk' => $nkk,
-                'alamat' => $alamat,
-                'rt' => $rtRaw,
-                'rw' => $rwRaw,
-                'dusun' => $dusunRaw,
-            ];
-
-            $fatalErrors = collect($errors)
-                ->except(['nik_info'])
-                ->flatten()
-                ->values()
-                ->all();
-
-            if (empty($fatalErrors)) {
-                if (!empty($errors['nik_info'])) {
-                    $preview['info'] = $errors['nik_info'];
-                }
-                $validRows[] = $preview;
-            } else {
-                $preview['errors_by_column'] = $errors;
-                $preview['errors'] = $fatalErrors;
-                $invalidRows[] = $preview;
-            }
-
-            if ($nik !== '') {
-                $seenNik[$nik] = true;
-            }
-        }
-
-        return [
-            'summary' => [
-                'total_data_rows' => count($validRows) + count($invalidRows),
-                'valid_rows' => count($validRows),
-                'invalid_rows' => count($invalidRows),
-                'column_error_counts' => $columnErrorCounts,
-            ],
-            'preview' => [
-                'valid' => array_slice($validRows, 0, 50),
-                'invalid' => array_slice($invalidRows, 0, 200),
-                'valid_shown' => min(count($validRows), 50),
-                'invalid_shown' => min(count($invalidRows), 200),
-                'valid_total' => count($validRows),
-                'invalid_total' => count($invalidRows),
-            ]
-        ];
+        return $import->invalidRows;
     }
 
     /**
@@ -226,78 +97,137 @@ class ImportService
      */
     public function getPendudukInvalidRows($file): array
     {
-        $sheets = Excel::toArray([], $file);
-        $rows = $sheets[0] ?? [];
+        set_time_limit(0);
 
-        if (count($rows) < 2) {
-            throw new \InvalidArgumentException('File kosong atau tidak memiliki data baris.');
-        }
+        $import = new class($this) implements \Maatwebsite\Excel\Concerns\ToCollection, \Maatwebsite\Excel\Concerns\WithChunkReading {
+            private $importService;
+            public $invalidRows = [];
+            public $seenNik = [];
+            private $headers = [];
+            private $headerIndexes = [];
+            private $isHeaderParsed = false;
+            private $rowCounter = 1;
 
-        $rawHeader = $rows[0] ?? [];
-        $headers = array_map(function ($h) {
-            $text = trim((string) $h);
-            $text = Str::lower($text);
-            $text = preg_replace('/[^a-z0-9\s]/', ' ', $text);
-            $text = preg_replace('/\s+/', ' ', $text);
-            return trim($text);
-        }, $rawHeader);
+            public function __construct($importService)
+            {
+                $this->importService = $importService;
+            }
 
-        $findHeaderIndex = function (array $headers, array $candidates) {
-            foreach ($headers as $idx => $h) {
-                foreach ($candidates as $candidate) {
-                    if ($h === $candidate || str_contains($h, $candidate)) {
-                        return $idx;
+            public function collection(\Illuminate\Support\Collection $rows)
+            {
+                foreach ($rows as $row) {
+                    $this->rowCounter++;
+
+                    if (!$this->isHeaderParsed) {
+                        $rawHeader = $row->toArray();
+                        $this->headers = array_map(function ($h) {
+                            $text = trim((string) $h);
+                            $text = \Illuminate\Support\Str::lower($text);
+                            $text = preg_replace('/[^a-z0-9\s]/', ' ', $text);
+                            $text = preg_replace('/\s+/', ' ', $text);
+                            return trim($text);
+                        }, $rawHeader);
+
+                        $findHeaderIndex = function (array $headers, array $candidates) {
+                            foreach ($headers as $idx => $h) {
+                                foreach ($candidates as $candidate) {
+                                    if ($h === $candidate || str_contains($h, $candidate)) {
+                                        return $idx;
+                                    }
+                                }
+                            }
+                            return false;
+                        };
+
+                        $this->headerIndexes = [
+                            'nik' => $findHeaderIndex($this->headers, ['nik', 'nomor induk kependudukan']),
+                            'nama' => $findHeaderIndex($this->headers, ['nama', 'nama lengkap']),
+                            'nkk' => $findHeaderIndex($this->headers, ['nkk', 'no kk', 'nomor kk', 'kartu keluarga']),
+                            'alamat' => $findHeaderIndex($this->headers, ['alamat', 'domisili']),
+                            'rt' => $findHeaderIndex($this->headers, ['rt']),
+                            'rw' => $findHeaderIndex($this->headers, ['rw']),
+                            'dusun' => $findHeaderIndex($this->headers, ['dusun', 'lingkungan']),
+                        ];
+                        $this->isHeaderParsed = true;
+                        continue;
                     }
+
+                    $nikIdx = $this->headerIndexes['nik'];
+                    $namaIdx = $this->headerIndexes['nama'];
+                    $nkkIdx = $this->headerIndexes['nkk'];
+                    $alamatIdx = $this->headerIndexes['alamat'];
+                    $rtIdx = $this->headerIndexes['rt'];
+                    $rwIdx = $this->headerIndexes['rw'];
+                    $dusunIdx = $this->headerIndexes['dusun'];
+
+                    $nikRaw = isset($row[$nikIdx]) ? trim((string) $row[$nikIdx]) : '';
+                    $nik = preg_replace('/\D+/', '', $nikRaw);
+                    $nama = isset($row[$namaIdx]) ? trim((string) $row[$namaIdx]) : '';
+                    $nkk = ($nkkIdx !== false && isset($row[$nkkIdx])) ? trim((string) $row[$nkkIdx]) : null;
+                    $alamat = ($alamatIdx !== false && isset($row[$alamatIdx])) ? trim((string) $row[$alamatIdx]) : '';
+                    $rtRaw = ($rtIdx !== false && isset($row[$rtIdx])) ? trim((string) $row[$rtIdx]) : '';
+                    $rwRaw = ($rwIdx !== false && isset($row[$rwIdx])) ? trim((string) $row[$rwIdx]) : '';
+                    $dusunRaw = ($dusunIdx !== false && isset($row[$dusunIdx])) ? trim((string) $row[$dusunIdx]) : '';
+
+                    if ($nik === '' && $nama === '') continue;
+
+                    $errors = [];
+                    $warnings = [];
+                    if ($nik === '') $errors['nik'][] = 'NIK wajib diisi';
+                    if ($nama === '') $errors['nama'][] = 'Nama wajib diisi';
+                    if ($nik !== '' && strlen($nik) !== 16) $warnings['nik'][] = 'NIK harus 16 karakter';
+                    if ($nik !== '' && isset($this->seenNik[$nik])) $warnings['nik'][] = 'NIK duplikat di file';
+                    if ($nkk !== null && $nkk !== '') {
+                        $nkkClean = preg_replace('/\D+/', '', $nkk);
+                        if (strlen($nkkClean) !== 16) $warnings['nkk'][] = 'No. KK harus 16 digit';
+                    }
+
+                    $wilayahRes = $this->importService->resolveWilayahForWebImport($rwRaw, $rtRaw, $dusunRaw);
+                    if ($wilayahRes['status'] === 'conflict') {
+                        $warnings['wilayah_info'] = "Wilayah Tidak Dikenal: RT '{$rtRaw}' / RW '{$rwRaw}'";
+                    }
+
+                    if ($nik !== '') {
+                        $existingAny = \App\Models\Penduduk::withTrashed()->where('nik', $nik)->first();
+                        if ($existingAny) {
+                            $permanentMutasi = \App\Models\Mutasi::where('penduduk_id', $existingAny->id)
+                                ->whereIn('jenis_mutasi', ['kematian', 'pindah_keluar'])
+                                ->exists();
+                            if ($permanentMutasi) {
+                                $errors['nik'][] = "Terlarang: Penduduk ini sudah berstatus Meninggal/Pindah";
+                            }
+                        }
+                    }
+
+                    $fatalErrors = collect($errors)->flatten()->values()->all();
+
+                    if (!empty($fatalErrors)) {
+                        $this->invalidRows[] = [
+                            'row' => $this->rowCounter,
+                            'nik' => $nik,
+                            'nama' => $nama,
+                            'nkk' => $nkk,
+                            'alamat' => $alamat,
+                            'rt' => $rtRaw,
+                            'rw' => $rwRaw,
+                            'dusun' => $dusunRaw,
+                            'errors_by_column' => $errors,
+                            'errors' => $fatalErrors,
+                        ];
+                    }
+
+                    if ($nik !== '') $this->seenNik[$nik] = true;
                 }
             }
-            return false;
+
+            public function chunkSize(): int
+            {
+                return 1000;
+            }
         };
 
-        $nikIndex = $findHeaderIndex($headers, ['nik', 'nomor induk kependudukan']);
-        $namaIndex = $findHeaderIndex($headers, ['nama', 'nama lengkap']);
-        $nkkIndex = $findHeaderIndex($headers, ['nkk', 'no kk', 'nomor kk', 'kartu keluarga']);
-
-        if ($nikIndex === false || $namaIndex === false) {
-            throw new \InvalidArgumentException('Header wajib tidak ditemukan. Gunakan kolom NIK dan Nama.');
-        }
-
-        $seenNik = [];
-        $invalidRows = [];
-
-        foreach (array_slice($rows, 1) as $i => $row) {
-            $rowNumber = $i + 2;
-            $nikRaw = isset($row[$nikIndex]) ? trim((string) $row[$nikIndex]) : '';
-            $nik = preg_replace('/\D+/', '', $nikRaw);
-            $nama = isset($row[$namaIndex]) ? trim((string) $row[$namaIndex]) : '';
-            $nkk = ($nkkIndex !== false && isset($row[$nkkIndex])) ? trim((string) $row[$nkkIndex]) : null;
-
-            if ($nik === '' && $nama === '') continue;
-
-            $errors = [];
-            if ($nik === '') $errors['nik'][] = 'NIK wajib diisi';
-            if ($nama === '') $errors['nama'][] = 'Nama wajib diisi';
-            if ($nik !== '' && strlen($nik) !== 16) $errors['nik'][] = 'NIK harus 16 karakter';
-            if ($nik !== '' && isset($seenNik[$nik])) $errors['nik'][] = 'NIK duplikat di file';
-            
-            if ($nkk !== null && $nkk !== '') {
-                $nkkClean = preg_replace('/\D+/', '', $nkk);
-                if (strlen($nkkClean) !== 16) $errors['nkk'][] = 'No. KK harus 16 digit';
-            }
-
-            if (!empty($errors)) {
-                $invalidRows[] = [
-                    'baris' => $rowNumber,
-                    'nik' => $nik,
-                    'nama' => $nama,
-                    'nkk' => $nkk,
-                    'errors' => $errors
-                ];
-            }
-
-            if ($nik !== '') $seenNik[$nik] = true;
-        }
-
-        return $invalidRows;
+        \Maatwebsite\Excel\Facades\Excel::import($import, $file);
+        return $import->invalidRows;
     }
 
     /**
@@ -348,6 +278,7 @@ class ImportService
         $kedudukanKeluargaIdx = $findIdx($headers, ['kedudukan keluarga', 'shdk']);
         $pendidikanIdx = $findIdx($headers, ['pendidikan']);
         $pekerjaanIdx = $findIdx($headers, ['pekerjaan']);
+        $dapatMembacaIdx = $findIdx($headers, ['dapat membaca', 'membaca huruf']);
         $namaAyahIdx = $findIdx($headers, ['nama ayah']);
         $namaIbuIdx = $findIdx($headers, ['nama ibu']);
         $golonganDarahIdx = $findIdx($headers, ['golongan darah', 'gol darah', 'goldar']);
@@ -358,6 +289,7 @@ class ImportService
         $cacatTypeIdx = $findIdx($headers, ['cacat', 'jenis cacat', 'disabilitas']);
         $sakitMenahunIdx = $findIdx($headers, ['sakit menahun', 'penyakit menahun']);
         $statusAsuransiIdx = $findIdx($headers, ['status asuransi', 'asuransi', 'bpjs']);
+        $keteranganIdx = $findIdx($headers, ['keterangan', 'ket']);
 
         if ($nikIdx === false || $namaIdx === false) {
             throw new \InvalidArgumentException('Header wajib NIK dan Nama tidak ditemukan.');
@@ -387,11 +319,19 @@ class ImportService
         $pendudukRows     = [];
         $issuesBatch      = [];
         $affectedNkks     = [];
+        $seenNikFile      = [];
         $summary          = ['imported' => 0, 'updated' => 0, 'issues' => 0];
 
         // Process Rows
         foreach (array_slice($rows, 1) as $i => $row) {
             $rowNumber = $i + 2;
+            
+            $assocRow = [];
+            foreach ($headers as $idx => $h) {
+                if (trim((string)$h) !== '') {
+                    $assocRow[$h] = $row[$idx] ?? '';
+                }
+            }
             $nik  = preg_replace('/\D+/', '', trim((string)($row[$nikIdx]  ?? '')));
             $nama = trim((string)($row[$namaIdx] ?? ''));
             $nkk  = $nkkIdx !== false ? preg_replace('/\D+/', '', trim((string)($row[$nkkIdx] ?? ''))) : '';
@@ -403,19 +343,24 @@ class ImportService
             $dusunRaw= $dusunIdx !== false ? (string)($row[$dusunIdx] ?? '') : '';
             $alamat  = $alamatIdx !== false ? (trim((string)($row[$alamatIdx] ?? '')) ?: 'Alamat tidak diketahui') : 'Alamat tidak diketahui';
 
-            // Validasi NIK
             if (strlen($nik) !== 16) {
                 $summary['issues']++;
-                $issuesBatch[] = $this->buildIssueRow($batchId, $sourceFile, 'invalid_nik', "NIK '{$nik}' tidak valid (" . strlen($nik) . " digit).", $rowNumber, $nik, $nama, $nkk, $rwRaw, $rtRaw, $dusunRaw, $now);
+                $issuesBatch[] = $this->buildIssueRow($batchId, $sourceFile, 'invalid_nik', "NIK '{$nik}' tidak valid (" . strlen($nik) . " digit).", $rowNumber, $nik, $nama, $nkk, $rwRaw, $rtRaw, $dusunRaw, $now, $assocRow);
                 continue;
             }
 
-            // Validasi NKK
             if (!empty($nkk) && strlen($nkk) !== 16) {
                 $summary['issues']++;
-                $issuesBatch[] = $this->buildIssueRow($batchId, $sourceFile, 'invalid_nkk', "No. KK '{$nkk}' tidak valid (" . strlen($nkk) . " digit).", $rowNumber, $nik, $nama, $nkk, $rwRaw, $rtRaw, $dusunRaw, $now);
+                $issuesBatch[] = $this->buildIssueRow($batchId, $sourceFile, 'invalid_nkk', "No. KK '{$nkk}' tidak valid (" . strlen($nkk) . " digit).", $rowNumber, $nik, $nama, $nkk, $rwRaw, $rtRaw, $dusunRaw, $now, $assocRow);
                 continue;
             }
+
+            if (isset($seenNikFile[$nik])) {
+                $summary['issues']++;
+                $issuesBatch[] = $this->buildIssueRow($batchId, $sourceFile, 'nik_conflict', "NIK '{$nik}' duplikat di dalam file.", $rowNumber, $nik, $nama, $nkk, $rwRaw, $rtRaw, $dusunRaw, $now, $assocRow);
+                continue;
+            }
+            $seenNikFile[$nik] = true;
 
             // Resolve wilayah dari cache
             $rwKode  = $this->normalizeKodeWilayah($rwRaw);
@@ -423,7 +368,7 @@ class ImportService
             $cacheKey = "{$rwKode}:{$rtKode}";
             if (!isset($wilayahCache[$cacheKey])) {
                 $summary['issues']++;
-                $issuesBatch[] = $this->buildIssueRow($batchId, $sourceFile, 'wilayah_conflict', "Wilayah RT '{$rtRaw}' / RW '{$rwRaw}' belum terdaftar.", $rowNumber, $nik, $nama, $nkk, $rwRaw, $rtRaw, $dusunRaw, $now);
+                $issuesBatch[] = $this->buildIssueRow($batchId, $sourceFile, 'wilayah_conflict', "Wilayah RT '{$rtRaw}' / RW '{$rwRaw}' belum terdaftar.", $rowNumber, $nik, $nama, $nkk, $rwRaw, $rtRaw, $dusunRaw, $now, $assocRow);
                 continue;
             }
             $wilayah = $wilayahCache[$cacheKey];
@@ -465,6 +410,7 @@ class ImportService
                 'kedudukan_keluarga'=> $this->mapKedudukanKeluarga((string)($kedudukanKeluargaIdx !== false ? ($row[$kedudukanKeluargaIdx] ?? '') : '')),
                 'pendidikan'        => $this->mapPendidikan((string)($pendidikanIdx !== false ? ($row[$pendidikanIdx] ?? '') : '')),
                 'pekerjaan'         => (string)($pekerjaanIdx !== false ? ($row[$pekerjaanIdx] ?? '') : ''),
+                'dapat_membaca_huruf'=> (string)($dapatMembacaIdx !== false ? ($row[$dapatMembacaIdx] ?? '-') : '-'),
                 'nama_ayah'         => (string)($namaAyahIdx !== false ? ($row[$namaAyahIdx] ?? '') : ''),
                 'nama_ibu'          => (string)($namaIbuIdx !== false ? ($row[$namaIbuIdx] ?? '') : ''),
                 'golongan_darah'    => (string)($golonganDarahIdx !== false ? ($row[$golonganDarahIdx] ?? '') : ''),
@@ -475,6 +421,7 @@ class ImportService
                 'cacat_type'        => (string)($cacatTypeIdx !== false ? ($row[$cacatTypeIdx] ?? '') : ''),
                 'sakit_menahun'     => (string)($sakitMenahunIdx !== false ? ($row[$sakitMenahunIdx] ?? '') : ''),
                 'status_asuransi'   => (string)($statusAsuransiIdx !== false ? ($row[$statusAsuransiIdx] ?? '') : ''),
+                'keterangan'        => (string)($keteranganIdx !== false ? ($row[$keteranganIdx] ?? '') : ''),
                 'deleted_at'        => null,
                 'created_at'        => $now,
                 'updated_at'        => $now,
@@ -514,7 +461,7 @@ class ImportService
                         ['nik'],
                         [
                             'nama', 'kartu_keluarga_id', 'jenis_kelamin', 'tanggal_lahir', 'deleted_at', 'updated_at',
-                            'golongan_darah', 'warganegara', 'no_akta_lahir', 'status_pendidikan', 'telepon', 'cacat_type', 'sakit_menahun', 'status_asuransi'
+                            'golongan_darah', 'warganegara', 'no_akta_lahir', 'status_pendidikan', 'telepon', 'cacat_type', 'sakit_menahun', 'status_asuransi', 'dapat_membaca_huruf', 'keterangan'
                         ]
                     )
                 );
@@ -568,7 +515,7 @@ class ImportService
         return $clean ? str_pad(substr($clean, 0, 3), 3, '0', STR_PAD_LEFT) : null;
     }
 
-    private function resolveWilayahForWebImport(string $rwRaw, string $rtRaw, ?string $dusunRaw = null): array
+    public function resolveWilayahForWebImport(string $rwRaw, string $rtRaw, ?string $dusunRaw = null): array
     {
         $rwKode = $this->normalizeKodeWilayah($rwRaw);
         $rtKode = $this->normalizeKodeWilayah($rtRaw);
@@ -585,7 +532,7 @@ class ImportService
         return ['status' => 'conflict', 'reason' => "Wilayah Baru: RT '{$rtRaw}' / RW '{$rwRaw}' belum terdaftar."];
     }
 
-    private function formatResolveResult($rw, $rt, $warning = null): array
+    public function formatResolveResult($rw, $rt, $warning = null): array
     {
         return [
             'status' => 'ok',
@@ -620,7 +567,7 @@ class ImportService
         } catch (\Throwable $e) { return null; }
     }
 
-    private function buildIssueRow(string $batchId, string $sourceFile, string $issueType, string $reason, int $rowNumber, string $nik, string $nama, string $nkk, string $rwRaw, string $rtRaw, string $dusunRaw, string $now): array
+    private function buildIssueRow(string $batchId, string $sourceFile, string $issueType, string $reason, int $rowNumber, string $nik, string $nama, string $nkk, string $rwRaw, string $rtRaw, string $dusunRaw, string $now, array $assocRow = []): array
     {
         return [
             'batch_id'    => $batchId,
@@ -637,7 +584,7 @@ class ImportService
             'issue_type'  => $issueType,
             'status'      => 'pending',
             'meta'        => json_encode([]),
-            'payload_raw' => json_encode([]),
+            'payload_raw' => json_encode($assocRow),
             'created_at'  => $now,
             'updated_at'  => $now,
         ];

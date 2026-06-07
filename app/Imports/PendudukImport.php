@@ -71,8 +71,18 @@ class PendudukImport implements ToCollection, WithHeadingRow, WithValidation, Wi
                         'kedudukan_keluarga' => $this->mapKedudukanKeluarga($row['kedudukan_keluarga'] ?? ''),
                         'pendidikan' => $this->mapPendidikan($row['pendidikan'] ?? ''),
                         'pekerjaan' => $row['pekerjaan'] ?? '',
+                        'dapat_membaca_huruf' => $row['dapat_membaca_huruf'] ?? '-',
                         'nama_ayah' => $row['nama_ayah'] ?? null,
                         'nama_ibu' => $row['nama_ibu'] ?? null,
+                        'golongan_darah' => $row['golongan_darah'] ?? null,
+                        'warganegara' => $row['warganegara'] ?? 'WNI',
+                        'no_akta_lahir' => $row['no_akta_lahir'] ?? null,
+                        'status_pendidikan' => $row['status_pendidikan'] ?? null,
+                        'telepon' => $row['telepon'] ?? null,
+                        'cacat_type' => $row['jenis_cacat'] ?? null,
+                        'sakit_menahun' => $row['sakit_menahun'] ?? null,
+                        'status_asuransi' => $row['status_asuransi'] ?? null,
+                        'keterangan' => $row['keterangan'] ?? null,
                         'deleted_at' => null,
                     ]
                 );

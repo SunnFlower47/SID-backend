@@ -75,7 +75,7 @@ export default function PisahKKForm({ wilayahTree, mutasi = null }) {
     dusun_id: mutasi?.dusun_id || '',
     kedudukan_keluarga_pisah: snapshot.kedudukan_baru_kepala || 'KEPALA KELUARGA',
     status_perkawinan_pisah: snapshot.status_perkawinan_baru_kepala || '',
-    tanggal_mutasi: mutasi?.tanggal_mutasi ? new Date(mutasi.tanggal_mutasi).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+    tanggal_mutasi: mutasi?.tanggal_mutasi ? mutasi.tanggal_mutasi.substring(0, 10) : new Date().toISOString().split('T')[0],
     alasan: mutasi?.alasan || 'Pisah KK Baru',
     jenis_mutasi: 'pisah_kk',
     anggota_pisah_data: snapshot.anggota_pindah || [] 
@@ -355,8 +355,10 @@ export default function PisahKKForm({ wilayahTree, mutasi = null }) {
                                 onChange={(e) => setData('status_perkawinan_pisah', e.target.value)}
                             >
                                 <option value="BELUM KAWIN">BELUM KAWIN</option>
-                                <option value="KAWIN">KAWIN</option>
-                                <option value="CERAI HIDUP">CERAI HIDUP</option>
+                                <option value="KAWIN TERCATAT">KAWIN TERCATAT</option>
+                                <option value="KAWIN BELUM TERCATAT">KAWIN BELUM TERCATAT</option>
+                                <option value="CERAI HIDUP TERCATAT">CERAI HIDUP TERCATAT</option>
+                                <option value="CERAI HIDUP BELUM TERCATAT">CERAI HIDUP BELUM TERCATAT</option>
                                 <option value="CERAI MATI">CERAI MATI</option>
                             </select>
                         </div>

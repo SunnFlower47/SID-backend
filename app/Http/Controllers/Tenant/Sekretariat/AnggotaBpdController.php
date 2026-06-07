@@ -6,12 +6,15 @@ use App\Http\Controllers\Controller;
 use App\Models\Tenant\Sekretariat\AnggotaBpd;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 
 class AnggotaBpdController extends Controller
 {
     public function index(Request $request)
     {
+        Gate::authorize('anggota_bpd.view');
+
         $query = AnggotaBpd::query()->orderBy('created_at', 'desc');
 
         if ($request->has('search') && $request->search != '') {
@@ -34,6 +37,8 @@ class AnggotaBpdController extends Controller
 
     public function create()
     {
+        Gate::authorize('anggota_bpd.create');
+
         return Inertia::render('Tenant/Sekretariat/AnggotaBPD/Form', [
             'anggota' => new AnggotaBpd(),
             'is_edit' => false
@@ -42,6 +47,8 @@ class AnggotaBpdController extends Controller
 
     public function store(Request $request)
     {
+        Gate::authorize('anggota_bpd.create');
+
         $validated = $request->validate([
             'nik' => 'nullable|string|size:16|unique:anggota_bpds,nik',
             'nama' => 'required|string|max:255',
@@ -75,6 +82,8 @@ class AnggotaBpdController extends Controller
 
     public function show(AnggotaBpd $anggotaBpd)
     {
+        Gate::authorize('anggota_bpd.view');
+
         return Inertia::render('Tenant/Sekretariat/AnggotaBPD/Show', [
             'anggota' => $anggotaBpd,
         ]);
@@ -82,6 +91,8 @@ class AnggotaBpdController extends Controller
 
     public function edit(AnggotaBpd $anggotaBpd)
     {
+        Gate::authorize('anggota_bpd.edit');
+
         return Inertia::render('Tenant/Sekretariat/AnggotaBPD/Form', [
             'anggota' => $anggotaBpd,
             'is_edit' => true
@@ -90,6 +101,8 @@ class AnggotaBpdController extends Controller
 
     public function update(Request $request, AnggotaBpd $anggotaBpd)
     {
+        Gate::authorize('anggota_bpd.edit');
+
         $validated = $request->validate([
             'nik' => ['nullable', 'string', 'size:16', Rule::unique('anggota_bpds', 'nik')->ignore($anggotaBpd->id)],
             'nama' => 'required|string|max:255',
@@ -121,6 +134,8 @@ class AnggotaBpdController extends Controller
 
     public function destroy(AnggotaBpd $anggotaBpd)
     {
+        Gate::authorize('anggota_bpd.delete');
+
         $anggotaBpd->delete();
 
         return redirect()->route('sekretariat.anggota-bpd.index')

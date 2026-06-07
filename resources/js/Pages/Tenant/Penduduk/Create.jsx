@@ -25,7 +25,7 @@ export default function Create({ auth, existingNKKs, masterRwOptions }) {
             'SLTP/SEDERAJAT', 'SLTA / SEDERAJAT', 'DIPLOMA I / II',
             'AKADEMI / DIPLOMA III / S. MUDA', 'DIPLOMA IV / STRATA I', 'STRATA II', 'STRATA III'
         ],
-        status_perkawinan: ['BELUM KAWIN', 'KAWIN', 'CERAI HIDUP', 'CERAI MATI'],
+        status_perkawinan: ['BELUM KAWIN', 'KAWIN TERCATAT', 'KAWIN BELUM TERCATAT', 'CERAI HIDUP TERCATAT', 'CERAI HIDUP BELUM TERCATAT', 'CERAI MATI'],
         kedudukan_keluarga: ['Kepala Keluarga', 'Istri', 'Anak', 'Menantu', 'Cucu', 'Orang Tua', 'Mertua', 'Famili Lain', 'Pembantu'],
         pekerjaan: [
             'BELUM/TIDAK BEKERJA', 'MENGURUS RUMAH TANGGA', 'PELAJAR/MAHASISWA', 
@@ -33,10 +33,11 @@ export default function Create({ auth, existingNKKs, masterRwOptions }) {
             'KEPOLISIAN NEGARA RI', 'PETANI/PEKEBUN', 'KARYAWAN SWASTA', 
             'BURUH HARIAN LEPAS', 'WIRASWASTA', 'PERANGKAT DESA'
         ],
-        golongan_darah: ['A', 'B', 'AB', 'O', 'TIDAK TAHU'],
+        golongan_darah: ['A', 'B', 'AB', 'O', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'TIDAK TAHU'],
         warganegara: ['WNI', 'WNA'],
         status_pendidikan: ['SEDANG SEKOLAH', 'TIDAK SEKOLAH', 'TAMAT SEKOLAH', 'PUTUS SEKOLAH'],
-        status_asuransi: ['BPJS MANDIRI', 'BPJS PBI/GRATIS', 'NON-BPJS', 'TIDAK ADA']
+        status_asuransi: ['BPJS MANDIRI', 'BPJS PBI/GRATIS', 'NON-BPJS', 'TIDAK ADA'],
+        dapat_membaca_huruf: ['HURUF LATIN', 'HURUF ARAB', 'HURUF LAINNYA', 'BELUM/TIDAK DAPAT MEMBACA']
     };
 
     const getEmptyPerson = () => ({
@@ -46,7 +47,8 @@ export default function Create({ auth, existingNKKs, masterRwOptions }) {
         nama_ayah: '', nama_ibu: '', keterangan: '',
         golongan_darah: 'TIDAK TAHU', warganegara: 'WNI', no_akta_lahir: '',
         status_pendidikan: 'TAMAT SEKOLAH', telepon: '', cacat_type: '',
-        sakit_menahun: '', status_asuransi: 'TIDAK ADA'
+        sakit_menahun: '', status_asuransi: 'TIDAK ADA',
+        dapat_membaca_huruf: ''
     });
 
     const { data, setData, post, processing, errors } = useForm({
@@ -290,6 +292,7 @@ export default function Create({ auth, existingNKKs, masterRwOptions }) {
                                 value={person.nik}
                                 onChange={e => handleChange('nik', e.target.value.replace(/\D/g, ''))}
                                 className={`w-full px-4 py-3 bg-gray-50 border rounded-2xl text-sm font-bold font-mono outline-none focus:ring-4 focus:ring-green-500/10 focus:border-green-500 transition-all ${errors[`${ePrefix}nik`] ? 'border-red-500' : 'border-gray-100'}`}
+                                placeholder="CONTOH: 320XXXXXXXXXXXXX"
                                 required
                             />
                             {status.checking && <div className="absolute right-4 top-3.5 animate-spin w-4 h-4 border-2 border-green-500 border-t-transparent rounded-full"></div>}
@@ -313,6 +316,7 @@ export default function Create({ auth, existingNKKs, masterRwOptions }) {
                         value={person.nama}
                         onChange={e => handleChange('nama', e.target.value.toUpperCase())}
                         error={errors[`${ePrefix}nama`]}
+                        placeholder="CONTOH: BUDI SANTOSO"
                     />
                 </div>
 
@@ -330,6 +334,7 @@ export default function Create({ auth, existingNKKs, masterRwOptions }) {
                     value={person.tempat_lahir}
                     onChange={e => handleChange('tempat_lahir', e.target.value.toUpperCase())}
                     error={errors[`${ePrefix}tempat_lahir`]}
+                    placeholder="CONTOH: BANDUNG"
                 />
 
                 <FormField.Input
@@ -352,6 +357,7 @@ export default function Create({ auth, existingNKKs, masterRwOptions }) {
                     value={person.nama_ayah}
                     onChange={e => handleChange('nama_ayah', e.target.value.toUpperCase())}
                     error={errors[`${ePrefix}nama_ayah`]}
+                    placeholder="CONTOH: AGUS"
                 />
 
                 <FormField.Input
@@ -359,6 +365,7 @@ export default function Create({ auth, existingNKKs, masterRwOptions }) {
                     value={person.nama_ibu}
                     onChange={e => handleChange('nama_ibu', e.target.value.toUpperCase())}
                     error={errors[`${ePrefix}nama_ibu`]}
+                    placeholder="CONTOH: SITI"
                 />
 
                 {/* Enrichment Fields */}
@@ -375,6 +382,14 @@ export default function Create({ auth, existingNKKs, masterRwOptions }) {
                 />
 
                 <FormField.Select
+                    label="Dapat Membaca Huruf"
+                    value={person.dapat_membaca_huruf}
+                    onChange={e => handleChange('dapat_membaca_huruf', e.target.value)}
+                    options={OPTIONS.dapat_membaca_huruf}
+                    error={errors[`${ePrefix}dapat_membaca_huruf`]}
+                />
+
+                <FormField.Select
                     label="Kewarganegaraan"
                     value={person.warganegara}
                     onChange={e => handleChange('warganegara', e.target.value)}
@@ -387,6 +402,7 @@ export default function Create({ auth, existingNKKs, masterRwOptions }) {
                     value={person.no_akta_lahir}
                     onChange={e => handleChange('no_akta_lahir', e.target.value.toUpperCase())}
                     error={errors[`${ePrefix}no_akta_lahir`]}
+                    placeholder="Kosongkan jika tidak ada"
                 />
 
                 <FormField.Select
@@ -402,6 +418,7 @@ export default function Create({ auth, existingNKKs, masterRwOptions }) {
                     value={person.telepon}
                     onChange={e => handleChange('telepon', e.target.value.replace(/\D/g, ''))}
                     error={errors[`${ePrefix}telepon`]}
+                    placeholder="CONTOH: 08123456789"
                 />
 
                 <FormField.Input
@@ -568,15 +585,17 @@ export default function Create({ auth, existingNKKs, masterRwOptions }) {
                                     value={data.nama_kepala_keluarga}
                                     onChange={e => setData('nama_kepala_keluarga', e.target.value.toUpperCase())}
                                     error={errors.nama_kepala_keluarga}
+                                    placeholder="CONTOH: BUDI SANTOSO"
                                 />
 
                                 <div className="md:col-span-2">
                                     <FormField.Textarea
-                                        label="Alamat Lengkap"
+                                        label="Alamat Domisili"
                                         required={true}
                                         value={data.alamat}
                                         onChange={e => setData('alamat', e.target.value.toUpperCase())}
                                         error={errors.alamat}
+                                        placeholder="CONTOH: KP. KARAJAN / NAMA JALAN / NO. RUMAH"
                                     />
                                 </div>
 

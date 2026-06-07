@@ -6,12 +6,15 @@ use App\Http\Controllers\Controller;
 use App\Models\Tenant\Sekretariat\KaderPemberdayaan;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 
 class KaderPemberdayaanController extends Controller
 {
     public function index(Request $request)
     {
+        Gate::authorize('kader_pemberdayaan.view');
+
         $query = KaderPemberdayaan::query()->orderBy('created_at', 'desc');
 
         if ($request->has('search') && $request->search != '') {
@@ -34,6 +37,8 @@ class KaderPemberdayaanController extends Controller
 
     public function create()
     {
+        Gate::authorize('kader_pemberdayaan.create');
+
         return Inertia::render('Tenant/Sekretariat/KaderPemberdayaan/Form', [
             'kader' => new KaderPemberdayaan(),
             'is_edit' => false
@@ -42,6 +47,8 @@ class KaderPemberdayaanController extends Controller
 
     public function store(Request $request)
     {
+        Gate::authorize('kader_pemberdayaan.create');
+
         $validated = $request->validate([
             'nik' => 'nullable|string|size:16|unique:kader_pemberdayaans,nik',
             'nama' => 'required|string|max:255',
@@ -69,6 +76,8 @@ class KaderPemberdayaanController extends Controller
 
     public function show(KaderPemberdayaan $kaderPemberdayaan)
     {
+        Gate::authorize('kader_pemberdayaan.view');
+
         return Inertia::render('Tenant/Sekretariat/KaderPemberdayaan/Show', [
             'kader' => $kaderPemberdayaan,
         ]);
@@ -76,6 +85,8 @@ class KaderPemberdayaanController extends Controller
 
     public function edit(KaderPemberdayaan $kaderPemberdayaan)
     {
+        Gate::authorize('kader_pemberdayaan.edit');
+
         return Inertia::render('Tenant/Sekretariat/KaderPemberdayaan/Form', [
             'kader' => $kaderPemberdayaan,
             'is_edit' => true
@@ -84,6 +95,8 @@ class KaderPemberdayaanController extends Controller
 
     public function update(Request $request, KaderPemberdayaan $kaderPemberdayaan)
     {
+        Gate::authorize('kader_pemberdayaan.edit');
+
         $validated = $request->validate([
             'nik' => ['nullable', 'string', 'size:16', Rule::unique('kader_pemberdayaans', 'nik')->ignore($kaderPemberdayaan->id)],
             'nama' => 'required|string|max:255',
@@ -109,6 +122,8 @@ class KaderPemberdayaanController extends Controller
 
     public function destroy(KaderPemberdayaan $kaderPemberdayaan)
     {
+        Gate::authorize('kader_pemberdayaan.delete');
+
         $kaderPemberdayaan->delete();
 
         return redirect()->route('sekretariat.kader-pemberdayaan.index')

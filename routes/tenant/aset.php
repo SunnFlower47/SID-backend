@@ -24,6 +24,8 @@ Route::prefix('aset')->name('aset.')->group(function () {
     Route::prefix('mutasi')->name('mutasi.')->group(function () {
         Route::get('/{inventaris}/tambah', [AsetMutasiController::class, 'create'])->name('create');
         Route::post('/{inventaris}',       [AsetMutasiController::class, 'store'])  ->name('store');
+        Route::get('/edit/{mutasi}',       [AsetMutasiController::class, 'edit'])   ->name('edit');
+        Route::put('/{mutasi}',            [AsetMutasiController::class, 'update']) ->name('update');
         Route::delete('/{mutasi}',         [AsetMutasiController::class, 'destroy'])->name('destroy');
     });
 

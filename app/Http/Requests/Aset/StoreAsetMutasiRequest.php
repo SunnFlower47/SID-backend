@@ -19,10 +19,11 @@ class StoreAsetMutasiRequest extends FormRequest
             'semester'   => ['required', 'in:1,2'],
             'tanggal'    => ['required', 'date'],
             'jenis'      => ['required', 'in:tambah,kurang'],
-            'kwantitas'  => ['required', 'numeric', 'min:0.01'],
-            'nilai'      => ['required', 'numeric', 'min:0'],
-            'keterangan' => ['nullable', 'string', 'max:255'],
-            'kondisi'    => ['nullable', 'in:baik,rusak_ringan,rusak_berat'],
+            'kwantitas'     => ['required', 'numeric', 'min:0.01'],
+            'nilai'         => ['required', 'numeric', 'min:0'],
+            'keterangan'    => ['nullable', 'string', 'max:255'],
+            'kondisi'       => ['nullable', 'in:baik,rusak_ringan,rusak_berat'],
+            'alasan_kurang' => ['nullable', 'required_if:jenis,kurang', 'in:rusak,dijual,disumbangkan,lainnya'],
         ];
     }
 

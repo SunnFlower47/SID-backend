@@ -20,6 +20,7 @@ use Illuminate\Http\Request;
 class PendudukExport implements FromCollection, WithHeadings, WithMapping, WithStyles, WithTitle, WithEvents
 {
     protected $request;
+    protected $rowNumber = 0;
 
     public function __construct(Request $request)
     {
@@ -118,94 +119,108 @@ class PendudukExport implements FromCollection, WithHeadings, WithMapping, WithS
     public function headings(): array
     {
         return [
-            'NIK',
-            'Nama',
-            'No. KK',
-            'Jenis Kelamin',
-            'Tempat Lahir',
-            'Tanggal Lahir',
-            'Usia',
-            'Agama',
-            'Status Perkawinan',
-            'Kedudukan Keluarga',
-            'Pendidikan',
-            'Pekerjaan',
-            'Nama Ayah',
-            'Nama Ibu',
-            'Alamat',
-            'RT',
-            'RW',
-            'Dusun',
-            'Golongan Darah',
-            'Warganegara',
-            'No. Akta Lahir',
-            'Status Pendidikan',
-            'Telepon',
-            'Jenis Cacat',
-            'Sakit Menahun',
-            'Status Asuransi',
-            'Keterangan'
+            [
+                'NOMOR URUT',
+                'NAMA LENGKAP / PANGGILAN',
+                'JENIS KELAMIN',
+                'STATUS PERKAWINAN',
+                'TEMPAT & TANGGAL LAHIR',
+                '',
+                'AGAMA',
+                'PENDIDIKAN TERAKHIR',
+                'PEKERJAAN',
+                'DAPAT MEMBACA HURUF',
+                'KEWARGANEGARAAN',
+                'ALAMAT',
+                'RT',
+                'RW',
+                'KEDUDUKAN DLM KELUARGA',
+                'NIK',
+                'NO. KK',
+                'NAMA AYAH',
+                'NAMA IBU',
+                'DUSUN',
+                'GOLONGAN DARAH',
+                'NO. AKTA LAHIR',
+                'STATUS PENDIDIKAN',
+                'TELEPON',
+                'JENIS CACAT',
+                'SAKIT MENAHUN',
+                'STATUS ASURANSI',
+                'KETERANGAN'
+            ],
+            [
+                '', '', '', '', 
+                'TEMPAT LAHIR', 'TGL', 
+                '', '', '', '', '', '', '', '', '', '',
+                '', '', '', '', '', '', '', '', '', '', '', ''
+            ]
         ];
     }
 
     public function map($penduduk): array
     {
+        $this->rowNumber++;
+
         return [
-            "'" . $penduduk->nik, 
-            $penduduk->nama,
-            "'" . $penduduk->nkk, 
-            $penduduk->jenis_kelamin_label,
-            $penduduk->tempat_lahir,
-            $penduduk->tanggal_lahir ? $penduduk->tanggal_lahir->format('d/m/Y') : '',
-            $penduduk->usia,
-            $penduduk->agama,
-            $penduduk->status_perkawinan,
-            $penduduk->kedudukan_keluarga,
-            $penduduk->pendidikan,
-            $penduduk->pekerjaan,
-            $penduduk->nama_ayah,
-            $penduduk->nama_ibu,
-            $penduduk->alamat,
-            $penduduk->rt_label,
-            $penduduk->rw_label,
-            $penduduk->dusun_label,
-            $penduduk->golongan_darah,
-            $penduduk->warganegara,
-            $penduduk->no_akta_lahir,
-            $penduduk->status_pendidikan,
-            $penduduk->telepon,
-            $penduduk->cacat_type,
-            $penduduk->sakit_menahun,
-            $penduduk->status_asuransi,
-            $penduduk->keterangan,
+            $this->rowNumber, // A
+            strtoupper($penduduk->nama ?: ''), // B
+            strtoupper($penduduk->jenis_kelamin_label ?: ''), // C
+            strtoupper($penduduk->status_perkawinan ?: '-'), // D
+            strtoupper($penduduk->tempat_lahir ?: ''), // E
+            $penduduk->tanggal_lahir ? $penduduk->tanggal_lahir->format('d/m/Y') : '', // F
+            strtoupper($penduduk->agama ?: ''), // G
+            strtoupper($penduduk->pendidikan ?: ''), // H
+            strtoupper($penduduk->pekerjaan ?: ''), // I
+            strtoupper($penduduk->dapat_membaca_huruf ?: '-'), // J
+            strtoupper($penduduk->warganegara ?: 'WNI'), // K
+            strtoupper($penduduk->alamat ?: ''), // L (Alamat)
+            strtoupper($penduduk->rt_label ?: ''), // M (RT)
+            strtoupper($penduduk->rw_label ?: ''), // N (RW)
+            strtoupper($penduduk->kedudukan_keluarga ?: '-'), // O
+            $penduduk->nik ? "'" . $penduduk->nik : '', // P
+            $penduduk->nkk ? "'" . $penduduk->nkk : '', // Q
+            strtoupper($penduduk->nama_ayah ?: ''),
+            strtoupper($penduduk->nama_ibu ?: ''),
+            strtoupper($penduduk->dusun_label ?: '-'),
+            strtoupper($penduduk->golongan_darah ?: '-'),
+            $penduduk->no_akta_lahir ?: '-',
+            strtoupper($penduduk->status_pendidikan ?: '-'),
+            $penduduk->telepon ?: '-',
+            strtoupper($penduduk->cacat_type ?: '-'),
+            strtoupper($penduduk->sakit_menahun ?: '-'),
+            strtoupper($penduduk->status_asuransi ?: '-'),
+            strtoupper($penduduk->keterangan ?: ''),
         ];
     }
 
     public function styles(Worksheet $sheet)
     {
-        return [
-            // Style the first row (header)
-            1 => [
-                'font' => [
-                    'bold' => true,
-                    'size' => 12,
-                    'color' => ['rgb' => 'FFFFFF']
-                ],
-                'fill' => [
-                    'fillType' => Fill::FILL_SOLID,
-                    'startColor' => ['rgb' => '2D5A27'] // Dark green
-                ],
-                'alignment' => [
-                    'horizontal' => Alignment::HORIZONTAL_CENTER,
-                    'vertical' => Alignment::VERTICAL_CENTER,
-                ],
-                'borders' => [
-                    'allBorders' => [
-                        'borderStyle' => Border::BORDER_THIN,
-                        'color' => ['rgb' => '000000']
-                    ]
-                ]
+        $style = [
+            'font' => [
+                'bold' => true,
+                'size' => 12,
+                'color' => ['rgb' => 'FFFFFF']
             ],
+            'fill' => [
+                'fillType' => Fill::FILL_SOLID,
+                'startColor' => ['rgb' => '2D5A27']
+            ],
+            'alignment' => [
+                'horizontal' => Alignment::HORIZONTAL_CENTER,
+                'vertical' => Alignment::VERTICAL_CENTER,
+            ],
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => Border::BORDER_THIN,
+                    'color' => ['rgb' => '000000']
+                ]
+            ]
+        ];
+
+        return [
+            1 => $style,
+            2 => $style,
         ];
     }
 
@@ -213,42 +228,46 @@ class PendudukExport implements FromCollection, WithHeadings, WithMapping, WithS
     {
         return [
             AfterSheet::class => function(AfterSheet $event) {
-                // Get the highest row and column
-                $highestRow = $event->sheet->getDelegate()->getHighestRow();
-                $highestColumn = $event->sheet->getDelegate()->getHighestColumn();
+                $sheet = $event->sheet->getDelegate();
+                $highestRow = $sheet->getHighestRow();
+                $highestColumn = $sheet->getHighestColumn();
+
+                // Merge specific header columns (rowspan=2)
+                $columnsToMerge = ['A', 'B', 'C', 'D', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'AA', 'AB'];
+                foreach ($columnsToMerge as $col) {
+                    $sheet->mergeCells($col . '1:' . $col . '2');
+                }
+                
+                // Merge TEMPAT & TANGGAL LAHIR (colspan=2)
+                $sheet->mergeCells('E1:F1');
 
                 // Auto-fit column widths
-                foreach (range('A', $highestColumn) as $column) {
-                    $event->sheet->getDelegate()->getColumnDimension($column)->setAutoSize(true);
+                $highestColumnIndex = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($highestColumn);
+                for ($col = 1; $col <= $highestColumnIndex; $col++) {
+                    $column = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col);
+                    $sheet->getColumnDimension($column)->setAutoSize(true);
                 }
 
-                // Set row height for header
-                $event->sheet->getDelegate()->getRowDimension(1)->setRowHeight(25);
+                // Header rows height
+                $sheet->getRowDimension(1)->setRowHeight(25);
+                $sheet->getRowDimension(2)->setRowHeight(20);
 
                 // Add borders to all data cells
-                $event->sheet->getDelegate()->getStyle('A1:' . $highestColumn . $highestRow)
-                    ->getBorders()
-                    ->getAllBorders()
-                    ->setBorderStyle(Border::BORDER_THIN);
+                $sheet->getStyle('A1:' . $highestColumn . $highestRow)
+                    ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
                 // Center align all data cells
-                $event->sheet->getDelegate()->getStyle('A2:' . $highestColumn . $highestRow)
+                $sheet->getStyle('A3:' . $highestColumn . $highestRow)
                     ->getAlignment()
                     ->setHorizontal(Alignment::HORIZONTAL_CENTER)
                     ->setVertical(Alignment::VERTICAL_CENTER);
 
-                // Format NIK column (A) as text
-                $event->sheet->getDelegate()->getStyle('A2:A' . $highestRow)
-                    ->getNumberFormat()
-                    ->setFormatCode(NumberFormat::FORMAT_TEXT);
+                // Format NIK (P) and KK (Q) as text
+                $sheet->getStyle('P3:P' . $highestRow)->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_TEXT);
+                $sheet->getStyle('Q3:Q' . $highestRow)->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_TEXT);
 
-                // Format No. KK column (C) as text
-                $event->sheet->getDelegate()->getStyle('C2:C' . $highestRow)
-                    ->getNumberFormat()
-                    ->setFormatCode(NumberFormat::FORMAT_TEXT);
-
-                // Freeze the header row
-                $event->sheet->getDelegate()->freezePane('A2');
+                // Freeze below headers
+                $sheet->freezePane('A3');
             },
         ];
     }

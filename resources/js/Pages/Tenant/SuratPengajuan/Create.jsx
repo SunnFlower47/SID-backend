@@ -8,6 +8,7 @@ import {
     FileText, UserPlus, MapPinned, CreditCard,
     Clock
 } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
 import { cn } from '@/lib/utils';
 import axios from 'axios';
 import Swal from 'sweetalert2';
@@ -33,6 +34,7 @@ export default function Create({ auth, suratTypes, wilayah }) {
     const [isSearching, setIsSearching] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedResident, setSelectedResident] = useState(null);
+    const [selectedTemplateIds, setSelectedTemplateIds] = useState([]);
 
     const { data, setData, post, processing, errors, reset } = useForm({
         jenis_surat: '',
@@ -82,11 +84,15 @@ export default function Create({ auth, suratTypes, wilayah }) {
             allFields = [...type.form_json];
         }
         if (type.has_multi_template && Array.isArray(type.templates)) {
+            const activeIds = type.templates.filter(t => t.is_active).map(t => t.id);
+            setSelectedTemplateIds(activeIds);
             type.templates.filter(t => t.is_active).forEach(t => {
                 if (Array.isArray(t.form_json)) {
                     allFields = [...allFields, ...t.form_json];
                 }
             });
+        } else {
+            setSelectedTemplateIds([]);
         }
 
         // Initialize data_tambahan from flat fields
@@ -94,6 +100,10 @@ export default function Create({ auth, suratTypes, wilayah }) {
         allFields.forEach(field => {
             if (field.name) initialData[field.name] = '';
         });
+        // Simpan selected template IDs untuk dipakai di print panel
+        if (type.has_multi_template && Array.isArray(type.templates)) {
+            initialData._selected_template_ids = type.templates.filter(t => t.is_active).map(t => t.id);
+        }
         
         // Special fields for Domisili manual input
         if (type.id === 'keterangan-domisili') {
@@ -138,6 +148,34 @@ export default function Create({ auth, suratTypes, wilayah }) {
         
         setData('data_tambahan', initialData);
         setStep(2);
+    };
+
+    const toggleTemplate = (templateId) => {
+        const isCurrentlySelected = selectedTemplateIds.includes(templateId);
+        const newSelectedIds = isCurrentlySelected
+            ? selectedTemplateIds.filter(id => id !== templateId)
+            : [...selectedTemplateIds, templateId];
+
+        setSelectedTemplateIds(newSelectedIds);
+
+        setData(prevData => {
+            const newDataTambahan = {
+                ...prevData.data_tambahan,
+                _selected_template_ids: newSelectedIds
+            };
+            // Inisialisasi field form jika template baru dipilih
+            if (!isCurrentlySelected) {
+                const template = selectedType?.templates?.find(t => t.id === templateId);
+                if (template && Array.isArray(template.form_json)) {
+                    template.form_json.forEach(field => {
+                        if (field.name && !(field.name in newDataTambahan)) {
+                            newDataTambahan[field.name] = '';
+                        }
+                    });
+                }
+            }
+            return { ...prevData, data_tambahan: newDataTambahan };
+        });
     };
 
     const searchResidents = async (query) => {
@@ -238,6 +276,25 @@ export default function Create({ auth, suratTypes, wilayah }) {
         });
     };
 
+    const getGradientClasses = (colorName) => {
+        if (!colorName) return "from-green-600 via-green-700 to-green-800";
+        const gradients = {
+            blue: "from-blue-600 via-blue-700 to-blue-800",
+            green: "from-green-600 via-green-700 to-green-800",
+            purple: "from-purple-600 via-purple-700 to-purple-800",
+            orange: "from-orange-600 via-orange-700 to-orange-800",
+            red: "from-red-600 via-red-700 to-red-800",
+            pink: "from-pink-600 via-pink-700 to-pink-800",
+            yellow: "from-yellow-500 via-yellow-600 to-yellow-700",
+        };
+        return gradients[colorName] || "from-green-600 via-green-700 to-green-800";
+    };
+
+    const getDynamicIcon = (iconName) => {
+        if (!iconName) return FileSignature;
+        return LucideIcons[iconName] || FileSignature;
+    };
+
     return (
         <AuthenticatedLayout user={auth.user} title="Buat Surat Baru">
             <Head title="Buat Surat Baru" />
@@ -247,7 +304,8 @@ export default function Create({ auth, suratTypes, wilayah }) {
                 <PageHeader 
                     title={step === 1 ? 'Pilih Jenis Surat' : 'Isi Detail Surat'}
                     subtitle={step === 1 ? 'Silakan pilih kategori surat yang akan dibuat' : `Konfigurasi pengajuan ${selectedType.nama}`}
-                    icon={FileSignature}
+                    icon={step === 2 && selectedType ? getDynamicIcon(selectedType.icon) : FileSignature}
+                    gradient={step === 2 && selectedType ? getGradientClasses(selectedType.color) : 'from-green-600 via-green-700 to-green-800'}
                     backHref={step === 1 ? route('admin.surat-pengajuan.index') : null}
                     onBack={step === 2 ? () => setStep(1) : undefined}
                     backLabel={step === 2 ? "GANTI JENIS" : "KEMBALI"}
@@ -261,7 +319,7 @@ export default function Create({ auth, suratTypes, wilayah }) {
                 )}
 
                 {step === 2 && (
-                    <form onSubmit={handleSubmit} className="grid grid-cols-1 xl:grid-cols-3 gap-6 animate-in zoom-in-95 duration-500">
+                    <form onSubmit={handleSubmit} className="grid grid-cols-1 xl:grid-cols-3 gap-6 animate-in zoom-in-95 duration-500 items-start">
                         {/* Resident Selection & Base Info */}
                         <div className="xl:col-span-2 space-y-6">
                             <div className="bg-white rounded-3xl shadow-sm border border-gray-100">
@@ -382,9 +440,16 @@ export default function Create({ auth, suratTypes, wilayah }) {
                                     );
                                 }
 
-                                // Sub-template fields
+                                // Sub-template fields — hanya untuk template yang dipilih
                                 if (selectedType.has_multi_template && Array.isArray(selectedType.templates)) {
-                                    selectedType.templates.filter(t => t.is_active && Array.isArray(t.form_json) && t.form_json.length > 0).forEach(t => {
+                                    selectedType.templates
+                                        .filter(t =>
+                                            selectedTemplateIds.includes(t.id) &&
+                                            t.is_active &&
+                                            Array.isArray(t.form_json) &&
+                                            t.form_json.length > 0
+                                        )
+                                        .forEach(t => {
                                         // Cek gender_filter
                                         if (t.gender_filter === 'L' && selectedResident?.jenis_kelamin === 'P') return;
                                         if (t.gender_filter === 'P' && selectedResident?.jenis_kelamin === 'L') return;
@@ -446,8 +511,90 @@ export default function Create({ auth, suratTypes, wilayah }) {
                         </div>
 
                         {/* Sidebar / Submission */}
-                        <div className="space-y-6">
-                            <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden sticky top-6">
+                        <div className="space-y-6 sticky top-6">
+                            {/* Sub-Template Selector — dipindah ke sidebar agar sejajar dengan pengesahan */}
+                            {selectedType.has_multi_template && (() => {
+                                const genderFilteredTemplates = (selectedType.templates || []).filter(t => {
+                                    if (!t.is_active) return false;
+                                    const gender = selectedResident?.jenis_kelamin;
+                                    if (t.gender_filter === 'L' && gender === 'P') return false;
+                                    if (t.gender_filter === 'P' && gender === 'L') return false;
+                                    return true;
+                                });
+                                if (genderFilteredTemplates.length === 0) return null;
+                                const selectedCount = selectedTemplateIds.filter(id => genderFilteredTemplates.some(t => t.id === id)).length;
+                                return (
+                                    <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden animate-in slide-in-from-right-4 duration-500">
+                                        <div className="p-5 border-b border-indigo-100 bg-gradient-to-r from-indigo-50 to-purple-50/50 flex flex-col items-start gap-2">
+                                            <div className="flex items-center gap-3 w-full justify-between">
+                                                <div className="flex items-center gap-3">
+                                                    <Layers className="w-5 h-5 text-indigo-600" />
+                                                    <h3 className="text-sm font-black text-indigo-900 uppercase italic tracking-tighter">Pilih Dokumen</h3>
+                                                </div>
+                                                <span className={cn(
+                                                    "text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest",
+                                                    selectedCount > 0 ? "bg-indigo-600 text-white" : "bg-gray-100 text-gray-500"
+                                                )}>
+                                                    {selectedCount}/{genderFilteredTemplates.length} dipilih
+                                                </span>
+                                            </div>
+                                            <p className="text-[9px] font-bold text-indigo-400 uppercase tracking-widest pl-8">Form muncul otomatis sesuai pilihan</p>
+                                        </div>
+                                        <div className="p-4 flex flex-col gap-3">
+                                            {genderFilteredTemplates.map(t => {
+                                                const isSelected = selectedTemplateIds.includes(t.id);
+                                                const hasExtraFields = Array.isArray(t.form_json) && t.form_json.length > 0;
+                                                return (
+                                                    <div
+                                                        key={t.id}
+                                                        onClick={() => toggleTemplate(t.id)}
+                                                        className={cn(
+                                                            "flex items-start gap-3 p-4 rounded-2xl border-2 cursor-pointer transition-all duration-200 select-none",
+                                                            isSelected
+                                                                ? "bg-indigo-50 border-indigo-300 shadow-sm"
+                                                                : "bg-gray-50 border-transparent hover:border-gray-200 hover:bg-white hover:shadow-sm"
+                                                        )}
+                                                    >
+                                                        <div className={cn(
+                                                            "mt-0.5 shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-200",
+                                                            isSelected ? "bg-indigo-600 border-indigo-600" : "border-gray-300"
+                                                        )}>
+                                                            {isSelected && (
+                                                                <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                                                </svg>
+                                                            )}
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="flex items-center gap-1.5 flex-wrap mb-1">
+                                                                <span className="px-2 py-0.5 bg-indigo-100 text-indigo-700 text-[9px] font-black uppercase tracking-widest rounded-lg">
+                                                                    {t.kode}
+                                                                </span>
+                                                                {hasExtraFields && (
+                                                                    <span className="px-2 py-0.5 bg-green-50 text-green-600 text-[9px] font-black uppercase tracking-widest rounded-lg">
+                                                                        + Form
+                                                                    </span>
+                                                                )}
+                                                                {t.gender_filter !== 'all' && (
+                                                                    <span className="px-2 py-0.5 bg-purple-50 text-purple-600 text-[9px] font-black uppercase tracking-widest rounded-lg">
+                                                                        {t.gender_filter === 'L' ? '♂' : '♀'}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            <p className="text-xs font-bold text-gray-800 leading-tight">{t.nama}</p>
+                                                            {t.deskripsi && (
+                                                                <p className="text-[9px] text-gray-400 font-bold mt-0.5 line-clamp-2">{t.deskripsi}</p>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                );
+                            })()}
+
+                            <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
                                 <div className="p-6 border-b border-gray-100 bg-gray-50/50 flex items-center gap-3">
                                     <FileSignature className="w-5 h-5 text-green-600" />
                                     <h3 className="text-sm font-black text-gray-900 uppercase italic tracking-tighter">Pengesahan</h3>

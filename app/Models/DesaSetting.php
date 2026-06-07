@@ -11,17 +11,6 @@ class DesaSetting extends Model
 {
     use HasFactory, LogsActivity;
 
-    protected static function booted()
-    {
-        static::saved(function ($model) {
-            \Illuminate\Support\Facades\Cache::forget('desa_settings_all');
-        });
-
-        static::deleted(function ($model) {
-            \Illuminate\Support\Facades\Cache::forget('desa_settings_all');
-        });
-    }
-
     protected $fillable = [
         'key',
         'value',
@@ -46,8 +35,8 @@ class DesaSetting extends Model
      */
     public static function getValue($key, $default = null)
     {
-        $settings = static::getAllAsArray();
-        return array_key_exists($key, $settings) ? $settings[$key] : $default;
+        $setting = static::where('key', $key)->first();
+        return $setting ? $setting->value : $default;
     }
 
     /**
@@ -79,9 +68,7 @@ class DesaSetting extends Model
      */
     public static function getAllAsArray()
     {
-        return \Illuminate\Support\Facades\Cache::remember('desa_settings_all', 3600, function () {
-            return static::pluck('value', 'key')->toArray();
-        });
+        return static::pluck('value', 'key')->toArray();
     }
 
     /**

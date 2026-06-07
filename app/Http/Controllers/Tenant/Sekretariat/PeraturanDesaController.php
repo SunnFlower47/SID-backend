@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\PeraturanDesa;
 use App\Http\Requests\Sekretariat\PeraturanDesaRequest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Storage;
 
@@ -16,6 +17,8 @@ class PeraturanDesaController extends Controller
      */
     public function index(Request $request)
     {
+        Gate::authorize('peraturan_desa.view');
+
         $query = PeraturanDesa::query()->orderBy('tahun_anggaran', 'desc')->orderBy('created_at', 'desc');
 
         if ($request->has('search') && $request->search != '') {
@@ -46,6 +49,8 @@ class PeraturanDesaController extends Controller
      */
     public function create()
     {
+        Gate::authorize('peraturan_desa.create');
+
         return Inertia::render('Tenant/Sekretariat/PeraturanDesa/Form', [
             'peraturan' => new PeraturanDesa([
                 'status' => 'disetujui',
@@ -60,6 +65,8 @@ class PeraturanDesaController extends Controller
      */
     public function store(PeraturanDesaRequest $request)
     {
+        Gate::authorize('peraturan_desa.create');
+
         $data = $request->validated();
 
         if ($request->hasFile('file_dokumen')) {
@@ -79,6 +86,8 @@ class PeraturanDesaController extends Controller
      */
     public function edit($id)
     {
+        Gate::authorize('peraturan_desa.edit');
+
         $peraturan = PeraturanDesa::findOrFail($id);
 
         return Inertia::render('Tenant/Sekretariat/PeraturanDesa/Form', [
@@ -92,6 +101,8 @@ class PeraturanDesaController extends Controller
      */
     public function update(PeraturanDesaRequest $request, $id)
     {
+        Gate::authorize('peraturan_desa.edit');
+
         $peraturan = PeraturanDesa::findOrFail($id);
         $data = $request->validated();
 
@@ -116,6 +127,8 @@ class PeraturanDesaController extends Controller
      */
     public function destroy($id)
     {
+        Gate::authorize('peraturan_desa.delete');
+
         $peraturan = PeraturanDesa::findOrFail($id);
         
         if ($peraturan->file_dokumen && Storage::disk('public')->exists($peraturan->file_dokumen)) {

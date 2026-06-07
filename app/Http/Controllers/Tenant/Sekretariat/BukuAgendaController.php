@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\BukuAgenda;
 use App\Http\Requests\Sekretariat\BukuAgendaRequest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 
 class BukuAgendaController extends Controller
@@ -15,6 +16,8 @@ class BukuAgendaController extends Controller
      */
     public function index(Request $request)
     {
+        Gate::authorize('buku_agenda.view');
+
         $query = BukuAgenda::query()->orderBy('tanggal', 'desc')->orderBy('created_at', 'desc');
 
         if ($request->has('search') && $request->search != '') {
@@ -42,6 +45,8 @@ class BukuAgendaController extends Controller
      */
     public function create(Request $request)
     {
+        Gate::authorize('buku_agenda.create');
+
         $jenis = $request->query('jenis', 'Masuk');
         
         return Inertia::render('Tenant/Sekretariat/BukuAgenda/Form', [
@@ -59,6 +64,8 @@ class BukuAgendaController extends Controller
      */
     public function store(BukuAgendaRequest $request)
     {
+        Gate::authorize('buku_agenda.create');
+
         BukuAgenda::create($request->validated());
 
         return redirect()->route('sekretariat.buku-agenda.index', ['jenis' => $request->jenis_surat])
@@ -70,6 +77,8 @@ class BukuAgendaController extends Controller
      */
     public function edit($id)
     {
+        Gate::authorize('buku_agenda.edit');
+
         $agenda = BukuAgenda::findOrFail($id);
 
         return Inertia::render('Tenant/Sekretariat/BukuAgenda/Form', [
@@ -83,6 +92,8 @@ class BukuAgendaController extends Controller
      */
     public function update(BukuAgendaRequest $request, $id)
     {
+        Gate::authorize('buku_agenda.edit');
+
         $agenda = BukuAgenda::findOrFail($id);
         $agenda->update($request->validated());
 
@@ -95,6 +106,8 @@ class BukuAgendaController extends Controller
      */
     public function destroy($id)
     {
+        Gate::authorize('buku_agenda.delete');
+
         $agenda = BukuAgenda::findOrFail($id);
         $jenis = $agenda->jenis_surat;
         $agenda->delete();

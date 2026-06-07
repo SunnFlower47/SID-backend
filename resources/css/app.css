@@ -65,3 +65,32 @@
 .overflow-y-auto, .overflow-y-scroll {
   scroll-behavior: smooth;
 }
+
+/* Global Table Styles for TableCard */
+:where(.table-card-wrapper) table {
+  @apply w-full border-collapse text-left;
+}
+:where(.table-card-wrapper) thead tr {
+  @apply bg-slate-50 border-b-2 border-slate-200/70;
+}
+:where(.table-card-wrapper) th {
+  @apply px-4 py-4 text-[10px] font-black text-slate-800 uppercase tracking-widest text-center whitespace-nowrap;
+}
+:where(.table-card-wrapper) th:not(:first-child) {
+  @apply border-l-2 border-slate-200/70;
+}
+:where(.table-card-wrapper) tbody tr {
+  @apply border-b border-gray-50 transition-colors;
+}
+:where(.table-card-wrapper) tbody tr:hover {
+  @apply bg-slate-50/50;
+}
+:where(.table-card-wrapper) tbody tr:last-child {
+  @apply border-b-0;
+}
+:where(.table-card-wrapper) td {
+  @apply px-4 py-4 text-sm text-gray-700;
+}
+:where(.table-card-wrapper) td:not(:first-child) {
+  @apply border-l border-gray-50;
+}

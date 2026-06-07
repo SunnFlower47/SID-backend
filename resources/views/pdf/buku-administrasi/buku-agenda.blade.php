@@ -8,12 +8,8 @@
             font-family: Arial, sans-serif;
             font-size: 11px;
         }
-        .header {
-            text-align: center;
-            margin-bottom: 20px;
-            font-weight: bold;
-            font-size: 14px;
-        }
+        .header { text-align: center; margin-bottom: 14px; border-bottom: 2px solid #000; padding-bottom: 8px; }
+        .header h3, .header h4 { margin: 0; padding: 0; }
         table {
             width: 100%;
             border-collapse: collapse;
@@ -37,7 +33,7 @@
     <div class="header">
         BUKU AGENDA<br>
         DESA {{ strtoupper($tenant->name ?? 'CIBATU') }}<br>
-        KECAMATAN CIBATU, KABUPATEN GARUT
+        KECAMATAN {{ strtoupper(\App\Models\DesaSetting::getValue('kecamatan', 'CIBATU')) }}, KABUPATEN {{ strtoupper(\App\Models\DesaSetting::getValue('kabupaten', 'PURWAKARTA')) }}
     </div>
 
     <table>

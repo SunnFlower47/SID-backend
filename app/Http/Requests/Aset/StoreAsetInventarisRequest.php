@@ -21,13 +21,9 @@ class StoreAsetInventarisRequest extends FormRequest
             'kondisi'              => ['required', 'in:baik,rusak_ringan,rusak_berat'],
             'lokasi'               => ['nullable', 'string', 'max:255'],
             'tanggal_perolehan'    => ['nullable', 'date'],
-            'asal_usul'            => ['required', 'in:APBDes,Hibah,Aset Asli Desa,Bantuan Pemerintah,Lainnya'],
+            'nup'                  => ['nullable', 'string', 'max:50'],
+            'asal_usul'            => ['required', 'in:APBDes,Bantuan Pusat,Bantuan Provinsi,Bantuan Kab/Kota,Sumbangan'],
             'keterangan'           => ['nullable', 'string'],
-            'no_polisi'            => ['nullable', 'string', 'max:100'],
-            'no_mesin'             => ['nullable', 'string', 'max:100'],
-            'no_rangka'            => ['nullable', 'string', 'max:100'],
-            'no_bpkb'              => ['nullable', 'string', 'max:100'],
-            'no_sertifikat'        => ['nullable', 'string', 'max:100'],
 
             // ── Mutasi pertama (perolehan awal) ────────────────────────────
             'tahun'             => ['required', 'integer', 'min:1945', 'max:2100'],
@@ -46,17 +42,13 @@ class StoreAsetInventarisRequest extends FormRequest
             'nama_barang_override' => 'nama spesifik aset',
             'satuan'               => 'satuan',
             'kondisi'              => 'kondisi',
+            'nup'                  => 'NUP',
             'asal_usul'            => 'asal usul',
             'tahun'                => 'tahun',
             'semester'             => 'semester',
             'tanggal'              => 'tanggal transaksi',
             'kwantitas'            => 'kwantitas',
             'nilai'                => 'nilai',
-            'no_polisi'            => 'nomor polisi',
-            'no_mesin'             => 'nomor mesin',
-            'no_rangka'            => 'nomor rangka',
-            'no_bpkb'              => 'nomor BPKB',
-            'no_sertifikat'        => 'nomor sertifikat',
         ];
     }
 }

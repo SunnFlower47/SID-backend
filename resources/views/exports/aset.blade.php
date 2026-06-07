@@ -1,7 +1,25 @@
 <table>
+    @php
+        $judulLaporan = "LAPORAN ASET DESA";
+        if ($semester == '1') {
+            $judulLaporan .= " SEMESTER I (Satu)";
+        } elseif ($semester == '2') {
+            $judulLaporan .= " SEMESTER II (Dua)";
+        } else {
+            $judulLaporan .= " 1 TAHUN (GABUNGAN)";
+        }
+        
+        $judulSaldoAwal = "SALDO PER 1 JANUARI {$tahun}";
+        $judulSaldoAkhir = "SALDO PER 31 DESEMBER {$tahun}";
+        if ($semester == '1') {
+            $judulSaldoAkhir = "SALDO PER 30 JUNI {$tahun}";
+        } elseif ($semester == '2') {
+            $judulSaldoAwal = "SALDO PER 1 JULI {$tahun}";
+        }
+    @endphp
     <thead>
         <tr>
-            <th colspan="11" style="text-align: center; font-weight: bold; font-size: 14px;">LAPORAN ASET DESA SEMESTER {{ $semester == 1 ? 'I (Satu)' : 'II (Dua)' }}</th>
+            <th colspan="11" style="text-align: center; font-weight: bold; font-size: 14px;">{{ $judulLaporan }}</th>
         </tr>
         <tr>
             <th colspan="11" style="text-align: center; font-weight: bold; font-size: 14px;">RINCIAN PERKELOMPOK BARANG</th>
@@ -16,9 +34,9 @@
             <th rowspan="3" style="vertical-align: middle; text-align: center; font-weight: bold; border: 1px solid black;">KODE</th>
             <th rowspan="3" style="vertical-align: middle; text-align: center; font-weight: bold; border: 1px solid black;">NAMA BARANG</th>
             <th rowspan="3" style="vertical-align: middle; text-align: center; font-weight: bold; border: 1px solid black;">SATUAN</th>
-            <th colspan="2" style="text-align: center; font-weight: bold; border: 1px solid black;">SALDO PER 1 JANUARI {{ $tahun }}</th>
+            <th colspan="2" style="text-align: center; font-weight: bold; border: 1px solid black;">{{ $judulSaldoAwal }}</th>
             <th colspan="4" style="text-align: center; font-weight: bold; border: 1px solid black;">MUTASI</th>
-            <th colspan="2" style="text-align: center; font-weight: bold; border: 1px solid black;">SALDO PER 31 Desember {{ $tahun }}</th>
+            <th colspan="2" style="text-align: center; font-weight: bold; border: 1px solid black;">{{ $judulSaldoAkhir }}</th>
         </tr>
         <tr>
             <th rowspan="2" style="vertical-align: middle; text-align: center; font-weight: bold; border: 1px solid black;">KWANTITAS</th>
@@ -60,7 +78,29 @@
                     $kurangNilai = 0;
 
                     foreach($aset->mutasis as $mutasi) {
-                        if($mutasi->tahun < $tahun) {
+                        $isSaldoAwal = false;
+                        $isMutasiBerjalan = false;
+
+                        if ($mutasi->tahun < $tahun) {
+                            $isSaldoAwal = true;
+                        } elseif ($mutasi->tahun == $tahun) {
+                            if ($semester == '1') {
+                                if ($mutasi->semester == 1) {
+                                    $isMutasiBerjalan = true;
+                                }
+                            } elseif ($semester == '2') {
+                                if ($mutasi->semester == 1) {
+                                    $isSaldoAwal = true;
+                                } elseif ($mutasi->semester == 2) {
+                                    $isMutasiBerjalan = true;
+                                }
+                            } else {
+                                // gabung
+                                $isMutasiBerjalan = true;
+                            }
+                        }
+
+                        if ($isSaldoAwal) {
                             if($mutasi->jenis == 'tambah') {
                                 $awalKwantitas += $mutasi->kwantitas;
                                 $awalNilai += $mutasi->nilai;
@@ -68,7 +108,7 @@
                                 $awalKwantitas -= $mutasi->kwantitas;
                                 $awalNilai -= $mutasi->nilai;
                             }
-                        } elseif($mutasi->tahun == $tahun) {
+                        } elseif ($isMutasiBerjalan) {
                             if($mutasi->jenis == 'tambah') {
                                 $tambahKwantitas += $mutasi->kwantitas;
                                 $tambahNilai += $mutasi->nilai;

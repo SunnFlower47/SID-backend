@@ -50,25 +50,30 @@ export default function Index({ auth, tanahDiDesa, filters }) {
                     ]}
                 />
 
-                <form onSubmit={handleSearch} className="bg-white p-4 rounded-3xl shadow-sm border border-gray-100 flex gap-3">
-                    <div className="relative flex-1">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                        <input
-                            type="text"
-                            placeholder="Cari NOP, nama pemilik atau lokasi tanah..."
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:ring-blue-500 focus:border-blue-500 transition-all"
-                        />
+                <form onSubmit={handleSearch} className="bg-white p-4 rounded-3xl shadow-sm border border-gray-100 flex flex-col sm:flex-row gap-4 items-end mb-6">
+                    <div className="flex-1 w-full space-y-2 text-left">
+                        <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Pencarian</label>
+                        <div className="relative">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                            <input
+                                type="text"
+                                placeholder="Cari NOP, nama pemilik atau lokasi tanah..."
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                className="w-full pl-11 pr-4 py-3 bg-gray-50 border-none rounded-2xl text-xs font-bold focus:ring-2 focus:ring-green-500 transition-all shadow-inner"
+                            />
+                        </div>
                     </div>
-                    <button type="submit" className="px-6 py-3 bg-blue-600 text-white rounded-2xl text-sm font-bold tracking-wide hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200">
-                        Cari
-                    </button>
-                    {search && (
-                        <button type="button" onClick={() => { setSearch(''); router.get(route('sekretariat.tanah-di-desa.index')); }} className="px-6 py-3 bg-gray-100 text-gray-600 rounded-2xl text-sm font-bold tracking-wide hover:bg-gray-200 transition-colors">
-                            Reset
+                    <div className="flex gap-2 w-full sm:w-auto">
+                        <button type="submit" className="flex items-center justify-center gap-2 flex-1 sm:flex-none px-8 py-3 bg-green-600 text-white rounded-2xl text-[10px] font-black hover:bg-green-700 active:scale-95 transition-all uppercase tracking-widest shadow-md shadow-green-200">
+                            <Search className="w-3.5 h-3.5" /> CARI
                         </button>
-                    )}
+                        {search && (
+                            <button type="button" onClick={() => { setSearch(''); router.get(route('sekretariat.tanah-di-desa.index')); }} className="px-6 py-3 bg-gray-100 text-gray-600 rounded-2xl text-[10px] font-black hover:bg-gray-200 transition-all uppercase tracking-widest">
+                                Reset
+                            </button>
+                        )}
+                    </div>
                 </form>
 
                 <TableCard

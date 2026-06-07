@@ -115,4 +115,34 @@ class ImportConflictController extends Controller
             return back()->with('error', 'Reprocess gagal: ' . $e->getMessage());
         }
     }
+
+    /**
+     * Delete individual conflict
+     */
+    public function destroy(ImportConflict $conflict)
+    {
+        Gate::authorize('settings.view');
+
+        try {
+            $conflict->delete();
+            return back()->with('success', 'Data konflik berhasil dihapus.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Gagal menghapus konflik: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Delete all conflicts
+     */
+    public function destroyAll()
+    {
+        Gate::authorize('settings.view');
+
+        try {
+            ImportConflict::truncate();
+            return back()->with('success', 'Semua data konflik berhasil dibersihkan.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Gagal membersihkan konflik: ' . $e->getMessage());
+        }
+    }
 }

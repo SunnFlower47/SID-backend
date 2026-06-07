@@ -144,66 +144,78 @@ export default function Index({ auth, penduduks, stats, rtList, rwList, dusunLis
                             {/* Desktop Table */}
                             <div className="hidden lg:block overflow-x-auto">
                                 <table className="w-full text-left text-sm text-gray-600">
-                                    <thead className="bg-gray-50/50 text-gray-900 font-bold uppercase text-xs tracking-wider border-b border-gray-100">
+                                    <thead className="bg-gray-100 text-gray-900 font-bold uppercase text-[10px] tracking-wider border-b border-gray-200 whitespace-nowrap">
                                         <tr>
-                                            <th className="px-6 py-4">Nama & Kedudukan</th>
-                                            <th className="px-6 py-4">NIK</th>
-                                            <th className="px-6 py-4">No KK</th>
-                                            <th className="px-6 py-4">JK</th>
-                                            <th className="px-6 py-4">Usia</th>
-                                            <th className="px-6 py-4">Alamat</th>
-                                            <th className="px-6 py-4 text-right">Aksi</th>
+                                            <th rowSpan="2" className="px-4 py-3 border-r border-gray-200 align-middle text-center">NOMOR URUT</th>
+                                            <th rowSpan="2" className="px-4 py-3 align-middle text-center border-r border-gray-200">AKSI</th>
+                                            <th rowSpan="2" className="px-4 py-3 border-r border-gray-200 align-middle">NAMA LENGKAP / PANGGILAN</th>
+                                            <th rowSpan="2" className="px-4 py-3 border-r border-gray-200 align-middle text-center">JENIS KELAMIN</th>
+                                            <th rowSpan="2" className="px-4 py-3 border-r border-gray-200 align-middle">STATUS PERKAWINAN</th>
+                                            <th colSpan="2" className="px-4 py-2 border-r border-b border-gray-200 text-center">TEMPAT & TANGGAL LAHIR</th>
+                                            <th rowSpan="2" className="px-4 py-3 border-r border-gray-200 align-middle">AGAMA</th>
+                                            <th rowSpan="2" className="px-4 py-3 border-r border-gray-200 align-middle">PENDIDIKAN TERAKHIR</th>
+                                            <th rowSpan="2" className="px-4 py-3 border-r border-gray-200 align-middle">PEKERJAAN</th>
+                                            <th rowSpan="2" className="px-4 py-3 border-r border-gray-200 align-middle text-center">DAPAT MEMBACA HURUF</th>
+                                            <th rowSpan="2" className="px-4 py-3 border-r border-gray-200 align-middle text-center">KEWARGANEGARAAN</th>
+                                            <th rowSpan="2" className="px-4 py-3 border-r border-gray-200 align-middle">ALAMAT LENGKAP</th>
+                                            <th rowSpan="2" className="px-4 py-3 border-r border-gray-200 align-middle">KEDUDUKAN DLM KELUARGA</th>
+                                            <th rowSpan="2" className="px-4 py-3 border-r border-gray-200 align-middle">NIK</th>
+                                            <th rowSpan="2" className="px-4 py-3 border-r border-gray-200 align-middle">NO. KK</th>
+                                        </tr>
+                                        <tr>
+                                            <th className="px-4 py-2 border-r border-gray-200 text-center">TEMPAT LAHIR</th>
+                                            <th className="px-4 py-2 border-r border-gray-200 text-center">TGL</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-gray-50">
+                                    <tbody className="divide-y divide-gray-50 whitespace-nowrap">
                                         {penduduks.data.map((p, index) => {
                                             const isNewFamily = currentKK !== p.nkk;
                                             currentKK = p.nkk;
                                             const style = getKedudukanStyle(p.kedudukan_keluarga);
                                             const isKepala = (p.kedudukan_keluarga || '').toUpperCase() === 'KEPALA KELUARGA';
+                                            const nomorUrut = penduduks.from ? penduduks.from + index : index + 1;
 
                                             return (
                                                 <React.Fragment key={p.id}>
                                                     {isNewFamily && index > 0 && (
-                                                        <tr><td colSpan="7"><div className="h-2 bg-gray-50/50"></div></td></tr>
+                                                        <tr><td colSpan="16"><div className="h-2 bg-gray-50/50"></div></td></tr>
                                                     )}
                                                     <tr className={`hover:bg-blue-50/30 transition-colors ${isNewFamily ? 'bg-green-50/20' : ''} ${isKepala ? 'bg-blue-50/20' : ''}`}>
-                                                        <td className="px-6 py-4">
-                                                            <div className="flex items-center gap-3">
-                                                                <div className={`w-10 h-10 rounded-full flex items-center justify-center shadow-sm ${isKepala ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-500'}`}>
-                                                                    {isKepala ? <Crown className="w-5 h-5" /> : <User className="w-5 h-5" />}
-                                                                </div>
-                                                                <div>
-                                                                    <p className="font-bold text-gray-900 leading-tight">{p.nama}</p>
-                                                                    <div className="mt-1">
-                                                                        <Badge color={style.color} icon={style.icon} size="sm">
-                                                                            {p.kedudukan_keluarga}
-                                                                        </Badge>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </td>
-                                                        <td className="px-6 py-4 font-mono text-xs">{p.nik}</td>
-                                                        <td className="px-6 py-4">
-                                                            <div className="font-mono text-xs bg-green-50 text-green-800 px-2 py-1 rounded inline-block">{p.nkk}</div>
-                                                        </td>
-                                                        <td className="px-6 py-4">
-                                                            <p className="font-bold text-gray-900">{p.jenis_kelamin === 'LAKI-LAKI' ? 'L' : 'P'}</p>
-                                                        </td>
-                                                        <td className="px-6 py-4">
-                                                            <p className="font-bold text-gray-900">{p.usia} <span className="text-[10px] text-gray-400 font-medium">THN</span></p>
-                                                        </td>
-                                                        <td className="px-6 py-4">
-                                                            <p className="font-medium text-gray-900 truncate max-w-[200px]">{p.alamat}</p>
-                                                            <p className="text-xs text-gray-500">RT {p.rt_label}/RW {p.rw_label}</p>
-                                                        </td>
-                                                        <td className="px-6 py-4">
+                                                        <td className="px-4 py-3 text-center font-mono text-xs">{nomorUrut}</td>
+                                                        <td className="px-4 py-3 text-center border-r border-gray-50">
                                                             <ActionButtons 
                                                                 viewHref={route('penduduk.show', p.id)}
                                                                 editHref={route('penduduk.edit', p.id)}
                                                                 onDelete={() => handleDelete(p.id, p.nama)}
                                                             />
                                                         </td>
+                                                        <td className="px-4 py-3 font-bold text-gray-900">
+                                                            <div className="flex items-center gap-2">
+                                                                <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${isKepala ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-500'}`}>
+                                                                    {isKepala ? <Crown className="w-3 h-3" /> : <User className="w-3 h-3" />}
+                                                                </div>
+                                                                {p.nama}
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-4 py-3 text-center font-bold">{p.jenis_kelamin === 'LAKI-LAKI' ? 'L' : 'P'}</td>
+                                                        <td className="px-4 py-3">{p.status_perkawinan}</td>
+                                                        <td className="px-4 py-3">{p.tempat_lahir}</td>
+                                                        <td className="px-4 py-3">{p.tanggal_lahir ? p.tanggal_lahir.split('T')[0].split('-').reverse().join('-') : '-'}</td>
+                                                        <td className="px-4 py-3">{p.agama}</td>
+                                                        <td className="px-4 py-3">{p.pendidikan}</td>
+                                                        <td className="px-4 py-3">{p.pekerjaan}</td>
+                                                        <td className="px-4 py-3 text-center">{p.dapat_membaca_huruf || '-'}</td>
+                                                        <td className="px-4 py-3 text-center">{p.kewarganegaraan || 'WNI'}</td>
+                                                        <td className="px-4 py-3 text-xs max-w-[200px] truncate" title={`${p.alamat} RT ${p.rt_label}/RW ${p.rw_label}`}>
+                                                            {p.alamat} RT {p.rt_label}/RW {p.rw_label}
+                                                        </td>
+                                                        <td className="px-4 py-3">
+                                                            <Badge color={style.color} icon={style.icon} size="sm">
+                                                                {p.kedudukan_keluarga}
+                                                            </Badge>
+                                                        </td>
+                                                        <td className="px-4 py-3 font-mono text-xs">{p.nik}</td>
+                                                        <td className="px-4 py-3 font-mono text-xs text-green-700 font-bold bg-green-50/50 rounded px-1">{p.nkk}</td>
                                                     </tr>
                                                 </React.Fragment>
                                             );

@@ -1,17 +1,32 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { PageHeader, TableCard, EmptyState, Badge, ActionButtons } from '@/Components/Shared';
-import { BookOpen, Plus, Pencil, Trash2, Download, FileText } from 'lucide-react';
+import { PageHeader, TableCard, EmptyState, Badge, ActionButtons, Pagination } from '@/Components/Shared';
+import SkeletonTable from '@/Components/Shared/Skeleton/SkeletonTable';
+import { BookOpen, Plus, Pencil, Trash2, Download, FileText, Search } from 'lucide-react';
 import dayjs from 'dayjs';
 import 'dayjs/locale/id';
+import Swal from 'sweetalert2';
 
 dayjs.locale('id');
 
 export default function Index({ auth, peraturans, filters }) {
-    const handleSearch = (e) => {
+    const [isLoading, setIsLoading] = useState(false);
+    const [search, setSearch] = useState(filters?.search || '');
+
+    useEffect(() => {
+        const removeStart = router.on('start', () => setIsLoading(true));
+        const removeFinish = router.on('finish', () => setIsLoading(false));
+        return () => {
+            removeStart();
+            removeFinish();
+        };
+    }, []);
+
+    const handleSearchSubmit = (e) => {
+        e.preventDefault();
         router.get(route('sekretariat.peraturan-desa.index'), {
-            search: e.target.value,
+            search: search,
             jenis: filters.jenis,
             tahun: filters.tahun
         }, {
@@ -34,9 +49,25 @@ export default function Index({ auth, peraturans, filters }) {
     };
 
     const handleDelete = (id) => {
-        if (confirm('Apakah Anda yakin ingin menghapus peraturan ini?')) {
-            router.delete(route('sekretariat.peraturan-desa.destroy', id));
-        }
+        Swal.fire({
+            title: 'Hapus Peraturan?',
+            text: 'Apakah Anda yakin ingin menghapus peraturan ini? Tindakan ini tidak dapat dibatalkan.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#9ca3af',
+            confirmButtonText: 'Ya, Hapus',
+            cancelButtonText: 'Batal',
+            customClass: {
+                popup: 'rounded-3xl',
+                confirmButton: 'rounded-xl font-bold',
+                cancelButton: 'rounded-xl font-bold'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                router.delete(route('sekretariat.peraturan-desa.destroy', id));
+            }
+        });
     };
 
     const getStatusColor = (status) => {
@@ -73,22 +104,26 @@ export default function Index({ auth, peraturans, filters }) {
                     ]}
                 />
 
-                <form className="bg-white p-4 rounded-3xl shadow-sm border border-gray-100 flex flex-col sm:flex-row gap-3">
-                    <div className="relative flex-1">
-                        <FileText className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                        <input
-                            type="text"
-                            placeholder="Cari nomor atau judul..."
-                            defaultValue={filters.search}
-                            onChange={handleSearch}
-                            className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:ring-blue-500 focus:border-blue-500 transition-all"
-                        />
+                <form onSubmit={handleSearchSubmit} className="bg-white p-4 rounded-3xl shadow-sm border border-gray-100 flex flex-col sm:flex-row gap-4 items-end mb-6">
+                    <div className="flex-1 w-full space-y-2 text-left">
+                        <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Pencarian</label>
+                        <div className="relative">
+                            <FileText className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                            <input
+                                type="text"
+                                placeholder="Cari nomor atau judul..."
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                className="w-full pl-11 pr-4 py-3 bg-gray-50 border-none rounded-2xl text-xs font-bold focus:ring-2 focus:ring-green-500 transition-all shadow-inner"
+                            />
+                        </div>
                     </div>
-                    <div className="w-full sm:w-64">
+                    <div className="w-full sm:w-64 space-y-2 text-left">
+                        <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Jenis Peraturan</label>
                         <select 
                             onChange={handleFilterJenis} 
                             value={filters.jenis || ''}
-                            className="w-full h-full border border-gray-200 bg-gray-50 rounded-2xl px-4 text-sm font-bold text-gray-700 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                            className="w-full px-4 py-3 bg-gray-50 border-none rounded-2xl text-xs font-bold focus:ring-2 focus:ring-green-500 transition-all shadow-inner"
                         >
                             <option value="">Semua Jenis Peraturan</option>
                             <option value="Peraturan Desa">Peraturan Desa</option>
@@ -97,8 +132,14 @@ export default function Index({ auth, peraturans, filters }) {
                             <option value="APBDes">APBDes</option>
                         </select>
                     </div>
+                    <button type="submit" className="flex items-center justify-center gap-2 w-full sm:w-auto px-8 py-3 bg-green-600 text-white rounded-2xl text-[10px] font-black hover:bg-green-700 active:scale-95 transition-all uppercase tracking-widest shadow-md shadow-green-200">
+                        <Search className="w-3.5 h-3.5" /> CARI
+                    </button>
                 </form>
 
+                {isLoading ? (
+                    <SkeletonTable rows={5} columns={5} />
+                ) : (
                 <TableCard
                     icon={BookOpen}
                     title="Daftar Peraturan Desa"
@@ -179,23 +220,16 @@ export default function Index({ auth, peraturans, filters }) {
                     {/* Pagination */}
                     {peraturans.links && peraturans.links.length > 3 && (
                         <div className="p-4 border-t border-gray-100 flex justify-center bg-gray-50/50 rounded-b-2xl">
-                            <div className="flex gap-1 bg-white p-1 rounded-xl shadow-sm border border-gray-200">
-                                {peraturans.links.map((link, i) => (
-                                    <Link
-                                        key={i}
-                                        href={link.url || '#'}
-                                        className={`px-3 py-2 text-xs font-bold rounded-lg transition-all ${
-                                            link.active
-                                                ? 'bg-blue-600 text-white shadow-md shadow-blue-200'
-                                                : 'text-gray-500 hover:bg-gray-100'
-                                        } ${!link.url ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                        dangerouslySetInnerHTML={{ __html: link.label }}
-                                    />
-                                ))}
-                            </div>
+                            <Pagination 
+                                links={peraturans.links} 
+                                from={peraturans.from} 
+                                to={peraturans.to} 
+                                total={peraturans.total} 
+                            />
                         </div>
                     )}
                 </TableCard>
+                )}
             </div>
         </AuthenticatedLayout>
     );

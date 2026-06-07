@@ -38,7 +38,7 @@ export default function Edit(props) {
             'SLTP/SEDERAJAT', 'SLTA / SEDERAJAT', 'DIPLOMA I / II',
             'AKADEMI / DIPLOMA III / S. MUDA', 'DIPLOMA IV / STRATA I', 'STRATA II', 'STRATA III'
         ],
-        status_perkawinan: ['BELUM KAWIN', 'KAWIN', 'CERAI HIDUP', 'CERAI MATI'],
+        status_perkawinan: ['BELUM KAWIN', 'KAWIN TERCATAT', 'KAWIN BELUM TERCATAT', 'CERAI HIDUP TERCATAT', 'CERAI HIDUP BELUM TERCATAT', 'CERAI MATI'],
         kedudukan_keluarga: ['Kepala Keluarga', 'Istri', 'Anak', 'Menantu', 'Cucu', 'Orang Tua', 'Mertua', 'Saudara', 'LAINNYA'],
         pekerjaan: [
             'BELUM/TIDAK BEKERJA', 'MENGURUS RUMAH TANGGA', 'PELAJAR/MAHASISWA', 
@@ -46,10 +46,11 @@ export default function Edit(props) {
             'KEPOLISIAN NEGARA RI', 'PETANI/PEKEBUN', 'KARYAWAN SWASTA', 
             'BURUH HARIAN LEPAS', 'WIRASWASTA', 'PERANGKAT DESA'
         ],
-        golongan_darah: ['A', 'B', 'AB', 'O', 'TIDAK TAHU'],
+        golongan_darah: ['A', 'B', 'AB', 'O', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'TIDAK TAHU'],
         warganegara: ['WNI', 'WNA'],
         status_pendidikan: ['SEDANG SEKOLAH', 'TIDAK SEKOLAH', 'TAMAT SEKOLAH', 'PUTUS SEKOLAH'],
-        status_asuransi: ['BPJS MANDIRI', 'BPJS PBI/GRATIS', 'NON-BPJS', 'TIDAK ADA']
+        status_asuransi: ['BPJS MANDIRI', 'BPJS PBI/GRATIS', 'NON-BPJS', 'TIDAK ADA'],
+        dapat_membaca_huruf: ['HURUF LATIN', 'HURUF ARAB', 'HURUF LAINNYA', 'BELUM/TIDAK DAPAT MEMBACA']
     };
 
     // Handle manual input state for "LAINNYA"
@@ -138,7 +139,8 @@ export default function Edit(props) {
         telepon: penduduk.telepon || '',
         cacat_type: penduduk.cacat_type || '',
         sakit_menahun: penduduk.sakit_menahun || '',
-        status_asuransi: penduduk.status_asuransi || 'TIDAK ADA'
+        status_asuransi: penduduk.status_asuransi || 'TIDAK ADA',
+        dapat_membaca_huruf: penduduk.dapat_membaca_huruf || ''
     });
 
     // NIK Check
@@ -359,6 +361,14 @@ export default function Edit(props) {
                             />
 
                             <FormField.Select
+                                label="Dapat Membaca Huruf"
+                                value={data.dapat_membaca_huruf}
+                                onChange={e => setData('dapat_membaca_huruf', e.target.value)}
+                                options={OPTIONS.dapat_membaca_huruf}
+                                error={errors.dapat_membaca_huruf}
+                            />
+
+                            <FormField.Select
                                 label="Kewarganegaraan"
                                 value={data.warganegara}
                                 onChange={e => setData('warganegara', e.target.value)}
@@ -419,7 +429,7 @@ export default function Edit(props) {
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div className="md:col-span-3">
                                 <FormField.Textarea 
-                                    label="Alamat Lengkap"
+                                    label="Alamat Domisili"
                                     readOnly 
                                     rows="2"
                                     value={penduduk.alamat || ''}

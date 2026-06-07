@@ -26,6 +26,7 @@ export default function PageHeader({
     subtitle,
     actions = [],
     backHref = null,
+    onBack = null,
     titleSize = 'lg',
     gradient = 'from-green-600 via-green-700 to-green-800',
     className = '',
@@ -46,17 +47,28 @@ export default function PageHeader({
             <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
                 {/* Kiri: back button (opsional) + icon box + title */}
                 <div className="flex items-center gap-4">
-                    {/* Tombol kembali — muncul di Show pages seperti AuditLog/Show */}
-                    {backHref && (
-                        <Link
-                            href={backHref}
-                            className="w-10 h-10 bg-white/10 hover:bg-white/20 text-white rounded-xl flex items-center justify-center border border-white/10 transition-all shrink-0"
-                        >
-                            {/* ChevronLeft hardcoded agar tidak perlu import di setiap page */}
-                            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-                            </svg>
-                        </Link>
+                    {/* Tombol kembali — muncul di Show pages atau jika ada handler onBack */}
+                    {(backHref || onBack) && (
+                        backHref ? (
+                            <Link
+                                href={backHref}
+                                className="w-10 h-10 bg-white/10 hover:bg-white/20 text-white rounded-xl flex items-center justify-center border border-white/10 transition-all shrink-0"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                                </svg>
+                            </Link>
+                        ) : (
+                            <button
+                                type="button"
+                                onClick={onBack}
+                                className="w-10 h-10 bg-white/10 hover:bg-white/20 text-white rounded-xl flex items-center justify-center border border-white/10 transition-all shrink-0"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                                </svg>
+                            </button>
+                        )
                     )}
 
                     {/* Icon box */}

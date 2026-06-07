@@ -54,7 +54,7 @@ export default function PindahKeluarForm({ mutasi = null }) {
     kategori_mutasi: mutasi?.kategori_mutasi || 'luar_kota', // dalam_kota, luar_kota, luar_negeri
     asal_tujuan: mutasi?.asal_tujuan || '',
     alasan: mutasi?.alasan || 'Pindah Domisili',
-    tanggal_mutasi: mutasi?.tanggal_mutasi ? new Date(mutasi.tanggal_mutasi).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+    tanggal_mutasi: mutasi?.tanggal_mutasi ? mutasi.tanggal_mutasi.substring(0, 10) : new Date().toISOString().split('T')[0],
     jenis_mutasi: 'pindah_keluar',
     anggota_pindah: snapshot.anggota_pindah_ids || [] 
   });
