@@ -31,9 +31,9 @@ class SyncPbbCommand extends Command
         
         $this->info("Memulai proses sinkronisasi PBB (Maksimal: {$limit} NOP)...");
 
-        // Ambil NOP yang belum pernah disinkronisasi atau terakhir sinkron > 1 bulan
+        // Ambil NOP yang belum pernah disinkronisasi atau terakhir sinkron > 1 hari
         $objeks = PajakPbbObjek::whereNull('last_synced_at')
-            ->orWhere('last_synced_at', '<', now()->subMonth())
+            ->orWhere('last_synced_at', '<', now()->subDays(1))
             ->orderBy('last_synced_at', 'asc')
             ->limit($limit)
             ->get();
@@ -45,9 +45,8 @@ class SyncPbbCommand extends Command
 
         foreach ($objeks as $objek) {
             $this->line("Dispatching job untuk NOP: {$objek->nop} ...");
-            // Dispatch job (langsung eksekusi sinkron jika tidak ada queue worker, 
-            // atau masuk ke queue dengan delay 5 detik antar eksekusi di Job-nya)
-            dispatch(new SyncPbbMapagbumiJob($objek, 5));
+            // dispatch_sync agar langsung dieksekusi saat cron jalan (tidak bergantung pada queue worker)
+            dispatch_sync(new SyncPbbMapagbumiJob($objek, 5));
         }
 
         $this->info("Berhasil mendaftarkan {$objeks->count()} NOP ke antrean sinkronisasi.");
