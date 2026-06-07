@@ -175,11 +175,11 @@ export default function Index({ auth, objeks, stats, filters }) {
                                 <thead className="bg-gray-50 text-gray-900 font-bold uppercase text-[10px] tracking-wider border-b border-gray-200">
                                     <tr>
                                         <th className="px-4 py-3 text-center border-r border-gray-200">NO</th>
-                                        <th className="px-4 py-3 border-r border-gray-200 text-center">AKSI</th>
-                                        <th className="px-4 py-3 border-r border-gray-200">NOP</th>
+                                        <th className="px-4 py-3 border-r border-gray-200">NOMOR OBJEK PAJAK (NOP)</th>
                                         <th className="px-4 py-3 border-r border-gray-200">NAMA WAJIB PAJAK</th>
                                         <th className="px-4 py-3 border-r border-gray-200 text-center">LUAS (BUMI/BGN)</th>
                                         <th className="px-4 py-3 border-r border-gray-200 text-center">STATUS SINKRONISASI</th>
+                                        <th className="px-4 py-3 text-center w-32">AKSI</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-50">
@@ -188,7 +188,31 @@ export default function Index({ auth, objeks, stats, filters }) {
                                         return (
                                             <tr key={objek.id} className="hover:bg-green-50/30 transition-colors">
                                                 <td className="px-4 py-3 text-center font-mono text-xs">{nomorUrut}</td>
-                                                <td className="px-4 py-3 text-center border-r border-gray-50 flex justify-center gap-2">
+                                                <td className="px-4 py-3">
+                                                    <div className="font-mono text-xs font-bold text-gray-900 bg-gray-100 px-2 py-1 rounded inline-block border border-gray-200">{objek.formatted_nop}</div>
+                                                </td>
+                                                <td className="px-4 py-3 font-bold text-gray-900">
+                                                    {objek.nama_wp || <span className="italic text-gray-400 font-normal">Belum disinkronisasi</span>}
+                                                </td>
+                                                <td className="px-4 py-3 text-center">
+                                                    {objek.luas_bumi ? (
+                                                        <div className="flex gap-2 justify-center items-center text-xs">
+                                                            <span className="bg-green-50 text-green-700 px-2 py-0.5 rounded border border-green-100">{objek.luas_bumi} m²</span>
+                                                            <span className="text-gray-300">/</span>
+                                                            <span className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded border border-blue-100">{objek.luas_bangunan} m²</span>
+                                                        </div>
+                                                    ) : '-'}
+                                                </td>
+                                                <td className="px-4 py-3 text-center border-r border-gray-50">
+                                                    {objek.last_synced_at ? (
+                                                        <Badge color="green" size="sm">
+                                                            {new Date(objek.last_synced_at).toLocaleString('id-ID')}
+                                                        </Badge>
+                                                    ) : (
+                                                        <Badge color="yellow" size="sm">Belum Sync</Badge>
+                                                    )}
+                                                </td>
+                                                <td className="px-4 py-3 text-center flex justify-center gap-2">
                                                     <Link 
                                                         href={route('pajak-pbb.show', objek.id)}
                                                         className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-100 transition-colors"
@@ -212,30 +236,6 @@ export default function Index({ auth, objeks, stats, filters }) {
                                                     >
                                                         <Trash2 size={16} />
                                                     </button>
-                                                </td>
-                                                <td className="px-4 py-3">
-                                                    <div className="font-mono text-xs font-bold text-gray-900 bg-gray-100 px-2 py-1 rounded inline-block border border-gray-200">{objek.formatted_nop}</div>
-                                                </td>
-                                                <td className="px-4 py-3 font-bold text-gray-900">
-                                                    {objek.nama_wp || <span className="italic text-gray-400 font-normal">Belum disinkronisasi</span>}
-                                                </td>
-                                                <td className="px-4 py-3 text-center">
-                                                    {objek.luas_bumi ? (
-                                                        <div className="flex gap-2 justify-center items-center text-xs">
-                                                            <span className="bg-green-50 text-green-700 px-2 py-0.5 rounded border border-green-100">{objek.luas_bumi} m²</span>
-                                                            <span className="text-gray-300">/</span>
-                                                            <span className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded border border-blue-100">{objek.luas_bangunan} m²</span>
-                                                        </div>
-                                                    ) : '-'}
-                                                </td>
-                                                <td className="px-4 py-3 text-center">
-                                                    {objek.last_synced_at ? (
-                                                        <Badge color="green" size="sm">
-                                                            {new Date(objek.last_synced_at).toLocaleString('id-ID')}
-                                                        </Badge>
-                                                    ) : (
-                                                        <Badge color="yellow" size="sm">Belum Sync</Badge>
-                                                    )}
                                                 </td>
                                             </tr>
                                         );
