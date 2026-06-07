@@ -46,7 +46,7 @@ class SyncPbbCommand extends Command
         foreach ($objeks as $objek) {
             $this->line("Dispatching job untuk NOP: {$objek->nop} ...");
             // dispatch_sync agar langsung dieksekusi saat cron jalan (tidak bergantung pada queue worker)
-            dispatch_sync(new SyncPbbMapagbumiJob($objek, 5));
+            dispatch_sync(new SyncPbbMapagbumiJob($objek, 3));
         }
 
         $this->info("Berhasil mendaftarkan {$objeks->count()} NOP ke antrean sinkronisasi.");
