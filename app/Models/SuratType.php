@@ -46,4 +46,12 @@ class SuratType extends Model
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
     }
+
+    /**
+     * Get the sub-templates associated with this letter type.
+     */
+    public function templates()
+    {
+        return $this->hasMany(SuratTypeTemplate::class, 'surat_type_id')->orderBy('urutan');
+    }
 }
