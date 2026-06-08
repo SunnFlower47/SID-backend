@@ -10,13 +10,13 @@ import {
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 
-const fmt    = (n) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(n ?? 0);
+const fmt = (n) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(n ?? 0);
 const fmtQty = (n) => new Intl.NumberFormat('id-ID', { maximumFractionDigits: 2 }).format(n ?? 0);
 
 const KONDISI_MAP = {
-    baik:         { color: 'green',  label: 'Baik' },
+    baik: { color: 'green', label: 'Baik' },
     rusak_ringan: { color: 'yellow', label: 'Rusak Ringan' },
-    rusak_berat:  { color: 'red',    label: 'Rusak Berat' },
+    rusak_berat: { color: 'red', label: 'Rusak Berat' },
 };
 
 export default function Index({ auth, grouped, grandTotal, tahun, semester, tahunList }) {
@@ -57,17 +57,27 @@ export default function Index({ auth, grouped, grandTotal, tahun, semester, tahu
                     title="Inventaris Aset Desa"
                     subtitle="Buku Inventaris Barang Milik Desa (BMD)"
                     actions={[
-                        { label: 'Tambah Aset Baru', icon: Plus, href: route('aset.inventaris.create', { tahun, semester }), variant: 'white' },
+                        {
+                            label: 'Master Kode Barang',
+                            icon: BookOpen,
+                            href: route('aset.barang.index'),
+                            variant: 'ghost'
+                        },
+                        {
+                            label: 'Tambah Aset Baru',
+                            icon: Plus,
+                            href: route('aset.inventaris.create', { tahun, semester }),
+                            variant: 'white'
+                        }
                     ]}
                 />
-
                 {/* StatCards */}
                 <Deferred data={['grouped', 'grandTotal']} fallback={<SkeletonStats count={4} />}>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                        <StatCard icon={BookOpen}     label="Kategori"    value={grouped.length}                          color="blue"    badge="Total"  />
-                        <StatCard icon={Package}      label="Total Item"  value={totalItems}                              color="green"   badge="Aktif"  />
-                        <StatCard icon={TrendingUp}   label="Nilai Awal"  value={fmt(grandTotal?.saldo_awal_nilai ?? 0)}  color="orange"                 />
-                        <StatCard icon={TrendingDown} label="Nilai Akhir" value={fmt(grandTotal?.saldo_akhir_nilai ?? 0)} color="emerald"                />
+                        <StatCard icon={BookOpen} label="Kategori" value={grouped.length} color="blue" badge="Total" />
+                        <StatCard icon={Package} label="Total Item" value={totalItems} color="green" badge="Aktif" />
+                        <StatCard icon={TrendingUp} label="Nilai Awal" value={fmt(grandTotal?.saldo_awal_nilai ?? 0)} color="orange" />
+                        <StatCard icon={TrendingDown} label="Nilai Akhir" value={fmt(grandTotal?.saldo_akhir_nilai ?? 0)} color="emerald" />
                     </div>
                 </Deferred>
 
