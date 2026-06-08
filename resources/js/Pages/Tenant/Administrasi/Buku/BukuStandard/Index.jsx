@@ -32,6 +32,8 @@ export default function BukuStandard({ auth, jenis_buku, data, filters }) {
             filters={filters}
             tableHead={tableHead}
             renderRow={renderRow}
+            hasStandardFilter={true}
+            hideDateFilter={true}
         />
     );
 }

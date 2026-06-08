@@ -17,9 +17,11 @@ const JENIS_OPTIONS = [
 
 const formatRupiah = (v) => `Rp ${Number(v || 0).toLocaleString('id-ID')}`;
 
-const InputField = ({ label, error, children, className = '' }) => (
+const InputField = ({ label, error, children, className = '', required = false }) => (
     <div className={cn('space-y-1.5', className)}>
-        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{label}</label>
+        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
+            {label} {required && <span className="text-red-500">*</span>}
+        </label>
         {children}
         {error && <p className="text-[10px] font-bold text-red-500 uppercase tracking-wider italic ml-1">{error}</p>}
     </div>
@@ -38,6 +40,9 @@ export default function Create({ auth, tahunList = [], currentYear, apbdesList =
         kontraktor:        '',
         tahun_anggaran:    currentYear,
         apbdes_id:         '',
+        volume:            '',
+        sasaran:           '',
+        sifat_proyek:      'baru',
     });
 
     const selectedApbdes = apbdesList.find(a => String(a.id) === String(data.apbdes_id));
@@ -90,19 +95,19 @@ export default function Create({ auth, tahunList = [], currentYear, apbdesList =
                             {/* Section 1: Informasi Dasar */}
                             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-8 space-y-5">
                                 <h3 className="text-xs font-black text-gray-900 uppercase italic tracking-tighter border-b border-gray-100 pb-3">Informasi Proyek</h3>
-                                <InputField label="Nama Proyek" error={errors.nama_proyek}>
+                                <InputField label="Nama Proyek" error={errors.nama_proyek} required={true}>
                                     <input type="text" value={data.nama_proyek} onChange={e => setData('nama_proyek', e.target.value)}
                                         placeholder="Contoh: Pembangunan Jalan Desa RT 03" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-green-500" />
                                 </InputField>
 
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                                    <InputField label="Jenis Proyek" error={errors.jenis}>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mt-5">
+                                    <InputField label="Jenis Proyek" error={errors.jenis} required={true}>
                                         <select value={data.jenis} onChange={e => setData('jenis', e.target.value)}
                                             className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-green-500 appearance-none cursor-pointer">
                                             {JENIS_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                                         </select>
                                     </InputField>
-                                    <InputField label="Lokasi" error={errors.lokasi}>
+                                    <InputField label="Lokasi" error={errors.lokasi} required={true}>
                                         <input type="text" value={data.lokasi} onChange={e => setData('lokasi', e.target.value)}
                                             placeholder="Lokasi pelaksanaan proyek" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-green-500" />
                                     </InputField>
@@ -112,23 +117,42 @@ export default function Create({ auth, tahunList = [], currentYear, apbdesList =
                                     <textarea value={data.deskripsi} onChange={e => setData('deskripsi', e.target.value)}
                                         rows={3} placeholder="Uraian singkat tentang proyek ini..." className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-green-500 resize-none" />
                                 </InputField>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                    <InputField label="Volume (Opsional)" error={errors.volume}>
+                                        <input type="text" value={data.volume} onChange={e => setData('volume', e.target.value)}
+                                            placeholder="Contoh: 1000 meter, 2 unit" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-green-500" />
+                                    </InputField>
+                                    <InputField label="Sifat Proyek" error={errors.sifat_proyek} required={true}>
+                                        <select value={data.sifat_proyek} onChange={e => setData('sifat_proyek', e.target.value)}
+                                            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-green-500 appearance-none cursor-pointer">
+                                            <option value="baru">Baru</option>
+                                            <option value="lanjutan">Lanjutan</option>
+                                        </select>
+                                    </InputField>
+                                </div>
+
+                                <InputField label="Sasaran / Manfaat (Opsional)" error={errors.sasaran}>
+                                    <textarea value={data.sasaran} onChange={e => setData('sasaran', e.target.value)}
+                                        rows={2} placeholder="Meningkatkan mobilitas warga..." className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-green-500 resize-none" />
+                                </InputField>
                             </div>
 
                             {/* Section 2: Waktu & PIC */}
                             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-8 space-y-5">
                                 <h3 className="text-xs font-black text-gray-900 uppercase italic tracking-tighter border-b border-gray-100 pb-3">Jadwal & Penanggung Jawab</h3>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                                    <InputField label="Tanggal Mulai" error={errors.tanggal_mulai}>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mt-5">
+                                    <InputField label="Tanggal Mulai" error={errors.tanggal_mulai} required={true}>
                                         <input type="date" value={data.tanggal_mulai} onChange={e => setData('tanggal_mulai', e.target.value)}
                                             className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-green-500" />
                                     </InputField>
-                                    <InputField label="Tanggal Selesai (Target)" error={errors.tanggal_selesai}>
+                                    <InputField label="Tanggal Selesai (Target / Opsional)" error={errors.tanggal_selesai}>
                                         <input type="date" value={data.tanggal_selesai} onChange={e => setData('tanggal_selesai', e.target.value)}
                                             min={data.tanggal_mulai} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-green-500" />
                                     </InputField>
                                 </div>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                                    <InputField label="Penanggung Jawab" error={errors.penanggung_jawab}>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mt-5">
+                                    <InputField label="Penanggung Jawab" error={errors.penanggung_jawab} required={true}>
                                         <input type="text" value={data.penanggung_jawab} onChange={e => setData('penanggung_jawab', e.target.value)}
                                             placeholder="Nama PIC / koordinator" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-green-500" />
                                     </InputField>
@@ -143,7 +167,7 @@ export default function Create({ auth, tahunList = [], currentYear, apbdesList =
                             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-8 space-y-5">
                                 <h3 className="text-xs font-black text-gray-900 uppercase italic tracking-tighter border-b border-gray-100 pb-3">Anggaran & Sumber Dana</h3>
 
-                                <InputField label="Rekening APBDes (Belanja)" error={errors.apbdes_id}>
+                                <InputField label="Rekening APBDes (Belanja)" error={errors.apbdes_id} required={true}>
                                     <select value={data.apbdes_id} onChange={e => setData('apbdes_id', e.target.value)}
                                         className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-green-500 appearance-none cursor-pointer">
                                         <option value="">-- Pilih Rekening --</option>
@@ -163,8 +187,8 @@ export default function Create({ auth, tahunList = [], currentYear, apbdesList =
                                     </div>
                                 )}
 
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                                    <InputField label="Anggaran Proyek (Rp)" error={errors.anggaran}>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mt-5">
+                                    <InputField label="Anggaran Proyek (Rp)" error={errors.anggaran} required={true}>
                                         <input type="number" value={data.anggaran} onChange={e => setData('anggaran', e.target.value)}
                                             max={sisaAnggaran ?? undefined} min="0"
                                             className={cn("w-full border rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-green-500",
@@ -176,7 +200,7 @@ export default function Create({ auth, tahunList = [], currentYear, apbdesList =
                                             </div>
                                         )}
                                     </InputField>
-                                    <InputField label="Tahun Anggaran" error={errors.tahun_anggaran}>
+                                    <InputField label="Tahun Anggaran" error={errors.tahun_anggaran} required={true}>
                                         <select value={data.tahun_anggaran} onChange={e => setData('tahun_anggaran', e.target.value)}
                                             className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-green-500 appearance-none cursor-pointer">
                                             {(tahunList.length ? tahunList : [currentYear]).map(t => <option key={t} value={t}>{t}</option>)}

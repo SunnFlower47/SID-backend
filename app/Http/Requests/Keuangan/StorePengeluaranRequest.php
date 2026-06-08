@@ -28,6 +28,10 @@ class StorePengeluaranRequest extends FormRequest
             'no_bukti'            => 'nullable|string|max:50',
             'jenis_bukti'         => 'nullable|in:kwitansi,nota,spj,transfer,lainnya',
             'file_bukti'          => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120', // max 5MB
+            'pajak_ppn'           => 'nullable|numeric|min:0',
+            'pajak_pph21'         => 'nullable|numeric|min:0',
+            'pajak_pph22'         => 'nullable|numeric|min:0',
+            'pajak_pph23'         => 'nullable|numeric|min:0',
         ];
     }
 }

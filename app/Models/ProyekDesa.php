@@ -26,6 +26,9 @@ class ProyekDesa extends Model
         'dokumentasi',
         'catatan',
         'apbdes_id',
+        'volume',
+        'sasaran',
+        'sifat_proyek',
     ];
 
     protected $casts = [

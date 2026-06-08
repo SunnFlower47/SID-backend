@@ -73,28 +73,76 @@ class BukuAdministrasiController extends Controller
             ]);
         }
 
-        $data = $this->bukuService->getData($jenis_buku, $request->all());
+        $filters = $request->only(['start_date', 'end_date', 'search', 'tahun']);
+        
+        // Default tahun ke tahun berjalan jika tidak diisi
+        if (empty($filters['tahun'])) {
+            $filters['tahun'] = date('Y');
+        }
 
-        // Mapping views
-        $viewMap = [
-            'peraturan-desa' => 'Tenant/Administrasi/Buku/PeraturanDesa/Index',
-            'keputusan-kades' => 'Tenant/Administrasi/Buku/KeputusanKades/Index',
-            'buku-agenda' => 'Tenant/Administrasi/Buku/BukuAgenda/Index',
-            'aparat-pemerintah' => 'Tenant/Administrasi/Buku/AparatPemerintah/Index',
-            'tanah-di-desa' => 'Tenant/Administrasi/Buku/TanahDiDesa/Index',
-            'buku-mutasi-penduduk' => 'Tenant/Administrasi/Buku/BukuMutasiPenduduk/Index',
-            'buku-rekapitulasi-penduduk' => 'Tenant/Administrasi/Buku/BukuRekapitulasiPenduduk/Index',
-            'buku-penduduk-sementara' => 'Tenant/Administrasi/Buku/BukuPendudukSementara/Index',
-            'buku-ktp-kk' => 'Tenant/Administrasi/Buku/BukuKtpKk/Index',
+        $data = $this->bukuService->getData($jenis_buku, $filters);
+
+        switch ($jenis_buku) {
+            case 'peraturan-desa':
+                $viewName = 'Tenant/Administrasi/Buku/PeraturanDesa/Index';
+                break;
+            case 'keputusan-kades':
+                $viewName = 'Tenant/Administrasi/Buku/KeputusanKades/Index';
+                break;
+            case 'buku-agenda':
+                $viewName = 'Tenant/Administrasi/Buku/BukuAgenda/Index';
+                break;
+            case 'aparat-pemerintah':
+                $viewName = 'Tenant/Administrasi/Buku/AparatPemerintah/Index';
+                break;
+            case 'tanah-di-desa':
+                $viewName = 'Tenant/Administrasi/Buku/TanahDiDesa/Index';
+                break;
+            case 'buku-mutasi-penduduk':
+                $viewName = 'Tenant/Administrasi/Buku/BukuMutasiPenduduk/Index';
+                break;
+            case 'buku-rekapitulasi-penduduk':
+                $viewName = 'Tenant/Administrasi/Buku/BukuRekapitulasiPenduduk/Index';
+                break;
+            case 'buku-penduduk-sementara':
+                $viewName = 'Tenant/Administrasi/Buku/BukuPendudukSementara/Index';
+                break;
+            case 'buku-ktp-kk':
+                $viewName = 'Tenant/Administrasi/Buku/BukuKtpKk/Index';
+                break;
+            case 'rkp-desa':
+                $viewName = 'Tenant/Administrasi/Buku/RkpDesa/Index';
+                break;
+            case 'buku-kegiatan-pembangunan':
+                $viewName = 'Tenant/Administrasi/Buku/BukuKegiatanPembangunan/Index';
+                break;
+            case 'buku-inventaris-pembangunan':
+                $viewName = 'Tenant/Administrasi/Buku/BukuInventarisPembangunan/Index';
+                break;
+            case 'buku-apb-desa':
+                $viewName = 'Tenant/Administrasi/Buku/BukuApbdes/Index';
+                break;
+            case 'buku-rab':
+                $viewName = 'Tenant/Administrasi/Buku/BukuRab/Index';
+                break;
+            case 'buku-kas-pembantu-kegiatan':
+                $viewName = 'Tenant/Administrasi/Buku/BukuKasPembantuKegiatan/Index';
+                break;
+            default:
+                $viewName = 'Tenant/Administrasi/Buku/BukuStandard/Index';
+        }
+
+        $viewData = [
+            'jenis_buku' => $jenis_buku,
+            'data' => $data,
+            'filters' => $filters,
         ];
 
-        $viewName = $viewMap[$jenis_buku] ?? 'Tenant/Administrasi/Buku/BukuStandard/Index';
+        if ($jenis_buku === 'buku-kas-pembantu-kegiatan') {
+            $viewData['apbdes_list'] = \App\Models\Apbdes::where('jenis', 'belanja')->orderBy('kode_rekening')->get(['id', 'kode_rekening', 'nama_rekening']);
+        }
 
-        return Inertia::render($viewName, [
-            'jenis_buku' => $jenis_buku,
-            'filters'    => $request->only(['start_date', 'end_date', 'search', 'tahun']),
-            'data'       => $data
-        ]);
+        return inertia($viewName, $viewData);
     }
 
     public function exportExcel($jenis_buku, Request $request)
@@ -116,8 +164,12 @@ class BukuAdministrasiController extends Controller
             );
         }
 
-        // Buku-buku lain
-        $data = $this->bukuService->getData($jenis_buku, $request->all(), true);
+        $filters = $request->only(['start_date', 'end_date', 'search', 'tahun', 'apbdes_id']);
+        if (empty($filters['tahun'])) {
+            $filters['tahun'] = date('Y');
+        }
+
+        $data = $this->bukuService->getData($jenis_buku, $filters, true);
         $viewName = 'pdf.buku-administrasi.' . $jenis_buku;
         
         if (!view()->exists($viewName)) {
@@ -126,8 +178,9 @@ class BukuAdministrasiController extends Controller
 
         $viewData = [
             'data'       => $data,
-            'filters'    => $request->only(['start_date', 'end_date', 'search']),
-            'jenis_buku' => $jenis_buku
+            'filters'    => $filters,
+            'jenis_buku' => $jenis_buku,
+            'is_excel'   => true
         ];
 
         // Kependudukan khusus via Query Generator (Induk, Mutasi, Sementara, KTP KK) atau Rekapitulasi
@@ -159,6 +212,14 @@ class BukuAdministrasiController extends Controller
             'aparat-pemerintah' => \App\Exports\Buku\AparatPemerintahExport::class,
             'tanah-kas-desa' => \App\Exports\Buku\TanahKasDesaExport::class,
             'tanah-di-desa' => \App\Exports\Buku\TanahDiDesaExport::class,
+            'rkp-desa' => \App\Exports\Buku\RkpDesaExport::class,
+            'buku-kegiatan-pembangunan' => \App\Exports\Buku\BukuKegiatanPembangunanExport::class,
+            'buku-inventaris-pembangunan' => \App\Exports\Buku\BukuInventarisPembangunanExport::class,
+            'buku-apb-desa' => \App\Exports\Buku\BukuApbDesaExport::class,
+            'buku-rab' => \App\Exports\Buku\BukuRabExport::class,
+            'buku-kas-pembantu-kegiatan' => \App\Exports\Buku\BukuKasPembantuKegiatanExport::class,
+            'buku-kas-umum' => \App\Exports\Buku\BukuKasUmumExport::class,
+            'buku-kas-pembantu-pajak' => \App\Exports\Buku\BukuKasPembantuPajakExport::class,
         ];
 
         // Default fallback
@@ -199,10 +260,16 @@ class BukuAdministrasiController extends Controller
         // Buku-buku lain: Batasi kueri untuk kependudukan agar memori tidak habis
         if (in_array($jenis_buku, ['buku-induk-penduduk', 'buku-mutasi-penduduk', 'buku-penduduk-sementara', 'buku-ktp-kk'])) {
             $data = $this->bukuService->getQuery($jenis_buku, $request->all())->limit(500)->get();
+            $filters = $request->only(['start_date', 'end_date', 'search']);
         } else if ($jenis_buku === 'buku-rekapitulasi-penduduk') {
             $data = $this->bukuService->getData($jenis_buku, $request->all(), true);
+            $filters = $request->only(['start_date', 'end_date', 'search']);
         } else {
-            $data = $this->bukuService->getData($jenis_buku, $request->all(), true);
+            $filters = $request->only(['start_date', 'end_date', 'search', 'tahun', 'apbdes_id']);
+            if (empty($filters['tahun'])) {
+                $filters['tahun'] = date('Y');
+            }
+            $data = $this->bukuService->getData($jenis_buku, $filters, true);
             if ($data->count() > 500) {
                 $data = $data->take(500);
             }
@@ -215,7 +282,7 @@ class BukuAdministrasiController extends Controller
 
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView($viewName, [
             'data'       => $data,
-            'filters'    => $request->only(['start_date', 'end_date', 'search']),
+            'filters'    => $filters,
             'jenis_buku' => $jenis_buku
         ]);
 

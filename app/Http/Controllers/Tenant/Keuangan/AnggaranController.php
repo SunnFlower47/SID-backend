@@ -80,6 +80,12 @@ class AnggaranController extends Controller
             'tahunList'  => $tahunList,
             'tahun'      => $tahun,
             'jenis'      => $jenis,
+            'taxRates'   => [
+                'ppn'   => (float) \App\Models\DesaSetting::getValue('pajak_ppn_rate', '11'),
+                'pph21' => (float) \App\Models\DesaSetting::getValue('pajak_pph21_rate', '5'),
+                'pph22' => (float) \App\Models\DesaSetting::getValue('pajak_pph22_rate', '1.5'),
+                'pph23' => (float) \App\Models\DesaSetting::getValue('pajak_pph23_rate', '2'),
+            ],
         ]);
     }
 
@@ -200,6 +206,12 @@ class AnggaranController extends Controller
         return Inertia::render('Tenant/Keuangan/APBDes/EditExpenditure', [
             'pengeluaran'       => $pengeluaran,
             'jenisBuktiOptions' => HistoriPengeluaran::JENIS_BUKTI,
+            'taxRates'   => [
+                'ppn'   => (float) \App\Models\DesaSetting::getValue('pajak_ppn_rate', '11'),
+                'pph21' => (float) \App\Models\DesaSetting::getValue('pajak_pph21_rate', '5'),
+                'pph22' => (float) \App\Models\DesaSetting::getValue('pajak_pph22_rate', '1.5'),
+                'pph23' => (float) \App\Models\DesaSetting::getValue('pajak_pph23_rate', '2'),
+            ],
         ]);
     }
 
@@ -300,5 +312,69 @@ class AnggaranController extends Controller
             return redirect()->back()
                 ->withErrors(['error' => $e->getMessage()]);
         }
+    }
+
+    /**
+     * Show Rincian APBDes
+     */
+    public function rincianApbdes($id)
+    {
+        $apbdes = Apbdes::with('rincians')->findOrFail($id);
+        
+        return Inertia::render('Tenant/Keuangan/APBDes/Rincian', [
+            'apbdes' => $apbdes
+        ]);
+    }
+
+    /**
+     * Store Rincian APBDes
+     */
+    public function storeRincian(Request $request)
+    {
+        $validated = $request->validate([
+            'apbdes_id' => 'required|exists:apbdes,id',
+            'uraian' => 'required|string|max:255',
+            'volume' => 'required|numeric|min:0',
+            'satuan' => 'required|string|max:50',
+            'harga_satuan' => 'required|numeric|min:0',
+            'keterangan' => 'nullable|string|max:255',
+        ]);
+
+        $validated['jumlah'] = $validated['volume'] * $validated['harga_satuan'];
+        \App\Models\ApbdesRincian::create($validated);
+
+        return redirect()->back()->with('success', 'Rincian RAB berhasil ditambahkan.');
+    }
+
+    /**
+     * Update Rincian APBDes
+     */
+    public function updateRincian(Request $request, $id)
+    {
+        $rincian = \App\Models\ApbdesRincian::findOrFail($id);
+
+        $validated = $request->validate([
+            'uraian' => 'required|string|max:255',
+            'volume' => 'required|numeric|min:0',
+            'satuan' => 'required|string|max:50',
+            'harga_satuan' => 'required|numeric|min:0',
+            'keterangan' => 'nullable|string|max:255',
+        ]);
+
+        $validated['jumlah'] = $validated['volume'] * $validated['harga_satuan'];
+        $rincian->update($validated);
+
+        return redirect()->back()->with('success', 'Rincian RAB berhasil diperbarui.');
+    }
+
+    /**
+     * Delete Rincian APBDes
+     */
+    public function deleteRincian($id)
+    {
+        $rincian = \App\Models\ApbdesRincian::findOrFail($id);
+        $rincian->delete();
+
+        return redirect()->back()->with('success', 'Rincian RAB berhasil dihapus.');
     }
 }

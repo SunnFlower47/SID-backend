@@ -70,6 +70,10 @@ class AnggaranService
                 'file_bukti'          => $filePath,
                 'nama_file_bukti'     => $namaFileBukti,
                 'spj_status'          => 'belum',
+                'pajak_ppn'           => $data['pajak_ppn'] ?? 0,
+                'pajak_pph21'         => $data['pajak_pph21'] ?? 0,
+                'pajak_pph22'         => $data['pajak_pph22'] ?? 0,
+                'pajak_pph23'         => $data['pajak_pph23'] ?? 0,
             ]);
 
             // Update realisasi APBDes
@@ -129,6 +133,10 @@ class AnggaranService
                 'jenis_bukti'         => $data['jenis_bukti'] ?? $pengeluaran->jenis_bukti,
                 'file_bukti'          => $filePath,
                 'nama_file_bukti'     => $namaFileBukti,
+                'pajak_ppn'           => $data['pajak_ppn'] ?? $pengeluaran->pajak_ppn,
+                'pajak_pph21'         => $data['pajak_pph21'] ?? $pengeluaran->pajak_pph21,
+                'pajak_pph22'         => $data['pajak_pph22'] ?? $pengeluaran->pajak_pph22,
+                'pajak_pph23'         => $data['pajak_pph23'] ?? $pengeluaran->pajak_pph23,
             ]);
 
             // Update APBDes realisasi

@@ -57,6 +57,8 @@ export default function BukuIndukPenduduk({ auth, data, filters, rtList, rwList,
             rtList={rtList || []} 
             rwList={rwList || []} 
             dusunList={dusunList || []} 
+            submitRouteName="administrasi.buku.show"
+            submitRouteParams={{ jenis_buku: 'buku-induk-penduduk' }}
         />
     );
 
@@ -70,7 +72,8 @@ export default function BukuIndukPenduduk({ auth, data, filters, rtList, rwList,
             tableHead={tableHead}
             renderRow={renderRow}
             customFilter={customFilter}
-            hasStandardFilter={false}
+            hasStandardFilter={true}
+            hideDateFilter={true}
         />
     );
 }

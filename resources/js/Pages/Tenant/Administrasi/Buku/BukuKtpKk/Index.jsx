@@ -87,6 +87,7 @@ export default function BukuKtpKk({ auth, data, filters }) {
             tableHead={tableHead}
             renderRow={renderRow}
             hasStandardFilter={true}
+            hideDateFilter={true}
         />
     );
 }

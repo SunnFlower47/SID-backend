@@ -50,6 +50,9 @@ export default function PeraturanDesa({ auth, data, filters }) {
             filters={filters}
             tableHead={tableHead}
             renderRow={renderRow}
+            hasStandardFilter={true}
+            hasTahunFilter={true}
+            hideDateFilter={true}
         />
     );
 }

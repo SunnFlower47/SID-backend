@@ -3,11 +3,12 @@ import { Head, Link, router } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { PageHeader, TableCard, EmptyState, Pagination } from '@/Components/Shared';
 import SkeletonTable from '@/Components/Shared/Skeleton/SkeletonTable';
-import { FileBadge, Search, Download, Printer, Filter, Calendar } from 'lucide-react';
+import { FileBadge, Search, Download, Printer, Filter, Calendar, RefreshCw } from 'lucide-react';
 import Lottie from 'lottie-react';
 import loadingAnimation from '@/assets/lottie/loading-circle-animation.json';
 import successAnimation from '@/assets/lottie/success-animation.json';
 import Swal from 'sweetalert2';
+import { cn } from '@/lib/utils';
 
 const LottieComponent = Lottie?.default || Lottie;
 
@@ -29,7 +30,9 @@ export default function BukuLayout({
     // Konfigurasi Filter
     hasStandardFilter = true,
     customFilter = null,
-    isInventarisFilter = false, // Spesifik hanya tahun
+    isInventarisFilter = false, // Spesifik hanya tahun (Legacy)
+    hasTahunFilter = false,     // Menampilkan input Tahun
+    hideDateFilter = false,     // Menyembunyikan Tanggal
 }) {
     const currentYear = new Date().getFullYear();
     const [search, setSearch] = useState(filters?.search || '');
@@ -37,6 +40,9 @@ export default function BukuLayout({
     const [endDate, setEndDate] = useState(filters?.end_date || '');
     const [tahun, setTahun] = useState(filters?.tahun || String(currentYear));
     
+    const hasActiveFilters = filters?.search || filters?.start_date || filters?.end_date || (isInventarisFilter && filters?.tahun && filters?.tahun !== String(currentYear)) || (hasTahunFilter && filters?.tahun && filters?.tahun !== String(currentYear));
+    const [showFilters, setShowFilters] = useState(hasActiveFilters ? true : false);
+
     const [isExporting, setIsExporting] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -55,9 +61,19 @@ export default function BukuLayout({
         setIsExporting(true);
 
         try {
-            const params = isInventarisFilter
-                ? { tahun }
-                : { search, start_date: startDate, end_date: endDate };
+            let params = { ...filters };
+            if (isInventarisFilter) {
+                params.tahun = tahun;
+            } else if (!customFilter) {
+                params.search = search;
+                if (!hideDateFilter) {
+                    params.start_date = startDate;
+                    params.end_date = endDate;
+                }
+                if (hasTahunFilter) {
+                    params.tahun = tahun;
+                }
+            }
             
             const response = await axios.get(route('administrasi.buku.export.excel', jenis_buku), {
                 params,
@@ -84,9 +100,19 @@ export default function BukuLayout({
 
     const handleFilter = (e) => {
         e.preventDefault();
-        const params = isInventarisFilter
-            ? { tahun }
-            : { search, start_date: startDate, end_date: endDate };
+        let params = {};
+        if (isInventarisFilter) {
+            params = { tahun };
+        } else {
+            params = { search };
+            if (!hideDateFilter) {
+                params.start_date = startDate;
+                params.end_date = endDate;
+            }
+            if (hasTahunFilter) {
+                params.tahun = tahun;
+            }
+        }
         router.get(route('administrasi.buku.show', jenis_buku), params, { preserveState: true });
     };
 
@@ -97,12 +123,21 @@ export default function BukuLayout({
     };
 
     const queryParams = new URLSearchParams();
+    if (filters) {
+        Object.keys(filters).forEach(key => {
+            if (filters[key]) queryParams.append(key, filters[key]);
+        });
+    }
+
     if (isInventarisFilter) {
-        if (tahun) queryParams.append('tahun', tahun);
-    } else {
-        if (search) queryParams.append('search', search);
-        if (startDate) queryParams.append('start_date', startDate);
-        if (endDate) queryParams.append('end_date', endDate);
+        if (tahun) queryParams.set('tahun', tahun);
+    } else if (!customFilter) {
+        if (search) queryParams.set('search', search);
+        if (!hideDateFilter) {
+            if (startDate) queryParams.set('start_date', startDate);
+            if (endDate) queryParams.set('end_date', endDate);
+        }
+        if (hasTahunFilter && tahun) queryParams.set('tahun', tahun);
     }
     const pdfUrl = `${route('administrasi.buku.export.pdf', jenis_buku)}?${queryParams.toString()}`;
 
@@ -160,65 +195,111 @@ export default function BukuLayout({
 
                 {/* Filters */}
                 {customFilter ? customFilter : hasStandardFilter ? (
-                    <form onSubmit={handleFilter} className="bg-white p-4 rounded-3xl shadow-sm border border-gray-100 flex flex-col sm:flex-row gap-4 items-end mb-6">
-                        {isInventarisFilter ? (
-                            <div className="flex-1 w-full space-y-2 text-left">
-                                <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Ketik Tahun</label>
-                                <div className="relative">
-                                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                                    <input
-                                        type="number"
-                                        placeholder="Masukkan Tahun..."
-                                        className="w-full pl-11 pr-4 py-3 bg-gray-50 border-none rounded-2xl text-xs font-bold focus:ring-2 focus:ring-green-500 transition-all shadow-inner"
-                                        value={tahun}
-                                        onChange={(e) => setTahun(e.target.value)}
-                                        min="1900"
-                                        max="2099"
-                                    />
+                    <div className="mb-6 space-y-4">
+                        <div className="flex justify-between items-center bg-white p-3 sm:p-4 rounded-2xl sm:rounded-3xl border border-gray-100 shadow-sm transition-all">
+                            <div className="flex items-center gap-2 sm:gap-4">
+                                <div className="w-8 h-8 sm:w-12 sm:h-12 bg-green-50 rounded-xl flex items-center justify-center">
+                                    <Search className="w-4 h-4 sm:w-6 sm:h-6 text-green-600" />
+                                </div>
+                                <div>
+                                    <h3 className="text-[10px] sm:text-sm font-black text-gray-950 uppercase italic tracking-tighter leading-none mb-1 text-left">Konfigurasi Data</h3>
+                                    <p className="hidden sm:block text-[10px] font-bold text-gray-400 uppercase tracking-widest text-left">Pencarian & Filter Buku</p>
                                 </div>
                             </div>
-                        ) : (
-                            <>
-                                <div className="flex-1 w-full space-y-2 text-left">
-                                    <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Pencarian</label>
-                                    <div className="relative">
-                                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                                        <input type="text" placeholder="Pencarian..."
-                                            className="w-full pl-11 pr-4 py-3 bg-gray-50 border-none rounded-2xl text-xs font-bold focus:ring-2 focus:ring-green-500 transition-all shadow-inner"
-                                            value={search} onChange={(e) => setSearch(e.target.value)} />
-                                    </div>
-                                </div>
-                                <div className="w-full sm:w-48 space-y-2 text-left">
-                                    <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Dari Tanggal</label>
-                                    <div className="relative">
-                                        <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                                        <input type="date"
-                                            className="w-full pl-11 pr-4 py-3 bg-gray-50 border-none rounded-2xl text-xs font-bold focus:ring-2 focus:ring-green-500 transition-all shadow-inner"
-                                            value={startDate} onChange={(e) => setStartDate(e.target.value)} />
-                                    </div>
-                                </div>
-                                <div className="w-full sm:w-48 space-y-2 text-left">
-                                    <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Sampai Tanggal</label>
-                                    <div className="relative">
-                                        <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                                        <input type="date"
-                                            className="w-full pl-11 pr-4 py-3 bg-gray-50 border-none rounded-2xl text-xs font-bold focus:ring-2 focus:ring-green-500 transition-all shadow-inner"
-                                            value={endDate} onChange={(e) => setEndDate(e.target.value)} />
-                                    </div>
-                                </div>
-                            </>
-                        )}
-                        <div className="flex gap-2 w-full sm:w-auto">
-                            <button type="submit" className="flex items-center justify-center gap-2 flex-1 sm:flex-none px-8 py-3 bg-green-600 text-white rounded-2xl text-[10px] font-black hover:bg-green-700 active:scale-95 transition-all uppercase tracking-widest shadow-md shadow-green-200">
-                                <Search className="w-3.5 h-3.5" /> CARI DATA
+                            <button
+                                onClick={() => setShowFilters(!showFilters)}
+                                className={cn(
+                                    "flex items-center px-4 py-2 sm:px-6 sm:py-3 rounded-xl text-[9px] sm:text-xs font-black transition-all border shadow-sm active:scale-95",
+                                    showFilters
+                                        ? "bg-yellow-400 text-yellow-900 border-yellow-500 shadow-yellow-400/20"
+                                        : "bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100"
+                                )}
+                            >
+                                <Filter className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
+                                {showFilters ? 'TUTUP PANEL' : 'BUKA FILTER'}
                             </button>
-                            {(search || startDate || endDate || (isInventarisFilter && tahun !== String(currentYear))) && (
-                                <button type="button" onClick={handleReset} className="flex-1 sm:flex-none px-6 py-3 bg-gray-100 text-gray-600 rounded-2xl text-[10px] font-black hover:bg-gray-200 transition-all uppercase tracking-widest">
-                                    RESET
-                                </button>
-                            )}
                         </div>
-                    </form>
+
+                        {showFilters && (
+                            <form onSubmit={handleFilter} className="bg-white p-4 rounded-3xl shadow-sm border border-gray-100 flex flex-col lg:flex-row gap-4 items-end animate-in slide-in-from-top-2 duration-300">
+                                <div className="flex-1 w-full grid grid-cols-1 sm:grid-cols-2 lg:flex gap-4">
+                                    {isInventarisFilter ? (
+                                        <div className="flex-1 space-y-2 text-left">
+                                            <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Ketik Tahun</label>
+                                            <div className="relative">
+                                                <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                                <input
+                                                    type="number"
+                                                    placeholder="Masukkan Tahun..."
+                                                    className="w-full pl-11 pr-4 py-3 bg-gray-50 border-none rounded-2xl text-xs font-bold focus:ring-2 focus:ring-green-500 transition-all shadow-inner"
+                                                    value={tahun}
+                                                    onChange={(e) => setTahun(e.target.value)}
+                                                    min="1900"
+                                                    max="2099"
+                                                />
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <div className="flex-1 space-y-2 text-left">
+                                                <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Pencarian</label>
+                                                <div className="relative">
+                                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                                    <input type="text" placeholder="Cari data..."
+                                                        className="w-full pl-11 pr-4 py-3 bg-gray-50 border-none rounded-2xl text-xs font-bold focus:ring-2 focus:ring-green-500 transition-all shadow-inner"
+                                                        value={search} onChange={(e) => setSearch(e.target.value)} />
+                                                </div>
+                                            </div>
+                                            {hasTahunFilter && (
+                                                <div className="w-full lg:w-32 space-y-2 text-left">
+                                                    <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Tahun</label>
+                                                    <div className="relative">
+                                                        <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                                        <input type="number" placeholder="Tahun"
+                                                            className="w-full pl-11 pr-4 py-3 bg-gray-50 border-none rounded-2xl text-xs font-bold focus:ring-2 focus:ring-green-500 transition-all shadow-inner"
+                                                            value={tahun} onChange={(e) => setTahun(e.target.value)}
+                                                            min="1900" max="2099" />
+                                                    </div>
+                                                </div>
+                                            )}
+                                            {!hideDateFilter && (
+                                                <>
+                                                    <div className="w-full lg:w-48 space-y-2 text-left">
+                                                        <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Dari Tanggal</label>
+                                                        <div className="relative">
+                                                            <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                                            <input type="date"
+                                                                className="w-full pl-11 pr-4 py-3 bg-gray-50 border-none rounded-2xl text-xs font-bold focus:ring-2 focus:ring-green-500 transition-all shadow-inner"
+                                                                value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+                                                        </div>
+                                                    </div>
+                                                    <div className="w-full lg:w-48 space-y-2 text-left">
+                                                        <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Sampai Tanggal</label>
+                                                        <div className="relative">
+                                                            <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                                            <input type="date"
+                                                                className="w-full pl-11 pr-4 py-3 bg-gray-50 border-none rounded-2xl text-xs font-bold focus:ring-2 focus:ring-green-500 transition-all shadow-inner"
+                                                                value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+                                                        </div>
+                                                    </div>
+                                                </>
+                                            )}
+                                        </>
+                                    )}
+                                </div>
+                                <div className="flex gap-2 w-full lg:w-auto">
+                                    <button type="submit" className="flex items-center justify-center gap-2 flex-1 lg:flex-none px-6 py-3 bg-green-600 text-white rounded-2xl text-[10px] font-black hover:bg-green-700 active:scale-95 transition-all uppercase tracking-widest shadow-md shadow-green-200">
+                                        <Filter className="w-3.5 h-3.5" /> TERAPKAN
+                                    </button>
+                                    {(search || startDate || endDate || (isInventarisFilter && tahun !== String(currentYear)) || (hasTahunFilter && tahun !== String(currentYear))) && (
+                                        <button type="button" onClick={handleReset} className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-gray-50 text-gray-500 rounded-2xl text-[10px] font-black hover:bg-gray-100 hover:text-gray-700 transition-all border border-gray-200 uppercase tracking-widest">
+                                            <RefreshCw className="w-3.5 h-3.5" /> RESET
+                                        </button>
+                                    )}
+                                </div>
+                            </form>
+                        )}
+                    </div>
                 ) : null}
 
                 {/* Table Rendering */}

@@ -171,6 +171,10 @@ export default function Index({ auth, filters = {}, tahunList = [], apbdes, stat
                                                         ) : <span className="text-[9px] text-gray-300">—</span>}
                                                         {item.kegiatan && <p className="text-[8px] text-gray-400 font-bold mt-1 truncate">{item.kegiatan}</p>}
                                                     </td>
+                                                    <td className="px-4 py-4 min-w-[160px]">
+                                                        <p className="text-xs font-bold text-gray-900 leading-tight">{item.nama_rekening}</p>
+                                                        {item.keterangan && <p className="text-[9px] text-gray-500 mt-1 line-clamp-1">{item.keterangan}</p>}
+                                                    </td>
                                                     <td className="px-4 py-4 whitespace-nowrap">
                                                         <Badge
                                                             variant="custom"
@@ -196,6 +200,15 @@ export default function Index({ auth, filters = {}, tahunList = [], apbdes, stat
                                                             </Link>
                                                             {!is_locked && (
                                                                 <>
+                                                                    <Link
+                                                                        href={route('anggaran.rincian-apbdes', item.id)}
+                                                                        className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
+                                                                        title="Rincian RAB"
+                                                                    >
+                                                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                                                                        </svg>
+                                                                    </Link>
                                                                     <Link
                                                                         href={route('anggaran.edit-apbdes', item.id)}
                                                                         className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"

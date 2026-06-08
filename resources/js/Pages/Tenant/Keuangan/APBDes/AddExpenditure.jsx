@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { ArrowLeft, Save, Calendar, Wallet, AlertTriangle, FileText } from 'lucide-react';
@@ -8,14 +8,50 @@ import { PageHeader, FormField, FormCard } from '@/Components/Shared';
 const formatRupiah = (v) => `Rp ${Number(v || 0).toLocaleString('id-ID')}`;
 const formatDate   = (d) => d ? new Date(d).toISOString().split('T')[0] : '';
 
-export default function AddExpenditure({ auth, apbdesList = [], tahunList = [], tahun, jenis }) {
+export default function AddExpenditure({ auth, apbdesList = [], tahunList = [], tahun, jenis, taxRates }) {
     const { data, setData, post, processing, errors } = useForm({
         apbdes_id:           '',
         nama_pengeluaran:    '',
         jumlah:              '',
         tanggal_pengeluaran: new Date().toISOString().split('T')[0],
         keterangan:          '',
+        pajak_ppn:           '',
+        pajak_pph21:         '',
+        pajak_pph22:         '',
+        pajak_pph23:         '',
     });
+
+    const [activeTaxes, setActiveTaxes] = useState({
+        ppn: false,
+        pph21: false,
+        pph22: false,
+        pph23: false
+    });
+
+    const handleTaxToggle = (taxType, isChecked) => {
+        setActiveTaxes(prev => ({ ...prev, [taxType]: isChecked }));
+        
+        const amt = Number(data.jumlah) || 0;
+        let dpp = amt;
+        
+        // PPN & PPh22 biasanya DPP-nya = Harga / 1.11 (jika harga sudah termasuk PPN 11%)
+        // Untuk penyederhanaan kalkulator awam: kita hitung DPP dari jumlah jika PPN aktif
+        if (taxType === 'ppn' || taxType === 'pph22') {
+            dpp = Math.round(amt / (1 + (taxRates.ppn / 100)));
+        }
+
+        if (isChecked) {
+            let taxVal = 0;
+            if (taxType === 'ppn') taxVal = Math.round(dpp * (taxRates.ppn / 100));
+            if (taxType === 'pph21') taxVal = Math.round(amt * (taxRates.pph21 / 100));
+            if (taxType === 'pph22') taxVal = Math.round(dpp * (taxRates.pph22 / 100));
+            if (taxType === 'pph23') taxVal = Math.round(amt * (taxRates.pph23 / 100));
+            
+            setData(`pajak_${taxType}`, taxVal);
+        } else {
+            setData(`pajak_${taxType}`, '');
+        }
+    };
 
     const selectedApbdes = apbdesList.find(a => String(a.id) === String(data.apbdes_id));
     const sisaAnggaran   = selectedApbdes ? Number(selectedApbdes.sisa_anggaran) : null;
@@ -131,6 +167,78 @@ export default function AddExpenditure({ auth, apbdesList = [], tahunList = [], 
                                     onChange={e => setData('keterangan', e.target.value)}
                                     rows={3} 
                                 />
+                            </FormCard>
+
+                            {/* Seksi Pajak */}
+                            <FormCard title="Kalkulator & Pencatatan Pajak" icon={Wallet} bodyClass="p-6 sm:p-8 space-y-6">
+                                <div className="space-y-6">
+                                    {/* Pilihan Pajak */}
+                                    <div className="space-y-4">
+                                        {/* PPN */}
+                                        <div className="flex flex-col sm:flex-row sm:items-start gap-4 p-4 border rounded-xl transition-colors hover:bg-gray-50/50 activeTaxes.ppn ? 'border-green-300 bg-green-50/20' : 'border-gray-100'">
+                                            <div className="flex items-start gap-3 flex-1">
+                                                <input type="checkbox" id="tax_ppn" checked={activeTaxes.ppn} onChange={e => handleTaxToggle('ppn', e.target.checked)} className="mt-1 w-5 h-5 text-green-600 rounded border-gray-300 focus:ring-green-500" />
+                                                <div>
+                                                    <label htmlFor="tax_ppn" className="text-sm font-bold text-gray-800 cursor-pointer">PPN (Pajak Pertambahan Nilai)</label>
+                                                    <p className="text-xs text-gray-500 mt-0.5">Berlaku untuk pengadaan barang/jasa dari toko/rekanan PKP (Pengusaha Kena Pajak).</p>
+                                                </div>
+                                            </div>
+                                            {activeTaxes.ppn && (
+                                                <div className="w-full sm:w-48 shrink-0">
+                                                    <input type="number" placeholder="Nominal Rp" value={data.pajak_ppn} onChange={e => setData('pajak_ppn', e.target.value)} className="w-full text-sm rounded-lg border-green-300 focus:ring-green-500 focus:border-green-500 bg-white font-bold text-green-700" />
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* PPh 21 */}
+                                        <div className="flex flex-col sm:flex-row sm:items-start gap-4 p-4 border rounded-xl transition-colors hover:bg-gray-50/50 activeTaxes.pph21 ? 'border-green-300 bg-green-50/20' : 'border-gray-100'">
+                                            <div className="flex items-start gap-3 flex-1">
+                                                <input type="checkbox" id="tax_pph21" checked={activeTaxes.pph21} onChange={e => handleTaxToggle('pph21', e.target.checked)} className="mt-1 w-5 h-5 text-green-600 rounded border-gray-300 focus:ring-green-500" />
+                                                <div>
+                                                    <label htmlFor="tax_pph21" className="text-sm font-bold text-gray-800 cursor-pointer">PPh Pasal 21</label>
+                                                    <p className="text-xs text-gray-500 mt-0.5">Pemotongan pajak untuk gaji, honorarium, atau upah yang dibayarkan ke orang pribadi.</p>
+                                                </div>
+                                            </div>
+                                            {activeTaxes.pph21 && (
+                                                <div className="w-full sm:w-48 shrink-0">
+                                                    <input type="number" placeholder="Nominal Rp" value={data.pajak_pph21} onChange={e => setData('pajak_pph21', e.target.value)} className="w-full text-sm rounded-lg border-green-300 focus:ring-green-500 focus:border-green-500 bg-white font-bold text-green-700" />
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* PPh 22 */}
+                                        <div className="flex flex-col sm:flex-row sm:items-start gap-4 p-4 border rounded-xl transition-colors hover:bg-gray-50/50 activeTaxes.pph22 ? 'border-green-300 bg-green-50/20' : 'border-gray-100'">
+                                            <div className="flex items-start gap-3 flex-1">
+                                                <input type="checkbox" id="tax_pph22" checked={activeTaxes.pph22} onChange={e => handleTaxToggle('pph22', e.target.checked)} className="mt-1 w-5 h-5 text-green-600 rounded border-gray-300 focus:ring-green-500" />
+                                                <div>
+                                                    <label htmlFor="tax_pph22" className="text-sm font-bold text-gray-800 cursor-pointer">PPh Pasal 22</label>
+                                                    <p className="text-xs text-gray-500 mt-0.5">Pemotongan untuk belanja barang dengan nilai &gt; Rp 2.000.000 (tidak dipecah-pecah).</p>
+                                                </div>
+                                            </div>
+                                            {activeTaxes.pph22 && (
+                                                <div className="w-full sm:w-48 shrink-0">
+                                                    <input type="number" placeholder="Nominal Rp" value={data.pajak_pph22} onChange={e => setData('pajak_pph22', e.target.value)} className="w-full text-sm rounded-lg border-green-300 focus:ring-green-500 focus:border-green-500 bg-white font-bold text-green-700" />
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* PPh 23 */}
+                                        <div className="flex flex-col sm:flex-row sm:items-start gap-4 p-4 border rounded-xl transition-colors hover:bg-gray-50/50 activeTaxes.pph23 ? 'border-green-300 bg-green-50/20' : 'border-gray-100'">
+                                            <div className="flex items-start gap-3 flex-1">
+                                                <input type="checkbox" id="tax_pph23" checked={activeTaxes.pph23} onChange={e => handleTaxToggle('pph23', e.target.checked)} className="mt-1 w-5 h-5 text-green-600 rounded border-gray-300 focus:ring-green-500" />
+                                                <div>
+                                                    <label htmlFor="tax_pph23" className="text-sm font-bold text-gray-800 cursor-pointer">PPh Pasal 23</label>
+                                                    <p className="text-xs text-gray-500 mt-0.5">Pemotongan atas sewa kendaraan/alat, dividen, bunga, atau jasa selain PPh 21.</p>
+                                                </div>
+                                            </div>
+                                            {activeTaxes.pph23 && (
+                                                <div className="w-full sm:w-48 shrink-0">
+                                                    <input type="number" placeholder="Nominal Rp" value={data.pajak_pph23} onChange={e => setData('pajak_pph23', e.target.value)} className="w-full text-sm rounded-lg border-green-300 focus:ring-green-500 focus:border-green-500 bg-white font-bold text-green-700" />
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
                             </FormCard>
                         </div>
 

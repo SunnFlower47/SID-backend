@@ -2,7 +2,7 @@ import React from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { BIDANG_LIST, SUB_BIDANG, SUMBER_DANA_LIST, BIDANG_COLOR, BIDANG_MAP } from '@/Constants/keuangan';
-import { BarChart3, ArrowLeft, Save, Info, FolderOpen, Wallet } from 'lucide-react';
+import { BarChart3, ArrowLeft, Save, Info, FolderOpen, Wallet, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Swal from 'sweetalert2';
 import { PageHeader, FormField, FormCard } from '@/Components/Shared';
@@ -71,6 +71,16 @@ export default function Create({ auth, tahunList = [], currentYear }) {
                         }
                     ]}
                 />
+
+                {errors.error && (
+                    <div className="bg-red-50 border border-red-200 rounded-2xl p-5 flex items-start gap-3">
+                        <AlertTriangle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+                        <div>
+                            <p className="text-xs font-black text-red-700 uppercase tracking-tighter">Gagal Menyimpan</p>
+                            <p className="text-[10px] font-bold text-red-600 mt-0.5 leading-relaxed">{errors.error}</p>
+                        </div>
+                    </div>
+                )}
 
                 <form onSubmit={handleSubmit}>
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

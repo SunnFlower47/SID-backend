@@ -5,7 +5,7 @@ import { PageHeader } from '@/Components/Shared';
 import { 
     Settings, User, Shield, Server, Plus, Edit2, 
     Trash2, Save, X, CheckCircle, Info, Database, Map,
-    FileSpreadsheet, ShieldAlert, Key, UserMinus, Eye, EyeOff
+    FileSpreadsheet, ShieldAlert, Key, UserMinus, Eye, EyeOff, Wallet
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 
@@ -562,6 +562,17 @@ export default function Index({ auth, users, roles, permissions, permissions_str
                     >
                         <Map className="w-4 h-4" />
                         Peta & Geografi
+                    </button>
+                    <button
+                        onClick={() => handleTabChange('finance')}
+                        className={`flex items-center gap-2 px-5 py-3 rounded-xl text-xs font-black uppercase tracking-widest italic transition-all ${
+                            activeTab === 'finance' 
+                                ? 'bg-gradient-to-r from-green-600 to-green-700 text-white shadow-md' 
+                                : 'text-gray-600 hover:bg-gray-50'
+                        }`}
+                    >
+                        <Wallet className="w-4 h-4" />
+                        Pajak & Keuangan
                     </button>
                 </div>
 
@@ -1182,6 +1193,99 @@ export default function Index({ auth, users, roles, permissions, permissions_str
                         >
                             <Save className="w-4 h-4" />
                             Simpan Geografi
+                        </button>
+                    </form>
+                </div>
+            )}
+
+            {/* ========================================================================= */}
+            {/* TAB 6: PAJAK & KEUANGAN */}
+            {/* ========================================================================= */}
+            {activeTab === 'finance' && (
+                <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 sm:p-8 space-y-6 animate-in fade-in duration-300">
+                    <h3 className="text-lg font-black text-gray-900 flex items-center gap-3 uppercase italic tracking-tighter border-b border-gray-50 pb-4">
+                        <Wallet className="w-6 h-6 text-green-600" />
+                        Pengaturan Pajak & Keuangan
+                    </h3>
+                    
+                    <form onSubmit={(e) => {
+                        e.preventDefault();
+                        router.post(route('settings.desa.update'), {
+                            _method: 'put',
+                            settings: [
+                                { key: 'pajak_ppn_rate', value: document.getElementById('pajak_ppn_rate').value, type: 'text', group: 'finance' },
+                                { key: 'pajak_pph21_rate', value: document.getElementById('pajak_pph21_rate').value, type: 'text', group: 'finance' },
+                                { key: 'pajak_pph22_rate', value: document.getElementById('pajak_pph22_rate').value, type: 'text', group: 'finance' },
+                                { key: 'pajak_pph23_rate', value: document.getElementById('pajak_pph23_rate').value, type: 'text', group: 'finance' },
+                            ]
+                        }, {
+                            preserveScroll: true,
+                            onSuccess: () => {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'BERHASIL!',
+                                    text: 'Pengaturan Pajak & Keuangan berhasil diperbarui.',
+                                    timer: 1500,
+                                    showConfirmButton: false,
+                                    customClass: { popup: 'rounded-3xl' }
+                                });
+                            }
+                        });
+                    }} className="space-y-6">
+                        <div className="bg-blue-50/50 p-6 rounded-2xl border border-blue-100 space-y-4">
+                            <h4 className="text-xs font-black text-blue-800 uppercase tracking-widest">Persentase Pajak Default</h4>
+                            <p className="text-[10px] text-blue-600/80 font-medium leading-relaxed">Atur persentase pemotongan pajak default yang akan digunakan di seluruh form pengeluaran APBDes.</p>
+                            
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-blue-700 uppercase tracking-widest ml-1">PPN (%)</label>
+                                    <input
+                                        type="number"
+                                        step="0.1"
+                                        id="pajak_ppn_rate"
+                                        defaultValue={desa_settings['pajak_ppn_rate']?.value || '11'}
+                                        className="w-full px-5 py-4 bg-white border border-blue-200 rounded-2xl text-sm font-bold text-gray-700 focus:ring-4 focus:ring-blue-500/10 transition-all"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-blue-700 uppercase tracking-widest ml-1">PPh 21 (%)</label>
+                                    <input
+                                        type="number"
+                                        step="0.1"
+                                        id="pajak_pph21_rate"
+                                        defaultValue={desa_settings['pajak_pph21_rate']?.value || '5'}
+                                        className="w-full px-5 py-4 bg-white border border-blue-200 rounded-2xl text-sm font-bold text-gray-700 focus:ring-4 focus:ring-blue-500/10 transition-all"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-blue-700 uppercase tracking-widest ml-1">PPh 22 (%)</label>
+                                    <input
+                                        type="number"
+                                        step="0.1"
+                                        id="pajak_pph22_rate"
+                                        defaultValue={desa_settings['pajak_pph22_rate']?.value || '1.5'}
+                                        className="w-full px-5 py-4 bg-white border border-blue-200 rounded-2xl text-sm font-bold text-gray-700 focus:ring-4 focus:ring-blue-500/10 transition-all"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-blue-700 uppercase tracking-widest ml-1">PPh 23 (%)</label>
+                                    <input
+                                        type="number"
+                                        step="0.1"
+                                        id="pajak_pph23_rate"
+                                        defaultValue={desa_settings['pajak_pph23_rate']?.value || '2'}
+                                        className="w-full px-5 py-4 bg-white border border-blue-200 rounded-2xl text-sm font-bold text-gray-700 focus:ring-4 focus:ring-blue-500/10 transition-all"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <button
+                            type="submit"
+                            className="flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-blue-200 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50"
+                        >
+                            <Save className="w-4 h-4" />
+                            Simpan Konfigurasi Pajak
                         </button>
                     </form>
                 </div>

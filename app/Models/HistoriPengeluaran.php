@@ -20,11 +20,21 @@ class HistoriPengeluaran extends Model
         'file_bukti',
         'nama_file_bukti',
         'spj_status',
+        'pajak_ppn',
+        'pajak_pph21',
+        'pajak_pph22',
+        'pajak_pph23',
+        'tanggal_setor_pajak',
     ];
 
     protected $casts = [
         'jumlah'              => 'decimal:2',
         'tanggal_pengeluaran' => 'date',
+        'pajak_ppn'           => 'decimal:2',
+        'pajak_pph21'         => 'decimal:2',
+        'pajak_pph22'         => 'decimal:2',
+        'pajak_pph23'         => 'decimal:2',
+        'tanggal_setor_pajak' => 'date',
     ];
 
     /**

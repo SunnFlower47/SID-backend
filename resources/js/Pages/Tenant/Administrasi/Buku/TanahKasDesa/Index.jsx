@@ -43,6 +43,8 @@ export default function TanahKasDesa({ auth, data, filters }) {
             filters={filters}
             tableHead={tableHead}
             renderRow={renderRow}
+            hasStandardFilter={true}
+            hideDateFilter={true}
         />
     );
 }

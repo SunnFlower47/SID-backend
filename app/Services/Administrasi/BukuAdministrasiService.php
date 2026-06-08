@@ -37,6 +37,22 @@ class BukuAdministrasiService
                 return $this->getBukuPendudukSementara($filters, $isExport);
             case 'buku-ktp-kk':
                 return $this->getBukuKtpKk($filters, $isExport);
+            case 'rkp-desa':
+                return $this->getRkpDesa($filters, $isExport);
+            case 'buku-kegiatan-pembangunan':
+                return $this->getBukuKegiatanPembangunan($filters, $isExport);
+            case 'buku-inventaris-pembangunan':
+                return $this->getBukuInventarisPembangunan($filters, $isExport);
+            case 'buku-apb-desa':
+                return $this->getBukuApbDesa($filters, $isExport);
+            case 'buku-rab':
+                return $this->getBukuRab($filters, $isExport);
+            case 'buku-kas-pembantu-kegiatan':
+                return $this->getBukuKasPembantuKegiatan($filters, $isExport);
+            case 'buku-kas-umum':
+                return $this->getBukuKasUmum($filters, $isExport);
+            case 'buku-kas-pembantu-pajak':
+                return $this->getBukuKasPembantuPajak($filters, $isExport);
             default:
                 throw new \InvalidArgumentException("Jenis buku tidak dikenal: {$jenisBuku}");
         }
@@ -49,6 +65,10 @@ class BukuAdministrasiService
     {
         $query = \App\Models\PeraturanDesa::query()
             ->orderBy('tanggal_ditetapkan', 'desc');
+
+        if (!empty($filters['tahun'])) {
+            $query->whereYear('tanggal_ditetapkan', $filters['tahun']);
+        }
 
         if (!empty($filters['start_date']) && !empty($filters['end_date'])) {
             $startDate = Carbon::parse($filters['start_date'])->startOfDay();
@@ -569,6 +589,10 @@ class BukuAdministrasiService
             ->with('author:id,name')
             ->orderBy('tanggal_ditetapkan', 'desc');
 
+        if (!empty($filters['tahun'])) {
+            $query->whereYear('tanggal_ditetapkan', $filters['tahun']);
+        }
+
         if (!empty($filters['start_date']) && !empty($filters['end_date'])) {
             $startDate = Carbon::parse($filters['start_date'])->startOfDay();
             $endDate = Carbon::parse($filters['end_date'])->endOfDay();
@@ -605,5 +629,282 @@ class BukuAdministrasiService
         }
 
         return $isExport ? $query->get() : $query->paginate(20)->withQueryString();
+    }
+
+    /**
+     * Buku Rencana Kerja Pembangunan (RKP) Desa (C.7)
+     */
+    private function getRkpDesa(array $filters, bool $isExport)
+    {
+        $query = \App\Models\ProyekDesa::query()
+            ->with('apbdes')
+            ->orderBy('created_at', 'desc');
+
+        if (!empty($filters['tahun'])) {
+            $tahun = $filters['tahun'];
+            $query->where(function($q) use ($tahun) {
+                $q->whereHas('apbdes', function($sq) use ($tahun) {
+                    $sq->where('tahun', $tahun);
+                })->orWhereYear('tanggal_mulai', $tahun);
+            });
+        } else {
+            // Default to current year if no year filter is provided
+            $tahun = date('Y');
+            $query->where(function($q) use ($tahun) {
+                $q->whereHas('apbdes', function($sq) use ($tahun) {
+                    $sq->where('tahun', $tahun);
+                })->orWhereYear('tanggal_mulai', $tahun);
+            });
+        }
+
+        if (!empty($filters['search'])) {
+            $query->where(function($q) use ($filters) {
+                $q->where('nama_proyek', 'like', "%{$filters['search']}%")
+                  ->orWhere('lokasi', 'like', "%{$filters['search']}%")
+                  ->orWhere('penanggung_jawab', 'like', "%{$filters['search']}%");
+            });
+        }
+
+        return $isExport ? $query->get() : $query->paginate(20)->withQueryString();
+    }
+
+    /**
+     * Buku Kegiatan Pembangunan (C.8)
+     */
+    private function getBukuKegiatanPembangunan(array $filters, bool $isExport)
+    {
+        $query = \App\Models\ProyekDesa::query()
+            ->with('apbdes')
+            ->orderBy('created_at', 'desc');
+
+        if (!empty($filters['tahun'])) {
+            $tahun = $filters['tahun'];
+            $query->where(function($q) use ($tahun) {
+                $q->whereHas('apbdes', function($sq) use ($tahun) {
+                    $sq->where('tahun', $tahun);
+                })->orWhereYear('tanggal_mulai', $tahun);
+            });
+        } else {
+            // Default to current year
+            $tahun = date('Y');
+            $query->where(function($q) use ($tahun) {
+                $q->whereHas('apbdes', function($sq) use ($tahun) {
+                    $sq->where('tahun', $tahun);
+                })->orWhereYear('tanggal_mulai', $tahun);
+            });
+        }
+
+        if (!empty($filters['search'])) {
+            $query->where(function($q) use ($filters) {
+                $q->where('nama_proyek', 'like', "%{$filters['search']}%")
+                  ->orWhere('lokasi', 'like', "%{$filters['search']}%")
+                  ->orWhere('penanggung_jawab', 'like', "%{$filters['search']}%");
+            });
+        }
+
+        return $isExport ? $query->get() : $query->paginate(20)->withQueryString();
+    }
+
+    /**
+     * Buku Inventaris Hasil Pembangunan (C.9)
+     */
+    private function getBukuInventarisPembangunan(array $filters, bool $isExport)
+    {
+        $query = \App\Models\ProyekDesa::query()
+            ->with('apbdes')
+            ->where('status', 'selesai')
+            ->orderBy('created_at', 'desc');
+
+        if (!empty($filters['tahun'])) {
+            $tahun = $filters['tahun'];
+            $query->where(function($q) use ($tahun) {
+                $q->whereHas('apbdes', function($sq) use ($tahun) {
+                    $sq->where('tahun', $tahun);
+                })->orWhereYear('tanggal_mulai', $tahun);
+            });
+        } else {
+            // Default to current year
+            $tahun = date('Y');
+            $query->where(function($q) use ($tahun) {
+                $q->whereHas('apbdes', function($sq) use ($tahun) {
+                    $sq->where('tahun', $tahun);
+                })->orWhereYear('tanggal_mulai', $tahun);
+            });
+        }
+
+        if (!empty($filters['search'])) {
+            $query->where(function($q) use ($filters) {
+                $q->where('nama_proyek', 'like', "%{$filters['search']}%")
+                  ->orWhere('lokasi', 'like', "%{$filters['search']}%");
+            });
+        }
+
+        return $isExport ? $query->get() : $query->paginate(20)->withQueryString();
+    }
+
+    /**
+     * Buku Rencana Anggaran Biaya (C.2)
+     */
+    private function getBukuRab(array $filters, bool $isExport)
+    {
+        $query = \App\Models\Apbdes::query()
+            ->with('rincians')
+            ->orderBy('kode_rekening', 'asc');
+
+        if (!empty($filters['tahun'])) {
+            $query->where('tahun', $filters['tahun']);
+        }
+
+        if (!empty($filters['search'])) {
+            $query->where(function($q) use ($filters) {
+                $q->where('kode_rekening', 'like', "%{$filters['search']}%")
+                  ->orWhere('nama_rekening', 'like', "%{$filters['search']}%")
+                  ->orWhere('kegiatan', 'like', "%{$filters['search']}%")
+                  ->orWhereHas('rincians', function($qr) use ($filters) {
+                      $qr->where('uraian', 'like', "%{$filters['search']}%");
+                  });
+            });
+        }
+
+        // Normally RAB is mostly Belanja, but we can show all or filter if needed
+        // $query->where('jenis', 'belanja');
+
+        return $isExport ? $query->get() : $query->paginate(20)->withQueryString();
+    }
+
+    /**
+     * Buku APB Desa (C.1)
+     */
+    private function getBukuApbDesa(array $filters, bool $isExport)
+    {
+        $query = \App\Models\Apbdes::query()
+            ->orderBy('kode_rekening', 'asc');
+
+        if (!empty($filters['tahun'])) {
+            $query->where('tahun', $filters['tahun']);
+        }
+
+        if (!empty($filters['search'])) {
+            $query->where(function($q) use ($filters) {
+                $q->where('kode_rekening', 'like', "%{$filters['search']}%")
+                  ->orWhere('nama_rekening', 'like', "%{$filters['search']}%")
+                  ->orWhere('kegiatan', 'like', "%{$filters['search']}%");
+            });
+        }
+
+        return $isExport ? $query->get() : $query->paginate(20)->withQueryString();
+    }
+
+    /**
+     * Buku Kas Pembantu Kegiatan (C.3)
+     */
+    private function getBukuKasPembantuKegiatan(array $filters, bool $isExport)
+    {
+        $query = \App\Models\HistoriPengeluaran::query()
+            ->with(['apbdes'])
+            ->orderBy('tanggal_pengeluaran', 'asc')
+            ->orderBy('id', 'asc');
+
+        if (!empty($filters['apbdes_id'])) {
+            $query->where('apbdes_id', $filters['apbdes_id']);
+        } else {
+            // Default to no data or require user to select an activity first
+            // Usually we require filtering by apbdes_id for C.3
+            if (!$isExport) {
+                // If not export, return empty paginator if no kegiatan selected
+                $query->whereRaw('1 = 0');
+            }
+        }
+
+        if (!empty($filters['start_date']) && !empty($filters['end_date'])) {
+            $startDate = Carbon::parse($filters['start_date'])->startOfDay();
+            $endDate = Carbon::parse($filters['end_date'])->endOfDay();
+            $query->whereBetween('tanggal_pengeluaran', [$startDate, $endDate]);
+        }
+
+        $items = $isExport ? $query->get() : $query->paginate(50)->withQueryString();
+
+        // Calculate cumulative saldo
+        $saldo = 0;
+        foreach ($items as $item) {
+            $penerimaan = $item->jenis_transaksi === 'pencairan_panjar' ? $item->jumlah : 0;
+            $pengeluaran = $item->jenis_transaksi !== 'pencairan_panjar' ? $item->jumlah : 0;
+            $saldo = $saldo + $penerimaan - $pengeluaran;
+            
+            $item->penerimaan = $penerimaan;
+            $item->pengeluaran = $pengeluaran;
+            $item->saldo = $saldo;
+        }
+
+        return $items;
+    }
+
+    /**
+     * Buku Kas Pembantu Pajak (C.5)
+     */
+    private function getBukuKasPembantuPajak(array $filters, bool $isExport)
+    {
+        $tahun = $filters['tahun'] ?? date('Y');
+
+        $pengeluarans = \App\Models\HistoriPengeluaran::where(function($query) use ($tahun) {
+                $query->whereYear('tanggal_pengeluaran', $tahun)
+                      ->orWhereYear('tanggal_setor_pajak', $tahun);
+            })
+            ->where(function($q) {
+                $q->where('pajak_ppn', '>', 0)
+                  ->orWhere('pajak_pph21', '>', 0)
+                  ->orWhere('pajak_pph22', '>', 0)
+                  ->orWhere('pajak_pph23', '>', 0);
+            })
+            ->get();
+
+        $rows = collect();
+
+        foreach ($pengeluarans as $p) {
+            // Pemotongan
+            if (\Carbon\Carbon::parse($p->tanggal_pengeluaran)->year == $tahun) {
+                $rows->push((object)[
+                    'tanggal' => $p->tanggal_pengeluaran,
+                    'uraian' => 'Pemotongan Pajak: ' . $p->nama_pengeluaran,
+                    'pemotongan_ppn' => $p->pajak_ppn,
+                    'pemotongan_pph21' => $p->pajak_pph21,
+                    'pemotongan_pph22' => $p->pajak_pph22,
+                    'pemotongan_pph23' => $p->pajak_pph23,
+                    'penyetoran_ppn' => 0,
+                    'penyetoran_pph21' => 0,
+                    'penyetoran_pph22' => 0,
+                    'penyetoran_pph23' => 0,
+                ]);
+            }
+
+            // Penyetoran
+            if ($p->tanggal_setor_pajak && \Carbon\Carbon::parse($p->tanggal_setor_pajak)->year == $tahun) {
+                $rows->push((object)[
+                    'tanggal' => $p->tanggal_setor_pajak,
+                    'uraian' => 'Penyetoran Pajak: ' . $p->nama_pengeluaran,
+                    'pemotongan_ppn' => 0,
+                    'pemotongan_pph21' => 0,
+                    'pemotongan_pph22' => 0,
+                    'pemotongan_pph23' => 0,
+                    'penyetoran_ppn' => $p->pajak_ppn,
+                    'penyetoran_pph21' => $p->pajak_pph21,
+                    'penyetoran_pph22' => $p->pajak_pph22,
+                    'penyetoran_pph23' => $p->pajak_pph23,
+                ]);
+            }
+        }
+
+        $sorted = $rows->sortBy('tanggal')->values();
+
+        $saldo = 0;
+        foreach ($sorted as $r) {
+            $pemotongan = $r->pemotongan_ppn + $r->pemotongan_pph21 + $r->pemotongan_pph22 + $r->pemotongan_pph23;
+            $penyetoran = $r->penyetoran_ppn + $r->penyetoran_pph21 + $r->penyetoran_pph22 + $r->penyetoran_pph23;
+            
+            $saldo += $pemotongan - $penyetoran;
+            $r->saldo = $saldo;
+        }
+
+        return $sorted;
     }
 }

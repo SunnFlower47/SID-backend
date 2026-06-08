@@ -3,7 +3,7 @@ import { Search, Filter, RefreshCw } from 'lucide-react';
 import { router } from '@inertiajs/react';
 import { cn } from '@/lib/utils';
 
-export default function ResidentFilters({ filters, rtList, rwList, dusunList = [] }) {
+export default function ResidentFilters({ filters, rtList, rwList, dusunList = [], submitRouteName = 'penduduk.index', submitRouteParams = {} }) {
     const [showFilters, setShowFilters] = useState(
         filters.search || filters.rt_id || filters.rw_id || filters.dusun_id || filters.jenis_kelamin || filters.filter_umur ? true : false
     );
@@ -27,7 +27,7 @@ export default function ResidentFilters({ filters, rtList, rwList, dusunList = [
                 delete finalFilters[k];
             }
         });
-        router.get(route('penduduk.index'), finalFilters, {
+        router.get(route(submitRouteName, submitRouteParams), finalFilters, {
             preserveState: true,
             preserveScroll: true,
             replace: true
@@ -36,7 +36,7 @@ export default function ResidentFilters({ filters, rtList, rwList, dusunList = [
 
     const handleReset = () => {
         setLocalFilters({ search: '', rt_id: '', rw_id: '', dusun_id: '', jenis_kelamin: '', filter_umur: '' });
-        router.get(route('penduduk.index'));
+        router.get(route(submitRouteName, submitRouteParams));
     };
 
     return (

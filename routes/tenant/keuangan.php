@@ -26,6 +26,10 @@ Route::middleware([])->group(function () {
         Route::get('edit-apbdes/{id}', 'editApbdes')->name('edit-apbdes');
         Route::put('update-apbdes/{id}', 'updateApbdes')->name('update-apbdes');
         Route::delete('delete-apbdes/{id}', 'deleteApbdes')->name('delete-apbdes');
+        Route::get('rincian-apbdes/{id}', 'rincianApbdes')->name('rincian-apbdes');
+        Route::post('store-rincian', 'storeRincian')->name('store-rincian');
+        Route::put('update-rincian/{id}', 'updateRincian')->name('update-rincian');
+        Route::delete('delete-rincian/{id}', 'deleteRincian')->name('delete-rincian');
         Route::get('create-proyek', 'createProyek')->name('create-proyek');
         Route::post('store-proyek', 'storeProyek')->name('store-proyek');
         Route::post('update-realisasi-proyek/{proyek}', 'updateRealisasiProyek')->name('update-realisasi-proyek');

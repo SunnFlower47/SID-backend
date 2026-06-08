@@ -179,6 +179,79 @@ export default function BukuAdministrasiIndex({ auth }) {
                     </div>
                 </div>
 
+                <div className="h-px w-full bg-gradient-to-r from-transparent via-gray-200 to-transparent my-8" />
+
+                {/* ── Section: Administrasi Keuangan ── */}
+                <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-green-50 rounded-xl flex items-center justify-center text-green-600 shrink-0 border border-green-100">
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h2 className="text-sm font-black text-gray-900 tracking-tight uppercase leading-none">Administrasi Keuangan</h2>
+                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Buku Keuangan & Anggaran</p>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <BookCard 
+                            title="Buku APB Desa" 
+                            desc="Buku Anggaran Pendapatan dan Belanja Desa."
+                            icon={FileText} 
+                            color="green"
+                            href={route('administrasi.buku.show', 'buku-apb-desa')}
+                        />
+                        <BookCard 
+                            title="Buku Rencana Anggaran Biaya" 
+                            desc="Buku RAB beserta rincian volume dan harga satuan."
+                            icon={FileText} 
+                            color="blue"
+                            href={route('administrasi.buku.show', 'buku-rab')}
+                        />
+                    </div>
+                </div>
+
+                <div className="h-px w-full bg-gradient-to-r from-transparent via-gray-200 to-transparent my-8" />
+
+                {/* ── Section: Administrasi Pembangunan ── */}
+                <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600 shrink-0 border border-amber-100">
+                            <Building2 className="w-4 h-4" />
+                        </div>
+                        <div>
+                            <h2 className="text-sm font-black text-gray-900 tracking-tight uppercase leading-none">Administrasi Pembangunan</h2>
+                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Buku Proyek & Pembangunan</p>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <BookCard 
+                            title="Buku Rencana Kerja Pembangunan" 
+                            desc="Daftar rekapitulasi proyek pembangunan sesuai APBDes yang direncanakan."
+                            icon={Building2} 
+                            color="amber"
+                            href={route('administrasi.buku.show', 'rkp-desa')}
+                        />
+                        <BookCard 
+                            title="Buku Kegiatan Pembangunan" 
+                            desc="Pencatatan realisasi kegiatan pelaksanaan proyek pembangunan."
+                            icon={Building2} 
+                            color="blue"
+                            href={route('administrasi.buku.show', 'buku-kegiatan-pembangunan')}
+                        />
+                        <BookCard 
+                            title="Buku Inventaris Hasil Pembangunan" 
+                            desc="Daftar aset dan hasil proyek pembangunan desa yang telah selesai."
+                            icon={Archive} 
+                            color="emerald"
+                            href={route('administrasi.buku.show', 'buku-inventaris-pembangunan')}
+                        />
+                    </div>
+                </div>
+
             </div>
         </AuthenticatedLayout>
     );

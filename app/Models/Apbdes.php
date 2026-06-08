@@ -184,6 +184,22 @@ class Apbdes extends Model
     }
 
     /**
+     * Get all incomes for this APBDes
+     */
+    public function penerimaanKas()
+    {
+        return $this->hasMany(PenerimaanKas::class);
+    }
+
+    /**
+     * Get details for RAB
+     */
+    public function rincians()
+    {
+        return $this->hasMany(ApbdesRincian::class);
+    }
+
+    /**
      * Get the activity log options for the model.
      */
     public function getActivitylogOptions(): LogOptions
