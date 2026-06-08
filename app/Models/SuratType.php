@@ -22,6 +22,7 @@ class SuratType extends Model
         'deskripsi',
         'persyaratan',
         'has_template',
+        'has_multi_template',
         'template_code',
         'file_template',
         'icon',
@@ -32,6 +33,7 @@ class SuratType extends Model
 
     protected $casts = [
         'has_template' => 'boolean',
+        'has_multi_template' => 'boolean',
         'is_active' => 'boolean',
         'form_json' => 'array'
     ];

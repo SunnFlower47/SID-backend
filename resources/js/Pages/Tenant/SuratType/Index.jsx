@@ -139,9 +139,18 @@ export default function Index({ auth, suratTypes, storageInfo }) {
                         <p className={`text-2xl font-black ${storageInfo?.orphan_files > 0 ? 'text-orange-500' : 'text-gray-300'}`}>
                             {storageInfo?.orphan_files ?? 0}
                         </p>
-                        <p className="text-[10px] text-gray-400 font-bold">
-                            {storageInfo?.orphan_files > 0 ? '⚠️ Jalankan surat:clean-templates' : 'storage bersih'}
-                        </p>
+                        {storageInfo?.orphan_files > 0 ? (
+                            <Link 
+                                href={route('admin.surat-type.cleanup-templates')}
+                                method="post"
+                                as="button"
+                                className="mt-1 w-full bg-orange-100 hover:bg-orange-200 text-orange-700 py-1.5 px-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all"
+                            >
+                                Hapus File Ga Kepake
+                            </Link>
+                        ) : (
+                            <p className="text-[10px] text-gray-400 font-bold mt-1">storage bersih</p>
+                        )}
                     </div>
                     <div className="bg-white border border-gray-100 rounded-3xl p-5 shadow-sm flex flex-col gap-1">
                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Ukuran</p>

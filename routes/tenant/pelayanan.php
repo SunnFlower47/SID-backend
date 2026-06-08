@@ -37,6 +37,7 @@ Route::middleware([])->group(function () {
         // Master Jenis Surat
         Route::get('surat-type/panduan', [SuratTypeController::class, 'panduan'])->name('surat-type.panduan');
         Route::get('surat-type/{surat_type}/preview-template', [SuratTypeController::class, 'previewTemplate'])->name('surat-type.preview-template');
+        Route::post('surat-type/cleanup-templates', [SuratTypeController::class, 'cleanupTemplates'])->name('surat-type.cleanup-templates');
         Route::resource('surat-type', SuratTypeController::class);
         Route::post('surat-type/{surat_type}', [SuratTypeController::class, 'update'])->name('surat-type.update.post');
 

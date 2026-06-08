@@ -136,6 +136,38 @@ class SuratPengajuanService
             }
         }
 
+        // Backwards/Forwards compatibility for Domisili templates
+        // We ensure BOTH standard (nama) and dm_ prefixed (dm_nama) are available 
+        // so any existing templates won't break, and new templates can be simplified.
+        if (in_array($suratPengajuan->jenis_surat, ['keterangan-domisili', 'domisili'])) {
+            $domisiliMapping = ['nik', 'nama', 'tempat_lahir', 'tanggal_lahir', 'jenis_kelamin', 'agama', 'status_perkawinan', 'kewarganegaraan', 'pekerjaan', 'asal_daerah', 'alamat_asal', 'alamat_tinggal', 'rt', 'rw', 'dusun', 'tanggal_masuk', 'tanggal_berlaku', 'perpanjangan_ke', 'keperluan'];
+            
+            // Map IDs to labels for standard keys if they exist in dataTambahan but not labels
+            if (isset($data['rt_id']) && !isset($data['rt'])) {
+                $rt = \App\Models\Rt::find($data['rt_id']);
+                if ($rt) $data['rt'] = $rt->kode;
+            }
+            if (isset($data['rw_id']) && !isset($data['rw'])) {
+                $rw = \App\Models\Rw::find($data['rw_id']);
+                if ($rw) $data['rw'] = $rw->kode;
+            }
+            if (isset($data['dusun_id']) && !isset($data['dusun'])) {
+                $dusun = \App\Models\Dusun::find($data['dusun_id']);
+                if ($dusun) $data['dusun'] = $dusun->nama;
+            }
+
+            foreach ($domisiliMapping as $field) {
+                // If it has standard field, copy to dm_
+                if (isset($data[$field]) && !isset($data["dm_{$field}"])) {
+                    $data["dm_{$field}"] = $data[$field];
+                }
+                // If it has dm_ field, copy to standard
+                if (isset($data["dm_{$field}"]) && !isset($data[$field])) {
+                    $data[$field] = $data["dm_{$field}"];
+                }
+            }
+        }
+
         return $data;
     }
 

@@ -72,7 +72,7 @@ export default function Create({ auth, suratTypes, wilayah }) {
         setData('jenis_surat', type.id);
         
         // Auto-toggle manual input for Domisili
-        if (type.id === 'keterangan-domisili') {
+        if (['keterangan-domisili', 'domisili'].includes(type.id)) {
             setIsManualInput(true);
         } else {
             setIsManualInput(false);
@@ -106,7 +106,7 @@ export default function Create({ auth, suratTypes, wilayah }) {
         }
         
         // Special fields for Domisili manual input
-        if (type.id === 'keterangan-domisili') {
+        if (['keterangan-domisili', 'domisili'].includes(type.id)) {
             Object.assign(initialData, {
                 nik: '',
                 nama: '',

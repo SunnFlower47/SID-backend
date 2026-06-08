@@ -172,22 +172,22 @@ export default function Show({ auth, suratPengajuan, statusList, suratType }) {
                                     <User className="w-10 h-10" />
                                 </div>
                                 <h4 className="text-lg font-black text-gray-900 uppercase italic tracking-tighter mb-1">
-                                    {p.penduduk?.nama || p.data_tambahan?.nama || 'NAMA TIDAK TERSEDIA'}
+                                    {p.penduduk?.nama || p.nama_pengaju || p.data_tambahan?.nama || 'NAMA TIDAK TERSEDIA'}
                                </h4>
                                 <p className="text-xs font-bold text-gray-400 tracking-widest uppercase mb-4">
-                                    NIK: {p.penduduk?.nik || p.data_tambahan?.nik || '-'}
+                                    NIK: {p.penduduk?.nik || p.nik_pengaju || p.data_tambahan?.nik || '-'}
                                 </p>
                                 
-                                {p.penduduk && (
+                                {(p.penduduk || p.data_tambahan?.asal_daerah) && (
                                     <div className="space-y-3 pt-4 border-t border-gray-50 text-left">
                                         <div className="flex items-start gap-3">
                                             <MapPin className="w-4 h-4 text-gray-300 shrink-0 mt-0.5" />
                                             <div>
                                                 <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Alamat</p>
                                                 <p className="text-[10px] font-bold text-gray-600 uppercase leading-relaxed">
-                                                    {p.penduduk.alamat || '-'} <br />
-                                                    RW {p.penduduk.rw_label} / RT {p.penduduk.rt_label} <br />
-                                                    {p.penduduk.dusun_label}
+                                                    {p.penduduk?.alamat || p.data_tambahan?.asal_daerah || '-'} <br />
+                                                    {p.penduduk ? `RW ${p.penduduk.rw_label} / RT ${p.penduduk.rt_label}` : `(Tujuan) RW ${p.data_tambahan?.rw_id || '-'} / RT ${p.data_tambahan?.rt_id || '-'}`} <br />
+                                                    {p.penduduk?.dusun_label || '(Tujuan) Dusun ' + (p.data_tambahan?.dusun_id || '-')}
                                                 </p>
                                             </div>
                                         </div>

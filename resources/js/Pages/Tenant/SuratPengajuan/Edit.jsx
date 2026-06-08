@@ -32,7 +32,37 @@ export default function Edit({ auth, suratPengajuan, suratTypes, wilayah }) {
         tujuan: suratPengajuan.tujuan || '',
         tanggal_surat: suratPengajuan.tanggal_surat.split('T')[0],
         keterangan_tambahan: suratPengajuan.keterangan_tambahan || '',
-        data_tambahan: suratPengajuan.data_tambahan || {},
+        data_tambahan: (() => {
+            let dt = suratPengajuan.data_tambahan || {};
+            // Backwards compatibility for old dm_ keys from PendudukDomisiliService
+            if (dt.dm_nik && !dt.nik) {
+                return {
+                    ...dt,
+                    nik: dt.dm_nik,
+                    nama: dt.dm_nama,
+                    tempat_lahir: dt.dm_tempat_lahir,
+                    tanggal_lahir: dt.dm_tanggal_lahir,
+                    jenis_kelamin: dt.dm_jenis_kelamin === 'Laki-laki' ? 'L' : (dt.dm_jenis_kelamin === 'Perempuan' ? 'P' : dt.dm_jenis_kelamin),
+                    agama: dt.dm_agama,
+                    status_perkawinan: dt.dm_status_perkawinan,
+                    kewarganegaraan: dt.dm_kewarganegaraan,
+                    pekerjaan: dt.dm_pekerjaan,
+                    asal_daerah: dt.dm_asal_daerah,
+                    alamat_asal: dt.dm_alamat_asal,
+                    alamat_tinggal: dt.dm_alamat_tinggal,
+                    tanggal_masuk: dt.dm_tanggal_masuk,
+                    tanggal_berlaku: dt.dm_tanggal_berlaku,
+                    // Note: old letters might not have rt_id, rw_id, dusun_id, 
+                    // so those will have to be re-selected if the user edits them.
+                };
+            }
+            return Object.keys(dt).length > 0 
+                ? dt 
+                : {
+                    nik: suratPengajuan.nik_pengaju || '',
+                    nama: suratPengajuan.nama_pengaju || ''
+                };
+        })(),
         penandatangan: suratPengajuan.penandatangan || 'kepala_desa'
     });
 
@@ -141,7 +171,7 @@ export default function Edit({ auth, suratPengajuan, suratTypes, wilayah }) {
         }));
 
         // Trigger NIK check for domisili manual input
-        if (key === 'nik' && value.length === 16 && selectedType?.id === 'keterangan-domisili') {
+        if (key === 'nik' && value.length === 16 && ['keterangan-domisili', 'domisili'].includes(selectedType?.id)) {
             checkDomisiliNik(value);
         }
     };
@@ -184,7 +214,7 @@ export default function Edit({ auth, suratPengajuan, suratTypes, wilayah }) {
                                     <User className="w-5 h-5 text-green-600" />
                                     <h3 className="text-sm font-black text-gray-900 uppercase italic tracking-tighter">Informasi Penduduk</h3>
                                 </div>
-                                {data.jenis_surat === 'keterangan-domisili' && (
+                                {['keterangan-domisili', 'domisili'].includes(data.jenis_surat) && (
                                     <button 
                                         type="button"
                                         onClick={() => {
@@ -215,13 +245,28 @@ export default function Edit({ auth, suratPengajuan, suratTypes, wilayah }) {
                                         errors={errors}
                                     />
                                 ) : (
-                                    <ManualDomisiliForm 
-                                        data={data}
-                                        updateDataTambahan={updateDataTambahan}
-                                        isCheckingNik={isCheckingNik}
-                                        wilayah={wilayah}
-                                        checkDomisiliNik={checkDomisiliNik}
-                                    />
+                                    <div className="animate-in fade-in duration-300">
+                                        {['keterangan-domisili', 'domisili'].includes(data.jenis_surat) ? (
+                                            <ManualDomisiliForm 
+                                                data={data}
+                                                updateDataTambahan={updateDataTambahan}
+                                                isCheckingNik={isCheckingNik}
+                                                wilayah={wilayah}
+                                                checkDomisiliNik={checkDomisiliNik}
+                                            />
+                                        ) : data.jenis_surat === 'kematian' ? (
+                                            <KematianForm 
+                                                data={data}
+                                                updateDataTambahan={updateDataTambahan}
+                                                wilayah={wilayah}
+                                            />
+                                        ) : (
+                                            <div className="text-center p-6 text-gray-500 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+                                                <p className="text-xs font-bold uppercase tracking-widest">Warga belum dipilih</p>
+                                                <p className="text-[10px] mt-1">Silakan klik "CARI WARGA" untuk memilih penduduk.</p>
+                                            </div>
+                                        )}
+                                    </div>
                                 )}
                             </div>
                         </div>

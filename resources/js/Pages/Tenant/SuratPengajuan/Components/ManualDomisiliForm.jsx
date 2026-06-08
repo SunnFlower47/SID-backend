@@ -186,7 +186,41 @@ const ManualDomisiliForm = ({ data, updateDataTambahan, isCheckingNik, wilayah, 
                 </div>
             </div>
             <div className="md:col-span-2 space-y-2">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Kota / Kabupaten Asal <span className="text-red-500">*</span></label>
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Alamat Asal (Sesuai KTP)</label>
+                <textarea 
+                    value={data.data_tambahan.alamat_asal || ''}
+                    onChange={e => updateDataTambahan('alamat_asal', e.target.value)}
+                    className="w-full px-5 py-3.5 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-green-500 transition-all shadow-inner"
+                    placeholder="Alamat lengkap sesuai KTP..."
+                    rows={2}
+                />
+            </div>
+            <div className="md:col-span-2 space-y-2">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Alamat Tinggal di Desa</label>
+                <textarea 
+                    value={data.data_tambahan.alamat_tinggal || ''}
+                    onChange={e => updateDataTambahan('alamat_tinggal', e.target.value)}
+                    className="w-full px-5 py-3.5 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-green-500 transition-all shadow-inner"
+                    placeholder="Alamat lengkap tempat tinggal sementara di desa..."
+                    rows={2}
+                />
+            </div>
+            <div className="space-y-2">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Keperluan Domisili</label>
+                <select 
+                    value={data.data_tambahan.keperluan || ''}
+                    onChange={e => updateDataTambahan('keperluan', e.target.value)}
+                    className="w-full px-5 py-3.5 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-green-500 transition-all shadow-inner"
+                >
+                    <option value="">Pilih Keperluan...</option>
+                    <option value="kerja">Bekerja</option>
+                    <option value="sekolah">Sekolah / Kuliah</option>
+                    <option value="ikut_keluarga">Ikut Keluarga</option>
+                    <option value="lainnya">Lainnya</option>
+                </select>
+            </div>
+            <div className="space-y-2">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Tanggal Masuk <span className="text-red-500">*</span></label>
                 <input 
                     type="date"
                     value={data.data_tambahan.tanggal_masuk || ''}

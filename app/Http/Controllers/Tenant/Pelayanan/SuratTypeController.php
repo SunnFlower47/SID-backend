@@ -136,6 +136,9 @@ class SuratTypeController extends Controller
         ]);
 
         if ($request->hasFile('file_template')) {
+            if ($suratType->file_template) {
+                Storage::disk('local')->delete('templates/surat/' . $suratType->file_template);
+            }
             $path = $request->file('file_template')->store('templates/surat', 'local');
             $validated['file_template'] = basename($path);
         } else {
@@ -158,6 +161,28 @@ class SuratTypeController extends Controller
 
         return redirect()->route('admin.surat-type.index')
             ->with('success', 'Jenis surat berhasil dihapus.');
+    }
+
+    public function cleanupTemplates()
+    {
+        Gate::authorize('settings.view');
+
+        $files = Storage::disk('local')->files('templates/surat');
+        $usedFiles = SuratType::whereNotNull('file_template')->pluck('file_template')->toArray();
+        $usedSubFiles = \App\Models\SuratTypeTemplate::whereNotNull('file_template')->pluck('file_template')->toArray();
+        
+        $allUsed = array_merge($usedFiles, $usedSubFiles);
+        $deletedCount = 0;
+
+        foreach ($files as $file) {
+            $basename = basename($file);
+            if (!in_array($basename, $allUsed)) {
+                Storage::disk('local')->delete($file);
+                $deletedCount++;
+            }
+        }
+
+        return redirect()->back()->with('success', "Berhasil membersihkan {$deletedCount} file template word (.docx) yang tidak terpakai.");
     }
 
     /**

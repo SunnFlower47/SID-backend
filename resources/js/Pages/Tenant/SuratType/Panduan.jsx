@@ -146,7 +146,7 @@ export default function Panduan({ auth, suratTypes }) {
                         </h4>
                         <div className="bg-orange-50 border border-orange-100 rounded-2xl p-3 mb-4">
                             <p className="text-[10px] font-bold text-orange-700 uppercase tracking-widest leading-relaxed">
-                                ⚠️ Data domisili diambil dari tabel domisili (BUKAN penduduk tetap). Wajib gunakan prefix <code className="bg-orange-100 px-1 rounded">dm_</code> agar tidak bentrok dengan data penduduk tetap.
+                                ℹ️ Data domisili diambil dari form input manual. Anda dapat menggunakan variabel standar (seperti <code className="bg-orange-100 px-1 rounded">{`\${nama}`}</code>) atau variabel lama dengan awalan <code className="bg-orange-100 px-1 rounded">dm_</code> (seperti <code className="bg-orange-100 px-1 rounded">{`\${dm_nama}`}</code>). Keduanya akan otomatis terisi.
                             </p>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
