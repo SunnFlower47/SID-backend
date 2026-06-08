@@ -34,59 +34,71 @@ export default function Edit({ auth, suratPengajuan, suratTypes, wilayah }) {
         keterangan_tambahan: suratPengajuan.keterangan_tambahan || '',
         data_tambahan: (() => {
             let dt = suratPengajuan.data_tambahan || {};
-            // Backwards compatibility for old dm_ keys from PendudukDomisiliService
-            if (dt.dm_nik && !dt.nik) {
-                return {
-                    ...dt,
-                    nik: dt.dm_nik,
-                    nama: dt.dm_nama,
-                    tempat_lahir: dt.dm_tempat_lahir,
-                    tanggal_lahir: dt.dm_tanggal_lahir,
-                    jenis_kelamin: dt.dm_jenis_kelamin === 'Laki-laki' ? 'L' : (dt.dm_jenis_kelamin === 'Perempuan' ? 'P' : dt.dm_jenis_kelamin),
-                    agama: dt.dm_agama,
-                    status_perkawinan: dt.dm_status_perkawinan,
-                    kewarganegaraan: dt.dm_kewarganegaraan,
-                    pekerjaan: dt.dm_pekerjaan,
-                    asal_daerah: dt.dm_asal_daerah,
-                    alamat_asal: dt.dm_alamat_asal,
-                    alamat_tinggal: dt.dm_alamat_tinggal,
-                    tanggal_masuk: dt.dm_tanggal_masuk,
-                    tanggal_berlaku: dt.dm_tanggal_berlaku,
-                    // Recover missing rt_id, rw_id, dusun_id from string dm_ values
-                    dusun_id: (() => {
-                        if (dt.dusun_id) return dt.dusun_id;
-                        if (dt.dm_dusun && wilayah?.dusun) {
-                            const match = wilayah.dusun.find(d => d.nama === dt.dm_dusun);
-                            return match ? match.id : '';
+            
+            // For domisili forms, clean up any dm_ prefixed keys to prevent doubling in DB
+            if (['keterangan-domisili', 'domisili'].includes(suratPengajuan.jenis_surat)) {
+                let cleaned = {};
+                
+                // First, recover old dm_ keys to standard keys if standard is missing
+                if (dt.dm_nik && !dt.nik) {
+                    cleaned = {
+                        nik: dt.dm_nik,
+                        nama: dt.dm_nama,
+                        tempat_lahir: dt.dm_tempat_lahir,
+                        tanggal_lahir: dt.dm_tanggal_lahir,
+                        jenis_kelamin: dt.dm_jenis_kelamin === 'Laki-laki' ? 'L' : (dt.dm_jenis_kelamin === 'Perempuan' ? 'P' : dt.dm_jenis_kelamin),
+                        agama: dt.dm_agama,
+                        status_perkawinan: dt.dm_status_perkawinan,
+                        kewarganegaraan: dt.dm_kewarganegaraan,
+                        pekerjaan: dt.dm_pekerjaan,
+                        asal_daerah: dt.dm_asal_daerah,
+                        alamat_asal: dt.dm_alamat_asal,
+                        alamat_tinggal: dt.dm_alamat_tinggal,
+                        tanggal_masuk: dt.dm_tanggal_masuk,
+                        tanggal_berlaku: dt.dm_tanggal_berlaku,
+                        perpanjangan_ke: dt.dm_perpanjangan_ke || 0,
+                        keperluan: dt.dm_keperluan || ''
+                    };
+                }
+
+                // Add all non-dm_ keys from dt into cleaned
+                for (let key in dt) {
+                    if (!key.startsWith('dm_')) {
+                        cleaned[key] = dt[key];
+                    }
+                }
+
+                // Recover missing rt_id, rw_id, dusun_id from string dm_ values
+                if (!cleaned.dusun_id && dt.dm_dusun && wilayah?.dusun) {
+                    const match = wilayah.dusun.find(d => d.nama === dt.dm_dusun);
+                    if (match) cleaned.dusun_id = match.id;
+                }
+                if (!cleaned.rw_id && dt.dm_rw && wilayah?.rw) {
+                    const match = wilayah.rw.find(r => String(r.kode) === String(dt.dm_rw) || Number(r.kode) === Number(dt.dm_rw));
+                    if (match) cleaned.rw_id = match.id;
+                }
+                if (!cleaned.rt_id && dt.dm_rt && wilayah?.rt) {
+                    const rts = wilayah.rt.filter(r => String(r.kode) === String(dt.dm_rt) || Number(r.kode) === Number(dt.dm_rt));
+                    if (rts.length > 0) {
+                        const rwMatch = dt.dm_rw ? wilayah?.rw?.find(r => String(r.kode) === String(dt.dm_rw) || Number(r.kode) === Number(dt.dm_rw)) : null;
+                        if (rwMatch) {
+                            const exactRt = rts.find(r => String(r.rw_id) === String(rwMatch.id));
+                            if (exactRt) cleaned.rt_id = exactRt.id;
+                        } else {
+                            cleaned.rt_id = rts[0].id;
                         }
-                        return '';
-                    })(),
-                    rw_id: (() => {
-                        if (dt.rw_id) return dt.rw_id;
-                        if (dt.dm_rw && wilayah?.rw) {
-                            const match = wilayah.rw.find(r => String(r.kode) === String(dt.dm_rw) || Number(r.kode) === Number(dt.dm_rw));
-                            return match ? match.id : '';
-                        }
-                        return '';
-                    })(),
-                    rt_id: (() => {
-                        if (dt.rt_id) return dt.rt_id;
-                        if (dt.dm_rt && wilayah?.rt) {
-                            const rts = wilayah.rt.filter(r => String(r.kode) === String(dt.dm_rt) || Number(r.kode) === Number(dt.dm_rt));
-                            if (rts.length > 0) {
-                                // Try to match the RW id if possible
-                                const rwMatch = dt.dm_rw ? wilayah?.rw?.find(r => String(r.kode) === String(dt.dm_rw) || Number(r.kode) === Number(dt.dm_rw)) : null;
-                                if (rwMatch) {
-                                    const exactRt = rts.find(r => String(r.rw_id) === String(rwMatch.id));
-                                    if (exactRt) return exactRt.id;
-                                }
-                                return rts[0].id;
-                            }
-                        }
-                        return '';
-                    })(),
-                };
+                    }
+                }
+                
+                return Object.keys(cleaned).length > 0 
+                    ? cleaned 
+                    : {
+                        nik: suratPengajuan.nik_pengaju || '',
+                        nama: suratPengajuan.nama_pengaju || ''
+                    };
             }
+
+            // For other types
             return Object.keys(dt).length > 0 
                 ? dt 
                 : {
