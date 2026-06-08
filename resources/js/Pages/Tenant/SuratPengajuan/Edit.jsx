@@ -52,8 +52,39 @@ export default function Edit({ auth, suratPengajuan, suratTypes, wilayah }) {
                     alamat_tinggal: dt.dm_alamat_tinggal,
                     tanggal_masuk: dt.dm_tanggal_masuk,
                     tanggal_berlaku: dt.dm_tanggal_berlaku,
-                    // Note: old letters might not have rt_id, rw_id, dusun_id, 
-                    // so those will have to be re-selected if the user edits them.
+                    // Recover missing rt_id, rw_id, dusun_id from string dm_ values
+                    dusun_id: (() => {
+                        if (dt.dusun_id) return dt.dusun_id;
+                        if (dt.dm_dusun && wilayah?.dusun) {
+                            const match = wilayah.dusun.find(d => d.nama === dt.dm_dusun);
+                            return match ? match.id : '';
+                        }
+                        return '';
+                    })(),
+                    rw_id: (() => {
+                        if (dt.rw_id) return dt.rw_id;
+                        if (dt.dm_rw && wilayah?.rw) {
+                            const match = wilayah.rw.find(r => String(r.kode) === String(dt.dm_rw) || Number(r.kode) === Number(dt.dm_rw));
+                            return match ? match.id : '';
+                        }
+                        return '';
+                    })(),
+                    rt_id: (() => {
+                        if (dt.rt_id) return dt.rt_id;
+                        if (dt.dm_rt && wilayah?.rt) {
+                            const rts = wilayah.rt.filter(r => String(r.kode) === String(dt.dm_rt) || Number(r.kode) === Number(dt.dm_rt));
+                            if (rts.length > 0) {
+                                // Try to match the RW id if possible
+                                const rwMatch = dt.dm_rw ? wilayah?.rw?.find(r => String(r.kode) === String(dt.dm_rw) || Number(r.kode) === Number(dt.dm_rw)) : null;
+                                if (rwMatch) {
+                                    const exactRt = rts.find(r => String(r.rw_id) === String(rwMatch.id));
+                                    if (exactRt) return exactRt.id;
+                                }
+                                return rts[0].id;
+                            }
+                        }
+                        return '';
+                    })(),
                 };
             }
             return Object.keys(dt).length > 0 
