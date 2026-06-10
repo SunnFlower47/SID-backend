@@ -669,7 +669,7 @@ export default function Form({ auth, suratType = null }) {
                     </div>
 
                     {/* Sidebar / Options */}
-                    <div className="space-y-6">
+                    <div className="space-y-6 sticky top-24 self-start">
                         <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
                             <div className="p-6 border-b border-gray-100 bg-gray-50/50 flex items-center gap-3">
                                 <Info className="w-5 h-5 text-blue-600" />

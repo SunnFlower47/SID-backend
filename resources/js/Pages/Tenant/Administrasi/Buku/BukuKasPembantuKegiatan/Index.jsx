@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { usePage, router } from '@inertiajs/react';
 import BukuLayout from '@/Components/Administrasi/BukuLayout';
 
-export default function Index({ jenis_buku, data, filters, apbdes_list }) {
+export default function Index({ auth, jenis_buku, data, filters, apbdes_list }) {
     // Component is essentially a table wrapped in BukuLayout
     // C.3 specific filter: apbdes_id
     const [selectedApbdesId, setSelectedApbdesId] = useState(filters.apbdes_id || '');
@@ -22,7 +22,7 @@ export default function Index({ jenis_buku, data, filters, apbdes_list }) {
     };
 
     return (
-        <BukuLayout title="Buku Kas Pembantu Kegiatan" desc="Mencatat riwayat penerimaan panjar dan pengeluaran belanja per kegiatan." jenis_buku={jenis_buku}>
+        <BukuLayout auth={auth} judul="Buku Kas Pembantu Kegiatan" desc="Mencatat riwayat penerimaan panjar dan pengeluaran belanja per kegiatan." jenis_buku={jenis_buku}>
             
             {/* Custom Filter for Kegiatan */}
             <div className="mb-4 bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex items-center gap-4">

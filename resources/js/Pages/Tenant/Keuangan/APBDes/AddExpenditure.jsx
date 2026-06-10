@@ -11,7 +11,9 @@ const formatDate   = (d) => d ? new Date(d).toISOString().split('T')[0] : '';
 export default function AddExpenditure({ auth, apbdesList = [], tahunList = [], tahun, jenis, taxRates }) {
     const { data, setData, post, processing, errors } = useForm({
         apbdes_id:           '',
+        jenis_transaksi:     'belanja',
         nama_pengeluaran:    '',
+        nama_penerima:       '',
         jumlah:              '',
         tanggal_pengeluaran: new Date().toISOString().split('T')[0],
         keterangan:          '',
@@ -97,19 +99,33 @@ export default function AddExpenditure({ auth, apbdesList = [], tahunList = [], 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         <div className="lg:col-span-2 space-y-6">
                             <FormCard title="Pilih Rekening & Catat Pengeluaran" icon={FileText} bodyClass="p-6 sm:p-8 space-y-6">
-                                <FormField.Select 
-                                    label="Rekening APBDes" 
-                                    error={errors.apbdes_id}
-                                    value={data.apbdes_id}
-                                    onChange={e => setData('apbdes_id', e.target.value)}
-                                    placeholder="-- Pilih Rekening --"
-                                >
-                                    {apbdesList.map(a => (
-                                        <option key={a.id} value={a.id}>
-                                            [{a.kode_rekening}] {a.nama_rekening} — Sisa: {formatRupiah(a.sisa_anggaran)}
-                                        </option>
-                                    ))}
-                                </FormField.Select>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                    <FormField.Select 
+                                        label="Rekening APBDes" 
+                                        error={errors.apbdes_id}
+                                        value={data.apbdes_id}
+                                        onChange={e => setData('apbdes_id', e.target.value)}
+                                        placeholder="-- Pilih Rekening --"
+                                    >
+                                        {apbdesList.map(a => (
+                                            <option key={a.id} value={a.id}>
+                                                [{a.kode_rekening}] {a.nama_rekening} — Sisa: {formatRupiah(a.sisa_anggaran)}
+                                            </option>
+                                        ))}
+                                    </FormField.Select>
+
+                                    <FormField.Select
+                                        label="Jenis Transaksi"
+                                        error={errors.jenis_transaksi}
+                                        value={data.jenis_transaksi}
+                                        onChange={e => setData('jenis_transaksi', e.target.value)}
+                                        required
+                                    >
+                                        <option value="belanja">Belanja Kegiatan (SPP Definitif/SPJ)</option>
+                                        <option value="pencairan_panjar">Pencairan Panjar (Uang Muka/Kasbon)</option>
+                                        <option value="kembali_sisa">Pengembalian Sisa Panjar</option>
+                                    </FormField.Select>
+                                </div>
 
                                 {selectedApbdes && (
                                     <div className="p-4 bg-blue-50 border border-blue-100 rounded-xl space-y-2">
@@ -138,6 +154,14 @@ export default function AddExpenditure({ auth, apbdesList = [], tahunList = [], 
                                         value={data.nama_pengeluaran} 
                                         onChange={e => setData('nama_pengeluaran', e.target.value)}
                                         placeholder="Nama / deskripsi pengeluaran" 
+                                    />
+
+                                    <FormField.Input 
+                                        label="Nama Penerima (Toko/Vendor/Orang)" 
+                                        error={errors.nama_penerima}
+                                        value={data.nama_penerima} 
+                                        onChange={e => setData('nama_penerima', e.target.value)}
+                                        placeholder="Kosongkan jika ingin ditulis tangan saat dicetak" 
                                     />
                                     
                                     <FormField.Input 

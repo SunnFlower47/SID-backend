@@ -123,6 +123,13 @@ export default function BukuAdministrasiIndex({ auth }) {
                             color="emerald"
                             href={route('administrasi.buku.show', 'tanah-di-desa')} 
                         />
+                        <BookCard 
+                            title="Buku Ekspedisi" 
+                            desc="Pencatatan pengiriman surat atau dokumen ke pihak luar."
+                            icon={Mails} 
+                            color="orange"
+                            href={route('administrasi.buku.show', 'buku-ekspedisi')} 
+                        />
                     </div>
                 </div>
 
@@ -210,6 +217,34 @@ export default function BukuAdministrasiIndex({ auth }) {
                             color="blue"
                             href={route('administrasi.buku.show', 'buku-rab')}
                         />
+                        <BookCard 
+                            title="Buku Kas Pembantu Kegiatan" 
+                            desc="Buku pencatatan penerimaan dan pengeluaran tiap kegiatan Pembangunan."
+                            icon={FileText} 
+                            color="orange"
+                            href={route('administrasi.buku.show', 'buku-kas-pembantu-kegiatan')}
+                        />
+                        <BookCard 
+                            title="Buku Kas Umum" 
+                            desc="Buku pencatatan seluruh penerimaan dan pengeluaran tunai desa."
+                            icon={FileText} 
+                            color="purple"
+                            href={route('administrasi.buku.show', 'buku-kas-umum')}
+                        />
+                        <BookCard 
+                            title="Buku Kas Pembantu Pajak" 
+                            desc="Buku pencatatan potongan pajak dan penyetoran pajak ke kas negara."
+                            icon={FileText} 
+                            color="rose"
+                            href={route('administrasi.buku.show', 'buku-kas-pembantu-pajak')}
+                        />
+                        <BookCard 
+                            title="Buku Bank Desa" 
+                            desc="Buku pencatatan mutasi penyetoran dan penarikan di rekening desa."
+                            icon={FileText} 
+                            color="teal"
+                            href={route('administrasi.buku.show', 'buku-bank-desa')}
+                        />
                     </div>
                 </div>
 
@@ -248,6 +283,13 @@ export default function BukuAdministrasiIndex({ auth }) {
                             icon={Archive} 
                             color="emerald"
                             href={route('administrasi.buku.show', 'buku-inventaris-pembangunan')}
+                        />
+                        <BookCard 
+                            title="Buku Kader Pemberdayaan" 
+                            desc="Daftar nama dan profil warga yang menjadi kader pemberdayaan masyarakat desa."
+                            icon={Users} 
+                            color="indigo"
+                            href={route('administrasi.buku.show', 'kader-pemberdayaan')}
                         />
                     </div>
                 </div>

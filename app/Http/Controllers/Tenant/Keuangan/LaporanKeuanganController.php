@@ -153,4 +153,48 @@ class LaporanKeuanganController extends Controller
         $filename = "Laporan-Proyek-Desa-{$tahun}" . ($status ? "-{$status}" : '') . ".pdf";
         return $pdf->download($filename);
     }
+    /**
+     * Generate PDF: Surat Permintaan Pembayaran (SPP)
+     */
+    public function pdfSpp($id)
+    {
+        $pengeluaran = HistoriPengeluaran::with('apbdes')->findOrFail($id);
+        $desaInfo    = DesaSetting::getDesaInfo();
+        $kepalaInfo  = DesaSetting::getKepalaDesaInfo();
+
+        // Calculate total previously disbursed (pencairan s.d lalu)
+        $pencairanLalu = HistoriPengeluaran::where('apbdes_id', $pengeluaran->apbdes_id)
+            ->where('tanggal_pengeluaran', '<', $pengeluaran->tanggal_pengeluaran)
+            ->sum('jumlah');
+
+        $data = compact('pengeluaran', 'desaInfo', 'kepalaInfo', 'pencairanLalu');
+
+        $pdf = Pdf::loadView('pdf.keuangan.spp', $data)
+            ->setPaper('a4', 'portrait')
+            ->setOption('defaultFont', 'sans-serif')
+            ->setOption('dpi', 150);
+
+        $filename = "SPP-" . ($pengeluaran->no_bukti ?: $pengeluaran->id) . ".pdf";
+        return $pdf->download($filename);
+    }
+
+    /**
+     * Generate PDF: Kwitansi Pembayaran
+     */
+    public function pdfKwitansi($id)
+    {
+        $pengeluaran = HistoriPengeluaran::with('apbdes')->findOrFail($id);
+        $desaInfo    = DesaSetting::getDesaInfo();
+        $kepalaInfo  = DesaSetting::getKepalaDesaInfo();
+
+        $data = compact('pengeluaran', 'desaInfo', 'kepalaInfo');
+
+        $pdf = Pdf::loadView('pdf.keuangan.kwitansi', $data)
+            ->setPaper('a4', 'portrait')
+            ->setOption('defaultFont', 'sans-serif')
+            ->setOption('dpi', 150);
+
+        $filename = "Kwitansi-" . ($pengeluaran->no_bukti ?: $pengeluaran->id) . ".pdf";
+        return $pdf->download($filename);
+    }
 }

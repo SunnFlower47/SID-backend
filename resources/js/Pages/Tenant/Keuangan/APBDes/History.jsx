@@ -242,13 +242,22 @@ export default function HistoryPage({ auth, apbdes, jenisBuktiOptions = {} }) {
                                                     </Badge>
                                                 </td>
                                                 <td className="px-4 py-4 whitespace-nowrap">
-                                                    <div className="flex items-center gap-1">
+                                                    <div className="flex items-center gap-2">
+                                                        <a href={route('laporan-keuangan.pdf-spp', item.id)} target="_blank" rel="noreferrer" title="Cetak SPP"
+                                                            className="px-2 py-1.5 bg-indigo-50 text-indigo-600 border border-indigo-100 rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-indigo-100 transition-all flex items-center gap-1">
+                                                            <FileText className="w-3 h-3" /> SPP
+                                                        </a>
+                                                        <a href={route('laporan-keuangan.pdf-kwitansi', item.id)} target="_blank" rel="noreferrer" title="Cetak Kwitansi"
+                                                            className="px-2 py-1.5 bg-teal-50 text-teal-600 border border-teal-100 rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-teal-100 transition-all flex items-center gap-1">
+                                                            <FileText className="w-3 h-3" /> KWITANSI
+                                                        </a>
+                                                        <div className="w-px h-4 bg-gray-200 mx-1"></div>
                                                         <Link href={route('anggaran.edit-pengeluaran', item.id)}
-                                                            className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all">
+                                                            className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all">
                                                             <Edit2 className="w-3.5 h-3.5" />
                                                         </Link>
                                                         <button onClick={() => handleDelete(item.id, item.nama_pengeluaran)}
-                                                            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all">
+                                                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all">
                                                             <Trash2 className="w-3.5 h-3.5" />
                                                         </button>
                                                     </div>

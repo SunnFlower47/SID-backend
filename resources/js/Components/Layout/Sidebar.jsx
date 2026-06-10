@@ -45,6 +45,7 @@ const menuGroups = [
         hoverBg: 'hover:from-blue-50 hover:to-blue-100 hover:text-blue-700',
         items: [
             { name: 'Buku Agenda Surat',  href: 'sekretariat.buku-agenda.index', icon: 'Mails' },
+            { name: 'Buku Ekspedisi', href: 'sekretariat.buku-ekspedisi.index', icon: 'Send' },
             { name: 'Peraturan Desa', href: 'sekretariat.peraturan-desa.index', icon: 'BookOpen' },
             { name: 'Keputusan Kades', href: 'sekretariat.keputusan-kades.index', icon: 'Scale' },
             { name: 'Tanah di Desa', href: 'sekretariat.tanah-di-desa.index', icon: 'MapPin' },
@@ -96,6 +97,7 @@ const menuGroups = [
             { name: 'Dashboard Keuangan', href: 'transparansi-desa.index', icon: 'BarChart' },
             { name: 'Perencanaan (APBDes)', href: 'anggaran.create-tahunan', icon: 'FileSignature' },
             { name: 'Realisasi Pengeluaran', href: 'anggaran.create-pengeluaran', icon: 'Wallet' },
+            { name: 'Mutasi Bank', href: 'keuangan.mutasi-bank.index', icon: 'Landmark' },
             { name: 'Proyek Pembangunan', href: 'anggaran.create-proyek', icon: 'Construction' },
             { name: 'Pajak PBB', href: 'pajak-pbb.index', icon: 'Landmark' },
         ]

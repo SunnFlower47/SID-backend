@@ -6,7 +6,13 @@ export default function BukuStandard({ auth, jenis_buku, data, filters }) {
     const getJudulBuku = () => {
         switch (jenis_buku) {
             case 'kader-pemberdayaan': return 'Buku Kader Pemberdayaan Masyarakat';
-            case 'anggota-bpd': return 'Buku Anggota BPD';
+            case 'buku-ekspedisi': return 'Buku Ekspedisi';
+            case 'buku-apb-desa': return 'Buku Anggaran Pendapatan dan Belanja Desa';
+            case 'buku-rab': return 'Buku Rencana Anggaran Biaya';
+            case 'buku-kas-umum': return 'Buku Kas Umum';
+            case 'buku-kas-pembantu-kegiatan': return 'Buku Kas Pembantu Kegiatan';
+            case 'buku-kas-pembantu-pajak': return 'Buku Kas Pembantu Pajak';
+            case 'buku-bank-desa': return 'Buku Bank Desa';
             default: return 'Buku Administrasi';
         }
     };

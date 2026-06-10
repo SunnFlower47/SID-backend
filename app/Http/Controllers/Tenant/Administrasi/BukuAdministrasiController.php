@@ -206,6 +206,8 @@ class BukuAdministrasiController extends Controller
 
         // Pemetaan kelas export spesifik (Buku selain Penduduk dan Inventaris)
         $exportMap = [
+            'buku-ekspedisi' => \App\Exports\Buku\BukuEkspedisiExport::class,
+            'kader-pemberdayaan' => \App\Exports\Buku\KaderPemberdayaanExport::class,
             'peraturan-desa' => \App\Exports\Buku\PeraturanDesaExport::class,
             'keputusan-kades' => \App\Exports\Buku\KeputusanKadesExport::class,
             'buku-agenda' => \App\Exports\Buku\BukuAgendaExport::class,
@@ -220,6 +222,7 @@ class BukuAdministrasiController extends Controller
             'buku-kas-pembantu-kegiatan' => \App\Exports\Buku\BukuKasPembantuKegiatanExport::class,
             'buku-kas-umum' => \App\Exports\Buku\BukuKasUmumExport::class,
             'buku-kas-pembantu-pajak' => \App\Exports\Buku\BukuKasPembantuPajakExport::class,
+            'buku-bank-desa' => \App\Exports\Buku\BukuBankDesaExport::class,
         ];
 
         // Default fallback

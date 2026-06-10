@@ -89,6 +89,8 @@ export default function Panduan({ auth, suratTypes }) {
                                 { code: '${tujuan}', desc: 'Tujuan Surat' },
                                 { code: '${ttd_atas}', desc: 'Jabatan Penandatangan' },
                                 { code: '${ttd_bawah}', desc: 'Nama Penandatangan (Bold)' },
+                                { code: '${qr_code}', desc: 'QR Code Verifikasi (Gambar)' },
+                                { code: '${link_verifikasi}', desc: 'Link Verifikasi Surat' },
                             ].map((item, i) => (
                                 <div key={i} className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
                                     <code className="text-green-700 font-bold bg-green-100/50 px-2 py-1 rounded-md text-xs">{item.code}</code>

@@ -53,6 +53,12 @@ class BukuAdministrasiService
                 return $this->getBukuKasUmum($filters, $isExport);
             case 'buku-kas-pembantu-pajak':
                 return $this->getBukuKasPembantuPajak($filters, $isExport);
+            case 'buku-bank-desa':
+                return $this->getBukuBankDesa($filters, $isExport);
+            case 'buku-ekspedisi':
+                return $this->getBukuEkspedisi($filters, $isExport);
+            case 'kader-pemberdayaan':
+                return $this->getKaderPemberdayaan($filters, $isExport);
             default:
                 throw new \InvalidArgumentException("Jenis buku tidak dikenal: {$jenisBuku}");
         }
@@ -906,5 +912,99 @@ class BukuAdministrasiService
         }
 
         return $sorted;
+    }
+
+    private function getBukuBankDesa(array $filters, bool $isExport)
+    {
+        $query = \App\Models\MutasiBank::query()->orderBy('tanggal_mutasi', 'asc')->orderBy('id', 'asc');
+        
+        if (!empty($filters['start_date']) && !empty($filters['end_date'])) {
+            $startDate = \Carbon\Carbon::parse($filters['start_date'])->startOfDay();
+            $endDate = \Carbon\Carbon::parse($filters['end_date'])->endOfDay();
+            $query->whereBetween('tanggal_mutasi', [$startDate, $endDate]);
+        }
+
+        $items = $isExport ? $query->get() : $query->paginate(50)->withQueryString();
+
+        $saldo = 0;
+        foreach ($items as $item) {
+            $penerimaan = $item->jenis_mutasi === 'masuk' ? $item->jumlah : 0;
+            $pengeluaran = $item->jenis_mutasi === 'keluar' ? $item->jumlah : 0;
+            $saldo += $penerimaan - $pengeluaran;
+            $item->pemasukan = $penerimaan;
+            $item->pengeluaran = $pengeluaran;
+            $item->saldo = $saldo;
+        }
+
+        return $items;
+    }
+
+    private function getBukuEkspedisi(array $filters, bool $isExport)
+    {
+        $query = \App\Models\BukuEkspedisi::query()->orderBy('tanggal_pengiriman', 'desc');
+        
+        if (!empty($filters['start_date']) && !empty($filters['end_date'])) {
+            $startDate = \Carbon\Carbon::parse($filters['start_date'])->startOfDay();
+            $endDate = \Carbon\Carbon::parse($filters['end_date'])->endOfDay();
+            $query->whereBetween('tanggal_pengiriman', [$startDate, $endDate]);
+        }
+
+        return $isExport ? $query->get() : $query->paginate(50)->withQueryString();
+    }
+
+    private function getKaderPemberdayaan(array $filters, bool $isExport)
+    {
+        $query = \App\Models\KaderPemberdayaan::query()->orderBy('nama', 'asc');
+        return $isExport ? $query->get() : $query->paginate(50)->withQueryString();
+    }
+
+
+    private function getBukuKasUmum(array $filters, bool $isExport)
+    {
+        $tahun = $filters['tahun'] ?? date('Y');
+        
+        $penerimaan = \App\Models\PenerimaanKas::whereYear('tanggal_penerimaan', $tahun)->get()->map(function($item) {
+            return (object) [
+                'tanggal' => $item->tanggal_penerimaan,
+                'kode_rekening' => $item->apbdes ? $item->apbdes->kode_rekening : '',
+                'uraian' => $item->uraian,
+                'penerimaan' => $item->jumlah,
+                'pengeluaran' => 0,
+                'no_bukti' => $item->no_bukti,
+            ];
+        });
+
+        $pengeluaran = \App\Models\HistoriPengeluaran::whereYear('tanggal_pengeluaran', $tahun)
+            ->whereIn('jenis_transaksi', ['spp', 'kwitansi', 'pencairan_panjar'])
+            ->get()->map(function($item) {
+            return (object) [
+                'tanggal' => $item->tanggal_pengeluaran,
+                'kode_rekening' => $item->apbdes ? $item->apbdes->kode_rekening : '',
+                'uraian' => $item->nama_pengeluaran,
+                'penerimaan' => 0,
+                'pengeluaran' => $item->jumlah,
+                'no_bukti' => $item->no_spp,
+            ];
+        });
+
+        $combined = $penerimaan->concat($pengeluaran)->sortBy('tanggal')->values();
+        
+        $saldo = 0;
+        foreach ($combined as $item) {
+            $saldo += $item->penerimaan - $item->pengeluaran;
+            $item->saldo = $saldo;
+        }
+
+        if (!$isExport) {
+            $page = \Illuminate\Pagination\Paginator::resolveCurrentPage() ?: 1;
+            $perPage = 50;
+            $items = $combined->slice(($page - 1) * $perPage, $perPage)->values();
+            return new \Illuminate\Pagination\LengthAwarePaginator(
+                $items, $combined->count(), $perPage, $page,
+                ['path' => \Illuminate\Pagination\Paginator::resolveCurrentPath()]
+            );
+        }
+
+        return $combined;
     }
 }

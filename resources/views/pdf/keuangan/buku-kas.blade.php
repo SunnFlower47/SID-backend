@@ -69,10 +69,11 @@
 
     <!-- JUDUL -->
     <div class="judul-box">
-        <h1>Buku Kas Umum — Rekapitulasi Pengeluaran Desa</h1>
         @if($apbdes)
+            <h1>Buku Kas Pembantu Kegiatan</h1>
             <p>Rekening: [{{ $apbdes->kode_rekening }}] {{ $apbdes->nama_rekening }} · Tahun Anggaran {{ $tahun }}</p>
         @else
+            <h1>Buku Kas Umum — Rekapitulasi Pengeluaran Desa</h1>
             <p>Seluruh Rekening · Tahun Anggaran {{ $tahun }}</p>
         @endif
     </div>

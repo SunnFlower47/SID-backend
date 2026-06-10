@@ -32,6 +32,8 @@ use App\Http\Controllers\Api\ApiProxyController;
 // ========================================
 // PUBLIC API (No API Key Required)
 // ========================================
+Route::get('/v1/verifikasi/surat/{token}', [\App\Http\Controllers\Api\VerifikasiSuratApiController::class, 'verify'])->middleware('throttle:30,1');
+
 Route::prefix('v1/public-statistics')->middleware(['throttle:10,1'])->group(function () {
     // Statistik umum untuk halaman welcome (tidak butuh API key)
     Route::get('/', [StatisticApiController::class, 'getPublicStatistics']);

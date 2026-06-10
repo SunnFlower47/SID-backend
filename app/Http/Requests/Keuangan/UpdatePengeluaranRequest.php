@@ -20,7 +20,9 @@ class UpdatePengeluaranRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'jenis_transaksi'     => 'required|in:pencairan_panjar,belanja,kembali_sisa',
             'nama_pengeluaran'    => 'required|string|max:255',
+            'nama_penerima'       => 'nullable|string|max:255',
             'jumlah'              => 'required|numeric|min:0',
             'keterangan'          => 'nullable|string|max:500',
             'tanggal_pengeluaran' => 'required|date',

@@ -9,6 +9,7 @@ class HistoriPengeluaran extends Model
 {
     protected $fillable = [
         'nama_pengeluaran',
+        'nama_penerima',
         'apbdes_id',
         'jumlah',
         'tanggal_pengeluaran',

@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Artisan;
 Route::get('/', fn() => \Inertia\Inertia::render('Welcome'))->name('welcome');
 Route::get('/kebijakan-privasi', fn() => \Inertia\Inertia::render('PrivacyPolicy'))->name('privacy-policy');
 Route::get('/ketentuan-layanan', fn() => \Inertia\Inertia::render('TermsOfService'))->name('terms-of-service');
+Route::get('/verifikasi/surat/{token}', [\App\Http\Controllers\VerifikasiSuratWebController::class, 'show'])->name('verifikasi.surat');
 
 // PWA Manifest
 Route::get('/manifest.json', [ManifestController::class, 'manifest']);

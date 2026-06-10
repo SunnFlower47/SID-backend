@@ -105,6 +105,33 @@ class SuratPengajuanService
             'tahun_surat' => Carbon::parse($suratPengajuan->tanggal_surat)->format('Y'),
         ];
 
+        // Generate QR Code if token exists
+        if ($suratPengajuan->qr_token) {
+            $baseUrl = DesaSetting::getValue('website', url('/'));
+            $linkVerifikasi = rtrim($baseUrl, '/') . '/verifikasi/surat/' . $suratPengajuan->qr_token;
+            $data['link_verifikasi'] = $linkVerifikasi;
+
+            $qrDir = storage_path('app/private/qr_codes');
+            if (!file_exists($qrDir)) {
+                mkdir($qrDir, 0755, true);
+            }
+            $qrPath = $qrDir . '/' . $suratPengajuan->qr_token . '.png';
+            if (!file_exists($qrPath)) {
+                \SimpleSoftwareIO\QrCode\Facades\QrCode::format('png')->size(150)->margin(1)->generate($linkVerifikasi, $qrPath);
+            }
+
+            $data['qr_code'] = [
+                'type' => 'image',
+                'path' => $qrPath,
+                'width' => 100,
+                'height' => 100,
+                'ratio' => true
+            ];
+        } else {
+            $data['link_verifikasi'] = '';
+            $data['qr_code'] = '';
+        }
+
         // Auto-map semua field penduduk, translate ID relasi ke label teks
         if ($penduduk) {
             foreach ($penduduk->toArray() as $key => $value) {
@@ -261,7 +288,11 @@ class SuratPengajuanService
 
         if (in_array($validated['status'], ['selesai', 'diproses'])) {
             $updateData['approved_at'] = now();
-            $updateData['approved_by'] = auth::id();
+            $updateData['approved_by'] = Auth::id();
+            
+            if (empty($suratPengajuan->qr_token)) {
+                $updateData['qr_token'] = (string) \Illuminate\Support\Str::uuid();
+            }
         }
 
         if ($validated['status'] === 'selesai') {

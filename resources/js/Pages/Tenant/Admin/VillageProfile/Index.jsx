@@ -237,6 +237,16 @@ export default function Index({ auth, profile }) {
                                             className="w-full bg-gray-50 border-gray-200 rounded-2xl px-4 py-3 font-bold text-gray-900 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
                                         />
                                     </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 flex items-center gap-1"><Globe className="w-3 h-3"/> Base URL / Website Desa</label>
+                                        <input 
+                                            type="url" 
+                                            value={data.website}
+                                            onChange={e => setData('website', e.target.value)}
+                                            className="w-full bg-gray-50 border-gray-200 rounded-2xl px-4 py-3 font-bold text-gray-900 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
+                                            placeholder="https://desa-cibatu.id"
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         )}

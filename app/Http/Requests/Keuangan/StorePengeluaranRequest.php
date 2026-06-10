@@ -21,7 +21,9 @@ class StorePengeluaranRequest extends FormRequest
     {
         return [
             'apbdes_id'           => 'required|exists:apbdes,id',
+            'jenis_transaksi'     => 'required|in:pencairan_panjar,belanja,kembali_sisa',
             'nama_pengeluaran'    => 'required|string|max:255',
+            'nama_penerima'       => 'nullable|string|max:255',
             'jumlah'              => 'required|numeric|min:0',
             'tanggal_pengeluaran' => 'required|date',
             'keterangan'          => 'nullable|string|max:500',

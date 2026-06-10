@@ -13,7 +13,9 @@ export default function EditExpenditure({ auth, pengeluaran, jenisBuktiOptions =
 
     const { data, setData, post, processing, errors } = useForm({
         _method:              'PUT',
+        jenis_transaksi:      pengeluaran.jenis_transaksi      ?? 'belanja',
         nama_pengeluaran:     pengeluaran.nama_pengeluaran     ?? '',
+        nama_penerima:        pengeluaran.nama_penerima        ?? '',
         jumlah:               pengeluaran.jumlah               ?? '',
         tanggal_pengeluaran:  pengeluaran.tanggal_pengeluaran
             ? new Date(pengeluaran.tanggal_pengeluaran).toISOString().split('T')[0]
@@ -128,6 +130,18 @@ export default function EditExpenditure({ auth, pengeluaran, jenisBuktiOptions =
                             {/* Seksi 1: Informasi Pengeluaran */}
                             <FormCard title="Informasi Pengeluaran" icon={FileText} bodyClass="p-6 sm:p-8 space-y-5">
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                    <FormField.Select
+                                        label="Jenis Transaksi"
+                                        error={errors.jenis_transaksi}
+                                        value={data.jenis_transaksi}
+                                        onChange={e => setData('jenis_transaksi', e.target.value)}
+                                        required
+                                    >
+                                        <option value="belanja">Belanja Kegiatan (SPP Definitif/SPJ)</option>
+                                        <option value="pencairan_panjar">Pencairan Panjar (Uang Muka/Kasbon)</option>
+                                        <option value="kembali_sisa">Pengembalian Sisa Panjar</option>
+                                    </FormField.Select>
+
                                     <FormField.Input 
                                         label="Nama Pengeluaran *" 
                                         error={errors.nama_pengeluaran}
@@ -135,6 +149,14 @@ export default function EditExpenditure({ auth, pengeluaran, jenisBuktiOptions =
                                         onChange={e => setData('nama_pengeluaran', e.target.value)}
                                     />
                                     
+                                    <FormField.Input 
+                                        label="Nama Penerima (Toko/Vendor/Orang)" 
+                                        error={errors.nama_penerima}
+                                        value={data.nama_penerima} 
+                                        onChange={e => setData('nama_penerima', e.target.value)}
+                                        placeholder="Kosongkan jika ingin ditulis tangan saat dicetak" 
+                                    />
+
                                     <FormField.Input 
                                         label="Tanggal *" 
                                         error={errors.tanggal_pengeluaran}

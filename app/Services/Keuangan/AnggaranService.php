@@ -60,7 +60,9 @@ class AnggaranService
 
             $pengeluaran = HistoriPengeluaran::create([
                 'nama_pengeluaran'    => $data['nama_pengeluaran'],
+                'nama_penerima'       => $data['nama_penerima'] ?? null,
                 'apbdes_id'           => $apbdes->id,
+                'jenis_transaksi'     => $data['jenis_transaksi'],
                 'jumlah'              => $data['jumlah'],
                 'tanggal_pengeluaran' => $data['tanggal_pengeluaran'],
                 'keterangan'          => $data['keterangan'] ?? null,
@@ -125,7 +127,9 @@ class AnggaranService
             }
 
             $pengeluaran->update([
+                'jenis_transaksi'     => $data['jenis_transaksi'] ?? $pengeluaran->jenis_transaksi,
                 'nama_pengeluaran'    => $data['nama_pengeluaran'],
+                'nama_penerima'       => $data['nama_penerima'] ?? $pengeluaran->nama_penerima,
                 'jumlah'              => $newJumlah,
                 'tanggal_pengeluaran' => $data['tanggal_pengeluaran'],
                 'keterangan'          => $data['keterangan'] ?? null,

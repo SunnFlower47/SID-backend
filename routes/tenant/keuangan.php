@@ -5,6 +5,7 @@ use App\Http\Controllers\Tenant\Keuangan\TransparansiDesaController;
 use App\Http\Controllers\Tenant\Keuangan\AnggaranController;
 use App\Http\Controllers\Tenant\Keuangan\LaporanKeuanganController;
 use App\Http\Controllers\Tenant\Keuangan\PeraturanDesaController;
+use App\Http\Controllers\Tenant\Keuangan\MutasiBankController;
 
 // MODULE 3: Keuangan
 Route::middleware([])->group(function () {
@@ -13,6 +14,8 @@ Route::middleware([])->group(function () {
         Route::get('transparansi-desa/apbdes', 'apbdes')->name('transparansi-desa.apbdes');
         Route::get('transparansi-desa/proyek', 'proyek')->name('transparansi-desa.proyek');
     });
+
+    Route::resource('mutasi-bank', MutasiBankController::class)->except(['create', 'show', 'edit']);
 
     Route::prefix('anggaran')->name('anggaran.')->controller(AnggaranController::class)->group(function () {
         Route::get('create-tahunan', 'createAnggaranTahunan')->name('create-tahunan');
@@ -41,6 +44,8 @@ Route::middleware([])->group(function () {
         Route::get('/pdf-realisasi',  'pdfRealisasi')  ->name('pdf-realisasi');
         Route::get('/pdf-buku-kas',   'pdfBukuKas')    ->name('pdf-buku-kas');
         Route::get('/pdf-proyek',     'pdfProyek')     ->name('pdf-proyek');
+        Route::get('/pdf-spp/{id}',   'pdfSpp')        ->name('pdf-spp');
+        Route::get('/pdf-kwitansi/{id}','pdfKwitansi') ->name('pdf-kwitansi');
     });
 
     // ── Persetujuan BPD (Peraturan Desa) ──────────────────────────

@@ -191,6 +191,7 @@ export default function BukuLayout({
                     title={judul}
                     subtitle="Format baku sesuai ketentuan Permendagri 47/2016"
                     actions={actions}
+                    backHref={route('administrasi.buku.index')}
                 />
 
                 {/* Filters */}
