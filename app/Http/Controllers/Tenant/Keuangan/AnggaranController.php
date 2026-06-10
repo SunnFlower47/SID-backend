@@ -80,6 +80,8 @@ class AnggaranController extends Controller
             'tahunList'  => $tahunList,
             'tahun'      => $tahun,
             'jenis'      => $jenis,
+            'selectedApbdesId' => $request->get('apbdes_id', ''),
+            'jenisBuktiOptions' => \App\Models\HistoriPengeluaran::JENIS_BUKTI,
             'taxRates'   => [
                 'ppn'   => (float) \App\Models\DesaSetting::getValue('pajak_ppn_rate', '11'),
                 'pph21' => (float) \App\Models\DesaSetting::getValue('pajak_pph21_rate', '5'),
@@ -107,6 +109,27 @@ class AnggaranController extends Controller
                 ->withErrors(['error' => $e->getMessage(), 'jumlah' => $e->getMessage()])
                 ->withInput();
         }
+    }
+
+    /**
+     * Download or view file bukti securely
+     */
+    public function downloadBukti($id)
+    {
+        $pengeluaran = \App\Models\HistoriPengeluaran::findOrFail($id);
+        if (!$pengeluaran->file_bukti) {
+            abort(404, 'File tidak ditemukan.');
+        }
+
+        if (\Illuminate\Support\Facades\Storage::disk('local')->exists($pengeluaran->file_bukti)) {
+            return \Illuminate\Support\Facades\Storage::disk('local')->response($pengeluaran->file_bukti, $pengeluaran->nama_file_bukti);
+        }
+
+        if (\Illuminate\Support\Facades\Storage::disk('public')->exists($pengeluaran->file_bukti)) {
+            return \Illuminate\Support\Facades\Storage::disk('public')->response($pengeluaran->file_bukti, $pengeluaran->nama_file_bukti);
+        }
+
+        abort(404, 'File tidak ditemukan di server.');
     }
 
     /**
@@ -192,6 +215,12 @@ class AnggaranController extends Controller
         return Inertia::render('Tenant/Keuangan/APBDes/History', [
             'apbdes'          => $apbdes,
             'jenisBuktiOptions' => HistoriPengeluaran::JENIS_BUKTI,
+            'taxRates'   => [
+                'ppn'   => (float) \App\Models\DesaSetting::getValue('pajak_ppn_rate', '11'),
+                'pph21' => (float) \App\Models\DesaSetting::getValue('pajak_pph21_rate', '5'),
+                'pph22' => (float) \App\Models\DesaSetting::getValue('pajak_pph22_rate', '1.5'),
+                'pph23' => (float) \App\Models\DesaSetting::getValue('pajak_pph23_rate', '2'),
+            ],
         ]);
     }
 
@@ -235,6 +264,25 @@ class AnggaranController extends Controller
             return redirect()->back()
                 ->withErrors(['error' => $e->getMessage(), 'jumlah' => $e->getMessage()])
                 ->withInput();
+        }
+    }
+
+    /**
+     * Toggle SPJ Status
+     */
+    public function toggleSpj($id)
+    {
+        $pengeluaran = HistoriPengeluaran::findOrFail($id);
+        
+        try {
+            $pengeluaran->spj_status = $pengeluaran->spj_status === 'sudah' ? 'belum' : 'sudah';
+            $pengeluaran->save();
+
+            return redirect()->back()
+                ->with('success', 'Status SPJ berhasil diperbarui.');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->withErrors(['error' => 'Gagal memperbarui status SPJ.']);
         }
     }
 

@@ -73,7 +73,7 @@ class BukuAdministrasiController extends Controller
             ]);
         }
 
-        $filters = $request->only(['start_date', 'end_date', 'search', 'tahun']);
+        $filters = $request->only(['start_date', 'end_date', 'search', 'tahun', 'apbdes_id']);
         
         // Default tahun ke tahun berjalan jika tidak diisi
         if (empty($filters['tahun'])) {

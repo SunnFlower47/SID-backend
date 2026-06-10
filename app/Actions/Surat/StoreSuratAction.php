@@ -102,6 +102,7 @@ class StoreSuratAction
             'status' => $status,
             'admin_id' => $adminId,
             'penandatangan' => $validated['penandatangan'] ?? 'kepala_desa',
+            'qr_token' => (string) \Illuminate\Support\Str::uuid(),
             'approved_at' => now(),
             'completed_at' => now(),
         ]);

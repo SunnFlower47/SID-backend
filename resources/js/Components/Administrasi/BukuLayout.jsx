@@ -30,9 +30,11 @@ export default function BukuLayout({
     // Konfigurasi Filter
     hasStandardFilter = true,
     customFilter = null,
+    extraFilterFields = null, // Tambahan field filter khusus
     isInventarisFilter = false, // Spesifik hanya tahun (Legacy)
     hasTahunFilter = false,     // Menampilkan input Tahun
     hideDateFilter = false,     // Menyembunyikan Tanggal
+    onCustomFilterSubmit = null, // Hook untuk memodifikasi parameter filter sebelum submit
 }) {
     const currentYear = new Date().getFullYear();
     const [search, setSearch] = useState(filters?.search || '');
@@ -69,10 +71,17 @@ export default function BukuLayout({
                 if (!hideDateFilter) {
                     params.start_date = startDate;
                     params.end_date = endDate;
+                } else {
+                    delete params.start_date;
+                    delete params.end_date;
                 }
                 if (hasTahunFilter) {
                     params.tahun = tahun;
                 }
+            }
+            
+            if (onCustomFilterSubmit) {
+                params = onCustomFilterSubmit(params, 'export');
             }
             
             const response = await axios.get(route('administrasi.buku.export.excel', jenis_buku), {
@@ -100,26 +109,44 @@ export default function BukuLayout({
 
     const handleFilter = (e) => {
         e.preventDefault();
-        let params = {};
+        let params = { ...filters }; // preserve external filters like apbdes_id
         if (isInventarisFilter) {
-            params = { tahun };
+            params.tahun = tahun;
         } else {
-            params = { search };
+            params.search = search;
             if (!hideDateFilter) {
                 params.start_date = startDate;
                 params.end_date = endDate;
+            } else {
+                delete params.start_date;
+                delete params.end_date;
             }
             if (hasTahunFilter) {
                 params.tahun = tahun;
             }
         }
+        
+        if (onCustomFilterSubmit) {
+            params = onCustomFilterSubmit(params, 'filter');
+        }
+        
         router.get(route('administrasi.buku.show', jenis_buku), params, { preserveState: true });
     };
 
     const handleReset = () => {
         setSearch(''); setStartDate(''); setEndDate('');
         setTahun(String(currentYear));
-        router.get(route('administrasi.buku.show', jenis_buku));
+        let params = { ...filters };
+        delete params.search;
+        delete params.start_date;
+        delete params.end_date;
+        delete params.tahun;
+        
+        if (onCustomFilterSubmit) {
+            params = onCustomFilterSubmit(params, 'reset');
+        }
+        
+        router.get(route('administrasi.buku.show', jenis_buku), params);
     };
 
     const queryParams = new URLSearchParams();
@@ -285,6 +312,7 @@ export default function BukuLayout({
                                                     </div>
                                                 </>
                                             )}
+                                            {extraFilterFields}
                                         </>
                                     )}
                                 </div>

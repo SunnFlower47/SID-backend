@@ -14,7 +14,6 @@ use Maatwebsite\Excel\Events\AfterSheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 class BukuKasPembantuKegiatanExport implements FromView, ShouldAutoSize, WithStyles, WithTitle, WithEvents
 {
@@ -63,8 +62,19 @@ class BukuKasPembantuKegiatanExport implements FromView, ShouldAutoSize, WithSty
                 $sheet->mergeCells('A3:G3');
                 $sheet->setCellValue('A3', "DESA {$namaDesa}, KECAMATAN {$kecamatan}, KABUPATEN {$kabupaten}");
 
+                $kegiatanText = 'Semua Kegiatan (Belum Dipilih)';
+                if (!empty($this->viewData['filters']['apbdes_id'])) {
+                    $kegiatan = \App\Models\Apbdes::find($this->viewData['filters']['apbdes_id']);
+                    if ($kegiatan) {
+                        $kegiatanText = $kegiatan->kode_rekening . ' - ' . $kegiatan->nama_rekening;
+                    }
+                }
+                $sheet->mergeCells('A5:G5');
+                $sheet->setCellValue('A5', 'Kegiatan: ' . $kegiatanText);
+
                 $sheet->getStyle('A1:G3')->getFont()->setBold(true);
                 $sheet->getStyle('A1:G3')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                $sheet->getStyle('A5')->getFont()->setBold(true);
 
                 $highestRow = $sheet->getHighestRow();
                 $highestColumn = $sheet->getHighestColumn();

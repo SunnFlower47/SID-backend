@@ -134,7 +134,21 @@ export default function EditExpenditure({ auth, pengeluaran, jenisBuktiOptions =
                                         label="Jenis Transaksi"
                                         error={errors.jenis_transaksi}
                                         value={data.jenis_transaksi}
-                                        onChange={e => setData('jenis_transaksi', e.target.value)}
+                                        onChange={e => {
+                                            const val = e.target.value;
+                                            let updates = { jenis_transaksi: val };
+                                            if (val === 'pencairan_panjar') {
+                                                if (!data.nama_pengeluaran || data.nama_pengeluaran === 'Pengembalian Sisa Panjar') updates.nama_pengeluaran = 'Pencairan Panjar Kegiatan ...';
+                                                updates.nama_penerima = 'Pelaksana Kegiatan Anggaran';
+                                            } else if (val === 'kembali_sisa') {
+                                                if (!data.nama_pengeluaran || data.nama_pengeluaran.startsWith('Pencairan Panjar')) updates.nama_pengeluaran = 'Pengembalian Sisa Panjar';
+                                                updates.nama_penerima = 'Bendahara Desa';
+                                            } else {
+                                                if (data.nama_pengeluaran === 'Pencairan Panjar Kegiatan ...' || data.nama_pengeluaran === 'Pengembalian Sisa Panjar') updates.nama_pengeluaran = '';
+                                                if (data.nama_penerima === 'Pelaksana Kegiatan Anggaran' || data.nama_penerima === 'Bendahara Desa') updates.nama_penerima = '';
+                                            }
+                                            setData({...data, ...updates});
+                                        }}
                                         required
                                     >
                                         <option value="belanja">Belanja Kegiatan (SPP Definitif/SPJ)</option>
@@ -149,13 +163,15 @@ export default function EditExpenditure({ auth, pengeluaran, jenisBuktiOptions =
                                         onChange={e => setData('nama_pengeluaran', e.target.value)}
                                     />
                                     
-                                    <FormField.Input 
-                                        label="Nama Penerima (Toko/Vendor/Orang)" 
-                                        error={errors.nama_penerima}
-                                        value={data.nama_penerima} 
-                                        onChange={e => setData('nama_penerima', e.target.value)}
-                                        placeholder="Kosongkan jika ingin ditulis tangan saat dicetak" 
-                                    />
+                                    {data.jenis_transaksi === 'belanja' && (
+                                        <FormField.Input 
+                                            label="Nama Penerima (Toko/Vendor/Orang)" 
+                                            error={errors.nama_penerima}
+                                            value={data.nama_penerima} 
+                                            onChange={e => setData('nama_penerima', e.target.value)}
+                                            placeholder="Kosongkan jika ingin ditulis tangan saat dicetak" 
+                                        />
+                                    )}
 
                                     <FormField.Input 
                                         label="Tanggal *" 

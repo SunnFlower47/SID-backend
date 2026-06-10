@@ -28,7 +28,7 @@ export default function BukuApbdes({ auth, data, filters }) {
         <BukuLayout
             auth={auth}
             jenis_buku="buku-apb-desa"
-            judul="Buku Anggaran Pendapatan dan Belanja Desa (APB Desa)"
+            judul="Buku APB Desa"
             data={data}
             filters={filters}
             tableHead={tableHead}

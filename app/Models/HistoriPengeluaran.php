@@ -73,7 +73,7 @@ class HistoriPengeluaran extends Model
     public function getFileBuktiUrlAttribute(): ?string
     {
         return $this->file_bukti
-            ? Storage::url($this->file_bukti)
+            ? route('anggaran.download-bukti', $this->id)
             : null;
     }
 

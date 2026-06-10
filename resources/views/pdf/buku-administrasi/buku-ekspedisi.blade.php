@@ -4,80 +4,81 @@
     <meta charset="UTF-8">
     <title>Buku Ekspedisi - {{ $filters['tahun'] ?? date('Y') }}</title>
     <style>
-        body { font-family: Arial, sans-serif; font-size: 11px; margin: 0; padding: 20px; }
-        .text-center { text-align: center; }
-        .font-bold { font-weight: bold; }
-        .mb-2 { margin-bottom: 8px; }
-        .mb-4 { margin-bottom: 16px; }
-        .mt-4 { margin-top: 16px; }
-        .w-full { width: 100%; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { border: 1px solid #000; padding: 6px; vertical-align: top; }
-        th { background-color: #f3f4f6; text-align: center; }
-        .ttd-container { width: 100%; margin-top: 30px; }
-        .ttd-box { width: 30%; float: left; text-align: center; }
-        .ttd-box.right { float: right; }
-        .clearfix::after { content: ""; clear: both; display: table; }
+        @page { size: Legal landscape; margin: 12mm; }
+        body { font-family: 'Times New Roman', Times, serif; font-size: 10px; margin: 0; padding: 0; }
+        h3, h4 { text-align: center; margin: 3px 0; text-transform: uppercase; letter-spacing: 1px; }
+        .subtitle { font-size: 10px; text-align: center; margin: 2px 0; }
+        .header { text-align: center; margin-bottom: 14px; border-bottom: 2px solid #000; padding-bottom: 8px; }
+        .header h3, .header h4 { margin: 0; padding: 0; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+        table, th, td { border: 1px solid black; }
+        th { text-align: center; font-weight: bold; font-size: 9px; padding: 4px 3px; vertical-align: middle; background-color: #f0f0f0; }
+        td { padding: 4px 3px; vertical-align: top; font-size: 9px; }
+        td.center { text-align: center; }
+        td.left { text-align: left; }
+        .col-number { font-style: italic; font-size: 8px; background-color: #f9f9f9; text-align: center; }
+        .ttd-container { width: 100%; margin-top: 24px; }
+        .ttd-left { float: left; width: 45%; text-align: center; font-size: 10px; }
+        .ttd-right { float: right; width: 45%; text-align: center; font-size: 10px; }
+        .clear { clear: both; }
     </style>
 </head>
 <body>
-    <div class="text-center mb-4">
-        <div class="font-bold" style="font-size: 14px;">BUKU EKSPEDISI</div>
-        <div>(Lampiran III — Permendagri No. 47 Tahun 2016)</div>
+    <div class="header">
+        <h3>Buku Ekspedisi</h3>
+        <p class="subtitle">(Lampiran III — Permendagri No. 47 Tahun 2016)</p>
     </div>
 
     <table>
         <thead>
             <tr>
-                <th>NOMOR URUT</th>
-                <th>TANGGAL PENGIRIMAN</th>
-                <th>TANGGAL DAN NOMOR SURAT</th>
-                <th>ISI SINGKAT SURAT YANG DIKIRIM</th>
-                <th>DITUJUKAN KEPADA</th>
-                <th>KETERANGAN</th>
+                <th style="width:5%">NOMOR URUT</th>
+                <th style="width:15%">TANGGAL PENGIRIMAN</th>
+                <th style="width:20%">TANGGAL DAN NOMOR SURAT</th>
+                <th style="width:25%">ISI SINGKAT SURAT YANG DIKIRIM</th>
+                <th style="width:20%">DITUJUKAN KEPADA</th>
+                <th style="width:15%">KETERANGAN</th>
             </tr>
-            <tr>
-                <th>1</th>
-                <th>2</th>
-                <th>3</th>
-                <th>4</th>
-                <th>5</th>
-                <th>6</th>
+            <tr class="col-number">
+                <td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td>
             </tr>
         </thead>
         <tbody>
             @forelse($data as $index => $item)
             <tr>
-                <td class="text-center">{{ $index + 1 }}</td>
-                <td class="text-center">{{ \Carbon\Carbon::parse($item->tanggal_pengiriman)->format('d/m/Y') }}</td>
-                <td>Tgl: {{ \Carbon\Carbon::parse($item->tanggal_surat)->format('d/m/Y') }}<br>No: {{ $item->nomor_surat ?? '-' }}</td>
-                <td>{{ $item->isi_singkat ?? '-' }}</td>
-                <td>{{ $item->tujuan ?? '-' }}</td>
-                <td>{{ $item->keterangan ?? '-' }}</td>
+                <td class="center">{{ $index + 1 }}</td>
+                <td class="center">{{ \Carbon\Carbon::parse($item->tanggal_pengiriman)->format('d/m/Y') }}</td>
+                <td class="left">Tgl: {{ \Carbon\Carbon::parse($item->tanggal_surat)->format('d/m/Y') }}<br>No: {{ $item->nomor_surat ?? '-' }}</td>
+                <td class="left">{{ $item->isi_singkat ?? '-' }}</td>
+                <td class="left">{{ $item->tujuan ?? '-' }}</td>
+                <td class="left">{{ $item->keterangan ?? '-' }}</td>
             </tr>
             @empty
             <tr>
-                <td colspan="6" class="text-center">Tidak ada data Buku Ekspedisi</td>
+                <td colspan="6" class="center" style="padding:14px; font-style:italic; color:#666;">
+                    Nihil — Tidak ada data Buku Ekspedisi.
+                </td>
             </tr>
             @endforelse
         </tbody>
     </table>
 
-    <div class="ttd-container clearfix mt-4">
-        <div class="ttd-box">
-            <div>Mengetahui,</div>
-            <div class="font-bold">KEPALA DESA {{ strtoupper(\App\Models\DesaSetting::getValue('nama_desa', 'CIBATU')) }}</div>
+    <div class="ttd-container">
+        <div class="ttd-left">
+            <p>Mengetahui,</p>
+            <p><strong>KEPALA DESA {{ strtoupper(\App\Models\DesaSetting::getValue('nama_desa', 'CIBATU')) }}</strong></p>
             <br><br><br><br>
             @php $kades = \App\Models\StrukturDesa::where('kategori', 'kepala_desa')->where('status_aktif', true)->first(); @endphp
-            <div class="font-bold" style="text-decoration: underline;">{{ $kades ? $kades->nama : '..........................................' }}</div>
+            <p><u><strong>{{ $kades ? $kades->nama : '..........................................' }}</strong></u></p>
         </div>
-        <div class="ttd-box right">
-            <div>{{ \App\Models\DesaSetting::getValue('nama_desa', 'Cibatu') }}, {{ \Carbon\Carbon::now()->translatedFormat('d F Y') }}</div>
-            <div class="font-bold">SEKRETARIS DESA</div>
+        <div class="ttd-right">
+            <p>{{ \App\Models\DesaSetting::getValue('nama_desa', 'Cibatu') }}, {{ \Carbon\Carbon::now()->translatedFormat('d F Y') }}</p>
+            <p><strong>SEKRETARIS DESA</strong></p>
             <br><br><br><br>
             @php $sekdes = \App\Models\StrukturDesa::where('kategori', 'sekretaris')->where('status_aktif', true)->first(); @endphp
-            <div class="font-bold" style="text-decoration: underline;">{{ $sekdes ? $sekdes->nama : '..........................................' }}</div>
+            <p><u><strong>{{ $sekdes ? $sekdes->nama : '..........................................' }}</strong></u></p>
         </div>
+        <div class="clear"></div>
     </div>
 </body>
 </html>

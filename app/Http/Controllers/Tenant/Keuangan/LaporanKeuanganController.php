@@ -115,10 +115,11 @@ class LaporanKeuanganController extends Controller
         $histori    = $query->get();
         $desaInfo   = DesaSetting::getDesaInfo();
         $kepalaInfo = DesaSetting::getKepalaDesaInfo();
+        $logos      = DesaSetting::getLogos();
 
         $apbdes = $apbdesId ? Apbdes::find($apbdesId) : null;
 
-        $pdf = Pdf::loadView('pdf.keuangan.buku-kas', compact('histori', 'desaInfo', 'kepalaInfo', 'tahun', 'apbdes'))
+        $pdf = Pdf::loadView('pdf.keuangan.buku-kas', compact('histori', 'desaInfo', 'kepalaInfo', 'logos', 'tahun', 'apbdes'))
             ->setPaper('a4', 'portrait')
             ->setOption('defaultFont', 'sans-serif')
             ->setOption('dpi', 150);

@@ -816,16 +816,15 @@ class BukuAdministrasiService
         } else {
             // Default to no data or require user to select an activity first
             // Usually we require filtering by apbdes_id for C.3
-            if (!$isExport) {
-                // If not export, return empty paginator if no kegiatan selected
-                $query->whereRaw('1 = 0');
-            }
+            $query->whereRaw('1 = 0');
         }
 
         if (!empty($filters['start_date']) && !empty($filters['end_date'])) {
             $startDate = Carbon::parse($filters['start_date'])->startOfDay();
             $endDate = Carbon::parse($filters['end_date'])->endOfDay();
             $query->whereBetween('tanggal_pengeluaran', [$startDate, $endDate]);
+        } elseif (!empty($filters['tahun'])) {
+            $query->whereYear('tanggal_pengeluaran', $filters['tahun']);
         }
 
         $items = $isExport ? $query->get() : $query->paginate(50)->withQueryString();
@@ -962,49 +961,32 @@ class BukuAdministrasiService
     private function getBukuKasUmum(array $filters, bool $isExport)
     {
         $tahun = $filters['tahun'] ?? date('Y');
-        
-        $penerimaan = \App\Models\PenerimaanKas::whereYear('tanggal_penerimaan', $tahun)->get()->map(function($item) {
-            return (object) [
-                'tanggal' => $item->tanggal_penerimaan,
-                'kode_rekening' => $item->apbdes ? $item->apbdes->kode_rekening : '',
-                'uraian' => $item->uraian,
-                'penerimaan' => $item->jumlah,
-                'pengeluaran' => 0,
-                'no_bukti' => $item->no_bukti,
-            ];
-        });
 
-        $pengeluaran = \App\Models\HistoriPengeluaran::whereYear('tanggal_pengeluaran', $tahun)
-            ->whereIn('jenis_transaksi', ['spp', 'kwitansi', 'pencairan_panjar'])
-            ->get()->map(function($item) {
-            return (object) [
-                'tanggal' => $item->tanggal_pengeluaran,
-                'kode_rekening' => $item->apbdes ? $item->apbdes->kode_rekening : '',
-                'uraian' => $item->nama_pengeluaran,
-                'penerimaan' => 0,
-                'pengeluaran' => $item->jumlah,
-                'no_bukti' => $item->no_spp,
-            ];
-        });
+        // Buku Kas Umum = semua histori pengeluaran (Kas Keluar) tahun berjalan
+        // Diurutkan berdasarkan tanggal pengeluaran ascending (kronologis)
+        $query = \App\Models\HistoriPengeluaran::with('apbdes')
+            ->whereYear('tanggal_pengeluaran', $tahun)
+            ->orderBy('tanggal_pengeluaran', 'asc')
+            ->orderBy('id', 'asc');
 
-        $combined = $penerimaan->concat($pengeluaran)->sortBy('tanggal')->values();
-        
+        if (!empty($filters['search'])) {
+            $search = $filters['search'];
+            $query->where(function ($q) use ($search) {
+                $q->where('nama_pengeluaran', 'like', "%{$search}%")
+                  ->orWhere('no_bukti', 'like', "%{$search}%")
+                  ->orWhere('nama_penerima', 'like', "%{$search}%");
+            });
+        }
+
+        $items = $isExport ? $query->get() : $query->paginate(50)->withQueryString();
+
+        // Hitung saldo berjalan (kas keluar)
         $saldo = 0;
-        foreach ($combined as $item) {
-            $saldo += $item->penerimaan - $item->pengeluaran;
-            $item->saldo = $saldo;
+        foreach ($items as $item) {
+            $saldo += $item->jumlah;
+            $item->saldo_akumulasi = $saldo;
         }
 
-        if (!$isExport) {
-            $page = \Illuminate\Pagination\Paginator::resolveCurrentPage() ?: 1;
-            $perPage = 50;
-            $items = $combined->slice(($page - 1) * $perPage, $perPage)->values();
-            return new \Illuminate\Pagination\LengthAwarePaginator(
-                $items, $combined->count(), $perPage, $page,
-                ['path' => \Illuminate\Pagination\Paginator::resolveCurrentPath()]
-            );
-        }
-
-        return $combined;
+        return $items;
     }
 }

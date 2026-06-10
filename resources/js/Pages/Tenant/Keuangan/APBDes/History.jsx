@@ -22,29 +22,9 @@ const SPJ_CONFIG = {
 };
 
 export default function HistoryPage({ auth, apbdes, jenisBuktiOptions = {} }) {
-    const [showAddForm, setShowAddForm] = useState(false);
     const [previewFile, setPreviewFile] = useState(null);
-
-    const { data, setData, post, processing, errors, reset } = useForm({
-        apbdes_id:            apbdes.id,
-        nama_pengeluaran:     '',
-        jumlah:               '',
-        tanggal_pengeluaran:  new Date().toISOString().split('T')[0],
-        keterangan:           '',
-        no_bukti:             '',
-        jenis_bukti:          'kwitansi',
-        file_bukti:           null,
-    });
-
+    const [detailItem, setDetailItem] = useState(null);
     const sisaAnggaran = Number(apbdes.anggaran) - Number(apbdes.realisasi);
-
-    const handleAdd = (e) => {
-        e.preventDefault();
-        post(route('anggaran.store-pengeluaran'), {
-            forceFormData: true, // wajib untuk multipart/form-data (file upload)
-            onSuccess: () => { reset(); setShowAddForm(false); },
-        });
-    };
 
     const handleDelete = (id, nama) => {
         Swal.fire({
@@ -62,6 +42,120 @@ export default function HistoryPage({ auth, apbdes, jenisBuktiOptions = {} }) {
     return (
         <AuthenticatedLayout user={auth.user} title="Histori Pengeluaran">
             <Head title="Histori Pengeluaran APBDes" />
+
+            {/* Detail Modal */}
+            {detailItem && (() => {
+                const dSpj = SPJ_CONFIG[detailItem.spj_status] ?? SPJ_CONFIG.belum;
+                return (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" onClick={() => setDetailItem(null)}>
+                    <div className="bg-white rounded-3xl shadow-2xl max-w-xl w-full max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
+                        {/* Header */}
+                        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                            <div>
+                                <h3 className="text-sm font-black text-gray-900 uppercase italic tracking-tighter">Detail Pengeluaran</h3>
+                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">{detailItem.no_bukti ?? 'Tanpa Nomor Bukti'}</p>
+                            </div>
+                            <button onClick={() => setDetailItem(null)} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-all">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        {/* Body */}
+                        <div className="p-6 overflow-auto space-y-4">
+                            {/* Nama */}
+                            <p className="text-base font-black text-gray-900">{detailItem.nama_pengeluaran}</p>
+
+                            {/* Grid info utama */}
+                            <div className="grid grid-cols-2 gap-3">
+                                {[
+                                    { label: 'Tanggal', value: formatDate(detailItem.tanggal_pengeluaran) },
+                                    { label: 'Penerima', value: detailItem.nama_penerima || '—' },
+                                    { label: 'Jenis Transaksi', value: (detailItem.jenis_transaksi || 'belanja').replace(/_/g, ' ') },
+                                    { label: 'Jenis Bukti', value: detailItem.jenis_bukti_label || detailItem.jenis_bukti || '—' },
+                                ].map(f => (
+                                    <div key={f.label} className="bg-gray-50 rounded-xl p-3 border border-gray-100">
+                                        <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{f.label}</span>
+                                        <p className="text-xs font-bold text-gray-800 mt-0.5 capitalize">{f.value}</p>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Total & Pajak */}
+                            <div className="rounded-2xl border border-blue-100 bg-blue-50/50 p-4 space-y-3">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Total Belanja</span>
+                                    <span className="text-base font-black text-blue-600">{formatRupiah(detailItem.jumlah)}</span>
+                                </div>
+                                {(['ppn','pph21','pph22','pph23'].some(t => Number(detailItem[`pajak_${t}`]) > 0)) && (
+                                    <div className="border-t border-blue-100 pt-3 space-y-1.5">
+                                        <span className="text-[9px] font-black text-blue-300 uppercase tracking-widest block">Rincian Pajak</span>
+                                        {[
+                                            { key: 'ppn',   label: 'PPN'    },
+                                            { key: 'pph21', label: 'PPh 21' },
+                                            { key: 'pph22', label: 'PPh 22' },
+                                            { key: 'pph23', label: 'PPh 23' },
+                                        ].filter(t => Number(detailItem[`pajak_${t.key}`]) > 0).map(t => (
+                                            <div key={t.key} className="flex justify-between text-xs">
+                                                <span className="font-bold text-blue-500">{t.label}</span>
+                                                <span className="font-black text-blue-700">{formatRupiah(detailItem[`pajak_${t.key}`])}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Status SPJ */}
+                            <div className="flex items-center justify-between rounded-xl border border-gray-100 bg-gray-50 px-4 py-3">
+                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Status SPJ</span>
+                                <Link
+                                    href={route('anggaran.toggle-spj', detailItem.id)}
+                                    method="patch"
+                                    preserveScroll
+                                    as="button"
+                                    className="inline-flex items-center gap-1.5 transition-transform hover:scale-105 active:scale-95"
+                                    title="Klik untuk toggle status SPJ"
+                                    onClick={() => setDetailItem(null)}
+                                >
+                                    <Badge color={dSpj.color} icon={dSpj.icon}>{dSpj.label}</Badge>
+                                </Link>
+                            </div>
+
+                            {/* Keterangan */}
+                            {detailItem.keterangan && (
+                                <div>
+                                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Keterangan</span>
+                                    <p className="text-xs font-medium text-gray-600 italic mt-1 bg-gray-50 p-3 rounded-xl border border-gray-100">{detailItem.keterangan}</p>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Footer aksi */}
+                        <div className="flex flex-wrap items-center gap-2 px-6 py-4 border-t border-gray-100 bg-gray-50/50 rounded-b-3xl">
+                            {detailItem.file_bukti_url && (
+                                <button
+                                    onClick={() => { setDetailItem(null); setPreviewFile({ url: detailItem.file_bukti_url, nama: detailItem.nama_file_bukti, noBukti: detailItem.no_bukti }); }}
+                                    className="flex items-center gap-1.5 px-3 py-2 bg-blue-50 border border-blue-100 rounded-xl text-[10px] font-black text-blue-600 uppercase tracking-widest hover:bg-blue-100 transition-all"
+                                >
+                                    <Eye className="w-3.5 h-3.5" /> Lihat Dokumen
+                                </button>
+                            )}
+                            <a href={route('laporan-keuangan.pdf-spp', detailItem.id)} target="_blank" rel="noreferrer"
+                                className="flex items-center gap-1.5 px-3 py-2 bg-indigo-50 border border-indigo-100 rounded-xl text-[10px] font-black text-indigo-600 uppercase tracking-widest hover:bg-indigo-100 transition-all">
+                                <FileText className="w-3.5 h-3.5" /> Cetak SPP
+                            </a>
+                            <a href={route('laporan-keuangan.pdf-kwitansi', detailItem.id)} target="_blank" rel="noreferrer"
+                                className="flex items-center gap-1.5 px-3 py-2 bg-teal-50 border border-teal-100 rounded-xl text-[10px] font-black text-teal-600 uppercase tracking-widest hover:bg-teal-100 transition-all">
+                                <FileText className="w-3.5 h-3.5" /> Cetak Kwitansi
+                            </a>
+                            <Link href={route('anggaran.edit-pengeluaran', detailItem.id)}
+                                className="ml-auto flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-200 rounded-xl text-[10px] font-black text-gray-600 uppercase tracking-widest hover:bg-gray-100 transition-all">
+                                <Edit2 className="w-3.5 h-3.5" /> Edit
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+                );
+            })()}
 
             {/* Preview File Modal */}
             {previewFile && (
@@ -108,76 +202,34 @@ export default function HistoryPage({ auth, apbdes, jenisBuktiOptions = {} }) {
                         {
                             label: 'TAMBAH PENGELUARAN',
                             icon: Plus,
-                            onClick: () => setShowAddForm(!showAddForm),
+                            href: route('anggaran.create-pengeluaran', { apbdes_id: apbdes.id }),
                             variant: 'white'
                         }
                     ]}
                 />
 
-                {/* Status Card + Add Form */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
-                        <div className="flex items-center justify-between">
-                            <h3 className="text-xs font-black text-gray-900 uppercase italic tracking-tighter">Status Rekening</h3>
-                            <Badge color={jenisColor}>{apbdes.jenis}</Badge>
-                        </div>
-                        <div className="space-y-2">
-                            {[
-                                { label: 'Anggaran', value: formatRupiah(apbdes.anggaran), color: 'text-gray-900' },
-                                { label: 'Realisasi', value: formatRupiah(apbdes.realisasi), color: 'text-blue-600' },
-                                { label: 'Sisa Anggaran', value: formatRupiah(sisaAnggaran), color: sisaAnggaran >= 0 ? 'text-green-600' : 'text-red-600' },
-                            ].map(r => (
-                                <div key={r.label} className="flex justify-between py-2 border-b border-gray-50 last:border-0">
-                                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{r.label}</span>
-                                    <span className={cn('text-xs font-black', r.color)}>{r.value}</span>
-                                </div>
-                            ))}
-                        </div>
-                        <AnggaranProgressBar anggaran={Number(apbdes.anggaran)} realisasi={Number(apbdes.realisasi)} height="h-2" showLabels={false} />
-                        <p className="text-center text-[9px] font-black text-gray-400 uppercase tracking-widest">
-                            {apbdes.anggaran > 0 ? Math.min(100, Math.round((apbdes.realisasi / apbdes.anggaran) * 100)) : 0}% Terserap
-                        </p>
+                {/* Status Card */}
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
+                    <div className="flex items-center justify-between">
+                        <h3 className="text-xs font-black text-gray-900 uppercase italic tracking-tighter">Status Rekening</h3>
+                        <Badge color={jenisColor}>{apbdes.jenis}</Badge>
                     </div>
-
-                    {/* Add Form */}
-                    {showAddForm && (
-                        <div className="lg:col-span-2 bg-white rounded-2xl border border-green-100 shadow-sm p-6 space-y-4 animate-in slide-in-from-top-3 duration-300">
-                            <div className="flex items-center justify-between mb-1">
-                                <h3 className="text-sm font-black text-gray-900 uppercase italic tracking-tighter">Tambah Pengeluaran</h3>
-                                <button onClick={() => { setShowAddForm(false); reset(); }} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-all">
-                                    <X className="w-4 h-4" />
-                                </button>
+                    <div className="space-y-2">
+                        {[
+                            { label: 'Anggaran', value: formatRupiah(apbdes.anggaran), color: 'text-gray-900' },
+                            { label: 'Realisasi', value: formatRupiah(apbdes.realisasi), color: 'text-blue-600' },
+                            { label: 'Sisa Anggaran', value: formatRupiah(sisaAnggaran), color: sisaAnggaran >= 0 ? 'text-green-600' : 'text-red-600' },
+                        ].map(r => (
+                            <div key={r.label} className="flex justify-between py-2 border-b border-gray-50 last:border-0">
+                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{r.label}</span>
+                                <span className={cn('text-xs font-black', r.color)}>{r.value}</span>
                             </div>
-                            <form onSubmit={handleAdd} className="space-y-4" encType="multipart/form-data">
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <FormField.Input label="Nama Pengeluaran" required error={errors.nama_pengeluaran} value={data.nama_pengeluaran} onChange={e => setData('nama_pengeluaran', e.target.value)} placeholder="Contoh: Pembelian material..." />
-                                    <FormField.Input label="Tanggal Pengeluaran" required type="date" error={errors.tanggal_pengeluaran} value={data.tanggal_pengeluaran} onChange={e => setData('tanggal_pengeluaran', e.target.value)} />
-                                </div>
-                                <FormField.Input label={`Jumlah — Sisa: ${formatRupiah(sisaAnggaran)}`} required type="number" max={sisaAnggaran} min="0" placeholder="0" error={errors.jumlah} value={data.jumlah} onChange={e => setData('jumlah', e.target.value)} />
-
-                                {/* ── Bukti Pembayaran ── */}
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                    <FormField.Input label="No. Bukti" error={errors.no_bukti} value={data.no_bukti} onChange={e => setData('no_bukti', e.target.value)} placeholder="Auto: BKT-YYYY-XXXX" inputClassName="font-mono" />
-                                    <FormField.Select label="Jenis Bukti" error={errors.jenis_bukti} value={data.jenis_bukti} onChange={e => setData('jenis_bukti', e.target.value)} options={Object.entries(jenisBuktiOptions).map(([v, l]) => ({value: v, label: l}))} />
-                                    <FormField label="Upload Bukti (PDF/JPG, maks 5MB)" error={errors.file_bukti}>
-                                        <input type="file" accept=".pdf,.jpg,.jpeg,.png"
-                                            onChange={e => setData('file_bukti', e.target.files[0])}
-                                            className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-xs font-bold focus:ring-2 focus:ring-green-500 file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-[9px] file:font-black file:uppercase file:tracking-widest file:bg-green-50 file:text-green-700 hover:file:bg-green-100 cursor-pointer" />
-                                    </FormField>
-                                </div>
-
-                                <FormField.Textarea label="Keterangan (Opsional)" error={errors.keterangan} value={data.keterangan} onChange={e => setData('keterangan', e.target.value)} rows={2} />
-                                <div className="flex gap-3 pt-2">
-                                    <button type="button" onClick={() => { setShowAddForm(false); reset(); }}
-                                        className="flex-1 py-3 rounded-xl bg-gray-50 text-gray-600 text-xs font-black uppercase tracking-widest hover:bg-gray-100 border border-gray-200 transition-all">BATAL</button>
-                                    <button type="submit" disabled={processing}
-                                        className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-green-600 text-white text-xs font-black uppercase tracking-widest hover:bg-green-700 transition-all shadow-md shadow-green-200 disabled:opacity-50">
-                                        <Save className="w-3.5 h-3.5" /> {processing ? 'MENYIMPAN...' : 'SIMPAN'}
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    )}
+                        ))}
+                    </div>
+                    <AnggaranProgressBar anggaran={Number(apbdes.anggaran)} realisasi={Number(apbdes.realisasi)} height="h-2" showLabels={false} />
+                    <p className="text-center text-[9px] font-black text-gray-400 uppercase tracking-widest">
+                        {apbdes.anggaran > 0 ? Math.min(100, Math.round((apbdes.realisasi / apbdes.anggaran) * 100)) : 0}% Terserap
+                    </p>
                 </div>
 
                 {/* History Table */}
@@ -193,7 +245,7 @@ export default function HistoryPage({ auth, apbdes, jenisBuktiOptions = {} }) {
                             <table className="w-full">
                                 <thead>
                                     <tr className="bg-gray-50/80 border-b border-gray-100">
-                                        {['No. Bukti', 'Tanggal', 'Nama Pengeluaran', 'Jumlah', 'Jenis Bukti', 'Dokumen', 'SPJ', 'Aksi'].map(h => (
+                                        {['No. Bukti', 'Tanggal', 'Pengeluaran', 'Rincian Nilai', 'Jenis Bukti', 'Dokumen', 'SPJ', 'Aksi'].map(h => (
                                             <th key={h} className="px-4 py-3 text-left text-[9px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">{h}</th>
                                         ))}
                                     </tr>
@@ -212,12 +264,26 @@ export default function HistoryPage({ auth, apbdes, jenisBuktiOptions = {} }) {
                                                         <span className="text-xs font-bold text-gray-600">{formatDate(item.tanggal_pengeluaran)}</span>
                                                     </div>
                                                 </td>
-                                                <td className="px-4 py-4 max-w-[180px]">
+                                                <td className="px-4 py-4 max-w-[220px]">
                                                     <p className="text-xs font-black text-gray-900 truncate">{item.nama_pengeluaran}</p>
-                                                    {item.keterangan && <p className="text-[9px] text-gray-400 font-bold mt-0.5 truncate">{item.keterangan}</p>}
+                                                    {item.nama_penerima && <p className="text-[10px] text-gray-500 font-bold mt-0.5 truncate flex items-center gap-1"><span className="w-1 h-1 bg-gray-300 rounded-full"></span>{item.nama_penerima}</p>}
+                                                    {item.keterangan && <p className="text-[9px] text-gray-400 font-medium italic mt-0.5 truncate">{item.keterangan}</p>}
+                                                    {item.jenis_transaksi && item.jenis_transaksi !== 'belanja' && (
+                                                        <span className="inline-block mt-1.5 px-1.5 py-0.5 bg-orange-50 text-orange-600 border border-orange-100 rounded text-[8px] font-black uppercase tracking-widest">
+                                                            {item.jenis_transaksi.replace('_', ' ')}
+                                                        </span>
+                                                    )}
                                                 </td>
                                                 <td className="px-4 py-4 whitespace-nowrap">
-                                                    <span className="text-sm font-black text-blue-600">{formatRupiah(item.jumlah)}</span>
+                                                    <div className="flex flex-col gap-1">
+                                                        <span className="text-sm font-black text-blue-600">{formatRupiah(item.jumlah)}</span>
+                                                        <div className="flex flex-wrap gap-1">
+                                                            {item.pajak_ppn > 0 && <span className="text-[8px] font-black text-green-600 bg-green-50 px-1.5 py-0.5 rounded border border-green-100">PPN: {formatRupiah(item.pajak_ppn)}</span>}
+                                                            {item.pajak_pph21 > 0 && <span className="text-[8px] font-black text-green-600 bg-green-50 px-1.5 py-0.5 rounded border border-green-100">PPh 21: {formatRupiah(item.pajak_pph21)}</span>}
+                                                            {item.pajak_pph22 > 0 && <span className="text-[8px] font-black text-green-600 bg-green-50 px-1.5 py-0.5 rounded border border-green-100">PPh 22: {formatRupiah(item.pajak_pph22)}</span>}
+                                                            {item.pajak_pph23 > 0 && <span className="text-[8px] font-black text-green-600 bg-green-50 px-1.5 py-0.5 rounded border border-green-100">PPh 23: {formatRupiah(item.pajak_pph23)}</span>}
+                                                        </div>
+                                                    </div>
                                                 </td>
                                                 <td className="px-4 py-4 whitespace-nowrap">
                                                     <span className="px-2 py-0.5 bg-gray-50 border border-gray-100 rounded-lg text-[9px] font-black text-gray-600 uppercase tracking-widest">
@@ -237,9 +303,11 @@ export default function HistoryPage({ auth, apbdes, jenisBuktiOptions = {} }) {
                                                     )}
                                                 </td>
                                                 <td className="px-4 py-4 whitespace-nowrap">
-                                                    <Badge color={spjCfg.color} icon={spjCfg.icon}>
-                                                        {spjCfg.label}
-                                                    </Badge>
+                                                    <Link href={route('anggaran.toggle-spj', item.id)} method="patch" preserveScroll as="button" className="inline-block transition-transform hover:scale-105 active:scale-95" title="Klik untuk mengubah status SPJ">
+                                                        <Badge color={spjCfg.color} icon={spjCfg.icon}>
+                                                            {spjCfg.label}
+                                                        </Badge>
+                                                    </Link>
                                                 </td>
                                                 <td className="px-4 py-4 whitespace-nowrap">
                                                     <div className="flex items-center gap-2">
@@ -252,12 +320,16 @@ export default function HistoryPage({ auth, apbdes, jenisBuktiOptions = {} }) {
                                                             <FileText className="w-3 h-3" /> KWITANSI
                                                         </a>
                                                         <div className="w-px h-4 bg-gray-200 mx-1"></div>
+                                                        <button onClick={() => setDetailItem(item)}
+                                                            className="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-xl transition-all" title="Lihat Detail">
+                                                            <Eye className="w-3.5 h-3.5" />
+                                                        </button>
                                                         <Link href={route('anggaran.edit-pengeluaran', item.id)}
-                                                            className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all">
+                                                            className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all" title="Edit Pengeluaran">
                                                             <Edit2 className="w-3.5 h-3.5" />
                                                         </Link>
                                                         <button onClick={() => handleDelete(item.id, item.nama_pengeluaran)}
-                                                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all">
+                                                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all" title="Hapus Pengeluaran">
                                                             <Trash2 className="w-3.5 h-3.5" />
                                                         </button>
                                                     </div>
@@ -286,9 +358,9 @@ export default function HistoryPage({ auth, apbdes, jenisBuktiOptions = {} }) {
                             <FileText className="w-12 h-12 text-gray-200 mx-auto mb-4" />
                             <h3 className="text-base font-black text-gray-400 uppercase italic tracking-tighter">Belum Ada Pengeluaran</h3>
                             <p className="text-[10px] text-gray-300 font-bold uppercase tracking-widest mt-2 mb-6">Klik "Tambah Pengeluaran" untuk mencatat realisasi</p>
-                            <button onClick={() => setShowAddForm(true)} className="inline-flex items-center gap-2 px-8 py-4 bg-green-600 text-white rounded-2xl text-xs font-black shadow-xl shadow-green-200 hover:bg-green-700 transition-all uppercase tracking-widest">
+                            <Link href={route('anggaran.create-pengeluaran', { apbdes_id: apbdes.id })} className="inline-flex items-center gap-2 px-8 py-4 bg-green-600 text-white rounded-2xl text-xs font-black shadow-xl shadow-green-200 hover:bg-green-700 transition-all uppercase tracking-widest">
                                 <Plus className="w-4 h-4" /> TAMBAH PENGELUARAN PERTAMA
-                            </button>
+                            </Link>
                         </div>
                     )}
                 </TableCard>

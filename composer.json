@@ -3,11 +3,15 @@
     "name": "laravel/laravel",
     "type": "project",
     "description": "The skeleton application for the Laravel framework.",
-    "keywords": ["laravel", "framework"],
+    "keywords": [
+        "laravel",
+        "framework"
+    ],
     "license": "MIT",
     "require": {
         "php": "^8.2",
         "barryvdh/laravel-dompdf": "^3.1",
+        "chillerlan/php-qrcode": "^6.0",
         "guzzlehttp/guzzle": "^7.10",
         "inertiajs/inertia-laravel": "^3.0",
         "laravel/breeze": "^2.3",
@@ -83,7 +87,7 @@
             "php-http/discovery": true
         },
         "audit": {
-            "ignore": ["PKSA-mdq4-51ck-6kdq"]
+            "block-insecure": false
         }
     },
     "minimum-stability": "stable",

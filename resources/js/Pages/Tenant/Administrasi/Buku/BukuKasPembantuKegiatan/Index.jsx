@@ -16,35 +16,53 @@ export default function Index({ auth, jenis_buku, data, filters, apbdes_list }) 
     };
 
     const handleApbdesChange = (e) => {
-        const val = e.target.value;
-        setSelectedApbdesId(val);
-        handleFilterChange('apbdes_id', val);
+        setSelectedApbdesId(e.target.value);
     };
 
-    return (
-        <BukuLayout auth={auth} judul="Buku Kas Pembantu Kegiatan" desc="Mencatat riwayat penerimaan panjar dan pengeluaran belanja per kegiatan." jenis_buku={jenis_buku}>
-            
-            {/* Custom Filter for Kegiatan */}
-            <div className="mb-4 bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex items-center gap-4">
-                <div className="w-full max-w-md">
-                    <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">
-                        Pilih Kegiatan / Belanja
-                    </label>
-                    <select 
-                        value={selectedApbdesId}
-                        onChange={handleApbdesChange}
-                        className="w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-lg shadow-sm text-sm"
-                    >
-                        <option value="">-- Pilih Kegiatan APBDes --</option>
-                        {apbdes_list.map(kegiatan => (
-                            <option key={kegiatan.id} value={kegiatan.id}>
-                                {kegiatan.kode_rekening} - {kegiatan.nama_rekening}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-            </div>
+    const handleCustomFilterSubmit = (params, action) => {
+        if (action === 'reset') {
+            setSelectedApbdesId('');
+            delete params.apbdes_id;
+        } else {
+            params.apbdes_id = selectedApbdesId;
+        }
+        return params;
+    };
 
+    const customFilter = (
+        <div className="w-full lg:w-48 space-y-2 text-left">
+            <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">
+                Pilih Rekening Belanja
+            </label>
+            <div className="relative">
+                <select 
+                    value={selectedApbdesId}
+                    onChange={handleApbdesChange}
+                    className="w-full py-3 px-4 bg-gray-50 border-none rounded-2xl text-xs font-bold focus:ring-2 focus:ring-green-500 transition-all shadow-inner"
+                >
+                    <option value="">-- Pilih Rekening Belanja --</option>
+                    {apbdes_list.map(kegiatan => (
+                        <option key={kegiatan.id} value={kegiatan.id}>
+                            {kegiatan.kode_rekening} - {kegiatan.nama_rekening}
+                        </option>
+                    ))}
+                </select>
+            </div>
+        </div>
+    );
+
+    return (
+        <BukuLayout 
+            auth={auth} 
+            judul="Buku Kas Pembantu Kegiatan" 
+            desc="Mencatat riwayat penerimaan panjar dan pengeluaran belanja per kegiatan." 
+            jenis_buku={jenis_buku}
+            hideDateFilter={true}
+            hasTahunFilter={true}
+            extraFilterFields={customFilter}
+            onCustomFilterSubmit={handleCustomFilterSubmit}
+            isCustomTable={true}
+        >
             {/* Table wrapper */}
             <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
                 <div className="overflow-x-auto">

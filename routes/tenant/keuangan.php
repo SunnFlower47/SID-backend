@@ -22,9 +22,11 @@ Route::middleware([])->group(function () {
         Route::post('store-tahunan', 'storeAnggaranTahunan')->name('store-tahunan');
         Route::get('create-pengeluaran', 'createPengeluaran')->name('create-pengeluaran');
         Route::post('store-pengeluaran', 'storePengeluaran')->name('store-pengeluaran');
+        Route::get('download-bukti/{id}', 'downloadBukti')->name('download-bukti');
         Route::get('histori-pengeluaran/{id}', 'historiPengeluaran')->name('histori-pengeluaran');
         Route::get('edit-pengeluaran/{id}', 'editPengeluaran')->name('edit-pengeluaran');
         Route::put('update-pengeluaran/{id}', 'updatePengeluaran')->name('update-pengeluaran');
+        Route::patch('toggle-spj/{id}', 'toggleSpj')->name('toggle-spj');
         Route::delete('delete-pengeluaran/{id}', 'deletePengeluaran')->name('delete-pengeluaran');
         Route::get('edit-apbdes/{id}', 'editApbdes')->name('edit-apbdes');
         Route::put('update-apbdes/{id}', 'updateApbdes')->name('update-apbdes');

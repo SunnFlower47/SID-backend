@@ -117,7 +117,15 @@ class SuratPengajuanService
             }
             $qrPath = $qrDir . '/' . $suratPengajuan->qr_token . '.png';
             if (!file_exists($qrPath)) {
-                \SimpleSoftwareIO\QrCode\Facades\QrCode::format('png')->size(150)->margin(1)->generate($linkVerifikasi, $qrPath);
+                $options = new \chillerlan\QRCode\QROptions([
+                    'version'         => 5,
+                    'outputInterface' => \chillerlan\QRCode\Output\QRGdImagePNG::class,
+                    'eccLevel'        => \chillerlan\QRCode\Common\EccLevel::L,
+                    'scale'           => 5,
+                    'outputBase64'    => false,
+                ]);
+                $qrcode = new \chillerlan\QRCode\QRCode($options);
+                $qrcode->render($linkVerifikasi, $qrPath);
             }
 
             $data['qr_code'] = [
@@ -128,8 +136,8 @@ class SuratPengajuanService
                 'ratio' => true
             ];
         } else {
-            $data['link_verifikasi'] = '';
-            $data['qr_code'] = '';
+            $data['link_verifikasi'] = 'Menunggu Persetujuan Admin';
+            $data['qr_code'] = '[ QR Code akan muncul di sini setelah surat disetujui ]';
         }
 
         // Auto-map semua field penduduk, translate ID relasi ke label teks

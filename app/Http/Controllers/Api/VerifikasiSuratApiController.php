@@ -17,19 +17,26 @@ class VerifikasiSuratApiController extends Controller
      */
     public function verify($token)
     {
-        $surat = SuratPengajuan::with(['penduduk', 'suratType'])->where('qr_token', $token)->first();
+        // Cari surat berdasarkan qr_token
+        $surat = SuratPengajuan::with(['penduduk'])->where('qr_token', $token)->first();
 
-        if (!$surat || !in_array($surat->status, ['selesai', 'diproses'])) {
+        if (!$surat) {
             return response()->json([
                 'success' => false,
-                'message' => 'Surat tidak ditemukan atau belum disetujui.',
+                'message' => 'Surat tidak ditemukan atau tidak valid.',
             ], 404);
         }
 
-        $namaPemohon = $surat->penduduk ? $surat->penduduk->nama : 'Tidak diketahui';
-        $maskedName = $this->maskName($namaPemohon);
+        // Ambil nama desa dari settings
+        $desaName = DesaSetting::getValue('nama_desa', 'Desa Cibatu');
+
+        // Gunakan attribute surat_type_name
+        $jenisSurat = $surat->surat_type_name;
 
         $desaInfo = DesaSetting::getDesaInfo();
+
+        $namaPemohon = $surat->penduduk ? $surat->penduduk->nama : 'Tidak diketahui';
+        $maskedName = $this->maskName($namaPemohon);
 
         return response()->json([
             'success' => true,

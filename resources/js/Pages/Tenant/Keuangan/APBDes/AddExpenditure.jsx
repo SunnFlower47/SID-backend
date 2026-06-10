@@ -1,22 +1,25 @@
 import React, { useState } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { ArrowLeft, Save, Calendar, Wallet, AlertTriangle, FileText } from 'lucide-react';
+import { ArrowLeft, Save, Calendar, Wallet, AlertTriangle, FileText, Upload } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { PageHeader, FormField, FormCard } from '@/Components/Shared';
 
 const formatRupiah = (v) => `Rp ${Number(v || 0).toLocaleString('id-ID')}`;
 const formatDate   = (d) => d ? new Date(d).toISOString().split('T')[0] : '';
 
-export default function AddExpenditure({ auth, apbdesList = [], tahunList = [], tahun, jenis, taxRates }) {
+export default function AddExpenditure({ auth, apbdesList = [], tahunList = [], tahun, jenis, taxRates, jenisBuktiOptions = {}, selectedApbdesId = '' }) {
     const { data, setData, post, processing, errors } = useForm({
-        apbdes_id:           '',
+        apbdes_id:           selectedApbdesId || '',
         jenis_transaksi:     'belanja',
         nama_pengeluaran:    '',
         nama_penerima:       '',
         jumlah:              '',
         tanggal_pengeluaran: new Date().toISOString().split('T')[0],
         keterangan:          '',
+        no_bukti:            '',
+        jenis_bukti:         'kwitansi',
+        file_bukti:          null,
         pajak_ppn:           '',
         pajak_pph21:         '',
         pajak_pph22:         '',
@@ -60,7 +63,9 @@ export default function AddExpenditure({ auth, apbdesList = [], tahunList = [], 
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        post(route('anggaran.store-pengeluaran'));
+        post(route('anggaran.store-pengeluaran'), {
+            forceFormData: true,
+        });
     };
 
     return (
@@ -118,7 +123,21 @@ export default function AddExpenditure({ auth, apbdesList = [], tahunList = [], 
                                         label="Jenis Transaksi"
                                         error={errors.jenis_transaksi}
                                         value={data.jenis_transaksi}
-                                        onChange={e => setData('jenis_transaksi', e.target.value)}
+                                        onChange={e => {
+                                            const val = e.target.value;
+                                            let updates = { jenis_transaksi: val };
+                                            if (val === 'pencairan_panjar') {
+                                                if (!data.nama_pengeluaran || data.nama_pengeluaran === 'Pengembalian Sisa Panjar') updates.nama_pengeluaran = 'Pencairan Panjar Kegiatan ...';
+                                                updates.nama_penerima = 'Pelaksana Kegiatan Anggaran';
+                                            } else if (val === 'kembali_sisa') {
+                                                if (!data.nama_pengeluaran || data.nama_pengeluaran.startsWith('Pencairan Panjar')) updates.nama_pengeluaran = 'Pengembalian Sisa Panjar';
+                                                updates.nama_penerima = 'Bendahara Desa';
+                                            } else {
+                                                if (data.nama_pengeluaran === 'Pencairan Panjar Kegiatan ...' || data.nama_pengeluaran === 'Pengembalian Sisa Panjar') updates.nama_pengeluaran = '';
+                                                if (data.nama_penerima === 'Pelaksana Kegiatan Anggaran' || data.nama_penerima === 'Bendahara Desa') updates.nama_penerima = '';
+                                            }
+                                            setData({...data, ...updates});
+                                        }}
                                         required
                                     >
                                         <option value="belanja">Belanja Kegiatan (SPP Definitif/SPJ)</option>
@@ -156,13 +175,15 @@ export default function AddExpenditure({ auth, apbdesList = [], tahunList = [], 
                                         placeholder="Nama / deskripsi pengeluaran" 
                                     />
 
-                                    <FormField.Input 
-                                        label="Nama Penerima (Toko/Vendor/Orang)" 
-                                        error={errors.nama_penerima}
-                                        value={data.nama_penerima} 
-                                        onChange={e => setData('nama_penerima', e.target.value)}
-                                        placeholder="Kosongkan jika ingin ditulis tangan saat dicetak" 
-                                    />
+                                    {data.jenis_transaksi === 'belanja' && (
+                                        <FormField.Input 
+                                            label="Nama Penerima (Toko/Vendor/Orang)" 
+                                            error={errors.nama_penerima}
+                                            value={data.nama_penerima} 
+                                            onChange={e => setData('nama_penerima', e.target.value)}
+                                            placeholder="Kosongkan jika ingin ditulis tangan saat dicetak" 
+                                        />
+                                    )}
                                     
                                     <FormField.Input 
                                         label="Tanggal Pengeluaran" 
@@ -193,13 +214,43 @@ export default function AddExpenditure({ auth, apbdesList = [], tahunList = [], 
                                 />
                             </FormCard>
 
+                            {/* Seksi Dokumen Bukti */}
+                            <FormCard title="Dokumen Bukti Pembayaran" icon={Upload} bodyClass="p-6 sm:p-8 space-y-5">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                    <div className="space-y-1.5">
+                                        <FormField.Input 
+                                            label="No. Bukti" 
+                                            error={errors.no_bukti}
+                                            value={data.no_bukti} 
+                                            onChange={e => setData('no_bukti', e.target.value)}
+                                            placeholder="Auto: BKT-YYYY-XXXX"
+                                            inputClassName="font-mono"
+                                        />
+                                    </div>
+                                    
+                                    <FormField.Select 
+                                        label="Jenis Bukti" 
+                                        error={errors.jenis_bukti}
+                                        value={data.jenis_bukti} 
+                                        onChange={e => setData('jenis_bukti', e.target.value)}
+                                        options={Object.entries(jenisBuktiOptions).map(([v, l]) => ({ value: v, label: l }))}
+                                    />
+                                </div>
+
+                                <FormField label="Upload Bukti (PDF/JPG, maks 5MB)" error={errors.file_bukti}>
+                                    <input type="file" accept=".pdf,.jpg,.jpeg,.png"
+                                        onChange={e => setData('file_bukti', e.target.files[0])}
+                                        className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-xs font-bold focus:ring-2 focus:ring-green-500 file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-[9px] file:font-black file:uppercase file:tracking-widest file:bg-green-50 file:text-green-700 hover:file:bg-green-100 cursor-pointer" />
+                                </FormField>
+                            </FormCard>
+
                             {/* Seksi Pajak */}
                             <FormCard title="Kalkulator & Pencatatan Pajak" icon={Wallet} bodyClass="p-6 sm:p-8 space-y-6">
                                 <div className="space-y-6">
                                     {/* Pilihan Pajak */}
                                     <div className="space-y-4">
                                         {/* PPN */}
-                                        <div className="flex flex-col sm:flex-row sm:items-start gap-4 p-4 border rounded-xl transition-colors hover:bg-gray-50/50 activeTaxes.ppn ? 'border-green-300 bg-green-50/20' : 'border-gray-100'">
+                                        <div className={cn("flex flex-col sm:flex-row sm:items-start gap-4 p-4 border rounded-xl transition-colors hover:bg-gray-50/50", activeTaxes.ppn ? 'border-green-300 bg-green-50/20' : 'border-gray-100')}>
                                             <div className="flex items-start gap-3 flex-1">
                                                 <input type="checkbox" id="tax_ppn" checked={activeTaxes.ppn} onChange={e => handleTaxToggle('ppn', e.target.checked)} className="mt-1 w-5 h-5 text-green-600 rounded border-gray-300 focus:ring-green-500" />
                                                 <div>
@@ -215,7 +266,7 @@ export default function AddExpenditure({ auth, apbdesList = [], tahunList = [], 
                                         </div>
 
                                         {/* PPh 21 */}
-                                        <div className="flex flex-col sm:flex-row sm:items-start gap-4 p-4 border rounded-xl transition-colors hover:bg-gray-50/50 activeTaxes.pph21 ? 'border-green-300 bg-green-50/20' : 'border-gray-100'">
+                                        <div className={cn("flex flex-col sm:flex-row sm:items-start gap-4 p-4 border rounded-xl transition-colors hover:bg-gray-50/50", activeTaxes.pph21 ? 'border-green-300 bg-green-50/20' : 'border-gray-100')}>
                                             <div className="flex items-start gap-3 flex-1">
                                                 <input type="checkbox" id="tax_pph21" checked={activeTaxes.pph21} onChange={e => handleTaxToggle('pph21', e.target.checked)} className="mt-1 w-5 h-5 text-green-600 rounded border-gray-300 focus:ring-green-500" />
                                                 <div>
@@ -231,7 +282,7 @@ export default function AddExpenditure({ auth, apbdesList = [], tahunList = [], 
                                         </div>
 
                                         {/* PPh 22 */}
-                                        <div className="flex flex-col sm:flex-row sm:items-start gap-4 p-4 border rounded-xl transition-colors hover:bg-gray-50/50 activeTaxes.pph22 ? 'border-green-300 bg-green-50/20' : 'border-gray-100'">
+                                        <div className={cn("flex flex-col sm:flex-row sm:items-start gap-4 p-4 border rounded-xl transition-colors hover:bg-gray-50/50", activeTaxes.pph22 ? 'border-green-300 bg-green-50/20' : 'border-gray-100')}>
                                             <div className="flex items-start gap-3 flex-1">
                                                 <input type="checkbox" id="tax_pph22" checked={activeTaxes.pph22} onChange={e => handleTaxToggle('pph22', e.target.checked)} className="mt-1 w-5 h-5 text-green-600 rounded border-gray-300 focus:ring-green-500" />
                                                 <div>
@@ -247,7 +298,7 @@ export default function AddExpenditure({ auth, apbdesList = [], tahunList = [], 
                                         </div>
 
                                         {/* PPh 23 */}
-                                        <div className="flex flex-col sm:flex-row sm:items-start gap-4 p-4 border rounded-xl transition-colors hover:bg-gray-50/50 activeTaxes.pph23 ? 'border-green-300 bg-green-50/20' : 'border-gray-100'">
+                                        <div className={cn("flex flex-col sm:flex-row sm:items-start gap-4 p-4 border rounded-xl transition-colors hover:bg-gray-50/50", activeTaxes.pph23 ? 'border-green-300 bg-green-50/20' : 'border-gray-100')}>
                                             <div className="flex items-start gap-3 flex-1">
                                                 <input type="checkbox" id="tax_pph23" checked={activeTaxes.pph23} onChange={e => handleTaxToggle('pph23', e.target.checked)} className="mt-1 w-5 h-5 text-green-600 rounded border-gray-300 focus:ring-green-500" />
                                                 <div>

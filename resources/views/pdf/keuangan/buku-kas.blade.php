@@ -98,32 +98,41 @@
     <table class="main">
         <thead>
             <tr>
-                <th style="width:4%">No.</th>
-                <th style="width:10%">No. Bukti</th>
-                <th style="width:11%">Tanggal</th>
-                <th style="width:26%">Nama Pengeluaran</th>
-                <th style="width:19%">Rekening (Kode)</th>
-                <th style="width:8%">Jenis Bukti</th>
+                <th style="width:3%">No.</th>
+                <th style="width:9%">No. Bukti</th>
+                <th style="width:9%">Tanggal</th>
+                <th style="width:24%">Uraian Pengeluaran</th>
+                <th style="width:15%">Rekening</th>
+                <th style="width:7%">Jenis Bukti</th>
                 <th style="width:13%">Jumlah (Rp)</th>
-                <th style="width:9%">SPJ</th>
+                <th style="width:12%">Pajak (Rp)</th>
+                <th style="width:8%">SPJ</th>
             </tr>
         </thead>
         <tbody>
             @foreach($histori as $i => $item)
-                @php $pct = $item->apbdes ? round(($item->jumlah / max($item->apbdes->anggaran, 1)) * 100, 1) : 0; @endphp
+                @php
+                    $totalPajak = (float)$item->pajak_ppn + (float)$item->pajak_pph21 + (float)$item->pajak_pph22 + (float)$item->pajak_pph23;
+                @endphp
                 <tr>
                     <td class="text-center">{{ $i + 1 }}</td>
                     <td class="nowrap" style="font-family: monospace; font-size: 6.5pt;">{{ $item->no_bukti ?? '—' }}</td>
                     <td class="text-center nowrap">{{ $item->tanggal_pengeluaran ? $item->tanggal_pengeluaran->format('d/m/Y') : '—' }}</td>
                     <td>
                         <b>{{ $item->nama_pengeluaran }}</b>
+                        @if($item->nama_penerima)
+                            <br><span style="font-size:6.5pt;color:#374151;">Penerima: {{ $item->nama_penerima }}</span>
+                        @endif
                         @if($item->keterangan)
-                            <br><span style="font-size:6.5pt;color:#6b7280;">{{ $item->keterangan }}</span>
+                            <br><span style="font-size:6pt;color:#9ca3af;font-style:italic;">{{ $item->keterangan }}</span>
+                        @endif
+                        @if($item->jenis_transaksi && $item->jenis_transaksi !== 'belanja')
+                            <br><span style="font-size:6pt;color:#d97706;font-weight:bold;text-transform:uppercase;">{{ str_replace('_', ' ', $item->jenis_transaksi) }}</span>
                         @endif
                     </td>
                     <td style="font-size:7pt;">
                         @if($item->apbdes)
-                            [{{ $item->apbdes->kode_rekening }}] {{ Str::limit($item->apbdes->nama_rekening, 30) }}
+                            <b>[{{ $item->apbdes->kode_rekening }}]</b><br>{{ Str::limit($item->apbdes->nama_rekening, 28) }}
                         @else
                             —
                         @endif
@@ -132,6 +141,16 @@
                         <span class="badge badge-green">{{ ucfirst($item->jenis_bukti ?? '—') }}</span>
                     </td>
                     <td class="text-right nowrap"><b>{{ number_format($item->jumlah, 0, ',', '.') }}</b></td>
+                    <td class="text-right nowrap" style="font-size:6.5pt;">
+                        @if($totalPajak > 0)
+                            @if($item->pajak_ppn > 0)<span style="color:#166534;">PPN: {{ number_format($item->pajak_ppn, 0, ',', '.') }}</span><br>@endif
+                            @if($item->pajak_pph21 > 0)<span style="color:#166534;">PPh21: {{ number_format($item->pajak_pph21, 0, ',', '.') }}</span><br>@endif
+                            @if($item->pajak_pph22 > 0)<span style="color:#166534;">PPh22: {{ number_format($item->pajak_pph22, 0, ',', '.') }}</span><br>@endif
+                            @if($item->pajak_pph23 > 0)<span style="color:#166534;">PPh23: {{ number_format($item->pajak_pph23, 0, ',', '.') }}</span>@endif
+                        @else
+                            <span style="color:#d1d5db;">—</span>
+                        @endif
+                    </td>
                     <td class="text-center">
                         <span class="badge {{ $item->spj_status === 'sudah' ? 'badge-green' : 'badge-yellow' }}">
                             {{ $item->spj_status === 'sudah' ? 'Sudah' : 'Belum' }}
@@ -144,6 +163,10 @@
             <tr class="row-total">
                 <td colspan="6" class="text-right">TOTAL PENGELUARAN</td>
                 <td class="text-right nowrap">Rp {{ number_format($histori->sum('jumlah'), 0, ',', '.') }}</td>
+                <td class="text-right nowrap" style="font-size:6.5pt;">
+                    @php $totalPajakAll = $histori->sum(fn($h) => (float)$h->pajak_ppn + (float)$h->pajak_pph21 + (float)$h->pajak_pph22 + (float)$h->pajak_pph23); @endphp
+                    @if($totalPajakAll > 0) Rp {{ number_format($totalPajakAll, 0, ',', '.') }} @else — @endif
+                </td>
                 <td></td>
             </tr>
         </tbody>

@@ -51,9 +51,11 @@
         }
     @endphp
 
+    @if(!isset($is_excel) || !$is_excel)
     <div style="margin-bottom: 10px;">
         <strong>Kegiatan: </strong> {{ $kegiatan ? $kegiatan->kode_rekening . ' - ' . $kegiatan->nama_rekening : 'Semua Kegiatan (Belum Dipilih)' }}
     </div>
+    @endif
 
     <table>
         <thead>
