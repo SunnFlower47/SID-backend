@@ -143,10 +143,14 @@ class BsreService
             $signatureProperties['location'] = $namaLokasi;
         }
 
-        // Gunakan QR Code (image: false) dengan linkQR untuk verifikasi mandiri
-        // Sesuai dokumentasi BSrE: jika image = false (tidak dikirim imageBase64),
-        // maka linkQR wajib diisi untuk generate QR Code otomatis dari BSrE
-        $signatureProperties['linkQR'] = $linkQR;
+        // Generate QR Code lokal dan konversi ke Base64 (sesuai spesifikasi API v2.2.2)
+        // qr_token atau link verifikasi disertakan dalam QR Code
+        $qrCodeImage = \SimpleSoftwareIO\QrCode\Facades\QrCode::format('png')
+            ->size(200)
+            ->margin(1)
+            ->generate($linkQR);
+            
+        $signatureProperties['imageBase64'] = base64_encode($qrCodeImage);
 
         $payload = [
             'nik'                 => $nik,
