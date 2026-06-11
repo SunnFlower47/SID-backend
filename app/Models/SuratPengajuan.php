@@ -53,15 +53,24 @@ class SuratPengajuan extends Model
         'approved_at',
         'processed_at',
         'completed_at',
-        'penandatangan'
+        'penandatangan',
+        // TTE (Tanda Tangan Elektronik)
+        'is_tte',
+        'tte_at',
+        'signed_pdf_path',
+        'tte_signer_nik',
+        'tte_signer_name',
+        'qr_token',
     ];
 
     protected $casts = [
         'tanggal_surat' => 'date',
-        'approved_at' => 'datetime',
-        'processed_at' => 'datetime',
-        'completed_at' => 'datetime',
-        'data_tambahan' => 'array'
+        'approved_at'   => 'datetime',
+        'processed_at'  => 'datetime',
+        'completed_at'  => 'datetime',
+        'data_tambahan' => 'array',
+        'is_tte'        => 'boolean',
+        'tte_at'        => 'datetime',
     ];
 
     /**

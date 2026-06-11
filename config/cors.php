@@ -31,7 +31,7 @@ return [
             'https://api-vilage.sunnflower.site',
             'https://vilage.sunnflower.site',
             'https://web-desa-sid.vercel.app',
-            'https://cibatu-vibe-ai-505268805663.asia-southeast2.run.app/'
+            'https://cibatu-vibe-ai-505268805663.asia-southeast2.run.app'
         ],
 
     'allowed_origins_patterns' => [],

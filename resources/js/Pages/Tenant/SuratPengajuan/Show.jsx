@@ -16,10 +16,11 @@ import Swal from 'sweetalert2';
 // Shared Components
 import { PageHeader, InfoRow } from '@/Components/Shared';
 import MultiTemplatePrintPanel from './Components/MultiTemplatePrintPanel';
+import TtePanel from './Components/TtePanel';
 
 dayjs.locale('id');
 
-export default function Show({ auth, suratPengajuan, statusList, suratType }) {
+export default function Show({ auth, suratPengajuan, statusList, suratType, bsreConfigured = false }) {
     const p = suratPengajuan;
     
     const getStatusStyle = (status) => {
@@ -109,7 +110,8 @@ export default function Show({ auth, suratPengajuan, statusList, suratType }) {
                             </div>
                             <div className="p-6">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <InfoRow label="Nomor Surat" value={p.nomor_surat || 'BELUM TERBIT'} icon={Hash} color="blue" />
+                                    <InfoRow label="Nomor Resi / Pelacakan" value={p.nomor_resi || '-'} icon={Hash} color="blue" />
+                                    <InfoRow label="Nomor Surat Resmi" value={p.nomor_surat || 'BELUM TERBIT'} icon={FileText} color="blue" />
                                     <InfoRow label="Jenis Surat" value={p.surat_type_name || p.jenis_surat} icon={Type} color="purple" />
                                     <InfoRow label="Tanggal Surat" value={dayjs(p.tanggal_surat).format('DD MMMM YYYY')} icon={Calendar} color="green" />
                                     <InfoRow label="Tanda Tangan Oleh" value={p.penandatangan?.replace('_', ' ') || 'KEPALA DESA'} icon={PenTool} color="orange" />
@@ -150,13 +152,6 @@ export default function Show({ auth, suratPengajuan, statusList, suratType }) {
                             </div>
                         )}
 
-                        {/* Multi-Template Print Panel */}
-                        {suratType?.has_multi_template && (
-                            <MultiTemplatePrintPanel 
-                                suratPengajuan={p} 
-                                suratType={suratType} 
-                            />
-                        )}
                     </div>
 
                     {/* Sidebar Information (Right) */}
@@ -224,6 +219,22 @@ export default function Show({ auth, suratPengajuan, statusList, suratType }) {
                                     "{p.keterangan_tambahan}"
                                 </p>
                             </div>
+                        )}
+
+                        {/* Multi-Template Print Panel */}
+                        {suratType?.has_multi_template && (
+                            <MultiTemplatePrintPanel 
+                                suratPengajuan={p} 
+                                suratType={suratType} 
+                            />
+                        )}
+
+                        {/* TTE Panel — hanya tampil jika surat sudah diproses/selesai */}
+                        {['diproses', 'selesai'].includes(p.status) && (
+                            <TtePanel
+                                suratPengajuan={p}
+                                bsreConfigured={bsreConfigured}
+                            />
                         )}
 
                     </div>

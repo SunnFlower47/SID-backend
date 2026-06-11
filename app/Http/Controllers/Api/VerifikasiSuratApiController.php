@@ -44,7 +44,7 @@ class VerifikasiSuratApiController extends Controller
             'data' => [
                 'desa' => $desaInfo['nama_desa'] ?? 'Cibatu',
                 'nomor_surat' => $surat->nomor_surat,
-                'jenis_surat' => $surat->suratType ? $surat->suratType->nama : 'Surat Keterangan',
+                'jenis_surat' => $jenisSurat,
                 'tanggal_surat' => $surat->tanggal_surat ? \Carbon\Carbon::parse($surat->tanggal_surat)->isoFormat('D MMMM Y') : null,
                 'nama_pemohon' => $maskedName,
                 'status' => 'Asli & Tercatat di Sistem',

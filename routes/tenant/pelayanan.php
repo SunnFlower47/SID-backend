@@ -55,6 +55,14 @@ Route::middleware([])->group(function () {
         // Legacy Surat Routes
         Route::get('/surat-pengajuan/legacy/{id}', 'downloadLegacy')->name('surat-pengajuan.download-legacy');
         Route::delete('/surat-pengajuan/legacy/{id}', 'destroyLegacy')->name('surat-pengajuan.destroy-legacy');
+
+        // TTE (Tanda Tangan Elektronik BSrE) Routes
+        Route::prefix('tte')->name('tte.')->controller(\App\Http\Controllers\Tenant\TteController::class)->group(function () {
+            Route::get('/{suratPengajuan}/status',   'checkStatus')->name('status');   // Cek status sertifikat
+            Route::post('/{suratPengajuan}/sign',     'sign')->name('sign');           // Proses TTE
+            Route::get('/{suratPengajuan}/download',  'download')->name('download');   // Download PDF TTE
+            Route::post('/{suratPengajuan}/verify',   'verify')->name('verify');       // Verifikasi TTE
+        });
     });
 
     // Bantuan Sosial routes

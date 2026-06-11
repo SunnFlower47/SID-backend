@@ -18,45 +18,32 @@ const JENIS_BUKU_META = {
         judul: 'Buku Kas Umum',
         hasTahunFilter: true,
         hideDateFilter: true,
-        columns: ['No.', 'Tgl', 'No. Bukti', 'Uraian Pengeluaran', 'Rekening', 'Jenis Bukti', 'Jumlah (Rp)', 'Status SPJ'],
+        columns: ['No.', 'Tanggal', 'Kode Rekening', 'Uraian', 'No. Bukti', 'Penerimaan', 'Pengeluaran', 'Pengeluaran Kumulatif', 'Saldo'],
         renderRow: (item, index, no) => (
             <tr key={item.id || index} className="border-b border-gray-50 hover:bg-green-50/30 transition-colors">
-                <td className="px-3 py-3 text-center font-black text-gray-400 text-[10px]">{no + 1}</td>
+                <td className="px-3 py-3 text-center font-black text-gray-400 text-[10px]">{no}</td>
                 <td className="px-3 py-3 text-center text-[10px] font-bold text-gray-600 whitespace-nowrap">
-                    {fmtDate(item.tanggal_pengeluaran)}
+                    {fmtDate(item.tanggal)}
                 </td>
-                <td className="px-3 py-3 font-mono text-[9px] text-gray-500">{item.no_bukti || '—'}</td>
-                <td className="px-3 py-3">
-                    <p className="font-black text-[10px] text-gray-900 leading-tight">{item.nama_pengeluaran}</p>
-                    {item.nama_penerima && (
-                        <p className="text-[9px] text-gray-500 mt-0.5">Penerima: {item.nama_penerima}</p>
-                    )}
-                    {item.keterangan && (
-                        <p className="text-[9px] text-gray-400 italic mt-0.5">{item.keterangan}</p>
-                    )}
+                <td className="px-3 py-3 font-mono text-[9px] text-gray-500 text-center">
+                    {item.kode_rekening || '—'}
                 </td>
-                <td className="px-3 py-3 text-[9px] text-gray-500">
-                    {item.apbdes
-                        ? <><span className="font-black text-gray-700">[{item.apbdes.kode_rekening}]</span> {item.apbdes.nama_rekening}</>
-                        : '—'
-                    }
+                <td className="px-3 py-3 text-[10px] text-gray-900">
+                    {item.uraian || '—'}
+                    {item.nama_penerima && <div className="text-[9px] text-gray-500">Penerima: {item.nama_penerima}</div>}
                 </td>
-                <td className="px-3 py-3 text-center">
-                    <span className="inline-flex px-2 py-0.5 rounded-full text-[8px] font-black uppercase bg-green-50 text-green-700 border border-green-200">
-                        {item.jenis_bukti || '—'}
-                    </span>
+                <td className="px-3 py-3 font-mono text-[9px] text-gray-500 text-center">{item.no_bukti || '—'}</td>
+                <td className="px-3 py-3 text-right font-black text-[10px] text-green-600 whitespace-nowrap">
+                    {item.penerimaan > 0 ? formatRp(item.penerimaan) : '—'}
                 </td>
-                <td className="px-3 py-3 text-right font-black text-[10px] text-gray-900 whitespace-nowrap">
-                    {formatRp(item.jumlah)}
+                <td className="px-3 py-3 text-right font-black text-[10px] text-red-600 whitespace-nowrap">
+                    {item.pengeluaran > 0 ? formatRp(item.pengeluaran) : '—'}
                 </td>
-                <td className="px-3 py-3 text-center">
-                    <span className={`inline-flex px-2 py-0.5 rounded-full text-[8px] font-black uppercase ${
-                        item.spj_status === 'sudah'
-                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                            : 'bg-amber-50 text-amber-700 border border-amber-200'
-                    }`}>
-                        {item.spj_status === 'sudah' ? '✓ Sudah' : '⏳ Belum'}
-                    </span>
+                <td className="px-3 py-3 text-right font-black text-[10px] text-gray-700 whitespace-nowrap">
+                    {formatRp(item.kumulatif_pengeluaran)}
+                </td>
+                <td className="px-3 py-3 text-right font-black text-[10px] text-blue-700 whitespace-nowrap">
+                    {formatRp(item.saldo)}
                 </td>
             </tr>
         ),
@@ -86,16 +73,20 @@ export default function BukuStandard({ auth, jenis_buku, data, filters }) {
         );
 
         // Footer total
-        const totalJumlah = data?.data?.reduce((s, i) => s + Number(i.jumlah || 0), 0) ?? 0;
+        const totalPenerimaan = data?.data?.reduce((s, i) => s + Number(i.penerimaan || 0), 0) ?? 0;
+        const totalPengeluaran = data?.data?.reduce((s, i) => s + Number(i.pengeluaran || 0), 0) ?? 0;
         const footerRow = data?.data?.length > 0 ? (
             <tr className="bg-green-700 text-white">
-                <td colSpan={6} className="px-3 py-2.5 text-right text-[9px] font-black uppercase tracking-widest">
-                    Total Pengeluaran
+                <td colSpan={5} className="px-3 py-2.5 text-right text-[9px] font-black uppercase tracking-widest">
+                    TOTAL
                 </td>
                 <td className="px-3 py-2.5 text-right font-black text-[10px] whitespace-nowrap">
-                    {formatRp(totalJumlah)}
+                    {formatRp(totalPenerimaan)}
                 </td>
-                <td></td>
+                <td className="px-3 py-2.5 text-right font-black text-[10px] whitespace-nowrap">
+                    {formatRp(totalPengeluaran)}
+                </td>
+                <td colSpan={2}></td>
             </tr>
         ) : null;
 
@@ -109,6 +100,7 @@ export default function BukuStandard({ auth, jenis_buku, data, filters }) {
                 data={data}
                 filters={filters}
                 tableHead={tableHead}
+                tableFooter={footerRow}
                 renderRow={(item, index, no) => meta.renderRow(item, index, no)}
                 hasStandardFilter={true}
                 hasTahunFilter={true}

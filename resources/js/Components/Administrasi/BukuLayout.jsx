@@ -21,6 +21,7 @@ export default function BukuLayout({
     
     // Props untuk tabel standar (paginated)
     tableHead, 
+    tableFooter,
     renderRow, 
     
     // Konfigurasi tabel
@@ -358,6 +359,7 @@ export default function BukuLayout({
                                             renderRow(item, index, (data.from || 0) + index)
                                         )}
                                     </tbody>
+                                    {tableFooter && <tfoot>{tableFooter}</tfoot>}
                                 </table>
                             </div>
                         )}

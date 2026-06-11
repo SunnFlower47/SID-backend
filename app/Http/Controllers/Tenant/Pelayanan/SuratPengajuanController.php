@@ -90,10 +90,16 @@ class SuratPengajuanController extends Controller
         
         $suratType = SuratType::with('templates')->find($suratPengajuan->jenis_surat);
 
+        // Cek apakah BSrE sudah dikonfigurasi untuk desa ini (multi-tenant)
+        $bsreConfigured = !empty(\App\Models\DesaSetting::getValue('bsre_api_url'))
+            && !empty(\App\Models\DesaSetting::getValue('bsre_username'))
+            && !empty(\App\Models\DesaSetting::getValue('bsre_password'));
+
         return Inertia::render('Tenant/SuratPengajuan/Show', [
             'suratPengajuan' => $suratPengajuan,
             'statusList'     => SuratPengajuan::STATUS_LIST,
             'suratType'      => $suratType,
+            'bsreConfigured' => $bsreConfigured,
         ]);
     }
 
