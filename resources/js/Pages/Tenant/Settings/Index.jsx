@@ -5,7 +5,7 @@ import { PageHeader } from '@/Components/Shared';
 import { 
     Settings, User, Shield, Server, Plus, Edit2, 
     Trash2, Save, X, CheckCircle, Info, Database, Map,
-    FileSpreadsheet, ShieldAlert, Key, UserMinus, Eye, EyeOff, Wallet
+    FileSpreadsheet, ShieldAlert, Key, UserMinus, Eye, EyeOff, Wallet, Stamp
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 
@@ -573,6 +573,17 @@ export default function Index({ auth, users, roles, permissions, permissions_str
                     >
                         <Wallet className="w-4 h-4" />
                         Pajak & Keuangan
+                    </button>
+                    <button
+                        onClick={() => handleTabChange('bsre')}
+                        className={`flex items-center gap-2 px-5 py-3 rounded-xl text-xs font-black uppercase tracking-widest italic transition-all ${
+                            activeTab === 'bsre' 
+                                ? 'bg-gradient-to-r from-green-600 to-green-700 text-white shadow-md' 
+                                : 'text-gray-600 hover:bg-gray-50'
+                        }`}
+                    >
+                        <Stamp className="w-4 h-4" />
+                        Integrasi BSrE
                     </button>
                 </div>
 
@@ -1286,6 +1297,102 @@ export default function Index({ auth, users, roles, permissions, permissions_str
                         >
                             <Save className="w-4 h-4" />
                             Simpan Konfigurasi Pajak
+                        </button>
+                    </form>
+                </div>
+            )}
+
+            {/* ========================================================================= */}
+            {/* TAB 7: INTEGRASI BSrE */}
+            {/* ========================================================================= */}
+            {activeTab === 'bsre' && (
+                <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 sm:p-8 space-y-6 animate-in fade-in duration-300 text-left">
+                    <h3 className="text-lg font-black text-gray-900 flex items-center gap-3 uppercase italic tracking-tighter border-b border-gray-50 pb-4">
+                        <Stamp className="w-6 h-6 text-indigo-600" />
+                        Pengaturan Integrasi BSrE (Tanda Tangan Elektronik)
+                    </h3>
+                    
+                    <form onSubmit={(e) => {
+                        e.preventDefault();
+                        router.post(route('settings.desa.update'), {
+                            _method: 'put',
+                            settings: [
+                                { key: 'bsre_api_url', value: document.getElementById('bsre_api_url').value, type: 'text', group: 'integration' },
+                                { key: 'bsre_username', value: document.getElementById('bsre_username').value, type: 'text', group: 'integration' },
+                                { key: 'bsre_password', value: document.getElementById('bsre_password').value, type: 'text', group: 'integration' },
+                                { key: 'bsre_nik_pejabat', value: document.getElementById('bsre_nik_pejabat').value, type: 'text', group: 'integration' },
+                            ]
+                        }, {
+                            preserveScroll: true,
+                            onSuccess: () => {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'BERHASIL!',
+                                    text: 'Pengaturan BSrE berhasil diperbarui.',
+                                    timer: 1500,
+                                    showConfirmButton: false,
+                                    customClass: { popup: 'rounded-3xl' }
+                                });
+                            }
+                        });
+                    }} className="space-y-6">
+                        <div className="bg-indigo-50/50 p-6 rounded-2xl border border-indigo-100 space-y-4">
+                            <h4 className="text-xs font-black text-indigo-800 uppercase tracking-widest">Kredensial API BSrE</h4>
+                            <p className="text-[10px] text-indigo-600/80 font-medium leading-relaxed">
+                                Masukkan kredensial API dari Balai Sertifikasi Elektronik (BSrE) untuk mengaktifkan fitur Tanda Tangan Elektronik (TTE) Tersertifikasi pada dokumen.
+                            </p>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                                <div className="space-y-2 md:col-span-2">
+                                    <label className="text-[10px] font-black text-indigo-700 uppercase tracking-widest ml-1">Base URL API Esign</label>
+                                    <input
+                                        type="url"
+                                        id="bsre_api_url"
+                                        placeholder="Contoh: https://v2-cms.esign.go.id/api"
+                                        defaultValue={desa_settings['bsre_api_url']?.value || ''}
+                                        className="w-full px-5 py-4 bg-white border border-indigo-200 rounded-2xl text-sm font-bold text-gray-700 focus:ring-4 focus:ring-indigo-500/10 transition-all"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-indigo-700 uppercase tracking-widest ml-1">Username/ID Klien</label>
+                                    <input
+                                        type="text"
+                                        id="bsre_username"
+                                        defaultValue={desa_settings['bsre_username']?.value || ''}
+                                        className="w-full px-5 py-4 bg-white border border-indigo-200 rounded-2xl text-sm font-bold text-gray-700 focus:ring-4 focus:ring-indigo-500/10 transition-all"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-indigo-700 uppercase tracking-widest ml-1">Password API</label>
+                                    <input
+                                        type="password"
+                                        id="bsre_password"
+                                        defaultValue={desa_settings['bsre_password']?.value || ''}
+                                        className="w-full px-5 py-4 bg-white border border-indigo-200 rounded-2xl text-sm font-bold text-gray-700 focus:ring-4 focus:ring-indigo-500/10 transition-all"
+                                    />
+                                </div>
+                                <div className="space-y-2 md:col-span-2">
+                                    <label className="text-[10px] font-black text-indigo-700 uppercase tracking-widest ml-1">NIK Pejabat / Kades Penandatangan</label>
+                                    <input
+                                        type="text"
+                                        id="bsre_nik_pejabat"
+                                        placeholder="NIK 16 digit yang terdaftar di BSrE"
+                                        defaultValue={desa_settings['bsre_nik_pejabat']?.value || ''}
+                                        className="w-full px-5 py-4 bg-white border border-indigo-200 rounded-2xl text-sm font-bold text-gray-700 focus:ring-4 focus:ring-indigo-500/10 transition-all"
+                                    />
+                                    <p className="text-[9px] text-indigo-500 mt-2 ml-1 italic font-bold">
+                                        Catatan: NIK ini akan digunakan sebagai identitas penandatangan utama untuk surat desa.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button
+                            type="submit"
+                            className="flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-indigo-200 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50"
+                        >
+                            <Save className="w-4 h-4" />
+                            Simpan Konfigurasi BSrE
                         </button>
                     </form>
                 </div>
