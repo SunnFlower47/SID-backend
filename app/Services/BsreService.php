@@ -194,7 +194,7 @@ class BsreService
 
     /**
      * Verifikasi keaslian dokumen PDF yang sudah ber-TTE.
-     * Endpoint: POST /api/sign/verify (sama di v1 dan v2)
+     * Endpoint: POST /api/v2/verify/pdf
      *
      * @param string $pdfPath Path ke file PDF yang akan diverifikasi
      * @return array Detail hasil verifikasi
@@ -205,11 +205,18 @@ class BsreService
             return ['success' => false, 'message' => 'Konfigurasi BSrE belum diisi.'];
         }
 
+        if (!file_exists($pdfPath)) {
+            return ['success' => false, 'message' => 'File tidak ditemukan.'];
+        }
+
         try {
+            $pdfBase64 = base64_encode(file_get_contents($pdfPath));
+
             $response = Http::withBasicAuth($this->username, $this->password)
                 ->timeout(30)
-                ->attach('signed_file', file_get_contents($pdfPath), 'surat.pdf')
-                ->post($this->baseUrl . '/api/sign/verify');
+                ->post($this->baseUrl . '/api/v2/verify/pdf', [
+                    'file' => $pdfBase64
+                ]);
 
             return $response->json() ?? ['success' => false, 'message' => 'Response tidak valid.'];
         } catch (\Exception $e) {
