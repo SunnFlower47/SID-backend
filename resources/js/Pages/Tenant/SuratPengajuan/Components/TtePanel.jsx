@@ -16,7 +16,7 @@ import { cn } from '@/lib/utils';
  * - Form input Passphrase untuk proses TTE
  * - Tombol download PDF yang sudah ber-TTE
  */
-export default function TtePanel({ suratPengajuan, bsreConfigured = false }) {
+export default function TtePanel({ suratPengajuan, bsreConfigured = false, kepalaDesaNik = '' }) {
     const p = suratPengajuan;
 
     // State untuk cek status sertifikat
@@ -26,7 +26,7 @@ export default function TtePanel({ suratPengajuan, bsreConfigured = false }) {
 
     // Form untuk proses TTE
     const { data, setData, post, processing, errors, reset } = useForm({
-        nik:        '',
+        nik:        kepalaDesaNik || '',
         passphrase: '',
     });
 

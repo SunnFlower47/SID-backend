@@ -95,11 +95,17 @@ class SuratPengajuanController extends Controller
             && !empty(config('services.bsre.username'))
             && !empty(config('services.bsre.password'));
 
+        // Ambil NIK Kepala Desa aktif dari Struktur Desa (untuk pre-fill form TTE)
+        $kepalaDesaNik = \App\Models\StrukturDesa::where('kategori', 'kepala_desa')
+            ->where('status_aktif', true)
+            ->value('nik');
+
         return Inertia::render('Tenant/SuratPengajuan/Show', [
             'suratPengajuan' => $suratPengajuan,
             'statusList'     => SuratPengajuan::STATUS_LIST,
             'suratType'      => $suratType,
             'bsreConfigured' => $bsreConfigured,
+            'kepalaDesaNik'  => $kepalaDesaNik,
         ]);
     }
 

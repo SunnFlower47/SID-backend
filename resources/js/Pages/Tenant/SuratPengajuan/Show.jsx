@@ -20,7 +20,7 @@ import TtePanel from './Components/TtePanel';
 
 dayjs.locale('id');
 
-export default function Show({ auth, suratPengajuan, statusList, suratType, bsreConfigured = false }) {
+export default function Show({ auth, suratPengajuan, statusList, suratType, bsreConfigured = false, kepalaDesaNik = '' }) {
     const p = suratPengajuan;
     
     const getStatusStyle = (status) => {
@@ -234,6 +234,7 @@ export default function Show({ auth, suratPengajuan, statusList, suratType, bsre
                             <TtePanel
                                 suratPengajuan={p}
                                 bsreConfigured={bsreConfigured}
+                                kepalaDesaNik={kepalaDesaNik}
                             />
                         )}
 
