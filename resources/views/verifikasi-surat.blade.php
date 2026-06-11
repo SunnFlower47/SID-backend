@@ -48,6 +48,35 @@
                     </div>
                 </div>
 
+                @if(isset($data['is_tte']) && $data['is_tte'])
+                    <div class="mt-6 pt-6 border-t border-gray-100">
+                        @if(isset($data['is_tte_signed']) && $data['is_tte_signed'])
+                            <div class="bg-green-50 border border-green-200 rounded-2xl p-4 flex items-center gap-4 text-left">
+                                <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center shrink-0">
+                                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h4 class="text-sm font-black text-green-800 uppercase tracking-widest">Ditandatangani Elektronik</h4>
+                                    <p class="text-[10px] font-bold text-green-600 mt-0.5">Dokumen ini telah ditandatangani secara elektronik tersertifikasi oleh BSrE BSSN.</p>
+                                </div>
+                            </div>
+                        @else
+                            <div class="bg-yellow-50 border border-yellow-200 rounded-2xl p-4 flex items-center gap-4 text-left">
+                                <div class="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center shrink-0">
+                                    <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h4 class="text-sm font-black text-yellow-800 uppercase tracking-widest">Menunggu TTE</h4>
+                                    <p class="text-[10px] font-bold text-yellow-600 mt-0.5">Dokumen ini sedang dalam proses antrean untuk penandatanganan elektronik.</p>
+                                </div>
+                            </div>
+                        @endif
+                    </div>
+                @endif
             @else
                 <!-- Failed / Not Found State -->
                 <div class="flex justify-center">

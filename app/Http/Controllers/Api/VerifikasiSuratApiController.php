@@ -48,6 +48,8 @@ class VerifikasiSuratApiController extends Controller
                 'tanggal_surat' => $surat->tanggal_surat ? \Carbon\Carbon::parse($surat->tanggal_surat)->isoFormat('D MMMM Y') : null,
                 'nama_pemohon' => $maskedName,
                 'status' => 'Asli & Tercatat di Sistem',
+                'is_tte' => $surat->is_tte,
+                'is_tte_signed' => !empty($surat->signed_pdf_path),
             ]
         ]);
     }
