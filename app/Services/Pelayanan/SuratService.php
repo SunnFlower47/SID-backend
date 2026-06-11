@@ -40,6 +40,13 @@ class SuratService
             } else if ($penandatangan === 'sekretaris_desa' && $sekdes) {
                 $data['ttd_atas'] = "a.n. Kepala Desa " . $namaDesa;
                 $data['ttd_bawah'] = strtoupper($sekdes->nama);
+            } else if ($penandatangan === 'tte') {
+                // Mode TTE: area TTD dibiarkan kosong
+                // BSrE akan menyematkan visualisasi QR Code / spesimen di area yang ditentukan oleh koordinat
+                $data['ttd_atas'] = "Kepala Desa " . $namaDesa;
+                $data['ttd_bawah'] = strtoupper($kades->nama ?? '');
+                // Tandai bahwa ini surat TTE agar template bisa merender placeholder QR
+                $data['is_tte_mode'] = true;
             } else {
                 $data['ttd_atas'] = "Kepala Desa " . $namaDesa;
                 $data['ttd_bawah'] = strtoupper($kades->nama ?? '....................');

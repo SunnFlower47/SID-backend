@@ -5,7 +5,7 @@ import {
     FileSignature, ArrowLeft, Search, User, 
     Calendar, MapPin, Info, Save, Layers,
     CheckCircle2, X, FileText, UserPlus, 
-    CreditCard, Settings2, Download
+    CreditCard, Settings2, Download, Stamp
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import axios from 'axios';
@@ -436,8 +436,9 @@ export default function Edit({ auth, suratPengajuan, suratTypes, wilayah }) {
                                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 text-left">Penandatangan</label>
                                     <div className="grid grid-cols-1 gap-3">
                                         {[
-                                            { id: 'kepala_desa', label: 'Kepala Desa' },
-                                            { id: 'sekretaris_desa', label: 'Sekretaris Desa' }
+                                            { id: 'kepala_desa',     label: 'Kepala Desa',      icon: <CreditCard className="w-4 h-4" />, desc: 'Tanda tangan basah / stempel' },
+                                            { id: 'sekretaris_desa', label: 'Sekretaris Desa',  icon: <CreditCard className="w-4 h-4" />, desc: 'Tanda tangan basah / stempel' },
+                                            { id: 'tte',             label: 'TTE BSrE',          icon: <Stamp className="w-4 h-4" />,      desc: 'Tanda Tangan Elektronik Tersertifikasi' },
                                         ].map(signer => (
                                             <button
                                                 key={signer.id}
@@ -446,12 +447,28 @@ export default function Edit({ auth, suratPengajuan, suratTypes, wilayah }) {
                                                 className={cn(
                                                     "flex items-center justify-between px-5 py-4 rounded-2xl border transition-all text-left",
                                                     data.penandatangan === signer.id 
-                                                        ? "bg-green-600 border-green-700 text-white shadow-lg shadow-green-200" 
+                                                        ? signer.id === 'tte'
+                                                            ? "bg-indigo-600 border-indigo-700 text-white shadow-lg shadow-indigo-200"
+                                                            : "bg-green-600 border-green-700 text-white shadow-lg shadow-green-200" 
                                                         : "bg-gray-50 border-transparent text-gray-600 hover:bg-gray-100"
                                                 )}
                                             >
-                                                <span className="text-[10px] font-black uppercase tracking-widest">{signer.label}</span>
-                                                {data.penandatangan === signer.id && <CheckCircle2 className="w-4 h-4" />}
+                                                <div className="flex items-center gap-3">
+                                                    <div className={cn(
+                                                        "w-8 h-8 rounded-lg flex items-center justify-center",
+                                                        data.penandatangan === signer.id ? "bg-white/20" : "bg-white"
+                                                    )}>
+                                                        {signer.icon}
+                                                    </div>
+                                                    <div>
+                                                        <span className="block text-[10px] font-black uppercase tracking-widest">{signer.label}</span>
+                                                        <span className={cn(
+                                                            "block text-[8px] font-bold uppercase tracking-widest mt-0.5",
+                                                            data.penandatangan === signer.id ? "text-white/70" : "text-gray-400"
+                                                        )}>{signer.desc}</span>
+                                                    </div>
+                                                </div>
+                                                {data.penandatangan === signer.id && <CheckCircle2 className="w-4 h-4 shrink-0" />}
                                             </button>
                                         ))}
                                     </div>

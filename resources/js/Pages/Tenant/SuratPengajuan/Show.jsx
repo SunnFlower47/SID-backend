@@ -229,8 +229,8 @@ export default function Show({ auth, suratPengajuan, statusList, suratType, bsre
                             />
                         )}
 
-                        {/* TTE Panel — hanya tampil jika surat sudah diproses/selesai */}
-                        {['diproses', 'selesai'].includes(p.status) && (
+                        {/* TTE Panel — tampil jika surat dipilih TTE atau sudah ber-TTE */}
+                        {(p.penandatangan === 'tte' || p.is_tte) && (
                             <TtePanel
                                 suratPengajuan={p}
                                 bsreConfigured={bsreConfigured}

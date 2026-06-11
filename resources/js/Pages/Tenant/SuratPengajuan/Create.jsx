@@ -6,7 +6,7 @@ import {
     Calendar, MapPin, Info, Save, Layers,
     CheckCircle2, Plus, X, ChevronRight,
     FileText, UserPlus, MapPinned, CreditCard,
-    Clock
+    Clock, Stamp
 } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -604,8 +604,9 @@ export default function Create({ auth, suratTypes, wilayah }) {
                                         <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Penandatangan</label>
                                         <div className="grid grid-cols-1 gap-3">
                                             {[
-                                                { id: 'kepala_desa', label: 'Kepala Desa', icon: <CreditCard className="w-4 h-4" /> },
-                                                { id: 'sekretaris_desa', label: 'Sekretaris Desa', icon: <CreditCard className="w-4 h-4" /> }
+                                                { id: 'kepala_desa',    label: 'Kepala Desa',      icon: <CreditCard className="w-4 h-4" />,  desc: 'Tanda tangan basah / stempel' },
+                                                { id: 'sekretaris_desa', label: 'Sekretaris Desa', icon: <CreditCard className="w-4 h-4" />,  desc: 'Tanda tangan basah / stempel' },
+                                                { id: 'tte',            label: 'TTE BSrE',          icon: <Stamp className="w-4 h-4" />,       desc: 'Tanda Tangan Elektronik Tersertifikasi' },
                                             ].map(signer => (
                                                 <button
                                                     key={signer.id}
@@ -614,7 +615,9 @@ export default function Create({ auth, suratTypes, wilayah }) {
                                                     className={cn(
                                                         "flex items-center justify-between px-5 py-4 rounded-2xl border transition-all text-left",
                                                         data.penandatangan === signer.id 
-                                                            ? "bg-green-600 border-green-700 text-white shadow-lg shadow-green-200" 
+                                                            ? signer.id === 'tte'
+                                                                ? "bg-indigo-600 border-indigo-700 text-white shadow-lg shadow-indigo-200"
+                                                                : "bg-green-600 border-green-700 text-white shadow-lg shadow-green-200" 
                                                             : "bg-gray-50 border-transparent text-gray-600 hover:bg-gray-100"
                                                     )}
                                                 >
@@ -625,22 +628,45 @@ export default function Create({ auth, suratTypes, wilayah }) {
                                                         )}>
                                                             {signer.icon}
                                                         </div>
-                                                        <span className="text-[10px] font-black uppercase tracking-widest">{signer.label}</span>
+                                                        <div>
+                                                            <span className="block text-[10px] font-black uppercase tracking-widest">{signer.label}</span>
+                                                            <span className={cn(
+                                                                "block text-[8px] font-bold uppercase tracking-widest mt-0.5",
+                                                                data.penandatangan === signer.id ? "text-white/70" : "text-gray-400"
+                                                            )}>{signer.desc}</span>
+                                                        </div>
                                                     </div>
-                                                    {data.penandatangan === signer.id && <CheckCircle2 className="w-4 h-4" />}
+                                                    {data.penandatangan === signer.id && <CheckCircle2 className="w-4 h-4 shrink-0" />}
                                                 </button>
                                             ))}
                                         </div>
                                     </div>
 
-                                    <div className="p-4 bg-yellow-50 rounded-2xl border border-yellow-100">
-                                        <div className="flex gap-3">
-                                            <Info className="w-4 h-4 text-yellow-600 shrink-0" />
-                                            <p className="text-[9px] font-bold text-yellow-700 uppercase tracking-widest leading-relaxed">
-                                                Surat akan otomatis berstatus <b className="text-green-700">SELESAI</b> dan dapat langsung diunduh setelah disimpan.
-                                            </p>
+                                    {/* Info TTE muncul jika TTE dipilih */}
+                                    {data.penandatangan === 'tte' ? (
+                                        <div className="p-4 bg-indigo-50 rounded-2xl border border-indigo-100">
+                                            <div className="flex gap-3">
+                                                <Stamp className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" />
+                                                <div className="space-y-1">
+                                                    <p className="text-[9px] font-black text-indigo-800 uppercase tracking-widest">
+                                                        Surat akan dibuat tanpa tanda tangan fisik.
+                                                    </p>
+                                                    <p className="text-[9px] font-bold text-indigo-600 leading-relaxed">
+                                                        Setelah surat selesai, Kepala Desa dapat membubuhkan <b>Tanda Tangan Elektronik (TTE)</b> tersertifikasi BSrE langsung dari halaman detail surat.
+                                                    </p>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
+                                    ) : (
+                                        <div className="p-4 bg-yellow-50 rounded-2xl border border-yellow-100">
+                                            <div className="flex gap-3">
+                                                <Info className="w-4 h-4 text-yellow-600 shrink-0" />
+                                                <p className="text-[9px] font-bold text-yellow-700 uppercase tracking-widest leading-relaxed">
+                                                    Surat akan otomatis berstatus <b className="text-green-700">SELESAI</b> dan dapat langsung diunduh setelah disimpan.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
 
                                     <button 
                                         type="submit"

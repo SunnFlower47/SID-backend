@@ -66,7 +66,7 @@ class SuratPengajuanController extends Controller
             'tanggal_surat'       => 'required|date',
             'keterangan_tambahan' => 'nullable|string|max:1000',
             'data_tambahan'       => 'nullable|array',
-            'penandatangan'       => 'nullable|in:kepala_desa,sekretaris_desa',
+            'penandatangan'       => 'nullable|in:kepala_desa,sekretaris_desa,tte',
         ]);
 
         try {
