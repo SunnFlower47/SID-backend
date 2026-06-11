@@ -58,7 +58,7 @@ return [
     ],
 
     'bsre' => [
-        'url' => env('BSRE_API_URL', 'https://v2-cms.esign.go.id/api'),
+        'url' => rtrim(env('BSRE_API_URL', 'https://api-bsre.bssn.go.id'), '/'),
         'username' => env('BSRE_USERNAME'),
         'password' => env('BSRE_PASSWORD'),
     ],
