@@ -25,10 +25,10 @@ class BsreService
 
     public function __construct()
     {
-        // Ambil konfigurasi dari desa_settings (per-desa, mendukung multi-tenant)
-        $this->baseUrl  = DesaSetting::getValue('bsre_api_url', '');
-        $this->username = DesaSetting::getValue('bsre_username', '');
-        $this->password = DesaSetting::getValue('bsre_password', '');
+        // Ambil konfigurasi kredensial dari .env (via config/services.php)
+        $this->baseUrl  = config('services.bsre.url', '');
+        $this->username = config('services.bsre.username', '');
+        $this->password = config('services.bsre.password', '');
     }
 
     /**
