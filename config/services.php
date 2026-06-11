@@ -57,4 +57,10 @@ return [
         'model' => env('GEMINI_MODEL', 'gemini-1.5-flash'),
     ],
 
+    'bsre' => [
+        'url' => env('BSRE_API_URL', 'https://v2-cms.esign.go.id/api'),
+        'username' => env('BSRE_USERNAME'),
+        'password' => env('BSRE_PASSWORD'),
+    ],
+
 ];

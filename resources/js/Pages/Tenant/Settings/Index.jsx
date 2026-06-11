@@ -1317,9 +1317,6 @@ export default function Index({ auth, users, roles, permissions, permissions_str
                         router.post(route('settings.desa.update'), {
                             _method: 'put',
                             settings: [
-                                { key: 'bsre_api_url', value: document.getElementById('bsre_api_url').value, type: 'text', group: 'integration' },
-                                { key: 'bsre_username', value: document.getElementById('bsre_username').value, type: 'text', group: 'integration' },
-                                { key: 'bsre_password', value: document.getElementById('bsre_password').value, type: 'text', group: 'integration' },
                                 { key: 'bsre_nik_pejabat', value: document.getElementById('bsre_nik_pejabat').value, type: 'text', group: 'integration' },
                             ]
                         }, {
@@ -1337,41 +1334,13 @@ export default function Index({ auth, users, roles, permissions, permissions_str
                         });
                     }} className="space-y-6">
                         <div className="bg-indigo-50/50 p-6 rounded-2xl border border-indigo-100 space-y-4">
-                            <h4 className="text-xs font-black text-indigo-800 uppercase tracking-widest">Kredensial API BSrE</h4>
+                            <h4 className="text-xs font-black text-indigo-800 uppercase tracking-widest">Identitas Pejabat TTE</h4>
                             <p className="text-[10px] text-indigo-600/80 font-medium leading-relaxed">
-                                Masukkan kredensial API dari Balai Sertifikasi Elektronik (BSrE) untuk mengaktifkan fitur Tanda Tangan Elektronik (TTE) Tersertifikasi pada dokumen.
+                                Atur NIK Pejabat (Kepala Desa) yang akan digunakan sebagai identitas *default* penandatangan dokumen elektronik di sistem ini. Kredensial koneksi (URL API & Akun Aplikasi) dikonfigurasi secara aman melalui environment server (.env).
                             </p>
                             
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                                <div className="space-y-2 md:col-span-2">
-                                    <label className="text-[10px] font-black text-indigo-700 uppercase tracking-widest ml-1">Base URL API Esign</label>
-                                    <input
-                                        type="url"
-                                        id="bsre_api_url"
-                                        placeholder="Contoh: https://v2-cms.esign.go.id/api"
-                                        defaultValue={desa_settings['bsre_api_url']?.value || ''}
-                                        className="w-full px-5 py-4 bg-white border border-indigo-200 rounded-2xl text-sm font-bold text-gray-700 focus:ring-4 focus:ring-indigo-500/10 transition-all"
-                                    />
-                                </div>
+                            <div className="mt-4">
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-indigo-700 uppercase tracking-widest ml-1">Username/ID Klien</label>
-                                    <input
-                                        type="text"
-                                        id="bsre_username"
-                                        defaultValue={desa_settings['bsre_username']?.value || ''}
-                                        className="w-full px-5 py-4 bg-white border border-indigo-200 rounded-2xl text-sm font-bold text-gray-700 focus:ring-4 focus:ring-indigo-500/10 transition-all"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-indigo-700 uppercase tracking-widest ml-1">Password API</label>
-                                    <input
-                                        type="password"
-                                        id="bsre_password"
-                                        defaultValue={desa_settings['bsre_password']?.value || ''}
-                                        className="w-full px-5 py-4 bg-white border border-indigo-200 rounded-2xl text-sm font-bold text-gray-700 focus:ring-4 focus:ring-indigo-500/10 transition-all"
-                                    />
-                                </div>
-                                <div className="space-y-2 md:col-span-2">
                                     <label className="text-[10px] font-black text-indigo-700 uppercase tracking-widest ml-1">NIK Pejabat / Kades Penandatangan</label>
                                     <input
                                         type="text"
