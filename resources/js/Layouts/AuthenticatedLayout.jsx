@@ -1,17 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Sidebar from '@/Components/Layout/Sidebar';
 import Navbar from '@/Components/Layout/Navbar';
 import { Head, usePage } from '@inertiajs/react';
 import Swal from 'sweetalert2';
-import { useEffect } from 'react';
 
 export default function AuthenticatedLayout({ children, title }) {
     const { flash } = usePage().props;
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     const [isMobileOpen, setIsMobileOpen] = useState(false);
+    
+    const lastFlashTimestamp = useRef(null);
 
     useEffect(() => {
+        // Mencegah SweetAlert muncul 2x saat user menekan tombol "Kembali"
+        if (flash?.timestamp && flash.timestamp === lastFlashTimestamp.current) {
+            return;
+        }
+
+        let hasShown = false;
+
         if (flash?.success) {
+            hasShown = true;
             Swal.fire({
                 icon: 'success',
                 title: 'BERHASIL!',
@@ -32,6 +41,7 @@ export default function AuthenticatedLayout({ children, title }) {
             });
         }
         if (flash?.error) {
+            hasShown = true;
             Swal.fire({
                 icon: 'error',
                 title: 'TERJADI KESALAHAN!',
@@ -45,6 +55,10 @@ export default function AuthenticatedLayout({ children, title }) {
                     confirmButton: 'rounded-2xl px-8 py-3 font-black uppercase tracking-widest text-[10px]'
                 }
             });
+        }
+
+        if (hasShown && flash?.timestamp) {
+            lastFlashTimestamp.current = flash.timestamp;
         }
     }, [flash]);
 
