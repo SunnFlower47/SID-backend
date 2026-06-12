@@ -112,11 +112,27 @@ export default function Index({ auth, jenis_buku, data, filters, apbdes_list }) 
                                     <td colSpan="7" className="px-4 py-8 text-center text-gray-500 bg-gray-50/30">
                                         {selectedApbdesId 
                                             ? "Belum ada transaksi (penerimaan/pengeluaran) untuk kegiatan ini." 
-                                            : "Silakan pilih kegiatan pada filter di atas terlebih dahulu."}
+                                            : "Belum ada transaksi (penerimaan/pengeluaran) pada tahun ini."}
                                     </td>
                                 </tr>
                             )}
                         </tbody>
+                        {data.data.length > 0 && (
+                            <tfoot>
+                                <tr className="bg-gray-50/80 border-t border-gray-200 text-gray-900">
+                                    <td colSpan="3" className="px-4 py-3 text-right text-[10px] font-black uppercase tracking-widest">
+                                        TOTAL
+                                    </td>
+                                    <td className="px-4 py-3 text-right font-bold text-green-600">
+                                        {new Intl.NumberFormat('id-ID').format(data.data.reduce((s, i) => s + Number(i.penerimaan || 0), 0))}
+                                    </td>
+                                    <td className="px-4 py-3 text-right font-bold text-red-600">
+                                        {new Intl.NumberFormat('id-ID').format(data.data.reduce((s, i) => s + Number(i.pengeluaran || 0), 0))}
+                                    </td>
+                                    <td colSpan="2"></td>
+                                </tr>
+                            </tfoot>
+                        )}
                     </table>
                 </div>
             </div>

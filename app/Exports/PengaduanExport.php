@@ -70,7 +70,7 @@ class PengaduanExport implements FromCollection, WithHeadings, WithMapping, With
             $no++,
             $pengaduan->id,
             $pengaduan->nama_pelapor,
-            $pengaduan->nik_pelapor,
+            $pengaduan->nik_pelapor ? "'" . $pengaduan->nik_pelapor : '-',
             $pengaduan->telepon ?? '-',
             $pengaduan->email ?? '-',
             $pengaduan->kategori,

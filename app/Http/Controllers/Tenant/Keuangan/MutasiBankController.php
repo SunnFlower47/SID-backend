@@ -48,6 +48,11 @@ class MutasiBankController extends Controller
         ]);
     }
 
+    public function create()
+    {
+        return Inertia::render('Tenant/Keuangan/MutasiBank/Create');
+    }
+
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -62,7 +67,14 @@ class MutasiBankController extends Controller
 
         MutasiBank::create($validated);
 
-        return redirect()->back()->with('success', 'Transaksi bank berhasil ditambahkan.');
+        return redirect()->route('keuangan.mutasi-bank.index')->with('success', 'Transaksi bank berhasil ditambahkan.');
+    }
+
+    public function edit(MutasiBank $mutasiBank)
+    {
+        return Inertia::render('Tenant/Keuangan/MutasiBank/Edit', [
+            'mutasiBank' => $mutasiBank
+        ]);
     }
 
     public function update(Request $request, MutasiBank $mutasiBank)
@@ -77,7 +89,7 @@ class MutasiBankController extends Controller
 
         $mutasiBank->update($validated);
 
-        return redirect()->back()->with('success', 'Transaksi bank berhasil diperbarui.');
+        return redirect()->route('keuangan.mutasi-bank.index')->with('success', 'Transaksi bank berhasil diperbarui.');
     }
 
     public function destroy(MutasiBank $mutasiBank)

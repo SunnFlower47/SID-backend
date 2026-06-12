@@ -6,10 +6,10 @@ import { Mails, Save } from 'lucide-react';
 
 export default function Form({ agenda, is_edit }) {
     const { data, setData, post, put, processing, errors } = useForm({
-        tanggal: agenda.tanggal || '',
+        tanggal: agenda.tanggal ? new Date(agenda.tanggal).toISOString().split('T')[0] : '',
         jenis_surat: agenda.jenis_surat || 'Masuk',
         nomor_surat: agenda.nomor_surat || '',
-        tanggal_surat: agenda.tanggal_surat || '',
+        tanggal_surat: agenda.tanggal_surat ? new Date(agenda.tanggal_surat).toISOString().split('T')[0] : '',
         pengirim_penerima: agenda.pengirim_penerima || '',
         isi_singkat: agenda.isi_singkat || '',
         keterangan: agenda.keterangan || ''

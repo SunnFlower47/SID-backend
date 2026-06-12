@@ -81,11 +81,14 @@ DB_COLLATION=utf8mb4_unicode_ci
 | `mutasis` | Log semua mutasi penduduk |
 | `kartu_keluargas` | Ringkasan & cache KK (auto-sync via Observer) |
 | `histori_pisah_kk` | Riwayat pemisahan KK |
+| `import_conflicts` | Antrean konflik (NIK/NKK/Wilayah) dari import excel |
 | `surat_pengajuans` | Pengajuan surat online dari warga |
 | `surat_types` | Master jenis surat (template + form builder) |
 | `penduduk_domisilis` | Data warga domisili sementara |
 | `dusuns`, `rws`, `rts` | Master data wilayah (RT/RW/Dusun) |
 | `wilayah_change_logs` | Log perubahan data wilayah |
+| `pajak_pbb_objeks` | Master data NOP PBB, luas, & info objek pajak |
+| `pajak_pbb_tagihans` | Data tagihan pajak PBB (tersinkronisasi API Mapagbumi) |
 | `desa_settings` | Pengaturan global desa (key-value) |
 | `struktur_desas` | Struktur organisasi perangkat desa |
 | `master_jabatans` | Master jabatan perangkat desa |

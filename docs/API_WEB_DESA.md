@@ -99,13 +99,24 @@ X-API-KEY: your_secret_key_here
   "success": true,
   "data": [
     {
-      "id": 1,
-      "nama": "Surat Keterangan Usaha",
-      "kode_prefix": "SKU",
-      "deskripsi": "...",
-      "persyaratan": "...",
-      "form_json": [...],
-      "is_public": true
+      "id": "domisili",
+      "name": "Surat Domisili",
+      "description": "Surat keterangan domisili warga",
+      "persyaratan": "- KTP\n- KK",
+      "has_template": true,
+      "template_code": "SKD",
+      "icon": "fas fa-home",
+      "color": "blue",
+      "category": "Template",
+      "form_json": [
+        {
+          "name": "alamat_domisili",
+          "type": "textarea",
+          "label": "Alamat Domisili Sekarang",
+          "required": true,
+          "placeholder": "Masukkan alamat lengkap domisili saat ini"
+        }
+      ]
     }
   ]
 }

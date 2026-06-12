@@ -57,9 +57,12 @@ class SuratPengajuanController extends Controller
             'penandatangan' => 'nullable|in:kepala_desa,sekretaris_desa'
         ]);
 
+        $resi = 'REQ-' . date('ymd') . '-' . strtoupper(\Illuminate\Support\Str::random(4));
+
         $pengajuan = SuratPengajuan::create([
             ...$validated,
-            'nomor_surat' => $this->generateNomorSurat($validated['jenis_surat']),
+            'nomor_surat' => null,
+            'nomor_resi'  => $resi,
             'status' => 'pending',
             'data_tambahan' => $validated['data_tambahan'] ?? [],
         ]);

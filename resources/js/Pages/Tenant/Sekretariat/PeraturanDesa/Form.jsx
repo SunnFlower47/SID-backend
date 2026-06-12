@@ -10,7 +10,7 @@ export default function Form({ peraturan, is_edit }) {
         tahun_anggaran: peraturan.tahun_anggaran || new Date().getFullYear(),
         judul: peraturan.judul || '',
         nomor_peraturan: peraturan.nomor_peraturan || '',
-        tanggal_ditetapkan: peraturan.tanggal_ditetapkan || '',
+        tanggal_ditetapkan: peraturan.tanggal_ditetapkan ? new Date(peraturan.tanggal_ditetapkan).toISOString().split('T')[0] : '',
         status: peraturan.status || 'disetujui',
         keterangan_bpd: peraturan.keterangan_bpd || '',
         file_dokumen: null,

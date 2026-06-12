@@ -322,7 +322,7 @@ Content-Type: application/json
 
 ### Get Surat Types
 ```http
-GET /api/surat-types
+GET /api/v1/surat-types
 ```
 
 **Response:**
@@ -331,61 +331,37 @@ GET /api/surat-types
   "success": true,
   "data": [
     {
-      "value": "kelahiran",
-      "label": "Surat Kelahiran",
-      "description": "Surat keterangan kelahiran bayi"
-    },
-    {
-      "value": "kematian",
-      "label": "Surat Kematian",
-      "description": "Surat keterangan kematian"
-    },
-    {
-      "value": "sktm_dewasa",
-      "label": "SKTM Dewasa",
-      "description": "Surat Keterangan Tidak Mampu untuk Dewasa"
-    },
-    {
-      "value": "sktm_anak",
-      "label": "SKTM Anak",
-      "description": "Surat Keterangan Tidak Mampu untuk Anak"
-    },
-    {
-      "value": "sku",
-      "label": "SKU",
-      "description": "Surat Keterangan Usaha"
-    },
-    {
-      "value": "domisili",
-      "label": "Surat Domisili",
-      "description": "Surat keterangan domisili"
-    },
-    {
-      "value": "pindah",
-      "label": "Surat Pindah",
-      "description": "Surat keterangan pindah"
+      "id": "domisili",
+      "name": "Surat Domisili",
+      "description": "Surat keterangan domisili warga",
+      "persyaratan": "- KTP\n- KK",
+      "has_template": true,
+      "template_code": "SKD",
+      "icon": "fas fa-home",
+      "color": "blue",
+      "category": "Template",
+      "form_json": [
+        {
+          "name": "alamat_domisili",
+          "type": "textarea",
+          "label": "Alamat Domisili Sekarang",
+          "required": true,
+          "placeholder": "Masukkan alamat lengkap domisili saat ini"
+        }
+      ]
     }
   ]
 }
 ```
 
-### Submit Surat Pengajuan
+### Check NIK / Search Penduduk (Verifikasi NIK + Tanggal Lahir)
 ```http
-POST /api/surat-pengajuan
+POST /api/v1/search-penduduk
 Content-Type: application/json
 
 {
-  "jenis_surat": "kelahiran",
-  "nik_pengaju": "3201234567890123",
-  "email": "user@example.com",
-  "tujuan": "Keperluan administrasi",
-  "data_tambahan": {
-    "nama_bayi": "Baby Name",
-    "tanggal_lahir": "2024-01-01",
-    "jenis_kelamin_bayi": "L",
-    "nama_ayah": "Father Name",
-    "nama_ibu": "Mother Name"
-  }
+  "nik": "3201234567890123",
+  "tanggal_lahir": "1990-01-01"
 }
 ```
 
@@ -393,19 +369,56 @@ Content-Type: application/json
 ```json
 {
   "success": true,
-  "message": "Pengajuan surat berhasil disubmit",
+  "message": "Verifikasi berhasil",
   "data": {
-    "nomor_surat": "140/SP-KEL/2024",
+    "id": 1,
+    "nama": "Joh****************",
+    "alamat": "Jl. C************, RT 0/0"
+  }
+}
+```
+
+### Submit Surat Pengajuan
+```http
+POST /api/v1/surat-pengajuan
+Content-Type: multipart/form-data
+
+penduduk_id: 1
+nik: "3201234567890123"
+tanggal_lahir: "1990-01-01"
+surat_type: "domisili"
+keperluan: "Pembuatan Rekening Bank"
+tujuan: "Bank BNI"
+tanggal_surat: "2024-01-15"
+email_pengaju: "user@example.com"
+data_tambahan: {"alamat_domisili": "Jl. Cibatu Baru No. 10"}
+file_lampiran: (binary file PDF)
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Pengajuan surat berhasil dikirim",
+  "nomor_resi": "REQ-240115-ABCD",
+  "data": {
+    "id": 1,
+    "nomor_surat": null,
+    "nomor_resi": "REQ-240115-ABCD",
+    "jenis_surat_nama": "Surat Domisili",
     "status": "pending",
-    "tanggal_pengajuan": "2024-01-15T10:30:00.000000Z"
+    "keperluan": "Pembuatan Rekening Bank",
+    "keterangan_admin": null,
+    "tanggal_pengajuan": "2024-01-15T10:30:00.000000Z",
+    "created_at": "2024-01-15T10:30:00.000000Z",
+    "updated_at": "2024-01-15T10:30:00.000000Z"
   }
 }
 ```
 
 ### Get Surat Status
 ```http
-GET /api/surat-status?nomor_surat=140/SP-KEL/2024
-GET /api/surat-status?nik=3201234567890123
+GET /api/v1/surat-status?nomor=REQ-240115-ABCD&nik=3201234567890123
 ```
 
 **Response:**
@@ -415,14 +428,47 @@ GET /api/surat-status?nik=3201234567890123
   "data": [
     {
       "id": 1,
-      "nomor_surat": "140/SP-KEL/2024",
-      "jenis_surat": "kelahiran",
-      "status": "approved",
+      "nomor_surat": "140/001/SKD/2024",
+      "nomor_resi": "REQ-240115-ABCD",
+      "jenis_surat_nama": "Surat Domisili",
+      "status": "selesai",
+      "keperluan": "Pembuatan Rekening Bank",
+      "keterangan_admin": "Silakan ambil di kantor desa",
       "tanggal_pengajuan": "2024-01-15T10:30:00.000000Z",
-      "tanggal_approval": "2024-01-16T09:00:00.000000Z",
-      "data_tambahan": {
-        "nama_bayi": "Baby Name"
-      }
+      "created_at": "2024-01-15T10:30:00.000000Z",
+      "updated_at": "2024-01-16T09:00:00.000000Z"
+    }
+  ]
+}
+```
+
+### Get Surat History
+```http
+POST /api/v1/surat-history
+Content-Type: application/json
+
+{
+  "nik": "3201234567890123",
+  "tanggal_lahir": "1990-01-01"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "nomor_surat": "140/001/SKD/2024",
+      "nomor_resi": "REQ-240115-ABCD",
+      "jenis_surat_nama": "Surat Domisili",
+      "status": "selesai",
+      "keperluan": "Pembuatan Rekening Bank",
+      "keterangan_admin": "Silakan ambil di kantor desa",
+      "tanggal_pengajuan": "2024-01-15T10:30:00.000000Z",
+      "created_at": "2024-01-15T10:30:00.000000Z",
+      "updated_at": "2024-01-16T09:00:00.000000Z"
     }
   ]
 }

@@ -1,56 +1,12 @@
 import React, { useState } from 'react';
 import { Head, useForm, router } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { PageHeader, TableCard, FormField, ActionButtons, Modal, EmptyState, Pagination } from '@/Components/Shared';
-import { Landmark, Calendar, FileText, ArrowDownRight, ArrowUpRight, Search, FileDown } from 'lucide-react';
+import { PageHeader, TableCard, FormField, ActionButtons, Modal, EmptyState, Pagination, StatCard } from '@/Components/Shared';
+import { Landmark, Calendar, FileText, ArrowDownRight, ArrowUpRight, Search, FileDown, Trash2, Plus } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { cn } from '@/lib/utils';
 
 export default function MutasiBankIndex({ auth, data, filters, summary }) {
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [editItem, setEditItem] = useState(null);
-
-    const { data: formData, setData, post, put, processing, errors, reset, clearErrors } = useForm({
-        tanggal_mutasi: new Date().toISOString().split('T')[0],
-        jenis_mutasi: 'masuk',
-        uraian: '',
-        jumlah: '',
-        no_bukti: '',
-    });
-
-    const openAddModal = () => {
-        reset();
-        clearErrors();
-        setEditItem(null);
-        setIsModalOpen(true);
-    };
-
-    const openEditModal = (item) => {
-        clearErrors();
-        setData({
-            tanggal_mutasi: item.tanggal_mutasi ? new Date(item.tanggal_mutasi).toISOString().split('T')[0] : '',
-            jenis_mutasi: item.jenis_mutasi,
-            uraian: item.uraian || '',
-            jumlah: item.jumlah || '',
-            no_bukti: item.no_bukti || '',
-        });
-        setEditItem(item);
-        setIsModalOpen(true);
-    };
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        if (editItem) {
-            put(route('keuangan.mutasi-bank.update', editItem.id), {
-                onSuccess: () => { setIsModalOpen(false); reset(); }
-            });
-        } else {
-            post(route('keuangan.mutasi-bank.store'), {
-                onSuccess: () => { setIsModalOpen(false); reset(); }
-            });
-        }
-    };
-
     const handleDelete = (id, uraian) => {
         Swal.fire({
             title: 'Hapus Transaksi?',
@@ -98,48 +54,30 @@ export default function MutasiBankIndex({ auth, data, filters, summary }) {
                     subtitle="Pencatatan setor dan tarik dana di rekening kas desa"
                     icon={Landmark}
                     actions={[
-                        { label: 'TAMBAH TRANSAKSI', onClick: openAddModal, variant: 'primary' }
+                        { label: 'TAMBAH TRANSAKSI', href: route('keuangan.mutasi-bank.create'), icon: Plus, variant: 'white' }
                     ]}
                 />
 
                 {/* Summary Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm relative overflow-hidden group">
-                        <div className="absolute -right-4 -top-4 w-24 h-24 bg-blue-50 rounded-full group-hover:scale-110 transition-transform" />
-                        <div className="relative">
-                            <div className="flex items-center gap-3 mb-2">
-                                <div className="w-8 h-8 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
-                                    <Landmark className="w-4 h-4" />
-                                </div>
-                                <h3 className="text-[11px] font-black text-gray-500 tracking-widest uppercase">Total Saldo Bank</h3>
-                            </div>
-                            <div className="text-2xl font-black text-gray-900 tracking-tight">{formatRupiah(summary.saldo)}</div>
-                        </div>
-                    </div>
-                    <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm relative overflow-hidden group">
-                        <div className="absolute -right-4 -top-4 w-24 h-24 bg-green-50 rounded-full group-hover:scale-110 transition-transform" />
-                        <div className="relative">
-                            <div className="flex items-center gap-3 mb-2">
-                                <div className="w-8 h-8 rounded-xl bg-green-100 text-green-600 flex items-center justify-center shrink-0">
-                                    <ArrowDownRight className="w-4 h-4" />
-                                </div>
-                                <h3 className="text-[11px] font-black text-gray-500 tracking-widest uppercase">Total Setoran (Masuk)</h3>
-                            </div>
-                            <div className="text-2xl font-black text-green-600 tracking-tight">{formatRupiah(summary.total_penerimaan)}</div>
-                        </div>
-                    </div>
-                    <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm relative overflow-hidden group">
-                        <div className="absolute -right-4 -top-4 w-24 h-24 bg-red-50 rounded-full group-hover:scale-110 transition-transform" />
-                        <div className="relative">
-                            <div className="flex items-center gap-3 mb-2">
-                                <div className="w-8 h-8 rounded-xl bg-red-100 text-red-600 flex items-center justify-center shrink-0">
-                                    <ArrowUpRight className="w-4 h-4" />
-                                </div>
-                                <h3 className="text-[11px] font-black text-gray-500 tracking-widest uppercase">Total Tarikan (Keluar)</h3>
-                            </div>
-                            <div className="text-2xl font-black text-red-600 tracking-tight">{formatRupiah(summary.total_pengeluaran)}</div>
-                        </div>
-                    </div>
+                    <StatCard 
+                        icon={Landmark}
+                        label="Total Saldo Bank"
+                        value={formatRupiah(summary.saldo)}
+                        color="blue"
+                    />
+                    <StatCard 
+                        icon={ArrowDownRight}
+                        label="Total Setoran (Masuk)"
+                        value={formatRupiah(summary.total_penerimaan)}
+                        color="green"
+                    />
+                    <StatCard 
+                        icon={ArrowUpRight}
+                        label="Total Tarikan (Keluar)"
+                        value={formatRupiah(summary.total_pengeluaran)}
+                        color="rose"
+                    />
                 </div>
 
                 <TableCard
@@ -158,59 +96,121 @@ export default function MutasiBankIndex({ auth, data, filters, summary }) {
                 >
                     {data.data.length > 0 ? (
                         <>
-                            <div className="overflow-x-auto">
-                                <table className="w-full">
-                                    <thead>
-                                        <tr className="bg-gray-50/80 border-b border-gray-100">
-                                            <th className="px-4 py-3 text-left text-[9px] font-black text-gray-400 uppercase tracking-widest">Tanggal</th>
-                                            <th className="px-4 py-3 text-left text-[9px] font-black text-gray-400 uppercase tracking-widest">Uraian / No. Bukti</th>
-                                            <th className="px-4 py-3 text-right text-[9px] font-black text-gray-400 uppercase tracking-widest">Setoran (Masuk)</th>
-                                            <th className="px-4 py-3 text-right text-[9px] font-black text-gray-400 uppercase tracking-widest">Tarikan (Keluar)</th>
-                                            <th className="px-4 py-3 text-right text-[9px] font-black text-gray-400 uppercase tracking-widest">Aksi</th>
+                            {/* Desktop Table */}
+                            <div className="hidden lg:block overflow-x-auto">
+                                <table className="w-full text-left text-sm text-gray-600">
+                                    <thead className="bg-gray-100 text-gray-900 font-bold uppercase text-[10px] tracking-wider border-b border-gray-200 whitespace-nowrap">
+                                        <tr>
+                                            <th className="px-4 py-3 text-center border-r border-gray-200 w-16">NO</th>
+                                            <th className="px-4 py-3 text-center border-r border-gray-200 w-24">AKSI</th>
+                                            <th className="px-4 py-3 border-r border-gray-200">TANGGAL</th>
+                                            <th className="px-4 py-3 border-r border-gray-200">URAIAN / NO. BUKTI</th>
+                                            <th className="px-4 py-3 text-right border-r border-gray-200">SETORAN (MASUK)</th>
+                                            <th className="px-4 py-3 text-right">TARIKAN (KELUAR)</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-gray-50">
-                                        {data.data.map((item) => (
-                                            <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
-                                                <td className="px-4 py-4 align-top">
-                                                    <div className="flex items-center gap-2">
-                                                        <Calendar className="w-3.5 h-3.5 text-gray-300" />
-                                                        <span className="text-xs font-bold text-gray-600">
-                                                            {new Date(item.tanggal_mutasi).toLocaleDateString('id-ID')}
-                                                        </span>
-                                                    </div>
-                                                </td>
-                                                <td className="px-4 py-4 align-top">
-                                                    <div className="text-xs font-bold text-gray-900">{item.uraian}</div>
-                                                    <div className="flex items-center gap-1 text-[10px] text-gray-500 mt-1">
-                                                        <FileText className="w-3 h-3" /> No. Bukti: {item.no_bukti || '-'}
-                                                    </div>
-                                                </td>
-                                                <td className="px-4 py-4 align-top text-right">
-                                                    {item.jenis_mutasi === 'masuk' ? (
-                                                        <span className="text-sm font-bold text-green-600">{formatRupiah(item.jumlah)}</span>
-                                                    ) : (
-                                                        <span className="text-sm text-gray-400">-</span>
-                                                    )}
-                                                </td>
-                                                <td className="px-4 py-4 align-top text-right">
-                                                    {item.jenis_mutasi === 'keluar' ? (
-                                                        <span className="text-sm font-bold text-red-600">{formatRupiah(item.jumlah)}</span>
-                                                    ) : (
-                                                        <span className="text-sm text-gray-400">-</span>
-                                                    )}
-                                                </td>
-                                                <td className="px-4 py-4 align-top text-right">
-                                                    <ActionButtons
-                                                        onEdit={() => openEditModal(item)}
-                                                        onDelete={() => handleDelete(item.id, item.uraian)}
-                                                    />
-                                                </td>
-                                            </tr>
-                                        ))}
+                                    <tbody className="divide-y divide-gray-50 whitespace-nowrap">
+                                        {data.data.map((item, index) => {
+                                            const nomorUrut = data.from ? data.from + index : index + 1;
+                                            return (
+                                                <tr key={item.id} className="hover:bg-blue-50/30 transition-colors">
+                                                    <td className="px-4 py-3 text-center font-mono text-xs text-gray-500">{nomorUrut}</td>
+                                                    <td className="px-4 py-3 text-center border-r border-gray-50">
+                                                        <ActionButtons
+                                                            editHref={route('keuangan.mutasi-bank.edit', item.id)}
+                                                            onDelete={() => handleDelete(item.id, item.uraian)}
+                                                        />
+                                                    </td>
+                                                    <td className="px-4 py-3">
+                                                        <div className="flex items-center gap-2">
+                                                            <Calendar className="w-3.5 h-3.5 text-gray-400" />
+                                                            <span className="font-bold text-gray-900">
+                                                                {new Date(item.tanggal_mutasi).toLocaleDateString('id-ID')}
+                                                            </span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-4 py-3">
+                                                        <div className="font-bold text-gray-900 truncate max-w-xs" title={item.uraian}>{item.uraian}</div>
+                                                        <div className="flex items-center gap-1 text-[10px] text-gray-500 mt-1 font-mono">
+                                                            <FileText className="w-3 h-3" /> NO. BUKTI: {item.no_bukti || '-'}
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-4 py-3 text-right">
+                                                        {item.jenis_mutasi === 'masuk' ? (
+                                                            <span className="font-bold text-green-600 bg-green-50 px-2 py-1 rounded-lg">{formatRupiah(item.jumlah)}</span>
+                                                        ) : (
+                                                            <span className="text-gray-300">-</span>
+                                                        )}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-right">
+                                                        {item.jenis_mutasi === 'keluar' ? (
+                                                            <span className="font-bold text-red-600 bg-red-50 px-2 py-1 rounded-lg">{formatRupiah(item.jumlah)}</span>
+                                                        ) : (
+                                                            <span className="text-gray-300">-</span>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
                                     </tbody>
                                 </table>
                             </div>
+
+                            {/* Mobile List View */}
+                            <div className="lg:hidden p-4 space-y-4 bg-gray-50/50">
+                                {data.data.map((item, index) => (
+                                    <div key={item.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+                                        <div className="flex items-start gap-4 mb-4">
+                                            <div className={cn(
+                                                "w-12 h-12 rounded-full flex items-center justify-center shrink-0",
+                                                item.jenis_mutasi === 'masuk' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'
+                                            )}>
+                                                {item.jenis_mutasi === 'masuk' ? <ArrowDownRight className="w-6 h-6" /> : <ArrowUpRight className="w-6 h-6" />}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <h4 className="font-black text-gray-900 leading-snug line-clamp-2" title={item.uraian}>{item.uraian}</h4>
+                                                <div className="flex items-center gap-2 mt-2">
+                                                    <span className={cn(
+                                                        "text-[10px] font-black tracking-widest uppercase px-2 py-1 rounded-md",
+                                                        item.jenis_mutasi === 'masuk' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                                                    )}>
+                                                        {item.jenis_mutasi === 'masuk' ? 'SETORAN' : 'PENARIKAN'}
+                                                    </span>
+                                                    <span className="text-xs font-medium text-gray-500">
+                                                        {new Date(item.tanggal_mutasi).toLocaleDateString('id-ID')}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="grid grid-cols-2 gap-3 mb-4">
+                                            <div className="bg-gray-50 rounded-xl p-3">
+                                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">NO BUKTI</p>
+                                                <p className="text-xs font-mono font-bold text-gray-900 truncate">{item.no_bukti || '-'}</p>
+                                            </div>
+                                            <div className="bg-gray-50 rounded-xl p-3">
+                                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">NOMINAL</p>
+                                                <p className={cn(
+                                                    "text-sm font-black truncate",
+                                                    item.jenis_mutasi === 'masuk' ? 'text-green-600' : 'text-red-600'
+                                                )}>
+                                                    {formatRupiah(item.jumlah)}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex gap-2">
+                                            <Link href={route('keuangan.mutasi-bank.edit', item.id)} className="flex-1 py-2.5 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-xl text-xs font-bold text-center transition-colors">
+                                                EDIT
+                                            </Link>
+                                            <button onClick={() => handleDelete(item.id, item.uraian)} className="px-4 py-2.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl transition-colors">
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                            
                             {data.last_page > 1 && (
                                 <div className="p-4 border-t border-gray-100">
                                     <Pagination links={data.links} />
@@ -223,49 +223,11 @@ export default function MutasiBankIndex({ auth, data, filters, summary }) {
                             title="Belum Ada Riwayat Mutasi" 
                             message="Riwayat setor dan tarik tunai bank desa masih kosong." 
                             actionLabel="TAMBAH TRANSAKSI" 
-                            onAction={openAddModal} 
+                            onAction={() => router.get(route('keuangan.mutasi-bank.create'))} 
                         />
                     )}
                 </TableCard>
             </div>
-
-            <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editItem ? 'Edit Transaksi Bank' : 'Tambah Transaksi Bank'}>
-                <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                        <FormField.Input label="Tanggal Transaksi" type="date" required error={errors.tanggal_mutasi} value={formData.tanggal_mutasi} onChange={e => setData('tanggal_mutasi', e.target.value)} />
-                        <div>
-                            <label className="block text-[10px] font-black text-gray-500 tracking-widest uppercase mb-2">Jenis Transaksi</label>
-                            <div className="flex gap-2">
-                                <label className={cn("flex-1 cursor-pointer border rounded-xl p-3 flex items-center gap-2 transition-all", formData.jenis_mutasi === 'masuk' ? 'border-green-500 bg-green-50 text-green-700' : 'border-gray-200 text-gray-500 hover:border-gray-300')}>
-                                    <input type="radio" className="sr-only" checked={formData.jenis_mutasi === 'masuk'} onChange={() => setData('jenis_mutasi', 'masuk')} />
-                                    <ArrowDownRight className={cn("w-4 h-4", formData.jenis_mutasi === 'masuk' ? 'text-green-600' : 'text-gray-400')} />
-                                    <span className="text-xs font-bold">Setor (Masuk)</span>
-                                </label>
-                                <label className={cn("flex-1 cursor-pointer border rounded-xl p-3 flex items-center gap-2 transition-all", formData.jenis_mutasi === 'keluar' ? 'border-red-500 bg-red-50 text-red-700' : 'border-gray-200 text-gray-500 hover:border-gray-300')}>
-                                    <input type="radio" className="sr-only" checked={formData.jenis_mutasi === 'keluar'} onChange={() => setData('jenis_mutasi', 'keluar')} />
-                                    <ArrowUpRight className={cn("w-4 h-4", formData.jenis_mutasi === 'keluar' ? 'text-red-600' : 'text-gray-400')} />
-                                    <span className="text-xs font-bold">Tarik (Keluar)</span>
-                                </label>
-                            </div>
-                            {errors.jenis_mutasi && <p className="text-red-500 text-xs mt-1">{errors.jenis_mutasi}</p>}
-                        </div>
-                    </div>
-                    
-                    <FormField.Input label="Uraian Transaksi" required error={errors.uraian} value={formData.uraian} onChange={e => setData('uraian', e.target.value)} placeholder="Contoh: Setoran Dana Desa Tahap I" />
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                        <FormField.Input label="Jumlah Nominal (Rp)" type="number" min="0" required error={errors.jumlah} value={formData.jumlah} onChange={e => setData('jumlah', e.target.value)} placeholder="0" />
-                        <FormField.Input label="No. Bukti / Referensi" error={errors.no_bukti} value={formData.no_bukti} onChange={e => setData('no_bukti', e.target.value)} placeholder="Misal: TR-001" />
-                    </div>
-                    
-                    <div className="flex gap-3 pt-4 border-t border-gray-100">
-                        <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-3 rounded-xl bg-gray-50 text-gray-600 text-xs font-black uppercase tracking-widest hover:bg-gray-100 border border-gray-200 transition-all">BATAL</button>
-                        <button type="submit" disabled={processing} className="flex-1 py-3 rounded-xl bg-green-600 text-white text-xs font-black uppercase tracking-widest hover:bg-green-700 transition-all shadow-md shadow-green-200 disabled:opacity-50">
-                            {processing ? 'MENYIMPAN...' : 'SIMPAN TRANSAKSI'}
-                        </button>
-                    </div>
-                </form>
-            </Modal>
         </AuthenticatedLayout>
     );
 }

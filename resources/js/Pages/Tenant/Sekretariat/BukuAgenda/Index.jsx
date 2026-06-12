@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { FilterContainer } from '@/Components/Shared';
+import { cn } from '@/lib/utils';
 import { Head, Link, router } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { PageHeader, TableCard, EmptyState, Badge, ActionButtons, Pagination } from '@/Components/Shared';
 import SkeletonTable from '@/Components/Shared/Skeleton/SkeletonTable';
-import { Mails, Plus, Pencil, Trash2, FileText, ArrowUpRight, ArrowDownLeft, Search } from 'lucide-react';
+import { Mails, Plus, Pencil, Trash2, FileText, ArrowUpRight, ArrowDownLeft, Search, Filter } from 'lucide-react';
 import dayjs from 'dayjs';
 import 'dayjs/locale/id';
 import Swal from 'sweetalert2';
@@ -13,6 +15,8 @@ dayjs.locale('id');
 export default function Index({ auth, agendas, filters }) {
     const [isLoading, setIsLoading] = useState(false);
     const [search, setSearch] = useState(filters?.search || '');
+    const hasActiveFilters = filters?.search || filters?.status || filters?.jenis;
+    
 
     useEffect(() => {
         const removeStart = router.on('start', () => setIsLoading(true));
@@ -82,36 +86,38 @@ export default function Index({ auth, agendas, filters }) {
                     ]}
                 />
 
-                <form onSubmit={handleSearchSubmit} className="bg-white p-4 rounded-3xl shadow-sm border border-gray-100 flex flex-col sm:flex-row gap-4 items-end mb-6">
-                    <div className="flex-1 w-full space-y-2 text-left">
-                        <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Pencarian</label>
-                        <div className="relative">
-                            <FileText className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                            <input
-                                type="text"
-                                placeholder="Cari nomor, pengirim, atau isi..."
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                className="w-full pl-11 pr-4 py-3 bg-gray-50 border-none rounded-2xl text-xs font-bold focus:ring-2 focus:ring-green-500 transition-all shadow-inner"
-                            />
+                <FilterContainer hasActiveFilters={hasActiveFilters}>
+                    <form onSubmit={handleSearchSubmit} className="bg-white p-4 rounded-3xl shadow-sm border border-gray-100 flex flex-col sm:flex-row gap-4 items-end ">
+                        <div className="flex-1 w-full space-y-2 text-left">
+                            <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Pencarian</label>
+                            <div className="relative">
+                                <FileText className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                <input
+                                    type="text"
+                                    placeholder="Cari nomor, pengirim, atau isi..."
+                                    value={search}
+                                    onChange={(e) => setSearch(e.target.value)}
+                                    className="w-full pl-11 pr-4 py-3 bg-gray-50 border-none rounded-2xl text-xs font-bold focus:ring-2 focus:ring-green-500 transition-all shadow-inner"
+                                />
+                            </div>
                         </div>
-                    </div>
-                    <div className="w-full sm:w-64 space-y-2 text-left">
-                        <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Jenis Surat</label>
-                        <select 
-                            onChange={handleFilterJenis} 
-                            value={filters.jenis || ''}
-                            className="w-full px-4 py-3 bg-gray-50 border-none rounded-2xl text-xs font-bold focus:ring-2 focus:ring-green-500 transition-all shadow-inner"
-                        >
-                            <option value="">Semua Surat</option>
-                            <option value="Masuk">Surat Masuk</option>
-                            <option value="Keluar">Surat Keluar</option>
-                        </select>
-                    </div>
-                    <button type="submit" className="flex items-center justify-center gap-2 w-full sm:w-auto px-8 py-3 bg-green-600 text-white rounded-2xl text-[10px] font-black hover:bg-green-700 active:scale-95 transition-all uppercase tracking-widest shadow-md shadow-green-200">
-                        <Search className="w-3.5 h-3.5" /> CARI
-                    </button>
-                </form>
+                        <div className="w-full sm:w-64 space-y-2 text-left">
+                            <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Jenis Surat</label>
+                            <select 
+                                onChange={handleFilterJenis} 
+                                value={filters.jenis || ''}
+                                className="w-full px-4 py-3 bg-gray-50 border-none rounded-2xl text-xs font-bold focus:ring-2 focus:ring-green-500 transition-all shadow-inner"
+                            >
+                                <option value="">Semua Surat</option>
+                                <option value="Masuk">Surat Masuk</option>
+                                <option value="Keluar">Surat Keluar</option>
+                            </select>
+                        </div>
+                        <button type="submit" className="flex items-center justify-center gap-2 w-full sm:w-auto px-8 py-3 bg-green-600 text-white rounded-2xl text-[10px] font-black hover:bg-green-700 active:scale-95 transition-all uppercase tracking-widest shadow-md shadow-green-200">
+                            <Search className="w-3.5 h-3.5" /> CARI
+                        </button>
+                    </form>
+                </FilterContainer>
 
                 {isLoading ? (
                     <SkeletonTable rows={5} columns={5} />

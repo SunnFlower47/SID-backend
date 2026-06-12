@@ -67,7 +67,7 @@ class PenerimaBantuanSosialExport implements FromCollection, WithHeadings, WithM
 
         return [
             $no++,
-            $penerima->penduduk->nik ?? '-',
+            $penerima->penduduk->nik ? "'" . $penerima->penduduk->nik : '-',
             $penerima->penduduk->nama ?? '-',
             $penerima->penduduk->alamat ?? '-',
             'RT ' . ($penerima->penduduk->rt_label ?? '-') . ' / RW ' . ($penerima->penduduk->rw_label ?? '-'),

@@ -22,6 +22,14 @@ export default function ImportData() {
     const [previewPbbData, setPreviewPbbData] = useState(null);
     const fileInputPbbRef = useRef(null);
 
+    const [previewBantuanLoading, setPreviewBantuanLoading] = useState(false);
+    const [previewBantuanData, setPreviewBantuanData] = useState(null);
+    const fileInputBantuanRef = useRef(null);
+
+    const [previewUmkmLoading, setPreviewUmkmLoading] = useState(false);
+    const [previewUmkmData, setPreviewUmkmData] = useState(null);
+    const fileInputUmkmRef = useRef(null);
+
     const handleFileChange = async (e) => {
         const file = e.target.files[0];
         if (!file) {
@@ -158,6 +166,98 @@ export default function ImportData() {
             onSuccess: () => {
                 setPreviewPbbData(null);
                 if (fileInputPbbRef.current) fileInputPbbRef.current.value = '';
+            },
+            onFinish: () => {
+                setIsImporting(false);
+            }
+        });
+    };
+
+    const handleFileChangeBantuan = async (e) => {
+        const file = e.target.files[0];
+        if (!file) {
+            setPreviewBantuanData(null);
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        setPreviewBantuanLoading(true);
+        try {
+            const res = await axios.post(route('import.bantuan-sosial.preview'), formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            if (res.data.success) {
+                setPreviewBantuanData(res.data);
+            }
+        } catch (error) {
+            const msg = error.response?.data?.message || error.message || 'Gagal memproses preview';
+            Swal.fire('Preview Gagal', msg, 'error');
+            setPreviewBantuanData(null);
+            if (fileInputBantuanRef.current) fileInputBantuanRef.current.value = '';
+        } finally {
+            setPreviewBantuanLoading(false);
+        }
+    };
+
+    const handleImportBantuan = (e) => {
+        e.preventDefault();
+        const file = fileInputBantuanRef.current?.files[0];
+        if (!file) return;
+
+        setIsImporting(true);
+        router.post(route('import.bantuan-sosial'), { file: file }, {
+            forceFormData: true,
+            onSuccess: () => {
+                setPreviewBantuanData(null);
+                if (fileInputBantuanRef.current) fileInputBantuanRef.current.value = '';
+            },
+            onFinish: () => {
+                setIsImporting(false);
+            }
+        });
+    };
+
+    const handleFileChangeUmkm = async (e) => {
+        const file = e.target.files[0];
+        if (!file) {
+            setPreviewUmkmData(null);
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        setPreviewUmkmLoading(true);
+        try {
+            const res = await axios.post(route('import.umkm.preview'), formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            if (res.data.success) {
+                setPreviewUmkmData(res.data);
+            }
+        } catch (error) {
+            const msg = error.response?.data?.message || error.message || 'Gagal memproses preview';
+            Swal.fire('Preview Gagal', msg, 'error');
+            setPreviewUmkmData(null);
+            if (fileInputUmkmRef.current) fileInputUmkmRef.current.value = '';
+        } finally {
+            setPreviewUmkmLoading(false);
+        }
+    };
+
+    const handleImportUmkm = (e) => {
+        e.preventDefault();
+        const file = fileInputUmkmRef.current?.files[0];
+        if (!file) return;
+
+        setIsImporting(true);
+        router.post(route('import.umkm'), { file: file }, {
+            forceFormData: true,
+            onSuccess: () => {
+                setPreviewUmkmData(null);
+                if (fileInputUmkmRef.current) fileInputUmkmRef.current.value = '';
             },
             onFinish: () => {
                 setIsImporting(false);
@@ -373,8 +473,7 @@ export default function ImportData() {
                                     </div>
                                     <h6 className="text-sm font-bold text-gray-900">Import Bantuan Sosial</h6>
                                 </div>
-                                <form action={route('import.bantuan-sosial')} method="POST" encType="multipart/form-data">
-                                    <input type="hidden" name="_token" value={document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')} />
+                                <form onSubmit={handleImportBantuan}>
                                     <div className="mb-4">
                                         <label className="block text-sm font-bold text-gray-700 mb-2">Pilih File Excel</label>
                                         <input 
@@ -382,14 +481,99 @@ export default function ImportData() {
                                             name="file" 
                                             accept=".xlsx,.xls" 
                                             required
+                                            ref={fileInputBantuanRef}
+                                            onChange={handleFileChangeBantuan}
                                             className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 bg-white text-sm file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100"
                                         />
+                                        <p className="text-xs text-gray-500 mt-2 font-medium">Format: .xlsx atau .xls (Max: 10MB). Preview otomatis saat file dipilih.</p>
                                     </div>
+
+                                    {previewBantuanLoading && (
+                                        <div className="mb-4 text-xs font-bold text-red-700 bg-red-50 border border-red-100 rounded-xl px-4 py-3 flex items-center">
+                                            <Icons.Loader2 className="w-4 h-4 animate-spin mr-2" /> Memproses preview Bantuan Sosial...
+                                        </div>
+                                    )}
+
+                                    {previewBantuanData && (
+                                        <div className="mb-5 bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
+                                            <div className="grid grid-cols-4 gap-3 text-xs mb-4">
+                                                <div className="bg-gray-50 rounded-xl p-3 border border-gray-100 text-center">
+                                                    <span className="block text-gray-500 mb-1">Total Baris</span>
+                                                    <span className="font-black text-gray-900 text-base">{previewBantuanData.summary.total_rows}</span>
+                                                </div>
+                                                <div className="bg-green-50 rounded-xl p-3 border border-green-100 text-center text-green-700">
+                                                    <span className="block text-green-600/80 mb-1">Valid</span>
+                                                    <span className="font-black text-base">{previewBantuanData.summary.valid_rows}</span>
+                                                </div>
+                                                <div className="bg-orange-50 rounded-xl p-3 border border-orange-100 text-center text-orange-700">
+                                                    <span className="block text-orange-600/80 mb-1">Konflik</span>
+                                                    <span className="font-black text-base">{previewBantuanData.summary.conflict_rows}</span>
+                                                </div>
+                                                <div className="bg-red-50 rounded-xl p-3 border border-red-100 text-center text-red-700">
+                                                    <span className="block text-red-600/80 mb-1">Invalid</span>
+                                                    <span className="font-black text-base">{previewBantuanData.summary.invalid_rows}</span>
+                                                </div>
+                                            </div>
+
+                                            <div className="grid grid-cols-3 gap-2 text-[10px] font-bold mb-4">
+                                                <div className="bg-red-50/50 rounded-lg p-2 border border-red-100 text-red-800">
+                                                    Error Program: <span className="float-right">{previewBantuanData.summary.column_error_counts?.program || 0}</span>
+                                                </div>
+                                                <div className="bg-red-50/50 rounded-lg p-2 border border-red-100 text-red-800">
+                                                    Error Periode: <span className="float-right">{previewBantuanData.summary.column_error_counts?.periode || 0}</span>
+                                                </div>
+                                                <div className="bg-red-50/50 rounded-lg p-2 border border-red-100 text-red-800">
+                                                    Error Tanggal: <span className="float-right">{previewBantuanData.summary.column_error_counts?.tanggal || 0}</span>
+                                                </div>
+                                            </div>
+
+                                            {previewBantuanData.preview.invalid?.length > 0 && (
+                                                <div className="mb-4">
+                                                    <p className="text-xs font-bold text-red-600 mb-2 flex items-center">
+                                                        <Icons.AlertCircle className="w-3.5 h-3.5 mr-1.5" /> Detail baris invalid:
+                                                    </p>
+                                                    <div className="border border-red-100 rounded-xl bg-red-50/40 p-3 max-h-48 overflow-y-auto custom-scrollbar">
+                                                        <ul className="list-disc ml-4 text-[11px] text-red-700 space-y-1.5 font-medium">
+                                                            {previewBantuanData.preview.invalid.map((item, idx) => (
+                                                                <li key={idx}>
+                                                                    Baris {item.row} ({item.program || '-'} / {item.periode || '-'}): 
+                                                                    <span className="font-bold ml-1 text-red-800">
+                                                                        {item.errors_by_column ? Object.entries(item.errors_by_column).map(([k, v]) => `${k}: ${v}`).join(', ') : item.errors?.join(', ')}
+                                                                    </span>
+                                                                </li>
+                                                            ))}
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {previewBantuanData.preview.conflict?.length > 0 && (
+                                                <div className="mb-4">
+                                                    <p className="text-xs font-bold text-orange-600 mb-2 flex items-center">
+                                                        <Icons.Info className="w-3.5 h-3.5 mr-1.5" /> Akan dilewati/diabaikan:
+                                                    </p>
+                                                    <div className="border border-orange-100 rounded-xl bg-orange-50/40 p-3 max-h-48 overflow-y-auto custom-scrollbar">
+                                                        <ul className="list-disc ml-4 text-[11px] text-orange-700 space-y-1.5 font-medium">
+                                                            {previewBantuanData.preview.conflict.map((item, idx) => (
+                                                                <li key={idx}>
+                                                                    Baris {item.row} ({item.program || '-'} / {item.periode || '-'}): {item.info}
+                                                                </li>
+                                                            ))}
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
                                     <div className="flex gap-2">
-                                        <button type="submit" className="inline-flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl transition-all shadow-sm active:scale-95">
-                                            <Icons.Upload className="w-4 h-4 mr-2" /> Import
+                                        <button 
+                                            type="submit" 
+                                            disabled={!previewBantuanData || (previewBantuanData.summary.valid_rows === 0 && previewBantuanData.summary.conflict_rows === 0)}
+                                            className="inline-flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl transition-all shadow-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
+                                            <Icons.Upload className="w-4 h-4 mr-2" /> Import ({previewBantuanData ? previewBantuanData.summary.valid_rows : 0} Valid)
                                         </button>
-                                        <a href={route('import.template', 'bantuan_sosial')} className="inline-flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl transition-all active:scale-95">
+                                        <a href={route('import.template', 'bantuan_sosial')} className="inline-flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl transition-all active:scale-95 ml-auto">
                                             <Icons.Download className="w-4 h-4 mr-2" /> Template
                                         </a>
                                     </div>
@@ -404,8 +588,7 @@ export default function ImportData() {
                                     </div>
                                     <h6 className="text-sm font-bold text-gray-900">Import Data UMKM</h6>
                                 </div>
-                                <form action={route('import.umkm')} method="POST" encType="multipart/form-data">
-                                    <input type="hidden" name="_token" value={document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')} />
+                                <form onSubmit={handleImportUmkm}>
                                     <div className="mb-4">
                                         <label className="block text-sm font-bold text-gray-700 mb-2">Pilih File Excel</label>
                                         <input 
@@ -413,14 +596,99 @@ export default function ImportData() {
                                             name="file" 
                                             accept=".xlsx,.xls" 
                                             required
+                                            ref={fileInputUmkmRef}
+                                            onChange={handleFileChangeUmkm}
                                             className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 bg-white text-sm file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
                                         />
+                                        <p className="text-xs text-gray-500 mt-2 font-medium">Format: .xlsx atau .xls (Max: 10MB). Preview otomatis saat file dipilih.</p>
                                     </div>
+
+                                    {previewUmkmLoading && (
+                                        <div className="mb-4 text-xs font-bold text-purple-700 bg-purple-50 border border-purple-100 rounded-xl px-4 py-3 flex items-center">
+                                            <Icons.Loader2 className="w-4 h-4 animate-spin mr-2" /> Memproses preview UMKM...
+                                        </div>
+                                    )}
+
+                                    {previewUmkmData && (
+                                        <div className="mb-5 bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
+                                            <div className="grid grid-cols-4 gap-3 text-xs mb-4">
+                                                <div className="bg-gray-50 rounded-xl p-3 border border-gray-100 text-center">
+                                                    <span className="block text-gray-500 mb-1">Total Baris</span>
+                                                    <span className="font-black text-gray-900 text-base">{previewUmkmData.summary.total_rows}</span>
+                                                </div>
+                                                <div className="bg-green-50 rounded-xl p-3 border border-green-100 text-center text-green-700">
+                                                    <span className="block text-green-600/80 mb-1">Valid</span>
+                                                    <span className="font-black text-base">{previewUmkmData.summary.valid_rows}</span>
+                                                </div>
+                                                <div className="bg-orange-50 rounded-xl p-3 border border-orange-100 text-center text-orange-700">
+                                                    <span className="block text-orange-600/80 mb-1">Konflik</span>
+                                                    <span className="font-black text-base">{previewUmkmData.summary.conflict_rows}</span>
+                                                </div>
+                                                <div className="bg-red-50 rounded-xl p-3 border border-red-100 text-center text-red-700">
+                                                    <span className="block text-red-600/80 mb-1">Invalid</span>
+                                                    <span className="font-black text-base">{previewUmkmData.summary.invalid_rows}</span>
+                                                </div>
+                                            </div>
+
+                                            <div className="grid grid-cols-3 gap-2 text-[10px] font-bold mb-4">
+                                                <div className="bg-red-50/50 rounded-lg p-2 border border-red-100 text-red-800">
+                                                    Error Nama: <span className="float-right">{previewUmkmData.summary.column_error_counts?.nama_usaha || 0}</span>
+                                                </div>
+                                                <div className="bg-red-50/50 rounded-lg p-2 border border-red-100 text-red-800">
+                                                    Error NIK: <span className="float-right">{previewUmkmData.summary.column_error_counts?.nik_pemilik || 0}</span>
+                                                </div>
+                                                <div className="bg-red-50/50 rounded-lg p-2 border border-red-100 text-red-800">
+                                                    Error Wilayah: <span className="float-right">{previewUmkmData.summary.column_error_counts?.wilayah || 0}</span>
+                                                </div>
+                                            </div>
+
+                                            {previewUmkmData.preview.invalid?.length > 0 && (
+                                                <div className="mb-4">
+                                                    <p className="text-xs font-bold text-red-600 mb-2 flex items-center">
+                                                        <Icons.AlertCircle className="w-3.5 h-3.5 mr-1.5" /> Detail baris invalid:
+                                                    </p>
+                                                    <div className="border border-red-100 rounded-xl bg-red-50/40 p-3 max-h-48 overflow-y-auto custom-scrollbar">
+                                                        <ul className="list-disc ml-4 text-[11px] text-red-700 space-y-1.5 font-medium">
+                                                            {previewUmkmData.preview.invalid.map((item, idx) => (
+                                                                <li key={idx}>
+                                                                    Baris {item.row} ({item.nama || '-'}): 
+                                                                    <span className="font-bold ml-1 text-red-800">
+                                                                        {item.errors_by_column ? Object.entries(item.errors_by_column).map(([k, v]) => `${k}: ${v}`).join(', ') : item.errors?.join(', ')}
+                                                                    </span>
+                                                                </li>
+                                                            ))}
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {previewUmkmData.preview.conflict?.length > 0 && (
+                                                <div className="mb-4">
+                                                    <p className="text-xs font-bold text-orange-600 mb-2 flex items-center">
+                                                        <Icons.Info className="w-3.5 h-3.5 mr-1.5" /> Akan dilewati/diabaikan:
+                                                    </p>
+                                                    <div className="border border-orange-100 rounded-xl bg-orange-50/40 p-3 max-h-48 overflow-y-auto custom-scrollbar">
+                                                        <ul className="list-disc ml-4 text-[11px] text-orange-700 space-y-1.5 font-medium">
+                                                            {previewUmkmData.preview.conflict.map((item, idx) => (
+                                                                <li key={idx}>
+                                                                    Baris {item.row} ({item.nama || '-'}): {item.info}
+                                                                </li>
+                                                            ))}
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
                                     <div className="flex gap-2">
-                                        <button type="submit" className="inline-flex items-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold rounded-xl transition-all shadow-sm active:scale-95">
-                                            <Icons.Upload className="w-4 h-4 mr-2" /> Import
+                                        <button 
+                                            type="submit" 
+                                            disabled={!previewUmkmData || (previewUmkmData.summary.valid_rows === 0 && previewUmkmData.summary.conflict_rows === 0)}
+                                            className="inline-flex items-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold rounded-xl transition-all shadow-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
+                                            <Icons.Upload className="w-4 h-4 mr-2" /> Import ({previewUmkmData ? previewUmkmData.summary.valid_rows : 0} Valid)
                                         </button>
-                                        <a href={route('import.template', 'umkm')} className="inline-flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl transition-all active:scale-95">
+                                        <a href={route('import.template', 'umkm')} className="inline-flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl transition-all active:scale-95 ml-auto">
                                             <Icons.Download className="w-4 h-4 mr-2" /> Template
                                         </a>
                                     </div>
@@ -586,8 +854,8 @@ export default function ImportData() {
                                         <Icons.AlertTriangle className="w-4 h-4 text-yellow-600 mr-2" /> Tips Penting:
                                     </h4>
                                     <ul className="text-xs text-yellow-700 font-medium space-y-1.5 ml-6 list-disc">
-                                        <li>Pastikan format tanggal menggunakan <strong>YYYY-MM-DD</strong> (contoh: 2024-01-15).</li>
-                                        <li>NIK harus unik dan tepat berjumlah <strong>16 digit angka</strong>.</li>
+                                        <li>Format tanggal sangat fleksibel, namun disarankan menggunakan <strong>DD/MM/YYYY</strong> (contoh: 20/05/2024) atau Date format dari Excel.</li>
+                                        <li>NIK harus unik dan wajib berjumlah <strong>16 digit angka</strong> tanpa kecuali (aturan Dukcapil).</li>
                                         <li>NKK harus tepat berjumlah <strong>16 digit angka</strong>.</li>
                                         <li>Kolom berupa pilihan (seperti agama, jenis kelamin) harus sesuai dengan teks yang ada.</li>
                                         <li>File Excel maksimal berukuran <strong>10MB</strong> (.xlsx atau .xls).</li>

@@ -131,13 +131,29 @@ class SuratPengajuanService
             $data['qr_code'] = [
                 'type' => 'image',
                 'path' => $qrPath,
-                'width' => 100,
-                'height' => 100,
+                'width' => 90,
+                'height' => 90,
+                'ratio' => true
+            ];
+            $data['qr_code_sm'] = [
+                'type' => 'image',
+                'path' => $qrPath,
+                'width' => 60,
+                'height' => 60,
+                'ratio' => true
+            ];
+            $data['qr_code_xs'] = [
+                'type' => 'image',
+                'path' => $qrPath,
+                'width' => 45,
+                'height' => 45,
                 'ratio' => true
             ];
         } else {
             $data['link_verifikasi'] = 'Menunggu Persetujuan Admin';
-            $data['qr_code'] = '[ QR Code akan muncul di sini setelah surat disetujui ]';
+            $data['qr_code'] = '[ QR Code akan muncul di sini setelah disetujui ]';
+            $data['qr_code_sm'] = '[ QR Code akan muncul di sini setelah disetujui ]';
+            $data['qr_code_xs'] = '[ QR Code akan muncul di sini setelah disetujui ]';
         }
 
         // Auto-map semua field penduduk, translate ID relasi ke label teks
@@ -301,6 +317,10 @@ class SuratPengajuanService
             if (empty($suratPengajuan->qr_token)) {
                 $updateData['qr_token'] = (string) \Illuminate\Support\Str::uuid();
             }
+
+            if (empty($suratPengajuan->nomor_surat)) {
+                $updateData['nomor_surat'] = $this->generateNomorSurat($suratPengajuan->jenis_surat);
+            }
         }
 
         if ($validated['status'] === 'selesai') {
@@ -308,6 +328,17 @@ class SuratPengajuanService
         }
 
         $suratPengajuan->update($updateData);
+    }
+
+    private function generateNomorSurat($suratType)
+    {
+        $type = \App\Models\SuratType::where('id', $suratType)
+            ->orWhere('id', 'LIKE', $suratType)
+            ->first();
+            
+        $kodeSurat = $type ? $type->kode : 'SK';
+
+        return \App\Models\DesaSetting::generateNomorSurat($kodeSurat);
     }
 
     /**

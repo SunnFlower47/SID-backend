@@ -90,10 +90,16 @@ class StoreSuratAction
 
     private function handleNormalLetter(array $validated, string $status, int $adminId)
     {
+        $resi = 'REQ-' . date('ymd') . '-' . strtoupper(\Illuminate\Support\Str::random(4));
+        $nomorSurat = ($status === 'selesai' || $status === 'approved') 
+            ? $this->generateNomorSurat($validated['jenis_surat']) 
+            : null;
+
         $pengajuan = SuratPengajuan::create([
             'jenis_surat' => $validated['jenis_surat'],
             'penduduk_id' => $validated['penduduk_id'],
-            'nomor_surat' => $this->generateNomorSurat($validated['jenis_surat']),
+            'nomor_surat' => $nomorSurat,
+            'nomor_resi'  => $resi,
             'keperluan' => $validated['keperluan'],
             'tujuan' => $validated['tujuan'],
             'tanggal_surat' => $validated['tanggal_surat'],
@@ -103,14 +109,15 @@ class StoreSuratAction
             'admin_id' => $adminId,
             'penandatangan' => $validated['penandatangan'] ?? 'kepala_desa',
             'qr_token' => (string) \Illuminate\Support\Str::uuid(),
-            'approved_at' => now(),
-            'completed_at' => now(),
+            'approved_at' => $status === 'selesai' || $status === 'approved' ? now() : null,
+            'completed_at' => $status === 'selesai' ? now() : null,
         ]);
 
         return [
             'type' => 'success',
             'message' => 'Surat berhasil dibuat!',
-            'data' => $pengajuan
+            'data' => $pengajuan,
+            'nomor_resi' => $resi
         ];
     }
 

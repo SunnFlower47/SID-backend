@@ -2,7 +2,7 @@
     "$schema": "https://json.schemastore.org/package.json",
     "private": true,
     "type": "module",
-    "version": "1.13.0",
+    "version": "1.14.0",
     "scripts": {
         "build": "vite build",
         "dev": "vite"
@@ -27,6 +27,8 @@
         "date-fns": "^4.1.0",
         "dayjs": "^1.11.20",
         "framer-motion": "^12.38.0",
+        "html2canvas": "^1.4.1",
+        "jspdf": "^4.2.1",
         "leaflet": "^1.9.4",
         "leaflet-defaulticon-compatibility": "^0.1.2",
         "lottie-react": "^2.4.1",

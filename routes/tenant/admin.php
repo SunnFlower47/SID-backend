@@ -74,7 +74,9 @@ Route::middleware([])->group(function () {
         Route::post('/penduduk/preview-invalid-report', 'downloadPendudukInvalidReport')->name('penduduk.preview-invalid-report');
         Route::post('/penduduk', 'importPenduduk')->name('penduduk');
         Route::post('/bantuan-sosial', 'importBantuanSosial')->name('bantuan-sosial');
+        Route::post('/bantuan-sosial/preview', 'previewBantuanSosial')->name('bantuan-sosial.preview');
         Route::post('/umkm', 'importUmkm')->name('umkm');
+        Route::post('/umkm/preview', 'previewUmkm')->name('umkm.preview');
         Route::post('/pajak-pbb', 'importPajakPbb')->name('pajak-pbb');
         Route::post('/pajak-pbb/preview', 'previewPajakPbb')->name('pajak-pbb.preview');
         Route::post('/pajak-pbb/preview-invalid-report', 'downloadPajakPbbInvalidReport')->name('pajak-pbb.preview-invalid-report');

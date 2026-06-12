@@ -66,6 +66,26 @@ class ImportService
         return $import->getResult();
     }
 
+    public function previewBantuanSosial($file): array
+    {
+        set_time_limit(0);
+
+        $import = new \App\Imports\PreviewBantuanSosialImport();
+        Excel::import($import, $file);
+
+        return $import->getResult();
+    }
+
+    public function previewUmkm($file): array
+    {
+        set_time_limit(0);
+
+        $import = new \App\Imports\PreviewUmkmImport();
+        Excel::import($import, $file);
+
+        return $import->getResult();
+    }
+
     /**
      * Generate preview of Pajak PBB data from Excel
      */

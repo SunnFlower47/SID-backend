@@ -9,6 +9,7 @@ import {
     TrendingUp, TrendingDown, Minus, Users, GitBranch, FileText
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { PageHeader, FilterContainer } from '@/Components/Shared';
 
 const ComparisonBox = ({ label, icon: Icon, p1, p2, color = 'green' }) => {
     const diff = p2 - p1;
@@ -54,35 +55,38 @@ export default function KomparasiIndex({ auth, comparison, trends, filters }) {
             <div className="space-y-6 animate-in fade-in duration-700 pb-20">
 
                 {/* ── Header ── */}
-                <div className="bg-gradient-to-r from-purple-600 via-fuchsia-700 to-fuchsia-800 rounded-3xl shadow-xl p-6 sm:p-8 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl pointer-events-none" />
-                    <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                        <div className="flex items-center gap-4">
-                            <Link href={route('laporan.index')} className="w-9 h-9 bg-white/10 rounded-xl flex items-center justify-center hover:bg-white/20 transition-all border border-white/10">
-                                <ChevronLeft className="w-4 h-4 text-white" />
-                            </Link>
-                            <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20">
-                                <Activity className="w-6 h-6 text-yellow-300" />
+                <PageHeader 
+                    icon={Activity}
+                    title="Komparasi Data"
+                    subtitle="Perbandingan Periode & Analisis Tren"
+                    backHref={route('laporan.index')}
+                />
+
+                {/* ── Period Filter ── */}
+                <FilterContainer 
+                    title="Filter Periode" 
+                    subtitle="Pilih 2 bulan untuk dibandingkan" 
+                    hasActiveFilters={true}
+                >
+                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                        <div className="flex flex-col sm:flex-row items-end gap-4">
+                            <div className="flex-1 w-full">
+                                <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1 block">Bulan 1 (Pembanding)</label>
+                                <input type="month" value={localFilters.month1} onChange={e => setLocalFilters(p => ({...p, month1: e.target.value}))} className="w-full px-3 py-2.5 bg-gray-50 border-none rounded-xl text-xs font-bold text-gray-700" />
                             </div>
-                            <div>
-                                <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight uppercase italic leading-none">Komparasi Data</h1>
-                                <p className="text-fuchsia-100 font-bold text-[10px] uppercase tracking-widest mt-1 opacity-80">Perbandingan Periode & Analisis Tren</p>
+                            <div className="hidden sm:flex items-center justify-center pb-3 px-2">
+                                <ArrowRight className="w-4 h-4 text-gray-300" />
                             </div>
-                        </div>
-                        
-                        {/* Period Selectors */}
-                        <div className="flex flex-wrap items-center gap-3">
-                            <div className="flex items-center bg-white/10 backdrop-blur-md border border-white/10 rounded-xl p-1">
-                                <input type="month" value={localFilters.month1} onChange={e => setLocalFilters(p => ({...p, month1: e.target.value}))} className="bg-transparent border-none text-white text-[10px] font-black uppercase tracking-widest focus:ring-0 cursor-pointer w-32" />
-                                <div className="px-2 text-white/50"><ArrowRight className="w-3 h-3" /></div>
-                                <input type="month" value={localFilters.month2} onChange={e => setLocalFilters(p => ({...p, month2: e.target.value}))} className="bg-transparent border-none text-white text-[10px] font-black uppercase tracking-widest focus:ring-0 cursor-pointer w-32" />
+                            <div className="flex-1 w-full">
+                                <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1 block">Bulan 2 (Target)</label>
+                                <input type="month" value={localFilters.month2} onChange={e => setLocalFilters(p => ({...p, month2: e.target.value}))} className="w-full px-3 py-2.5 bg-gray-50 border-none rounded-xl text-xs font-bold text-gray-700" />
                             </div>
-                            <button onClick={handleFilterChange} className="px-4 py-2.5 bg-white text-fuchsia-700 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg hover:scale-105 transition-all">
-                                Bandingkan
+                            <button onClick={handleFilterChange} className="w-full sm:w-auto px-6 py-2.5 bg-fuchsia-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-fuchsia-700 transition-all shadow-md mt-4 sm:mt-0">
+                                Bandingkan Data
                             </button>
                         </div>
                     </div>
-                </div>
+                </FilterContainer>
 
                 {/* ── Comparison Boxes ── */}
                 <Deferred data="comparison" fallback={<SkeletonStats count={3} />}>

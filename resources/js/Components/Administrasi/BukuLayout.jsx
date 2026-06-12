@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { FilterContainer } from '@/Components/Shared';
 import { Head, Link, router } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { PageHeader, TableCard, EmptyState, Pagination } from '@/Components/Shared';
@@ -44,7 +45,7 @@ export default function BukuLayout({
     const [tahun, setTahun] = useState(filters?.tahun || String(currentYear));
     
     const hasActiveFilters = filters?.search || filters?.start_date || filters?.end_date || (isInventarisFilter && filters?.tahun && filters?.tahun !== String(currentYear)) || (hasTahunFilter && filters?.tahun && filters?.tahun !== String(currentYear));
-    const [showFilters, setShowFilters] = useState(hasActiveFilters ? true : false);
+    
 
     const [isExporting, setIsExporting] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
@@ -224,33 +225,8 @@ export default function BukuLayout({
 
                 {/* Filters */}
                 {customFilter ? customFilter : hasStandardFilter ? (
-                    <div className="mb-6 space-y-4">
-                        <div className="flex justify-between items-center bg-white p-3 sm:p-4 rounded-2xl sm:rounded-3xl border border-gray-100 shadow-sm transition-all">
-                            <div className="flex items-center gap-2 sm:gap-4">
-                                <div className="w-8 h-8 sm:w-12 sm:h-12 bg-green-50 rounded-xl flex items-center justify-center">
-                                    <Search className="w-4 h-4 sm:w-6 sm:h-6 text-green-600" />
-                                </div>
-                                <div>
-                                    <h3 className="text-[10px] sm:text-sm font-black text-gray-950 uppercase italic tracking-tighter leading-none mb-1 text-left">Konfigurasi Data</h3>
-                                    <p className="hidden sm:block text-[10px] font-bold text-gray-400 uppercase tracking-widest text-left">Pencarian & Filter Buku</p>
-                                </div>
-                            </div>
-                            <button
-                                onClick={() => setShowFilters(!showFilters)}
-                                className={cn(
-                                    "flex items-center px-4 py-2 sm:px-6 sm:py-3 rounded-xl text-[9px] sm:text-xs font-black transition-all border shadow-sm active:scale-95",
-                                    showFilters
-                                        ? "bg-yellow-400 text-yellow-900 border-yellow-500 shadow-yellow-400/20"
-                                        : "bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100"
-                                )}
-                            >
-                                <Filter className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
-                                {showFilters ? 'TUTUP PANEL' : 'BUKA FILTER'}
-                            </button>
-                        </div>
-
-                        {showFilters && (
-                            <form onSubmit={handleFilter} className="bg-white p-4 rounded-3xl shadow-sm border border-gray-100 flex flex-col lg:flex-row gap-4 items-end animate-in slide-in-from-top-2 duration-300">
+                    <FilterContainer hasActiveFilters={hasActiveFilters}>
+                    <form onSubmit={handleFilter} className="bg-white p-4 rounded-3xl shadow-sm border border-gray-100 flex flex-col lg:flex-row gap-4 items-end ">
                                 <div className="flex-1 w-full grid grid-cols-1 sm:grid-cols-2 lg:flex gap-4">
                                     {isInventarisFilter ? (
                                         <div className="flex-1 space-y-2 text-left">
@@ -328,8 +304,7 @@ export default function BukuLayout({
                                     )}
                                 </div>
                             </form>
-                        )}
-                    </div>
+                </FilterContainer>
                 ) : null}
 
                 {/* Table Rendering */}

@@ -163,7 +163,7 @@ export default function Index({ auth, pengajuans, statusList, suratTypes, filter
                                 accessor: 'nomor_surat',
                                 render: (p) => (
                                     <div className="flex flex-col">
-                                        <span className="text-sm font-black text-slate-800 tracking-tighter uppercase italic">{p.nomor_surat || 'DRAFT'}</span>
+                                        <span className="text-sm font-black text-slate-800 tracking-tighter uppercase italic">{p.nomor_surat || p.nomor_resi || 'DRAFT'}</span>
                                         <div className="flex items-center text-[10px] font-bold text-gray-500 uppercase mt-1">
                                             <Calendar className="w-3 h-3 mr-1" />
                                             {dayjs(p.tanggal_surat).format('DD MMMM YYYY')}

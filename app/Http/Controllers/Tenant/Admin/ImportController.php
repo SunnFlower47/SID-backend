@@ -123,6 +123,34 @@ class ImportController extends Controller
         }
     }
 
+    public function previewBantuanSosial(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls|max:10240'
+        ]);
+
+        try {
+            $previewResult = $this->importService->previewBantuanSosial($request->file('file'));
+            return response()->json(array_merge(['success' => true], $previewResult));
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()]);
+        }
+    }
+
+    public function previewUmkm(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls|max:10240'
+        ]);
+
+        try {
+            $previewResult = $this->importService->previewUmkm($request->file('file'));
+            return response()->json(array_merge(['success' => true], $previewResult));
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()]);
+        }
+    }
+
     /**
      * Preview Import Pajak PBB
      */
@@ -241,6 +269,14 @@ class ImportController extends Controller
 
         if ($type === 'pajak_pbb') {
             return Excel::download(new \App\Exports\PajakPbbTemplateExport, 'template_pajak_pbb.xlsx');
+        }
+
+        if ($type === 'bantuan_sosial') {
+            return Excel::download(new \App\Exports\BantuanSosialTemplateExport, 'template_bantuan_sosial.xlsx');
+        }
+
+        if ($type === 'umkm') {
+            return Excel::download(new \App\Exports\UmkmTemplateExport, 'template_umkm.xlsx');
         }
 
         try {

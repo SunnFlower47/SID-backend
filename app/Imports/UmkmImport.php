@@ -51,7 +51,16 @@ class UmkmImport implements ToCollection, WithHeadingRow, WithValidation, WithCh
                     'omset_bulanan' => $row['omset_bulanan'] ?? 0,
                     'jumlah_karyawan' => $row['jumlah_karyawan'] ?? 0,
                     'status_usaha' => $row['status_usaha'] ?? 'aktif',
-                    'tanggal_berdiri' => !empty($row['tanggal_berdiri']) ? Carbon::parse($row['tanggal_berdiri']) : null,
+                    'tanggal_berdiri' => (function($val) {
+                        if (empty($val) || $val === '-') return null;
+                        if (is_numeric($val)) return \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($val)->format('Y-m-d');
+                        if (strpos($val, '/') !== false) {
+                            try { return Carbon::createFromFormat('d/m/Y', $val)->format('Y-m-d'); } 
+                            catch (\Exception $e) { return null; }
+                        }
+                        try { return Carbon::parse($val)->format('Y-m-d'); } 
+                        catch (\Exception $e) { return null; }
+                    })($row['tanggal_berdiri']),
                     'produk_unggulan' => !empty($row['produk_unggulan']) ? explode(',', $row['produk_unggulan']) : [],
                     'is_unggulan' => ($row['unggulan'] ?? '') === 'Ya',
                     'is_verified' => ($row['terverifikasi'] ?? '') === 'Ya',
@@ -83,6 +92,22 @@ class UmkmImport implements ToCollection, WithHeadingRow, WithValidation, WithCh
             'unggulan' => 'nullable|in:Ya,Tidak',
             'terverifikasi' => 'nullable|in:Ya,Tidak',
         ];
+    }
+
+    public function prepareForValidation($data, $index)
+    {
+        $stringFields = ['nik_pemilik', 'rt', 'rw', 'telepon', 'dusun'];
+        foreach ($stringFields as $field) {
+            if (isset($data[$field])) {
+                $data[$field] = (string) $data[$field];
+            }
+        }
+        
+        if (isset($data['tanggal_berdiri']) && is_numeric($data['tanggal_berdiri'])) {
+            $data['tanggal_berdiri'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($data['tanggal_berdiri'])->format('Y-m-d');
+        }
+
+        return $data;
     }
 
     public function chunkSize(): int

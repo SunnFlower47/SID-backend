@@ -45,8 +45,15 @@
   - ✅ **Automatic KK Sync** - Observer otomatis memperbarui ringkasan KK saat ada mutasi.
   - ✅ **Kategori Wilayah** - Klasifikasi otomatis asal/tujuan (Dalam/Luar Kota, Luar Negeri).
   - ✅ **Cancel/Undo** - Fitur pembatalan mutasi dengan rollback data yang presisi.
+- ⚡ **Sistem Antrean Isu (Issue Queue)** - Penanganan pintar saat import data Excel (resolusi NIK/NKK/Wilayah otomatis).
 - 🔍 **Pencarian & Filter** - Pencarian instan berdasarkan NIK/Nama/NKK dengan validasi real-time.
 - 📊 **Statistik Real-time** - Dashboard statistik demografi yang akurat dan responsif.
+
+### **💰 Sistem Pajak PBB & Retribusi**
+- 📄 **Manajemen NOP PBB** - Integrasi data Pajak Bumi dan Bangunan desa.
+- 🔄 **Sinkronisasi Otomatis Mapagbumi** - Sinkronisasi otomatis (Cron Job) atau manual dengan server pajak daerah (Mapagbumi).
+- 📥 **Import Excel PBB** - Import data NOP massal secara mudah dengan filter baris valid/invalid.
+- 📊 **Monitoring Tagihan** - Fitur tracking tagihan PBB yang belum lunas beserta dendanya secara real-time.
 
 ### **📄 Surat Online**
 - 📋 **Pengajuan Digital** - Warga ajukan surat via website
@@ -116,7 +123,14 @@
 📊 penduduks          # Data penduduk (Core) dengan logic Soft Delete
 📋 mutasis            # Log mutasi penduduk (Lahir, Mati, Pindah)
 🏠 kartu_keluargas    # Tabel summary/cache KK (Sync via Observer)
+⚠️ import_conflicts   # Tabel antrean penanganan isu saat import excel
 📄 surat_pengajuans   # Sistem pengajuan surat online
+
+-- PBB Tables
+💰 pajak_pbb_objeks   # Data NOP, Objek Pajak, dan Wajib Pajak
+🧾 pajak_pbb_tagihans # Log tagihan tahunan per NOP PBB dari Mapagbumi
+
+-- System & CMS Tables
 📰 beritas            # Berita dan informasi desa
 📰 berita_externals   # Berita eksternal
 💬 testimonis         # Testimoni warga

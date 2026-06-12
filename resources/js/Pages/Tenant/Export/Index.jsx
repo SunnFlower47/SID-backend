@@ -15,8 +15,9 @@ const LottieComponent = Lottie?.default || Lottie;
 export default function ExportData() {
     const [exportingId, setExportingId] = useState(null);
     const [showSuccess, setShowSuccess] = useState(false);
+    const [activeTab, setActiveTab] = useState('master');
 
-    const exportItems = [
+    const masterItems = [
         {
             id: 'penduduk',
             title: 'Data Penduduk',
@@ -100,7 +101,37 @@ export default function ExportData() {
         },
     ];
 
-    const handleExport = async (item) => {
+    const bukuAdministrasiItems = [
+        // Umum
+        { id: 'peraturan-desa', title: 'Buku Peraturan di Desa', icon: 'FileBadge', colors: 'from-blue-500 to-blue-600', bgLight: 'bg-blue-50', border: 'border-blue-200' },
+        { id: 'keputusan-kades', title: 'Buku Keputusan Kepala Desa', icon: 'BookOpen', colors: 'from-amber-500 to-amber-600', bgLight: 'bg-amber-50', border: 'border-amber-200' },
+        { id: 'inventaris-kekayaan', title: 'Buku Inventaris & Kekayaan', icon: 'Archive', colors: 'from-purple-500 to-purple-600', bgLight: 'bg-purple-50', border: 'border-purple-200' },
+        { id: 'tanah-kas-desa', title: 'Buku Tanah Kas Desa', icon: 'MapPin', colors: 'from-teal-500 to-teal-600', bgLight: 'bg-teal-50', border: 'border-teal-200' },
+        { id: 'aparat-pemerintah', title: 'Buku Aparat Pemerintah Desa', icon: 'Users', colors: 'from-green-500 to-green-600', bgLight: 'bg-green-50', border: 'border-green-200' },
+        { id: 'buku-agenda', title: 'Buku Agenda', icon: 'Mails', colors: 'from-indigo-500 to-indigo-600', bgLight: 'bg-indigo-50', border: 'border-indigo-200' },
+        { id: 'tanah-di-desa', title: 'Buku Tanah di Desa', icon: 'MapPin', colors: 'from-emerald-500 to-emerald-600', bgLight: 'bg-emerald-50', border: 'border-emerald-200' },
+        { id: 'buku-ekspedisi', title: 'Buku Ekspedisi', icon: 'Mails', colors: 'from-orange-500 to-orange-600', bgLight: 'bg-orange-50', border: 'border-orange-200' },
+        { id: 'kader-pemberdayaan', title: 'Buku Kader Pemberdayaan', icon: 'Users', colors: 'from-indigo-500 to-indigo-600', bgLight: 'bg-indigo-50', border: 'border-indigo-200' },
+        // Penduduk
+        { id: 'buku-induk-penduduk', title: 'Buku Induk Penduduk', icon: 'Users', colors: 'from-blue-500 to-blue-600', bgLight: 'bg-blue-50', border: 'border-blue-200' },
+        { id: 'buku-mutasi-penduduk', title: 'Buku Mutasi Penduduk', icon: 'Users', colors: 'from-purple-500 to-purple-600', bgLight: 'bg-purple-50', border: 'border-purple-200' },
+        { id: 'buku-rekapitulasi-penduduk', title: 'Buku Rekapitulasi Jumlah Penduduk', icon: 'FileText', colors: 'from-emerald-500 to-emerald-600', bgLight: 'bg-emerald-50', border: 'border-emerald-200' },
+        { id: 'buku-penduduk-sementara', title: 'Buku Penduduk Sementara', icon: 'Users', colors: 'from-amber-500 to-amber-600', bgLight: 'bg-amber-50', border: 'border-amber-200' },
+        { id: 'buku-ktp-kk', title: 'Buku KTP dan KK', icon: 'CreditCard', colors: 'from-indigo-500 to-indigo-600', bgLight: 'bg-indigo-50', border: 'border-indigo-200' },
+        // Keuangan
+        { id: 'buku-apb-desa', title: 'Buku APB Desa', icon: 'FileText', colors: 'from-green-500 to-green-600', bgLight: 'bg-green-50', border: 'border-green-200' },
+        { id: 'buku-rab', title: 'Buku Rencana Anggaran Biaya', icon: 'FileText', colors: 'from-blue-500 to-blue-600', bgLight: 'bg-blue-50', border: 'border-blue-200' },
+        { id: 'buku-kas-pembantu-kegiatan', title: 'Buku Kas Pembantu Kegiatan', icon: 'FileText', colors: 'from-orange-500 to-orange-600', bgLight: 'bg-orange-50', border: 'border-orange-200' },
+        { id: 'buku-kas-umum', title: 'Buku Kas Umum', icon: 'FileText', colors: 'from-purple-500 to-purple-600', bgLight: 'bg-purple-50', border: 'border-purple-200' },
+        { id: 'buku-kas-pembantu-pajak', title: 'Buku Kas Pembantu Pajak', icon: 'FileText', colors: 'from-rose-500 to-rose-600', bgLight: 'bg-rose-50', border: 'border-rose-200' },
+        { id: 'buku-bank-desa', title: 'Buku Bank Desa', icon: 'FileText', colors: 'from-teal-500 to-teal-600', bgLight: 'bg-teal-50', border: 'border-teal-200' },
+        // Pembangunan
+        { id: 'rkp-desa', title: 'Buku RKP Desa', icon: 'Building2', colors: 'from-amber-500 to-amber-600', bgLight: 'bg-amber-50', border: 'border-amber-200' },
+        { id: 'buku-kegiatan-pembangunan', title: 'Buku Kegiatan Pembangunan', icon: 'Building2', colors: 'from-blue-500 to-blue-600', bgLight: 'bg-blue-50', border: 'border-blue-200' },
+        { id: 'buku-inventaris-pembangunan', title: 'Buku Inventaris Hasil Pembangunan', icon: 'Archive', colors: 'from-emerald-500 to-emerald-600', bgLight: 'bg-emerald-50', border: 'border-emerald-200' },
+    ];
+
+    const handleExportMaster = async (item) => {
         let finalHref = item.href;
 
         if (item.id === 'aset') {
@@ -174,7 +205,57 @@ export default function ExportData() {
             finalHref = `${item.href}?tahun=${year}`;
         }
 
-        setExportingId(item.id);
+        executeDownload(item.id, item.title, finalHref, 'xlsx');
+    };
+
+    const handleExportBuku = async (item, format) => {
+        let finalHref = route(`administrasi.buku.export.${format}`, item.id);
+        
+        // Inventaris Kekayaan membutuhkan filter tahun khusus
+        if (item.id === 'inventaris-kekayaan') {
+            const { value: formValues } = await Swal.fire({
+                title: 'Pilih Periode Laporan',
+                html: `
+                    <div class="flex flex-col gap-4 mt-4 text-left">
+                        <div class="space-y-1">
+                            <label class="text-sm font-bold text-gray-700 ml-1">Tahun Laporan</label>
+                            <input id="swal-input-year" type="number" 
+                                class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow bg-gray-50 text-gray-900 font-medium" 
+                                value="${new Date().getFullYear()}">
+                        </div>
+                    </div>
+                `,
+                focusConfirm: false,
+                showCancelButton: true,
+                confirmButtonText: '<div class="flex items-center"><svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg> Download</div>',
+                cancelButtonText: 'Batal',
+                customClass: {
+                    container: 'font-sans',
+                    popup: 'rounded-3xl p-6 shadow-2xl border border-gray-100 max-w-sm',
+                    title: 'text-2xl font-black text-gray-800',
+                    confirmButton: 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-3 px-6 rounded-xl shadow-md transition-transform hover:scale-105 active:scale-95 border-none',
+                    cancelButton: 'bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-3 px-6 rounded-xl transition-colors border-none'
+                },
+                buttonsStyling: false,
+                preConfirm: () => {
+                    const year = document.getElementById('swal-input-year').value;
+                    if (!year) {
+                        Swal.showValidationMessage('Tahun harus diisi!');
+                        return null;
+                    }
+                    return { year };
+                }
+            });
+
+            if (!formValues) return;
+            finalHref = `${finalHref}?tahun=${formValues.year}`;
+        }
+        
+        executeDownload(`${item.id}-${format}`, item.title, finalHref, format);
+    };
+
+    const executeDownload = async (exportId, title, finalHref, ext) => {
+        setExportingId(exportId);
 
         try {
             const response = await axios.get(finalHref, {
@@ -186,8 +267,8 @@ export default function ExportData() {
             const link = document.createElement('a');
             link.href = url;
             const dateStr = new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
-            const safeTitle = item.title.replace(/\s+/g, '_');
-            link.setAttribute('download', `Export_${safeTitle}_${dateStr}.xlsx`);
+            const safeTitle = title.replace(/\s+/g, '_');
+            link.setAttribute('download', `Export_${safeTitle}_${dateStr}.${ext}`);
             document.body.appendChild(link);
             link.click();
             link.remove();
@@ -197,7 +278,7 @@ export default function ExportData() {
             setTimeout(() => setShowSuccess(false), 3000);
         } catch (error) {
             console.error('Export error:', error);
-            Swal.fire('Gagal!', `Terjadi kesalahan saat mengekspor ${item.title}.`, 'error');
+            Swal.fire('Gagal!', `Terjadi kesalahan saat mengekspor ${title}.`, 'error');
         } finally {
             setExportingId(null);
         }
@@ -216,7 +297,7 @@ export default function ExportData() {
                         </div>
                         <div className="text-center">
                             <h3 className="text-lg font-black text-gray-900">Mengekspor Data</h3>
-                            <p className="text-sm text-gray-500 mt-1">Mohon tunggu, file Excel sedang disiapkan...</p>
+                            <p className="text-sm text-gray-500 mt-1">Mohon tunggu, file sedang disiapkan...</p>
                         </div>
                     </div>
                 </div>
@@ -235,85 +316,147 @@ export default function ExportData() {
                 </div>
             )}
 
-            <div className="space-y-6">
+            <div className="space-y-6 pb-20">
                 {/* Header */}
                 <PageHeader
-                    title="Export Data"
-                    subtitle="Unduh data sistem ke format Excel"
+                    title="Pusat Export Data"
+                    subtitle="Unduh data dari berbagai modul di satu tempat"
                     icon={Icons.Download}
                     titleSize="lg"
                 />
 
-                {/* Export Section */}
-                <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div className="bg-gray-50/50 px-6 py-4 border-b border-gray-100">
-                        <h3 className="text-lg font-bold text-gray-800 flex items-center uppercase italic tracking-tighter">
-                            <Icons.FileSpreadsheet className="w-5 h-5 text-green-600 mr-3" />
-                            Pilih Data Export
-                        </h3>
-                    </div>
-                    <div className="p-6">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                            {exportItems.map((item, idx) => {
-                                const Icon = Icons[item.icon] || Icons.File;
-                                const isExportingThis = exportingId === item.id;
-                                return (
-                                    <div key={idx} className={cn("rounded-2xl p-4 border transition-all duration-300 hover:shadow-md group flex flex-col h-full", item.border, item.bgLight)}>
-                                        <div className="flex items-center mb-3">
-                                            <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center mr-3 bg-gradient-to-r shadow-sm", item.colors)}>
-                                                <Icon className="w-5 h-5 text-white" />
-                                            </div>
-                                            <h6 className="text-sm font-bold text-gray-900 leading-tight">{item.title}</h6>
-                                        </div>
-                                        <p className="text-gray-600 text-[11px] font-medium mb-4 flex-grow">{item.description}</p>
-                                        <button 
-                                            type="button"
-                                            onClick={() => handleExport(item)}
-                                            disabled={exportingId !== null}
-                                            className={cn(
-                                                "inline-flex items-center justify-center w-full px-3 py-2 text-xs font-bold text-white rounded-xl transition-all duration-300 shadow-sm bg-gradient-to-r",
-                                                exportingId !== null ? "opacity-50 cursor-not-allowed" : "hover:shadow active:scale-95",
-                                                item.colors
-                                            )}
-                                        >
-                                            {isExportingThis ? (
-                                                <Icons.Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
-                                            ) : (
-                                                <Icons.Download className="w-3.5 h-3.5 mr-1.5" />
-                                            )}
-                                            {isExportingThis ? 'Mengekspor...' : 'Download Excel'}
-                                        </button>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
+                {/* Tab Navigation */}
+                <div className="flex overflow-x-auto no-scrollbar gap-2 mb-6">
+                    <button
+                        onClick={() => setActiveTab('master')}
+                        className={cn(
+                            "px-5 py-3 rounded-2xl text-sm font-bold whitespace-nowrap transition-all border",
+                            activeTab === 'master' 
+                                ? "bg-indigo-600 text-white border-indigo-600 shadow-md" 
+                                : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:border-gray-300"
+                        )}
+                    >
+                        Data Master & Layanan
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('buku')}
+                        className={cn(
+                            "px-5 py-3 rounded-2xl text-sm font-bold whitespace-nowrap transition-all border",
+                            activeTab === 'buku' 
+                                ? "bg-emerald-600 text-white border-emerald-600 shadow-md" 
+                                : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:border-gray-300"
+                        )}
+                    >
+                        Buku Administrasi Desa
+                    </button>
                 </div>
 
-                {/* Instructions */}
-                <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div className="bg-blue-50/50 px-6 py-4 border-b border-blue-100">
-                        <h3 className="text-sm font-bold text-blue-800 flex items-center">
-                            <Icons.Info className="w-4 h-4 text-blue-600 mr-2" />
-                            Petunjuk Export Data
-                        </h3>
+                {/* Tab Content: Master */}
+                {activeTab === 'master' && (
+                    <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-300">
+                        <div className="bg-indigo-50/50 px-6 py-4 border-b border-indigo-100">
+                            <h3 className="text-lg font-black text-indigo-900 flex items-center uppercase tracking-tight">
+                                <Icons.Database className="w-5 h-5 text-indigo-600 mr-3" />
+                                Data Master & Layanan
+                            </h3>
+                            <p className="text-xs text-indigo-600 font-medium ml-8 mt-1">Export data operasional desa ke format Excel.</p>
+                        </div>
+                        <div className="p-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                                {masterItems.map((item, idx) => {
+                                    const Icon = Icons[item.icon] || Icons.File;
+                                    const isExportingThis = exportingId === item.id;
+                                    return (
+                                        <div key={idx} className={cn("rounded-2xl p-4 border transition-all duration-300 hover:shadow-md group flex flex-col h-full", item.border, item.bgLight)}>
+                                            <div className="flex items-center mb-3">
+                                                <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center mr-3 bg-gradient-to-r shadow-sm", item.colors)}>
+                                                    <Icon className="w-5 h-5 text-white" />
+                                                </div>
+                                                <h6 className="text-sm font-bold text-gray-900 leading-tight">{item.title}</h6>
+                                            </div>
+                                            <p className="text-gray-600 text-[11px] font-medium mb-4 flex-grow">{item.description}</p>
+                                            <button 
+                                                type="button"
+                                                onClick={() => handleExportMaster(item)}
+                                                disabled={exportingId !== null}
+                                                className={cn(
+                                                    "inline-flex items-center justify-center w-full px-3 py-2 text-xs font-bold text-white rounded-xl transition-all duration-300 shadow-sm bg-gradient-to-r",
+                                                    exportingId !== null ? "opacity-50 cursor-not-allowed" : "hover:shadow active:scale-95",
+                                                    item.colors
+                                                )}
+                                            >
+                                                {isExportingThis ? (
+                                                    <Icons.Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                                                ) : (
+                                                    <Icons.Download className="w-3.5 h-3.5 mr-1.5" />
+                                                )}
+                                                {isExportingThis ? 'Mengekspor...' : 'Download Excel'}
+                                            </button>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
                     </div>
-                    <div className="p-6">
-                        <ul className="space-y-3">
-                            {[
-                                'Data akan diekspor dalam format Excel (.xlsx)',
-                                'File akan otomatis terunduh saat tombol diklik',
-                                'Pastikan Anda memiliki aplikasi pembaca spreadsheet (Microsoft Excel / Google Sheets)',
-                                'Untuk Import data, gunakan menu "Import Data" yang terpisah'
-                            ].map((text, i) => (
-                                <li key={i} className="flex items-start">
-                                    <Icons.CheckCircle2 className="w-4 h-4 text-green-500 mr-3 shrink-0 mt-0.5" />
-                                    <span className="text-sm font-medium text-gray-600">{text}</span>
-                                </li>
-                            ))}
-                        </ul>
+                )}
+
+                {/* Tab Content: Buku Administrasi */}
+                {activeTab === 'buku' && (
+                    <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-300">
+                        <div className="bg-emerald-50/50 px-6 py-4 border-b border-emerald-100">
+                            <h3 className="text-lg font-black text-emerald-900 flex items-center uppercase tracking-tight">
+                                <Icons.BookOpen className="w-5 h-5 text-emerald-600 mr-3" />
+                                Buku Administrasi Desa
+                            </h3>
+                            <p className="text-xs text-emerald-600 font-medium ml-8 mt-1">Export arsip buku pemerintahan desa ke format Excel atau PDF sesuai Permendagri No. 47 Tahun 2016.</p>
+                        </div>
+                        <div className="p-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                                {bukuAdministrasiItems.map((item, idx) => {
+                                    const Icon = Icons[item.icon] || Icons.Book;
+                                    const isExportingExcel = exportingId === `${item.id}-excel`;
+                                    const isExportingPdf = exportingId === `${item.id}-pdf`;
+                                    return (
+                                        <div key={idx} className={cn("rounded-2xl p-4 border transition-all duration-300 hover:shadow-md group flex flex-col justify-between", item.border, item.bgLight)}>
+                                            <div className="flex items-center mb-4">
+                                                <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center mr-3 bg-gradient-to-r shadow-sm", item.colors)}>
+                                                    <Icon className="w-5 h-5 text-white" />
+                                                </div>
+                                                <h6 className="text-sm font-bold text-gray-900 leading-tight">{item.title}</h6>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-2 mt-auto">
+                                                <button 
+                                                    type="button"
+                                                    onClick={() => handleExportBuku(item, 'excel')}
+                                                    disabled={exportingId !== null}
+                                                    className={cn(
+                                                        "inline-flex items-center justify-center w-full px-2 py-2 text-[10px] font-bold text-green-700 bg-green-100/50 border border-green-200 rounded-lg transition-all duration-300",
+                                                        exportingId !== null ? "opacity-50 cursor-not-allowed" : "hover:bg-green-100 hover:border-green-300 active:scale-95"
+                                                    )}
+                                                >
+                                                    {isExportingExcel ? <Icons.Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Icons.FileSpreadsheet className="w-3 h-3 mr-1" />}
+                                                    {isExportingExcel ? 'Proses...' : 'Excel'}
+                                                </button>
+                                                <button 
+                                                    type="button"
+                                                    onClick={() => handleExportBuku(item, 'pdf')}
+                                                    disabled={exportingId !== null}
+                                                    className={cn(
+                                                        "inline-flex items-center justify-center w-full px-2 py-2 text-[10px] font-bold text-red-700 bg-red-100/50 border border-red-200 rounded-lg transition-all duration-300",
+                                                        exportingId !== null ? "opacity-50 cursor-not-allowed" : "hover:bg-red-100 hover:border-red-300 active:scale-95"
+                                                    )}
+                                                >
+                                                    {isExportingPdf ? <Icons.Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Icons.FileText className="w-3 h-3 mr-1" />}
+                                                    {isExportingPdf ? 'Proses...' : 'PDF'}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
                     </div>
-                </div>
+                )}
             </div>
         </AuthenticatedLayout>
     );

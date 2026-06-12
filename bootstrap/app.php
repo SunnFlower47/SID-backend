@@ -45,6 +45,7 @@
                 CaptureActivityLogData::class,
                 CspNonceMiddleware::class,
                 \App\Http\Middleware\HandleInertiaRequests::class,
+                \App\Http\Middleware\PreserveIndexFiltersMiddleware::class,
             ]);
 
 

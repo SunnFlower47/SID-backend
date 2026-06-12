@@ -21,6 +21,7 @@ class SuratPengajuanApiController extends Controller
         return [
             'id' => $surat->id,
             'nomor_surat' => $surat->nomor_surat,
+            'nomor_resi' => $surat->nomor_resi,
             'jenis_surat_nama' => $surat->suratType ? $surat->suratType->nama : $surat->jenis_surat,
             'status' => $surat->status,
             'keperluan' => $surat->keperluan,
@@ -109,10 +110,13 @@ class SuratPengajuanApiController extends Controller
                 if (json_last_error() === JSON_ERROR_NONE) $dataTambahan = $decoded;
             }
 
+            $resi = 'REQ-' . date('ymd') . '-' . strtoupper(\Illuminate\Support\Str::random(4));
+
             $suratPengajuan = SuratPengajuan::create([
                 'jenis_surat' => $request->surat_type,
                 'penduduk_id' => $penduduk->id,
-                'nomor_surat' => $this->generateNomorSurat($request->surat_type),
+                'nomor_surat' => null,
+                'nomor_resi'  => $resi,
                 'keperluan' => $request->keperluan,
                 'tujuan' => $request->tujuan,
                 'tanggal_surat' => $request->tanggal_surat,
@@ -128,6 +132,7 @@ class SuratPengajuanApiController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Pengajuan surat berhasil dikirim',
+                'nomor_resi' => $resi,
                 'data' => $this->formatPublicResponse($suratPengajuan)
             ], 201);
 
@@ -198,7 +203,10 @@ class SuratPengajuanApiController extends Controller
             return response()->json(['success' => false, 'message' => 'Nomor surat wajib diisi'], 400);
         }
 
-        $query = SuratPengajuan::where('nomor_surat', $nomorSurat);
+        $query = SuratPengajuan::where(function($q) use ($nomorSurat) {
+            $q->where('nomor_surat', $nomorSurat)
+              ->orWhere('nomor_resi', $nomorSurat);
+        });
         
         // Opsional: Tetap cek NIK jika dikirim dari frontend untuk keamanan tambahan
         if ($nik) {

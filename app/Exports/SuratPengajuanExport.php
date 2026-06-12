@@ -70,15 +70,15 @@ class SuratPengajuanExport implements FromCollection, WithHeadings, WithMapping,
             $surat->nomor_surat,
             $surat->surat_type,
             $surat->penduduk->nama ?? '-',
-            $surat->penduduk->nik ?? '-',
+            $surat->penduduk->nik ? "'" . $surat->penduduk->nik : '-',
             $surat->penduduk->alamat ?? '-',
             'RT ' . ($surat->penduduk->rt_label ?? '-') . ' / RW ' . ($surat->penduduk->rw_label ?? '-'),
             $surat->penduduk->dusun_label ?? '-',
             $surat->status,
-            $surat->tanggal_pengajuan->format('d/m/Y'),
-            $surat->tanggal_selesai ? $surat->tanggal_selesai->format('d/m/Y') : '-',
+            $surat->tanggal_pengajuan ? (is_string($surat->tanggal_pengajuan) ? \Carbon\Carbon::parse($surat->tanggal_pengajuan)->format('d/m/Y') : $surat->tanggal_pengajuan->format('d/m/Y')) : '-',
+            $surat->tanggal_selesai ? (is_string($surat->tanggal_selesai) ? \Carbon\Carbon::parse($surat->tanggal_selesai)->format('d/m/Y') : $surat->tanggal_selesai->format('d/m/Y')) : '-',
             $surat->keterangan ?? '-',
-            $surat->created_at->format('d/m/Y H:i')
+            $surat->created_at ? $surat->created_at->format('d/m/Y H:i') : '-'
         ];
     }
 

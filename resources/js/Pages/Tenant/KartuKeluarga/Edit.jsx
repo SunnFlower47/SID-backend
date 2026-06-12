@@ -12,7 +12,7 @@ export default function Edit({ auth, kk, nkk, masterRwOptions }) {
         rt_id: kk.rt_id || '',
         rw_id: kk.rw_id || '',
         tempat_dikeluarkan: kk.tempat_dikeluarkan || '',
-        tanggal_dikeluarkan: kk.tanggal_dikeluarkan || '',
+        tanggal_dikeluarkan: kk.tanggal_dikeluarkan ? new Date(kk.tanggal_dikeluarkan).toISOString().split('T')[0] : '',
     });
 
     const [availableRts, setAvailableRts] = useState([]);

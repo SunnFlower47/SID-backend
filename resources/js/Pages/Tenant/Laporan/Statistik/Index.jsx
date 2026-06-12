@@ -1,16 +1,68 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Head, Link, Deferred } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import PageHeader from '@/Components/Shared/PageHeader';
 import GenderPieChart from '@/Components/Laporan/GenderPieChart';
 import AgeBarChart from '@/Components/Laporan/AgeBarChart';
 import MutasiBarChart from '@/Components/Laporan/MutasiBarChart';
 import SkeletonChart from '@/Components/Shared/Skeleton/SkeletonChart';
 import { 
     BarChart3, Users, Baby, Skull, TrendingUp, ChevronLeft, 
-    PieChart, Map, Building2, Briefcase, GraduationCap, Heart,
+    PieChart, Map, Building2, Briefcase, GraduationCap, Heart, Download,
     RefreshCw
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart as RechartsPieChart, Pie, Legend } from 'recharts';
+
+const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'];
+
+const HorizontalBarChart = ({ data, dataKey = "total", nameKey = "name" }) => (
+    <div style={{ width: '100%', height: '280px' }}>
+        <ResponsiveContainer>
+            <BarChart layout="vertical" data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" horizontal={false} opacity={0.3} />
+                <XAxis type="number" />
+                <YAxis dataKey={nameKey} type="category" width={140} tick={{fontSize: 10, fill: '#6b7280', fontWeight: 'bold'}} />
+                <Tooltip cursor={{fill: '#f3f4f6'}} contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}} />
+                <Bar dataKey={dataKey} radius={[0, 4, 4, 0]} barSize={24}>
+                    {data.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                </Bar>
+            </BarChart>
+        </ResponsiveContainer>
+    </div>
+);
+
+const SimplePieChart = ({ data, dataKey = "total", nameKey = "name" }) => (
+    <div style={{ width: '100%', height: '280px' }}>
+        <ResponsiveContainer>
+            <RechartsPieChart>
+                <Pie
+                    data={data}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={5}
+                    dataKey={dataKey}
+                    nameKey={nameKey}
+                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    labelLine={false}
+                    style={{fontSize: '10px', fontWeight: 'bold', fill: '#4b5563'}}
+                >
+                    {data.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                </Pie>
+                <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '10px', fontWeight: 'bold', color: '#4b5563' }} />
+                <Tooltip contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}} />
+            </RechartsPieChart>
+        </ResponsiveContainer>
+    </div>
+);
 
 const StatBox = ({ label, value, sub, icon: Icon, color = 'green' }) => {
     const colors = {
@@ -20,9 +72,9 @@ const StatBox = ({ label, value, sub, icon: Icon, color = 'green' }) => {
         orange: 'text-orange-600 bg-orange-50',
     };
     return (
-        <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
+        <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all group">
             <div className="flex items-center gap-3">
-                <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center shrink-0', colors[color])}>
+                <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform', colors[color])}>
                     <Icon className="w-4.5 h-4.5" />
                 </div>
                 <div>
@@ -36,7 +88,7 @@ const StatBox = ({ label, value, sub, icon: Icon, color = 'green' }) => {
 };
 
 const ChartCard = ({ title, sub, icon: Icon, children, className }) => (
-    <div className={cn("bg-white rounded-2xl border border-gray-100 shadow-sm p-6", className)}>
+    <div className={cn("bg-white rounded-2xl border border-gray-100 shadow-sm p-6 hover:shadow-md transition-shadow", className)}>
         <div className="flex items-center justify-between mb-6">
             <div>
                 <h3 className="text-sm font-black text-gray-900 uppercase italic tracking-tighter">{title}</h3>
@@ -54,33 +106,56 @@ export default function StatistikIndex({
     auth, basicStats, genderStats, ageGroups, religionStats, 
     educationStats, jobStats, rtStats, rwStats, mutationStats, recentMutations 
 }) {
+    const [isExporting, setIsExporting] = useState(false);
+
+    const exportToPDF = async () => {
+        setIsExporting(true);
+        try {
+            const element = document.getElementById('statistik-container');
+            const canvas = await html2canvas(element, { scale: 2, useCORS: true });
+            const imgData = canvas.toDataURL('image/png');
+            
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+            
+            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+            pdf.save('Laporan_Statistik_Kependudukan.pdf');
+        } catch (error) {
+            console.error('Failed to export PDF', error);
+            alert('Gagal mengexport PDF. Silakan coba lagi.');
+        } finally {
+            setIsExporting(false);
+        }
+    };
+
     return (
         <AuthenticatedLayout user={auth.user} title="Statistik Kependudukan">
             <Head title="Statistik & Demografi - Admin Panel" />
 
-            <div className="space-y-6 animate-in fade-in duration-700 pb-20">
+            <div id="statistik-container" className="space-y-6 animate-in fade-in duration-700 pb-20">
 
-                {/* ── Header ── */}
-                <div className="bg-gradient-to-r from-blue-600 via-indigo-700 to-indigo-800 rounded-3xl shadow-xl p-6 sm:p-8 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl pointer-events-none" />
-                    <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
-                        <div className="flex items-center gap-4">
-                            <Link href={route('laporan.index')} className="w-9 h-9 bg-white/10 rounded-xl flex items-center justify-center hover:bg-white/20 transition-all border border-white/10">
-                                <ChevronLeft className="w-4 h-4 text-white" />
-                            </Link>
-                            <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20">
-                                <BarChart3 className="w-6 h-6 text-yellow-300" />
-                            </div>
-                            <div>
-                                <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight uppercase italic leading-none">Statistik Desa</h1>
-                                <p className="text-indigo-100 font-bold text-[10px] uppercase tracking-widest mt-1 opacity-80">Analisis Demografi Real-time</p>
-                            </div>
-                        </div>
-                        <button onClick={() => window.location.reload()} className="flex items-center px-4 py-3 bg-white text-indigo-700 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg hover:scale-105 transition-all">
-                            <RefreshCw className="w-3.5 h-3.5 mr-2" /> Refresh Data
-                        </button>
-                    </div>
-                </div>
+                <PageHeader 
+                    icon={PieChart}
+                    title="Statistik Desa"
+                    subtitle="Analisis Demografi Real-time"
+                    backHref={route('laporan.index')}
+                    actions={[
+                        {
+                            label: isExporting ? 'MENYIAPKAN...' : 'EXPORT PDF',
+                            icon: Download,
+                            onClick: exportToPDF,
+                            disabled: isExporting,
+                            variant: 'white'
+                        },
+                        {
+                            label: 'Refresh Data',
+                            icon: RefreshCw,
+                            onClick: () => window.location.reload(),
+                            variant: 'ghost'
+                        }
+                    ]}
+                />
 
                 {/* ── Summary Stats ── */}
                 <Deferred data="basicStats" fallback={<div className="grid grid-cols-2 lg:grid-cols-4 gap-4">{[...Array(4)].map((_,i)=><div key={i} className="h-20 bg-white rounded-2xl animate-pulse border border-gray-100"/>)}</div>}>
@@ -117,50 +192,30 @@ export default function StatistikIndex({
                     </Deferred>
 
                     {/* More Detailed Stats Cards */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:col-span-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 lg:col-span-2">
                         
                         {/* Pendidikan */}
-                        <Deferred data="educationStats" fallback={<div className="h-48 bg-white rounded-2xl animate-pulse" />}>
-                            <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-                                <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                                    <GraduationCap className="w-3.5 h-3.5" /> Pendidikan Terakhir
-                                </h4>
-                                <div className="space-y-3">
-                                    {(educationStats ?? []).slice(0, 5).map((item, i) => (
-                                        <div key={i}>
-                                            <div className="flex justify-between text-[10px] font-black uppercase tracking-tighter mb-1">
-                                                <span>{item.pendidikan || 'TIDAK SEKOLAH'}</span>
-                                                <span className="text-blue-600">{item.total}</span>
-                                            </div>
-                                            <div className="h-1.5 bg-gray-50 rounded-full overflow-hidden">
-                                                <div className="h-full bg-blue-500 rounded-full" style={{ width: `${Math.min(100, (item.total / basicStats.total_penduduk) * 100)}%` }} />
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
+                        <Deferred data="educationStats" fallback={<SkeletonChart height="320px" />}>
+                            <ChartCard title="Pendidikan Terakhir" sub="Tingkat Pendidikan Warga" icon={GraduationCap}>
+                                <HorizontalBarChart 
+                                    data={(educationStats ?? []).slice(0, 5).map(item => ({
+                                        name: item.pendidikan || 'TIDAK SEKOLAH',
+                                        total: item.total
+                                    }))} 
+                                />
+                            </ChartCard>
                         </Deferred>
 
                         {/* Pekerjaan */}
-                        <Deferred data="jobStats" fallback={<div className="h-48 bg-white rounded-2xl animate-pulse" />}>
-                            <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-                                <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                                    <Briefcase className="w-3.5 h-3.5" /> Pekerjaan Utama
-                                </h4>
-                                <div className="space-y-3">
-                                    {(jobStats ?? []).slice(0, 5).map((item, i) => (
-                                        <div key={i}>
-                                            <div className="flex justify-between text-[10px] font-black uppercase tracking-tighter mb-1">
-                                                <span>{item.pekerjaan || 'TIDAK BEKERJA'}</span>
-                                                <span className="text-green-600">{item.total}</span>
-                                            </div>
-                                            <div className="h-1.5 bg-gray-50 rounded-full overflow-hidden">
-                                                <div className="h-full bg-green-500 rounded-full" style={{ width: `${Math.min(100, (item.total / basicStats.total_penduduk) * 100)}%` }} />
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
+                        <Deferred data="jobStats" fallback={<SkeletonChart height="320px" />}>
+                            <ChartCard title="Pekerjaan Utama" sub="Top 5 Jenis Pekerjaan" icon={Briefcase}>
+                                <HorizontalBarChart 
+                                    data={(jobStats ?? []).slice(0, 5).map(item => ({
+                                        name: item.pekerjaan || 'TIDAK BEKERJA',
+                                        total: item.total
+                                    }))} 
+                                />
+                            </ChartCard>
                         </Deferred>
 
                     </div>
@@ -172,9 +227,9 @@ export default function StatistikIndex({
                     <ChartCard title="Statistik RT" sub="Distribusi warga per RT" icon={Map} className="lg:col-span-1">
                         <div className="max-h-[300px] overflow-y-auto pr-2 space-y-4">
                             {(rtStats ?? []).map((rt, i) => (
-                                <div key={i} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                                <div key={i} className="flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 transition-colors rounded-xl border border-gray-100">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-[10px] font-black text-gray-500 shadow-sm">{rt.rt_label}</div>
+                                        <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-[10px] font-black text-gray-500 shadow-sm border border-gray-100">{rt.rt_label}</div>
                                         <span className="text-[10px] font-black text-gray-900 uppercase">RT {rt.rt_label}</span>
                                     </div>
                                     <span className="text-xs font-black text-blue-600">{rt.total} Jiwa</span>
@@ -186,9 +241,9 @@ export default function StatistikIndex({
                     <ChartCard title="Statistik RW" sub="Distribusi warga per RW" icon={Building2} className="lg:col-span-1">
                          <div className="max-h-[300px] overflow-y-auto pr-2 space-y-4">
                             {(rwStats ?? []).map((rw, i) => (
-                                <div key={i} className="flex items-center justify-between p-3 bg-indigo-50/50 rounded-xl">
+                                <div key={i} className="flex items-center justify-between p-3 bg-indigo-50/50 hover:bg-indigo-100/50 transition-colors rounded-xl border border-indigo-100/50">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-[10px] font-black text-indigo-500 shadow-sm">{rw.rw_label}</div>
+                                        <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-[10px] font-black text-indigo-500 shadow-sm border border-indigo-50">{rw.rw_label}</div>
                                         <span className="text-[10px] font-black text-gray-900 uppercase">RW {rw.rw_label}</span>
                                     </div>
                                     <span className="text-xs font-black text-indigo-600">{rw.total} Jiwa</span>
@@ -198,19 +253,14 @@ export default function StatistikIndex({
                     </ChartCard>
 
                     <ChartCard title="Agama" sub="Keyakinan penduduk" icon={Heart} className="lg:col-span-1">
-                         <div className="space-y-4">
-                            {(religionStats ?? []).map((rel, i) => (
-                                <div key={i}>
-                                    <div className="flex justify-between text-[10px] font-black uppercase tracking-tighter mb-1">
-                                        <span>{rel.agama || 'LAINNYA'}</span>
-                                        <span className="text-gray-900">{rel.total}</span>
-                                    </div>
-                                    <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                                        <div className={cn("h-full rounded-full", i === 0 ? "bg-green-500" : "bg-gray-400")} style={{ width: `${Math.min(100, (rel.total / basicStats.total_penduduk) * 100)}%` }} />
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
+                        <Deferred data="religionStats" fallback={<SkeletonChart height="250px" />}>
+                            <SimplePieChart 
+                                data={(religionStats ?? []).map(rel => ({
+                                    name: rel.agama || 'LAINNYA',
+                                    total: rel.total
+                                }))}
+                            />
+                        </Deferred>
                     </ChartCard>
                 </div>
 

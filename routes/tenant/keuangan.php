@@ -15,7 +15,8 @@ Route::middleware([])->group(function () {
         Route::get('transparansi-desa/proyek', 'proyek')->name('transparansi-desa.proyek');
     });
 
-    Route::resource('mutasi-bank', MutasiBankController::class)->except(['create', 'show', 'edit']);
+    Route::resource('mutasi-bank', MutasiBankController::class)
+        ->names('keuangan.mutasi-bank');
 
     Route::prefix('anggaran')->name('anggaran.')->controller(AnggaranController::class)->group(function () {
         Route::get('create-tahunan', 'createAnggaranTahunan')->name('create-tahunan');

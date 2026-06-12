@@ -128,6 +128,9 @@ class BukuAdministrasiController extends Controller
             case 'buku-kas-pembantu-kegiatan':
                 $viewName = 'Tenant/Administrasi/Buku/BukuKasPembantuKegiatan/Index';
                 break;
+            case 'kader-pemberdayaan':
+                $viewName = 'Tenant/Administrasi/Buku/KaderPemberdayaan/Index';
+                break;
             default:
                 $viewName = 'Tenant/Administrasi/Buku/BukuStandard/Index';
         }

@@ -8,7 +8,7 @@ export default function Form({ keputusan, is_edit }) {
     const { data, setData, post, put, processing, errors } = useForm({
         nomor_keputusan: keputusan.nomor_keputusan || '',
         judul_keputusan: keputusan.judul_keputusan || '',
-        tanggal_ditetapkan: keputusan.tanggal_ditetapkan || '',
+        tanggal_ditetapkan: keputusan.tanggal_ditetapkan ? new Date(keputusan.tanggal_ditetapkan).toISOString().split('T')[0] : '',
         keterangan: keputusan.keterangan || '',
         file_dokumen: null,
         _method: is_edit ? 'PUT' : 'POST' // using spoofing for file uploads on PUT

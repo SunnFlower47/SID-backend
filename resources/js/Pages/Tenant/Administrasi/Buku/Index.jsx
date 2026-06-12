@@ -14,6 +14,8 @@ const BookCard = ({ title, desc, icon: Icon, href, color = 'blue' }) => {
         teal:   'text-teal-600 bg-teal-50 border-teal-100 hover:border-teal-300',
         indigo: 'text-indigo-600 bg-indigo-50 border-indigo-100 hover:border-indigo-300',
         emerald: 'text-emerald-600 bg-emerald-50 border-emerald-100 hover:border-emerald-300',
+        orange: 'text-orange-600 bg-orange-50 border-orange-100 hover:border-orange-300',
+        rose:   'text-rose-600 bg-rose-50 border-rose-100 hover:border-rose-300',
     };
 
     const iconColors = {
@@ -24,6 +26,8 @@ const BookCard = ({ title, desc, icon: Icon, href, color = 'blue' }) => {
         teal:   'bg-teal-600',
         indigo: 'bg-indigo-600',
         emerald: 'bg-emerald-600',
+        orange: 'bg-orange-600',
+        rose:   'bg-rose-600',
     };
 
     return (
@@ -129,6 +133,13 @@ export default function BukuAdministrasiIndex({ auth }) {
                             icon={Mails} 
                             color="orange"
                             href={route('administrasi.buku.show', 'buku-ekspedisi')} 
+                        />
+                        <BookCard 
+                            title="Buku Kader Pemberdayaan" 
+                            desc="Daftar nama dan profil warga yang menjadi kader pemberdayaan masyarakat desa."
+                            icon={Users} 
+                            color="indigo"
+                            href={route('administrasi.buku.show', 'kader-pemberdayaan')}
                         />
                     </div>
                 </div>
@@ -283,13 +294,6 @@ export default function BukuAdministrasiIndex({ auth }) {
                             icon={Archive} 
                             color="emerald"
                             href={route('administrasi.buku.show', 'buku-inventaris-pembangunan')}
-                        />
-                        <BookCard 
-                            title="Buku Kader Pemberdayaan" 
-                            desc="Daftar nama dan profil warga yang menjadi kader pemberdayaan masyarakat desa."
-                            icon={Users} 
-                            color="indigo"
-                            href={route('administrasi.buku.show', 'kader-pemberdayaan')}
                         />
                     </div>
                 </div>

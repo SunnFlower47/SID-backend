@@ -181,6 +181,12 @@
 - Upload file Excel
 - Preview dan konfirmasi import
 
+#### **2. Penanganan Konflik Import (Issue Queue)**
+- Jika ada data Excel yang cacat/tidak valid (contoh: NIK kurang dari 16 digit, NKK tidak valid, NIK sudah terdaftar, atau RT/RW tidak ditemukan), data akan ditahan dan masuk ke daftar **Import Conflicts**.
+- Admin dapat meninjau konflik pada daftar tersebut dan melakukan aksi:
+  - **Perbaiki (Icon Pulpen):** Memasukkan data yang benar melalui popup tanpa harus mengubah ulang file Excel.
+  - **Hapus (Icon Tempat Sampah):** Mengabaikan dan menolak baris data yang rusak agar tidak mengotori database.
+
 #### **2. Export Excel**
 - Klik tombol **"Export Excel"**
 - Pilih format export
@@ -243,141 +249,76 @@
 
 ---
 
-## 📄 SURAT KETERANGAN
+## 💰 SISTEM PAJAK PBB
 
-### **Jenis Surat yang Tersedia**
+### **Manajemen Pajak Bumi dan Bangunan**
+Modul PBB digunakan untuk memantau status tagihan dan pembayaran pajak warga (NOP) secara terintegrasi dengan server **Mapagbumi** Purwakarta.
 
-#### **1. Surat Kelahiran**
-- Untuk bayi yang baru lahir
-- Data yang diperlukan:
-  - Nama bayi
-  - Tanggal lahir
-  - Jenis kelamin bayi
-  - Nama ayah dan ibu
-  - Tempat lahir
+#### **1. Import Data NOP**
+- Buka menu **"Keuangan > Pajak PBB"** (atau menu PBB di sidebar).
+- Klik tombol **"Import Data"** untuk mengunggah file Excel berisi daftar NOP (Nomor Objek Pajak), nama, dan detail awal.
+- Tanda titik/strip dari Excel akan diformat otomatis oleh sistem saat disimpan di database, namun tetap ditampilkan rapi ke pengguna.
 
-#### **2. Surat Kematian**
-- Untuk penduduk yang meninggal
-- Data yang diperlukan:
-  - Nama almarhum
-  - Tanggal meninggal
-  - Penyebab kematian
-  - Data keluarga
+#### **2. Sinkronisasi Mapagbumi**
+- Sistem akan otomatis menarik tagihan PBB ke server pusat (Mapagbumi) secara berkala melalui penjadwalan (*Cron Job*).
+- Anda juga dapat memaksa penarikan data secara manual dengan menekan tombol **"Sync"** (icon putar/refresh) di baris NOP terkait.
 
-#### **3. Surat Keterangan Tidak Mampu (SKTM)**
-- **SKTM Dewasa**: Untuk penduduk dewasa
-- **SKTM Anak**: Untuk anak-anak
-- Data yang diperlukan:
-  - Data penduduk
-  - Keperluan surat
-  - Data keluarga
-
-#### **4. Surat Keterangan Usaha (SKU)**
-- Untuk penduduk yang memiliki usaha
-- Data yang diperlukan:
-  - Data penduduk
-  - Jenis usaha
-  - Alamat usaha
-  - Data usaha
-
-#### **5. Surat Domisili**
-- Untuk penduduk yang pindah domisili
-- Data yang diperlukan:
-  - Data penduduk
-  - Alamat baru
-  - Data keluarga
-
-#### **6. Surat Pindah**
-- Untuk penduduk yang pindah keluar desa
-- Data yang diperlukan:
-  - Data penduduk
-  - Tujuan pindah
-  - Data keluarga
-
-### **Membuat Surat**
-
-#### **1. Pilih Jenis Surat**
-- Klik menu **"Surat"** di sidebar
-- Pilih jenis surat yang akan dibuat
-- Klik tombol **"Buat Surat"**
-
-#### **2. Isi Data Surat**
-- Pilih penduduk yang bersangkutan.
-- Isi data tambahan sesuai jenis surat.
-- **Pilih Penandatangan**: Anda dapat memilih siapa yang akan menandatangani surat (Kepala Desa atau Sekretaris Desa) melalui dropdown yang tersedia.
-- Klik **"Simpan Surat"**
-
-#### **3. Preview dan Cetak**
-- Sistem akan generate surat
-- Preview surat sebelum cetak
-- Klik **"Cetak PDF"** untuk download
-
-### **Manajemen Surat**
-
-#### **1. Daftar Surat**
-- Menu **"Surat"** menampilkan semua surat
-- Filter berdasarkan jenis surat
-- Search berdasarkan nomor surat atau nama
-
-#### **2. Status Surat**
-- **Draft**: Surat yang belum selesai
-- **Selesai**: Surat yang sudah selesai
-- **Dicetak**: Surat yang sudah dicetak
-
-#### **3. Edit Surat**
-- Klik tombol **"Edit"** pada surat
-- Ubah data yang diperlukan
-- Simpan perubahan
+#### **3. Cek Tagihan PBB**
+- Klik icon **"Detail"** pada data NOP untuk melihat status pembayaran (Lunas/Belum Lunas), nilai terhutang, tanggal jatuh tempo, dan denda untuk setiap tahun pajak.
 
 ---
 
-## 📊 STATISTIK
+## 📄 SURAT KETERANGAN ONLINE & TRACKING RESI
 
-### **Dashboard Statistik**
+Sistem Desa Cibatu kini mengadopsi sistem pengajuan surat mandiri oleh warga dengan fitur Pelacakan (Tracking) dan Kode QR Otomatis.
+
+### **Alur Pengajuan Surat oleh Warga**
+1. Warga membuka **Web Desa Cibatu** di HP atau Komputer.
+2. Memilih menu **Layanan Surat** dan mengisi form pengajuan secara mandiri (melampirkan foto KTP/KK jika diperlukan).
+3. Setelah berhasil, sistem akan menerbitkan **Nomor Resi (Tracking ID)** dengan awalan `REQ-XXXXXX`. (Nomor surat resmi belum diterbitkan).
+4. Warga bisa menggunakan Nomor Resi ini untuk memantau progres suratnya secara langsung di halaman **Cek Status**.
+
+### **Manajemen Surat oleh Admin (Admin Panel)**
+
+#### **1. Meninjau Pengajuan Baru**
+- Klik menu **"Surat Pengajuan"** di sidebar.
+- Anda akan melihat daftar antrean surat dengan status **Pending**. Di tahap ini, surat diidentifikasi menggunakan Nomor Resi.
+
+#### **2. Memproses & Menyetujui Surat (Auto-Numbering)**
+- Klik **"Proses"** atau edit status menjadi **Diproses / Selesai**.
+- Saat Admin mengubah status menjadi *Diproses* atau *Selesai*, sistem akan **secara otomatis menerbitkan Nomor Surat Resmi** (mengurutkan dari pengaturan `no_surat` terakhir).
+- Jika ada kesalahan dan surat harus ditolak, ubah status menjadi **Ditolak**. Nomor surat yang sudah ditarik tidak akan dikembalikan untuk mencegah celah manipulasi register (sesuai standar tata usaha).
+
+#### **3. Cetak Surat & Verifikasi QR Code**
+- Setelah surat selesai, klik **"Cetak PDF"** atau **"Cetak DOCX"**.
+- Sistem akan men-generate surat fisik yang dilengkapi dengan **QR Code Digital** di bagian Footer.
+- Jika QR Code di-*scan* menggunakan kamera HP, akan mengarahkan ke halaman verifikasi resmi Web Desa yang membuktikan keaslian dokumen, memuat Nama, NIK (disensor sebagian), dan Alamat.
+
+---
+
+## 📊 STATISTIK KEPENDUDUKAN
+
+### **Dashboard Statistik Multi-Kategori**
 
 #### **1. Akses Statistik**
-- Klik menu **"Statistik"** di sidebar
-- Dashboard statistik akan menampilkan berbagai grafik
+- Di sidebar Admin Panel, buka grup **Data Kependudukan** dan klik menu **"Statistik Penduduk"**.
+- Dashboard akan menampilkan agregat data penduduk secara *Real-Time*.
 
-#### **2. Jenis Statistik**
-- **Demografi**: Data penduduk berdasarkan usia
-- **Jenis Kelamin**: Distribusi laki-laki dan perempuan
-- **Pendidikan**: Tingkat pendidikan penduduk
-- **Pekerjaan**: Jenis pekerjaan penduduk
-- **Agama**: Distribusi agama
-- **RT/RW**: Distribusi per RT/RW
-- **Dusun**: Distribusi per dusun
+#### **2. Visualisasi Interaktif (Recharts)**
+Sistem merangkum data ke dalam grafik interaktif (Pie Chart & Bar Chart) meliputi:
+- **Komposisi Jenis Kelamin** (Laki-laki vs Perempuan)
+- **Demografi Usia** (Balita, Anak-anak, Remaja, Pemuda, Dewasa, Pra-Lansia, Lansia)
+- **Tingkat Pendidikan** 
+- **Top 10 Pekerjaan**
+- **Agama**
+- **Status Perkawinan**
 
-### **Grafik dan Chart**
+Anda dapat mengarahkan kursor (hover) ke atas grafik untuk melihat nilai spesifik dari tiap kategori.
 
-#### **1. Grafik Batang**
-- Menampilkan data dalam bentuk batang
-- Mudah dibaca dan dibandingkan
-- Untuk data kategorikal
+#### **3. Export Laporan (PDF)**
+- Untuk kebutuhan pelaporan atau rapat desa, klik tombol hitam **"EXPORT PDF"** di pojok kanan atas layar.
+- Sistem akan secara otomatis mengambil tangkapan layar keseluruhan dashboard grafik dan mengunduhnya sebagai file dokumen PDF `Laporan_Statistik_Kependudukan.pdf`.
 
-#### **2. Grafik Pie**
-- Menampilkan proporsi data
-- Untuk data persentase
-- Mudah melihat distribusi
-
-#### **3. Grafik Line**
-- Menampilkan tren data
-- Untuk data time series
-- Melihat perubahan dari waktu ke waktu
-
-### **Export Statistik**
-
-#### **1. Export PDF**
-- Klik tombol **"Export PDF"**
-- Statistik akan di-generate dalam format PDF
-- Download file PDF
-
-#### **2. Export Excel**
-- Klik tombol **"Export Excel"**
-- Data statistik akan di-export ke Excel
-- Download file Excel
-
----
 
 ## 🌐 WEB DESA
 

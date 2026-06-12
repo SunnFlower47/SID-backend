@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import { cn } from '@/lib/utils';
 
 /**
@@ -36,6 +36,16 @@ export default function PageHeader({
         ? 'text-xl sm:text-2xl font-black text-white tracking-tight uppercase italic leading-none'
         : 'text-xl sm:text-3xl font-black text-white tracking-tight uppercase italic leading-none';
 
+    const handleSmartBack = (e, fallbackUrl) => {
+        e.preventDefault();
+        // window.history.length > 2 memastikan kita tidak keluar dari aplikasi jika user langsung copas URL
+        if (window.history.length > 2) {
+            window.history.back();
+        } else if (fallbackUrl) {
+            router.get(fallbackUrl);
+        }
+    };
+
     return (
         <div className={cn(
             `bg-gradient-to-r ${gradient} rounded-3xl shadow-xl p-6 sm:p-8 relative overflow-hidden`,
@@ -50,14 +60,15 @@ export default function PageHeader({
                     {/* Tombol kembali — muncul di Show pages atau jika ada handler onBack */}
                     {(backHref || onBack) && (
                         backHref ? (
-                            <Link
-                                href={backHref}
+                            <button
+                                type="button"
+                                onClick={(e) => handleSmartBack(e, backHref)}
                                 className="w-10 h-10 bg-white/10 hover:bg-white/20 text-white rounded-xl flex items-center justify-center border border-white/10 transition-all shrink-0"
                             >
                                 <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
                                 </svg>
-                            </Link>
+                            </button>
                         ) : (
                             <button
                                 type="button"

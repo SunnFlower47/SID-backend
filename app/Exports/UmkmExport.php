@@ -76,7 +76,7 @@ class UmkmExport implements FromCollection, WithHeadings, WithMapping, WithStyle
             $no++,
             $umkm->nama_usaha,
             $umkm->nama_pemilik,
-            $umkm->nik_pemilik,
+            $umkm->nik_pemilik ? "'" . $umkm->nik_pemilik : '-',
             $umkm->alamat_usaha,
             'RT ' . $umkm->rt_label . ' / RW ' . $umkm->rw_label,
             $umkm->dusun_label,
