@@ -45,6 +45,28 @@ class PeraturanDesa extends Model
     public function getFileDokumenUrlAttribute()
     {
         if (!$this->file_dokumen) return null;
+
+        // Jika path berupa full URL, langsung kembalikan
+        if (filter_var($this->file_dokumen, FILTER_VALIDATE_URL)) {
+            return $this->file_dokumen;
+        }
+
+        // Cek di disk default
+        if (\Illuminate\Support\Facades\Storage::exists($this->file_dokumen)) {
+            return \Illuminate\Support\Facades\Storage::url($this->file_dokumen);
+        }
+
+        // Jika tidak ada di default disk, cek di disk s3
+        if (config('filesystems.disks.s3') && \Illuminate\Support\Facades\Storage::disk('s3')->exists($this->file_dokumen)) {
+            return \Illuminate\Support\Facades\Storage::disk('s3')->url($this->file_dokumen);
+        }
+
+        // Jika tidak ada di s3 disk, cek di disk public (local)
+        if (\Illuminate\Support\Facades\Storage::disk('public')->exists($this->file_dokumen)) {
+            return \Illuminate\Support\Facades\Storage::disk('public')->url($this->file_dokumen);
+        }
+
+        // Fallback default
         return \Illuminate\Support\Facades\Storage::url($this->file_dokumen);
     }
 

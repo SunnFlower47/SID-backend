@@ -118,7 +118,7 @@ class BeritaEksternalController extends Controller
                             'slug' => $berita->slug,
                             'description' => $berita->konten,
                             'link' => route('berita.show', $berita->slug),
-                            'image' => $berita->gambar ? \Illuminate\Support\Facades\Storage::url($berita->gambar) : null,
+                            'image' => $berita->image_url,
                             'published_at' => $berita->published_at ? $berita->published_at->format('Y-m-d H:i:s') : now()->format('Y-m-d H:i:s'),
                             'source' => 'Desa Cibatu',
                             'category' => $berita->kategori,

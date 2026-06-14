@@ -52,6 +52,9 @@ class VillageProfileController extends Controller
             'visi' => 'nullable|string',
             'misi' => 'nullable|string',
             'sejarah_desa' => 'nullable|string',
+            'tahun_berdiri' => 'nullable|string',
+            'kepala_desa_pertama' => 'nullable|string',
+            'karakteristik_desa' => 'nullable|string',
             
             // Social Media
             'link_facebook' => 'nullable|url|max:255',
@@ -77,6 +80,9 @@ class VillageProfileController extends Controller
             'visi' => DesaSetting::GROUP_PROFILE,
             'misi' => DesaSetting::GROUP_PROFILE,
             'sejarah_desa' => DesaSetting::GROUP_PROFILE,
+            'tahun_berdiri' => DesaSetting::GROUP_PROFILE,
+            'kepala_desa_pertama' => DesaSetting::GROUP_PROFILE,
+            'karakteristik_desa' => DesaSetting::GROUP_PROFILE,
             'link_facebook' => DesaSetting::GROUP_SOCIAL,
             'link_instagram' => DesaSetting::GROUP_SOCIAL,
             'link_youtube' => DesaSetting::GROUP_SOCIAL,

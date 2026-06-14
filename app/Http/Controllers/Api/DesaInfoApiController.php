@@ -73,13 +73,22 @@ class DesaInfoApiController extends Controller
                     'success' => true,
                     'data' => [
                         'nama_desa' => $desaInfo['nama_desa'] ?? 'Desa Cibatu',
+                        'kecamatan' => $desaInfo['kecamatan'] ?? null,
+                        'kabupaten' => $desaInfo['kabupaten'] ?? null,
+                        'provinsi' => $desaInfo['provinsi'] ?? null,
+                        'kode_pos' => $desaInfo['kode_pos'] ?? null,
                         'email' => $desaInfo['email'] ?? null,
                         'telepon' => $desaInfo['telepon'] ?? null,
                         'alamat' => $desaInfo['alamat_lengkap'] ?? null,
                         'logo_desa' => DesaSetting::getValue('logo_desa', null),
-                        'visi' => DesaSetting::getValue('visi_desa', null),
-                        'misi' => DesaSetting::getValue('misi_desa', null),
+                        'visi' => DesaSetting::getValue('visi', null),
+                        'misi' => DesaSetting::getValue('misi', null),
                         'sejarah' => DesaSetting::getValue('sejarah_desa', null),
+                        'tahun_berdiri' => DesaSetting::getValue('tahun_berdiri', '1860'),
+                        'kepala_desa_pertama' => DesaSetting::getValue('kepala_desa_pertama', 'Ki Arpan'),
+                        'karakteristik_desa' => DesaSetting::getValue('karakteristik_desa', 'Industri'),
+                        'latitude' => $desaInfo['latitude'] ?? null,
+                        'longitude' => $desaInfo['longitude'] ?? null,
                         'social' => [
                             'facebook' => $sanitizeUrl(DesaSetting::getValue('link_facebook', '')),
                             'instagram' => $sanitizeUrl(DesaSetting::getValue('link_instagram', '')),
@@ -121,7 +130,7 @@ class DesaInfoApiController extends Controller
     }
     /**
      * Get GeoJSON batas wilayah desa
-     * File disimpan di storage/app/public/geojson/ dan dibaca server-side
+     * File disimpan di storage/app/public/geojson/ atau di S3/R2 dan dibaca server-side
      */
     public function getGeoJson()
     {
@@ -137,19 +146,63 @@ class DesaInfoApiController extends Controller
                     ], 404);
                 }
 
-                // Resolve ke path file fisik di storage
-                // Value disimpan sebagai URL: /storage/geojson/filename.geojson
-                $relativePath = ltrim(str_replace('/storage/', '', parse_url($storedUrl, PHP_URL_PATH)), '/');
-                $absolutePath = storage_path('app/public/' . $relativePath);
-
-                if (!file_exists($absolutePath)) {
+                // Resolve relative path dari URL
+                $path = parse_url($storedUrl, PHP_URL_PATH);
+                if (!$path) {
                     return response()->json([
                         'success' => false,
-                        'message' => 'File GeoJSON tidak ditemukan di server.'
+                        'message' => 'URL GeoJSON tidak valid.'
                     ], 404);
                 }
 
-                $geojsonContent = file_get_contents($absolutePath);
+                $cleanPath = ltrim($path, '/');
+
+                // Hapus nama bucket S3/R2 jika ada di segmen awal path
+                $bucket = env('AWS_BUCKET');
+                if ($bucket && (str_starts_with($cleanPath, $bucket . '/') || $cleanPath === $bucket)) {
+                    $cleanPath = substr($cleanPath, strlen($bucket . '/'));
+                }
+
+                // Hapus 'storage/' jika menggunakan local public storage
+                if (str_starts_with($cleanPath, 'storage/')) {
+                    $cleanPath = substr($cleanPath, strlen('storage/'));
+                }
+
+                $geojsonContent = null;
+
+                // Coba ambil dari disk default
+                if (\Illuminate\Support\Facades\Storage::exists($cleanPath)) {
+                    $geojsonContent = \Illuminate\Support\Facades\Storage::get($cleanPath);
+                }
+                // Coba ambil dari disk public (lokal)
+                elseif (\Illuminate\Support\Facades\Storage::disk('public')->exists($cleanPath)) {
+                    $geojsonContent = \Illuminate\Support\Facades\Storage::disk('public')->get($cleanPath);
+                }
+                // Coba ambil dari disk s3 jika terkonfigurasi
+                elseif (config('filesystems.disks.s3') && \Illuminate\Support\Facades\Storage::disk('s3')->exists($cleanPath)) {
+                    $geojsonContent = \Illuminate\Support\Facades\Storage::disk('s3')->get($cleanPath);
+                }
+                // Jika semua gagal, coba ambil file secara langsung jika lokal, atau via HTTP jika URL luar
+                else {
+                    $absolutePath = storage_path('app/public/' . $cleanPath);
+                    if (file_exists($absolutePath)) {
+                        $geojsonContent = file_get_contents($absolutePath);
+                    } elseif (filter_var($storedUrl, FILTER_VALIDATE_URL)) {
+                        // Coba ambil via HTTP client jika itu URL valid (misal Cloudflare R2 / S3 public URL)
+                        $response = \Illuminate\Support\Facades\Http::timeout(10)->get($storedUrl);
+                        if ($response->successful()) {
+                            $geojsonContent = $response->body();
+                        }
+                    }
+                }
+
+                if (!$geojsonContent) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'File GeoJSON tidak ditemukan di server penyimpanan.'
+                    ], 404);
+                }
+
                 $geojson = json_decode($geojsonContent, true);
 
                 if (json_last_error() !== JSON_ERROR_NONE) {

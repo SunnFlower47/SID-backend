@@ -39,6 +39,9 @@ export default function Index({ auth, profile }) {
         visi: profile.additional.visi || '',
         misi: profile.additional.misi || '',
         sejarah_desa: profile.additional.sejarah_desa || '',
+        tahun_berdiri: profile.additional.tahun_berdiri || '',
+        kepala_desa_pertama: profile.additional.kepala_desa_pertama || '',
+        karakteristik_desa: profile.additional.karakteristik_desa || '',
         link_facebook: profile.additional.facebook || '',
         link_instagram: profile.additional.instagram || '',
         link_youtube: profile.additional.youtube || '',
@@ -132,7 +135,7 @@ export default function Index({ auth, profile }) {
     const tabs = [
         { id: 'umum', label: 'INFORMASI UMUM', icon: <HelpCircle className="w-4 h-4" /> },
         { id: 'branding', label: 'LOGO & BRANDING', icon: <Image className="w-4 h-4" /> },
-        { id: 'visi', label: 'VISI & MISI', icon: <Flag className="w-4 h-4" /> },
+        { id: 'visi', label: 'VISI, MISI & PROFIL', icon: <Flag className="w-4 h-4" /> },
         { id: 'geografi', label: 'WILAYAH', icon: <MapPin className="w-4 h-4" /> },
         { id: 'sosmed', label: 'MEDIA SOSIAL', icon: <Share2 className="w-4 h-4" /> },
     ];
@@ -294,6 +297,7 @@ export default function Index({ auth, profile }) {
                                         value={data.visi}
                                         onChange={e => setData('visi', e.target.value)}
                                         className="w-full bg-emerald-50/30 border-emerald-100 rounded-3xl px-6 py-4 font-bold text-gray-900 focus:ring-emerald-500 focus:border-emerald-500 transition-all text-lg italic"
+                                        placeholder="Masukkan visi desa..."
                                     ></textarea>
                                 </div>
                                 <div className="space-y-2">
@@ -303,7 +307,50 @@ export default function Index({ auth, profile }) {
                                         value={data.misi}
                                         onChange={e => setData('misi', e.target.value)}
                                         className="w-full bg-gray-50 border-gray-200 rounded-3xl px-6 py-4 font-bold text-gray-900 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
+                                        placeholder="Masukkan misi desa (pisahkan dengan baris baru untuk setiap poin)..."
                                     ></textarea>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-emerald-600 uppercase tracking-widest ml-1">Sejarah Desa</label>
+                                    <textarea 
+                                        rows="6"
+                                        value={data.sejarah_desa}
+                                        onChange={e => setData('sejarah_desa', e.target.value)}
+                                        className="w-full bg-gray-50 border-gray-200 rounded-3xl px-6 py-4 font-bold text-gray-900 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
+                                        placeholder="Masukkan sejarah singkat berdirinya desa..."
+                                    ></textarea>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 border-t border-gray-100">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Tahun Berdiri</label>
+                                        <input 
+                                            type="text" 
+                                            value={data.tahun_berdiri}
+                                            onChange={e => setData('tahun_berdiri', e.target.value)}
+                                            className="w-full bg-gray-50 border-gray-200 rounded-2xl px-4 py-3 font-bold text-gray-900 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
+                                            placeholder="Contoh: 1860"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Kepala Desa Pertama</label>
+                                        <input 
+                                            type="text" 
+                                            value={data.kepala_desa_pertama}
+                                            onChange={e => setData('kepala_desa_pertama', e.target.value)}
+                                            className="w-full bg-gray-50 border-gray-200 rounded-2xl px-4 py-3 font-bold text-gray-900 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
+                                            placeholder="Contoh: Ki Arpan"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Karakteristik Desa</label>
+                                        <input 
+                                            type="text" 
+                                            value={data.karakteristik_desa}
+                                            onChange={e => setData('karakteristik_desa', e.target.value)}
+                                            className="w-full bg-gray-50 border-gray-200 rounded-2xl px-4 py-3 font-bold text-gray-900 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
+                                            placeholder="Contoh: Industri / Pertanian"
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         )}
