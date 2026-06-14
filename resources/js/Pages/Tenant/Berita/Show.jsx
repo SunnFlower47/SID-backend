@@ -117,17 +117,19 @@ export default function Show({ auth, berita }) {
                                 </div>
 
                                 <div className="prose prose-lg max-w-none text-left">
-                                    {berita.excerpt && (
-                                        <div className="bg-gray-50 rounded-[2rem] p-8 mb-10 border-l-8 border-green-500 relative text-left">
-                                            <Quote className="absolute top-4 right-6 w-12 h-12 text-gray-100 -z-0" />
-                                            <p className="text-gray-600 font-bold italic leading-relaxed relative z-10 text-lg text-left">
-                                                {berita.excerpt}
-                                            </p>
-                                        </div>
-                                    )}
-                                    <div className="text-gray-700 font-medium leading-[2] whitespace-pre-line text-lg text-left">
-                                        {berita.konten}
-                                    </div>
+                                     {berita.excerpt && (
+                                         <div className="bg-gray-50 rounded-[2rem] p-8 mb-10 border-l-8 border-green-500 relative text-left">
+                                             <Quote className="absolute top-4 right-6 w-12 h-12 text-gray-100 -z-0" />
+                                             <p 
+                                                 className="text-gray-600 font-bold italic leading-relaxed relative z-10 text-lg text-left"
+                                                 dangerouslySetInnerHTML={{ __html: berita.excerpt }}
+                                             />
+                                         </div>
+                                     )}
+                                     <div 
+                                         className="text-gray-700 font-medium leading-[2] text-lg text-left prose max-w-none"
+                                         dangerouslySetInnerHTML={{ __html: berita.konten }}
+                                     />
                                 </div>
                             </div>
                         </div>

@@ -87,7 +87,9 @@ class DesaSetting extends Model
             'email' => static::getValue('email', 'desacibatu.2001@gmail.com'),
             'website' => static::getValue('website', 'https://desa-cibatu.id'),
             'latitude' => static::getValue('latitude', '-6.5001403'),
-            'longitude' => static::getValue('longitude', '107.5342964')
+            'longitude' => static::getValue('longitude', '107.5342964'),
+            'nama_kepala_desa' => static::getValue('nama_kepala_desa', 'Bapak Kades'),
+            'jam_operasional' => static::getValue('jam_operasional', 'Senin - Jumat: 08:00 - 15:00'),
         ];
     }
 
@@ -115,6 +117,10 @@ class DesaSetting extends Model
                 'instagram' => static::getValue('link_instagram', ''),
                 'youtube' => static::getValue('link_youtube', ''),
                 'whatsapp' => static::getValue('link_whatsapp', ''),
+                'tiktok' => static::getValue('link_tiktok', ''),
+                'ai_greeting' => static::getValue('ai_greeting', 'Halo Warga! Ada yang bisa saya bantu?'),
+                'meta_description' => static::getValue('meta_description', 'Portal layanan mandiri...'),
+                'meta_keywords' => static::getValue('meta_keywords', 'desa digital, purwakarta'),
             ]
         ];
     }
@@ -152,7 +158,7 @@ class DesaSetting extends Model
 
         // Fallback to settings if no data in struktur desa
         return [
-            'nama' => static::getValue('nama_kepala_desa', 'H. MAMAN SUTARMAN, S.Pd.I'),
+            'nama' => static::getValue('nama_kepala_desa', 'Bapak Kades'),
             'nip' => static::getValue('nip_kepala_desa', '19651231 199003 1 001'),
             'jabatan' => static::getValue('jabatan_kepala_desa', 'Kepala Desa Cibatu')
         ];
@@ -191,29 +197,8 @@ class DesaSetting extends Model
         return [
             'desa' => static::getValue('logo_desa'),
             'kabupaten' => static::getValue('logo_kabupaten'),
-            'provinsi' => static::getValue('logo_provinsi')
-        ];
-    }
-
-    /**
-     * Get surat settings
-     */
-    public static function getSuratSettings()
-    {
-        return [
-            'format_nomor_surat' => static::getValue('format_nomor_surat', '{kode_surat}/{nomor_urut}/{kode_desa}/{bulan}/{tahun}'),
-            'kode_desa' => static::getValue('kode_desa', '2001'),
-            'kode_surat_keterangan-domisili' => static::getValue('kode_surat_keterangan-domisili', 'SKD'),
-            'kode_surat_pengantar' => static::getValue('kode_surat_pengantar', 'SP'),
-            'kode_surat_pindah' => static::getValue('kode_surat_pindah', 'SKP'),
-            'kode_surat_kematian' => static::getValue('kode_surat_kematian', 'SKK'),
-            'kode_surat_kelahiran' => static::getValue('kode_surat_kelahiran', 'SKKL'),
-            'kode_surat_tidak-mampu-dewasa' => static::getValue('kode_surat_tidak-mampu-dewasa', 'SKTM'),
-            'kode_surat_tidak-mampu-anak' => static::getValue('kode_surat_tidak-mampu-anak', 'SKTM'),
-            'kode_surat_sku' => static::getValue('kode_surat_sku', 'SKU'),
-            'kode_surat_sktm_dewasa' => static::getValue('kode_surat_sktm_dewasa', 'SKTM'),
-            'kode_surat_sktm_anak' => static::getValue('kode_surat_sktm_anak', 'SKTM'),
-            'kode_surat_domisili' => static::getValue('kode_surat_domisili', 'SKD')
+            'provinsi' => static::getValue('logo_provinsi'),
+            'warna_primer' => static::getValue('warna_primer', '#10b981')
         ];
     }
 

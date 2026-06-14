@@ -14,13 +14,25 @@ import {
     Phone, 
     Globe, 
     Map,
-    Loader2
+    Loader2,
+    Copy,
+    Settings
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { cn } from '@/lib/utils';
 
 export default function Index({ auth, profile }) {
     const [activeTab, setActiveTab] = useState('umum');
+    const [copiedKey, setCopiedKey] = useState(null);
+
+    const handleCopy = (key, value) => {
+        if (!value) return;
+        navigator.clipboard.writeText(value);
+        setCopiedKey(key);
+        setTimeout(() => {
+            setCopiedKey(null);
+        }, 2000);
+    };
 
     // Form for General & Profile Info
     const { data, setData, post, processing, errors } = useForm({
@@ -33,6 +45,8 @@ export default function Index({ auth, profile }) {
         telepon: profile.general.telepon || '',
         email: profile.general.email || '',
         website: profile.general.website || '',
+        nama_kepala_desa: profile.general.nama_kepala_desa || '',
+        jam_operasional: profile.general.jam_operasional || '',
         latitude: profile.general.latitude || '',
         longitude: profile.general.longitude || '',
         luas_total: profile.geography.luas_total || '',
@@ -46,6 +60,11 @@ export default function Index({ auth, profile }) {
         link_instagram: profile.additional.instagram || '',
         link_youtube: profile.additional.youtube || '',
         link_whatsapp: profile.additional.whatsapp || '',
+        link_tiktok: profile.additional.tiktok || '',
+        warna_primer: profile.branding.warna_primer || '#10b981',
+        ai_greeting: profile.additional.ai_greeting || '',
+        meta_description: profile.additional.meta_description || '',
+        meta_keywords: profile.additional.meta_keywords || '',
     });
 
     const [previews, setPreviews] = useState({
@@ -138,6 +157,7 @@ export default function Index({ auth, profile }) {
         { id: 'visi', label: 'VISI, MISI & PROFIL', icon: <Flag className="w-4 h-4" /> },
         { id: 'geografi', label: 'WILAYAH', icon: <MapPin className="w-4 h-4" /> },
         { id: 'sosmed', label: 'MEDIA SOSIAL', icon: <Share2 className="w-4 h-4" /> },
+        { id: 'web_settings', label: 'PENGATURAN WEB & AI', icon: <Settings className="w-4 h-4" /> },
     ];
 
     return (
@@ -248,6 +268,26 @@ export default function Index({ auth, profile }) {
                                             onChange={e => setData('website', e.target.value)}
                                             className="w-full bg-gray-50 border-gray-200 rounded-2xl px-4 py-3 font-bold text-gray-900 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
                                             placeholder="https://desa-cibatu.id"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Nama Kepala Desa</label>
+                                        <input 
+                                            type="text" 
+                                            value={data.nama_kepala_desa}
+                                            onChange={e => setData('nama_kepala_desa', e.target.value)}
+                                            className="w-full bg-gray-50 border-gray-200 rounded-2xl px-4 py-3 font-bold text-gray-900 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
+                                            placeholder="Contoh: Bapak Kades"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Jam Operasional</label>
+                                        <input 
+                                            type="text" 
+                                            value={data.jam_operasional}
+                                            onChange={e => setData('jam_operasional', e.target.value)}
+                                            className="w-full bg-gray-50 border-gray-200 rounded-2xl px-4 py-3 font-bold text-gray-900 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
+                                            placeholder="Contoh: Senin - Jumat: 08:00 - 15:00"
                                         />
                                     </div>
                                 </div>
@@ -394,10 +434,11 @@ export default function Index({ auth, profile }) {
                         {activeTab === 'sosmed' && (
                             <div className="space-y-6 animate-in slide-in-from-right duration-300">
                                 {[
-                                    { key: 'link_facebook', label: 'Facebook', icon: <Share2 className="w-5 h-5 text-blue-600" />, color: 'bg-blue-50 border-blue-100', placeholder: 'https://facebook.com/desacibatu' },
-                                    { key: 'link_instagram', label: 'Instagram', icon: <Share2 className="w-5 h-5 text-pink-600" />, color: 'bg-pink-50 border-pink-100', placeholder: 'https://instagram.com/desacibatu' },
-                                    { key: 'link_youtube', label: 'YouTube', icon: <Share2 className="w-5 h-5 text-red-600" />, color: 'bg-red-50 border-red-100', placeholder: 'https://youtube.com/@desacibatu' },
-                                    { key: 'link_whatsapp', label: 'WhatsApp', icon: <Share2 className="w-5 h-5 text-green-600" />, color: 'bg-green-50 border-green-100', placeholder: 'https://wa.me/628xxxxxxxxxx' },
+                                    { key: 'link_facebook', label: 'Facebook', icon: <img src="/assets/icon/facebook/facebook-new-2019-seeklogo-2.svg" className="w-6 h-6 object-contain" alt="Facebook" />, color: 'bg-blue-50 border-blue-100', placeholder: 'https://facebook.com/desacibatu' },
+                                    { key: 'link_instagram', label: 'Instagram', icon: <img src="/assets/icon/instagaram/instagram-new-2016-seeklogo.png" className="w-6 h-6 object-contain" alt="Instagram" />, color: 'bg-pink-50 border-pink-100', placeholder: 'https://instagram.com/desacibatu' },
+                                    { key: 'link_youtube', label: 'YouTube', icon: <img src="/assets/icon/youtube/youtube-2017-icon-seeklogo-3.svg" className="w-6 h-6 object-contain" alt="YouTube" />, color: 'bg-red-50 border-red-100', placeholder: 'https://youtube.com/@desacibatu' },
+                                    { key: 'link_whatsapp', label: 'WhatsApp', icon: <img src="/assets/icon/whatsapp/whatsapp-icon-seeklogo.svg" className="w-6 h-6 object-contain" alt="WhatsApp" />, color: 'bg-green-50 border-green-100', placeholder: 'https://wa.me/628xxxxxxxxxx' },
+                                    { key: 'link_tiktok', label: 'TikTok', icon: <img src="/assets/icon/tiktok/tiktok-seeklogo.png" className="w-6 h-6 object-contain" alt="TikTok" />, color: 'bg-gray-50 border-gray-200', placeholder: 'https://tiktok.com/@desacibatu' },
                                 ].map((item) => (
                                     <div key={item.key} className={cn("flex items-center gap-4 p-4 rounded-3xl border", item.color)}>
                                         <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm shrink-0">
@@ -413,8 +454,86 @@ export default function Index({ auth, profile }) {
                                                 className="w-full bg-transparent border-none p-0 font-bold text-gray-900 focus:ring-0 text-sm placeholder:text-gray-300"
                                             />
                                         </div>
+                                        {data[item.key] && (
+                                            <button
+                                                type="button"
+                                                onClick={() => handleCopy(item.key, data[item.key])}
+                                                className="p-3 bg-white rounded-2xl hover:bg-gray-100 border border-gray-150 text-gray-400 hover:text-gray-600 transition-all shadow-sm flex items-center justify-center shrink-0"
+                                                title="Salin Link"
+                                            >
+                                                {copiedKey === item.key ? (
+                                                    <Check className="w-4 h-4 text-green-600 animate-in fade-in zoom-in-50" />
+                                                ) : (
+                                                    <Copy className="w-4 h-4" />
+                                                )}
+                                            </button>
+                                        )}
                                     </div>
                                 ))}
+                            </div>
+                        )}
+
+                        {activeTab === 'web_settings' && (
+                            <div className="space-y-6 animate-in slide-in-from-right duration-300">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    {/* Warna Primer */}
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Warna Utama Website (Theme Color)</label>
+                                        <div className="flex gap-3 items-center">
+                                            <div className="relative w-12 h-12 rounded-2xl overflow-hidden border border-gray-200 shadow-sm shrink-0">
+                                                <input 
+                                                    type="color" 
+                                                    value={data.warna_primer}
+                                                    onChange={e => setData('warna_primer', e.target.value)}
+                                                    className="absolute -inset-2 w-[200%] h-[200%] cursor-pointer border-none p-0"
+                                                />
+                                            </div>
+                                            <input 
+                                                type="text" 
+                                                value={data.warna_primer}
+                                                onChange={e => setData('warna_primer', e.target.value)}
+                                                placeholder="#10b981"
+                                                className="w-full bg-gray-50 border-gray-200 rounded-2xl px-4 py-3 font-bold text-gray-900 focus:ring-emerald-500 focus:border-emerald-500 transition-all text-sm uppercase"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Kata Kunci SEO */}
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Kata Kunci SEO (Meta Keywords)</label>
+                                        <input 
+                                            type="text" 
+                                            value={data.meta_keywords}
+                                            onChange={e => setData('meta_keywords', e.target.value)}
+                                            className="w-full bg-gray-50 border-gray-200 rounded-2xl px-4 py-3 font-bold text-gray-900 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
+                                            placeholder="Contoh: desa digital, purwakarta, layanan mandiri"
+                                        />
+                                    </div>
+
+                                    {/* Salam Pembuka AI */}
+                                    <div className="md:col-span-2 space-y-2">
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Salam Pembuka Chatbot AI (AI Greeting)</label>
+                                        <textarea 
+                                            rows="2"
+                                            value={data.ai_greeting}
+                                            onChange={e => setData('ai_greeting', e.target.value)}
+                                            className="w-full bg-gray-50 border-gray-200 rounded-2xl px-4 py-3 font-bold text-gray-900 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
+                                            placeholder="Contoh: Halo Warga! Ada yang bisa saya bantu?"
+                                        ></textarea>
+                                    </div>
+
+                                    {/* Deskripsi SEO */}
+                                    <div className="md:col-span-2 space-y-2">
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Deskripsi SEO (Meta Description)</label>
+                                        <textarea 
+                                            rows="3"
+                                            value={data.meta_description}
+                                            onChange={e => setData('meta_description', e.target.value)}
+                                            className="w-full bg-gray-50 border-gray-200 rounded-2xl px-4 py-3 font-bold text-gray-900 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
+                                            placeholder="Contoh: Portal layanan mandiri desa digital..."
+                                        ></textarea>
+                                    </div>
+                                </div>
                             </div>
                         )}
 
