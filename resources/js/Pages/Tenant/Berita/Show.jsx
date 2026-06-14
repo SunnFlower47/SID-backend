@@ -4,7 +4,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { PageHeader } from '@/Components/Shared';
 import { 
     Newspaper, ArrowLeft, Calendar, 
-    User, Eye, Tag, Clock, 
+    User, Eye, Tag, Clock, CheckCircle,
     Share2, Megaphone, CalendarDays,
     Star, LayoutGrid, Quote
 } from 'lucide-react';
