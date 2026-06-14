@@ -64,7 +64,7 @@ class PengaduanController extends Controller
             if ($request->hasFile('foto')) {
                 $photos = [];
                 foreach ($request->file('foto') as $photo) {
-                    $path = $photo->store('pengaduan', 'public');
+                    $path = $photo->store('pengaduan');
                     $photos[] = $path;
                 }
                 $data['foto'] = $photos;

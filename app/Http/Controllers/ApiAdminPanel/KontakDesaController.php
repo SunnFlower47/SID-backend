@@ -42,7 +42,7 @@ class KontakDesaController extends Controller
 
         $data = $request->all();
         if ($request->hasFile('foto')) {
-            $data['foto'] = $request->file('foto')->store('kontak-desa', 'public');
+            $data['foto'] = $request->file('foto')->store('kontak-desa');
         }
 
         $kontak = KontakDesa::create($data);
@@ -63,8 +63,8 @@ class KontakDesaController extends Controller
     {
         $data = $request->all();
         if ($request->hasFile('foto')) {
-            if ($kontakDesa->foto) Storage::disk('public')->delete($kontakDesa->foto);
-            $data['foto'] = $request->file('foto')->store('kontak-desa', 'public');
+            if ($kontakDesa->foto) Storage::disk('s3')->delete($kontakDesa->foto);
+            $data['foto'] = $request->file('foto')->store('kontak-desa');
         }
 
         $kontakDesa->update($data);
@@ -73,7 +73,7 @@ class KontakDesaController extends Controller
 
     public function destroy(KontakDesa $kontakDesa): JsonResponse
     {
-        if ($kontakDesa->foto) Storage::disk('public')->delete($kontakDesa->foto);
+        if ($kontakDesa->foto) Storage::disk('s3')->delete($kontakDesa->foto);
         $kontakDesa->delete();
         return response()->json(['status' => 'success', 'message' => 'Kontak desa dihapus']);
     }

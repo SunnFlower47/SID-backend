@@ -303,8 +303,10 @@ class SuratPengajuanService
     /**
      * Update status pengajuan beserta timestamp terkait.
      */
-    public function updateStatus(SuratPengajuan $suratPengajuan, array $validated): void
+    public function updateStatus(SuratPengajuan $suratPengajuan, array $validated, \Illuminate\Http\Request $request = null): void
     {
+        $oldStatus = $suratPengajuan->status;
+        
         $updateData = [
             'status'              => $validated['status'],
             'keterangan_tambahan' => $validated['keterangan_tambahan'] ?? $suratPengajuan->keterangan_tambahan,
@@ -325,9 +327,25 @@ class SuratPengajuanService
 
         if ($validated['status'] === 'selesai') {
             $updateData['completed_at'] = now();
+            
+            // Handle optional file_balasan_admin upload
+            if ($request && $request->hasFile('file_balasan_admin')) {
+                $file = $request->file('file_balasan_admin');
+                $filename = time() . '_balasan_' . $suratPengajuan->nomor_pengajuan . '.' . $file->getClientOriginalExtension();
+                $updateData['file_balasan_admin'] = $file->storeAs('surat-balasan', $filename);
+            }
         }
 
         $suratPengajuan->update($updateData);
+
+        // Send Email if status changed, status is not pending, and email exists
+        if ($oldStatus !== $validated['status'] && $validated['status'] !== 'pending' && $suratPengajuan->email_pengaju) {
+            try {
+                \Illuminate\Support\Facades\Mail::to($suratPengajuan->email_pengaju)->send(new \App\Mail\SuratStatusChangedMail($suratPengajuan));
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Gagal mengirim email notifikasi status surat: ' . $e->getMessage());
+            }
+        }
     }
 
     private function generateNomorSurat($suratType)

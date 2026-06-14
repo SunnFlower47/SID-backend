@@ -9,15 +9,10 @@ class StorageHelper
     /**
      * Get file URL yang kompatibel dengan shared hosting
      */
-    public static function getFileUrl($path, $disk = 'local')
+    public static function getFileUrl($path, $disk = null)
     {
-        // Cek apakah storage link ada
-        if (is_link(public_path('storage'))) {
-            return asset('storage/' . $path);
-        }
-
-        // Fallback: gunakan route untuk file yang tidak bisa diakses langsung
-        return route('file.download', ['path' => base64_encode($path)]);
+        // Gunakan Storage::url() agar otomatis menggunakan disk default (MinIO/S3)
+        return Storage::url($path);
     }
 
     /**

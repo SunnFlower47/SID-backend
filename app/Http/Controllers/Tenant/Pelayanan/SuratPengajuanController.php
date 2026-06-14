@@ -179,10 +179,11 @@ class SuratPengajuanController extends Controller
         $validated = $request->validate([
             'status'              => 'required|in:pending,diproses,selesai,ditolak',
             'keterangan_tambahan' => 'nullable|string|max:1000',
+            'file_balasan_admin'  => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120',
         ]);
 
         try {
-            $this->suratService->updateStatus($suratPengajuan, $validated);
+            $this->suratService->updateStatus($suratPengajuan, $validated, $request);
             return redirect()->back()->with('success', 'Status pengajuan berhasil diperbarui!');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Gagal memperbarui status: ' . $e->getMessage());
@@ -295,14 +296,14 @@ class SuratPengajuanController extends Controller
         // or 'public/surat-pengajuan/filename.pdf' previously.
         $path = $suratPengajuan->file_lampiran;
 
-        // Try local disk first (which points to storage/app/private)
-        if (\Illuminate\Support\Facades\Storage::disk('local')->exists($path)) {
-            return \Illuminate\Support\Facades\Storage::disk('local')->download($path);
+        // Try s3 disk first (new default)
+        if (\Illuminate\Support\Facades\Storage::disk('s3')->exists($path)) {
+            return \Illuminate\Support\Facades\Storage::disk('s3')->download($path);
         }
 
-        // Fallback for files that were saved in public disk before the fix
-        if (\Illuminate\Support\Facades\Storage::disk('public')->exists($path)) {
-            return \Illuminate\Support\Facades\Storage::disk('public')->download($path);
+        // Fallback for files that were saved in local disk before migration
+        if (\Illuminate\Support\Facades\Storage::disk('local')->exists($path)) {
+            return \Illuminate\Support\Facades\Storage::disk('local')->download($path);
         }
 
         abort(404, 'File lampiran fisik tidak ditemukan di server.');

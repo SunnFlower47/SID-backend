@@ -28,7 +28,8 @@ export default function Index({ auth, pengajuans, statusList, suratTypes, filter
     const [selectedPengajuan, setSelectedPengajuan] = useState(null);
     const [statusUpdateData, setStatusUpdateData] = useState({
         status: '',
-        keterangan_tambahan: ''
+        keterangan_tambahan: '',
+        file_balasan_admin: null
     });
 
     const handleSearch = (e) => {
@@ -44,14 +45,19 @@ export default function Index({ auth, pengajuans, statusList, suratTypes, filter
         setSelectedPengajuan(pengajuan);
         setStatusUpdateData({
             status: pengajuan.status,
-            keterangan_tambahan: pengajuan.keterangan_tambahan || ''
+            keterangan_tambahan: pengajuan.keterangan_tambahan || '',
+            file_balasan_admin: null
         });
         setShowStatusModal(true);
     };
 
     const handleUpdateStatusSubmit = (e) => {
         e.preventDefault();
-        router.patch(route('admin.surat-pengajuan.update-status', selectedPengajuan.id), statusUpdateData, {
+        router.post(route('admin.surat-pengajuan.update-status', selectedPengajuan.id), {
+            ...statusUpdateData,
+            _method: 'patch'
+        }, {
+            forceFormData: true,
             onSuccess: () => {
                 setShowStatusModal(false);
                 Swal.fire({
@@ -163,7 +169,7 @@ export default function Index({ auth, pengajuans, statusList, suratTypes, filter
                                 accessor: 'nomor_surat',
                                 render: (p) => (
                                     <div className="flex flex-col">
-                                        <span className="text-sm font-black text-slate-800 tracking-tighter uppercase italic">{p.nomor_surat || p.nomor_resi || 'DRAFT'}</span>
+                                        <span className="text-sm font-black text-slate-800 tracking-tighter uppercase italic">{p.nomor_surat || p.nomor_pengajuan || 'DRAFT'}</span>
                                         <div className="flex items-center text-[10px] font-bold text-gray-500 uppercase mt-1">
                                             <Calendar className="w-3 h-3 mr-1" />
                                             {dayjs(p.tanggal_surat).format('DD MMMM YYYY')}
@@ -353,6 +359,26 @@ export default function Index({ auth, pengajuans, statusList, suratTypes, filter
                                             placeholder="Tambahkan catatan untuk admin atau alasan penolakan untuk warga..."
                                         ></textarea>
                                     </div>
+
+                                    {statusUpdateData.status === 'selesai' && (
+                                        <div className="space-y-2 animate-in fade-in duration-300">
+                                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 flex items-center">
+                                                <FileText className="w-3 h-3 mr-1" />
+                                                Lampiran File Surat Balasan (Opsional)
+                                            </label>
+                                            <input
+                                                type="file"
+                                                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                                                onChange={(e) => setStatusUpdateData({...statusUpdateData, file_balasan_admin: e.target.files[0]})}
+                                                className="w-full px-5 py-3 bg-gray-50 border-none rounded-[1.5rem] text-sm font-bold focus:ring-4 focus:ring-green-100 transition-all shadow-inner file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-green-100 file:text-green-700 hover:file:bg-green-200"
+                                            />
+                                            {selectedPengajuan?.email_pengaju ? (
+                                                <p className="text-[9px] text-gray-400 font-bold ml-2 mt-1">File ini akan otomatis dilampirkan ke email balasan untuk warga.</p>
+                                            ) : (
+                                                <p className="text-[9px] text-amber-500 font-bold ml-2 mt-1">Warga tidak memberikan email. File ini dapat diunduh warga melalui halaman Lacak Status.</p>
+                                            )}
+                                        </div>
+                                    )}
 
                                     <div className="pt-4 pb-4 flex flex-col sm:flex-row-reverse gap-3">
                                         <button

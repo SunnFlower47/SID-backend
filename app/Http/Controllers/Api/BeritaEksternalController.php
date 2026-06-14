@@ -118,7 +118,7 @@ class BeritaEksternalController extends Controller
                             'slug' => $berita->slug,
                             'description' => $berita->konten,
                             'link' => route('berita.show', $berita->slug),
-                            'image' => $berita->gambar ? asset('storage/' . $berita->gambar) : asset('images/default-news.jpg'),
+                            'image' => $berita->gambar ? \Illuminate\Support\Facades\Storage::url($berita->gambar) : null,
                             'published_at' => $berita->published_at ? $berita->published_at->format('Y-m-d H:i:s') : now()->format('Y-m-d H:i:s'),
                             'source' => 'Desa Cibatu',
                             'category' => $berita->kategori,
@@ -262,7 +262,7 @@ class BeritaEksternalController extends Controller
         }
 
         // Return default image if no image found
-        return asset('images/default-news.jpg');
+        return null;
     }
 
     /**
@@ -362,7 +362,7 @@ class BeritaEksternalController extends Controller
                 'title' => 'Berita Tempo Sedang Dimuat',
                 'description' => 'Sistem sedang memuat berita terbaru dari Tempo.co. Silakan coba lagi dalam beberapa saat atau gunakan sumber berita Antara News yang lebih stabil.',
                 'link' => 'https://www.tempo.co',
-                'image' => asset('images/default-news.jpg'),
+                'image' => null,
                 'published_at' => now()->format('Y-m-d H:i:s'),
                 'source' => 'Tempo',
                 'is_external' => true,
@@ -374,7 +374,7 @@ class BeritaEksternalController extends Controller
                 'title' => 'Tips Menggunakan Fitur Berita',
                 'description' => 'Jika berita Tempo tidak muncul, coba refresh halaman atau pilih sumber berita Antara News. RSS feed Tempo kadang tidak dapat diakses.',
                 'link' => '#',
-                'image' => asset('images/default-news.jpg'),
+                'image' => null,
                 'published_at' => now()->subMinutes(5)->format('Y-m-d H:i:s'),
                 'source' => 'Tips',
                 'is_external' => false,

@@ -121,12 +121,8 @@ class AnggaranController extends Controller
             abort(404, 'File tidak ditemukan.');
         }
 
-        if (\Illuminate\Support\Facades\Storage::disk('local')->exists($pengeluaran->file_bukti)) {
-            return \Illuminate\Support\Facades\Storage::disk('local')->response($pengeluaran->file_bukti, $pengeluaran->nama_file_bukti);
-        }
-
-        if (\Illuminate\Support\Facades\Storage::disk('public')->exists($pengeluaran->file_bukti)) {
-            return \Illuminate\Support\Facades\Storage::disk('public')->response($pengeluaran->file_bukti, $pengeluaran->nama_file_bukti);
+        if (\Illuminate\Support\Facades\Storage::disk('s3')->exists($pengeluaran->file_bukti)) {
+            return \Illuminate\Support\Facades\Storage::disk('s3')->response($pengeluaran->file_bukti, $pengeluaran->nama_file_bukti);
         }
 
         abort(404, 'File tidak ditemukan di server.');

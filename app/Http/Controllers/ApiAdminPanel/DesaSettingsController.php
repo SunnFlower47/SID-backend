@@ -60,7 +60,7 @@ class DesaSettingsController extends Controller
             if ($setting['type'] === 'image' && $request->hasFile("files.{$setting['key']}")) {
                 $file = $request->file("files.{$setting['key']}");
                 $filename = $setting['key'] . '_' . time() . '.' . $file->getClientOriginalExtension();
-                $path = $file->storeAs('public/logos', $filename);
+                $path = $file->storeAs('logos', $filename);
                 $value = Storage::url($path);
             }
 
@@ -96,7 +96,7 @@ class DesaSettingsController extends Controller
         if ($setting->type === 'image' && $request->hasFile('file')) {
             $file = $request->file('file');
             $filename = $key . '_' . time() . '.' . $file->getClientOriginalExtension();
-            $path = $file->storeAs('public/logos', $filename);
+            $path = $file->storeAs('logos', $filename);
             $validated['value'] = Storage::url($path);
         }
 

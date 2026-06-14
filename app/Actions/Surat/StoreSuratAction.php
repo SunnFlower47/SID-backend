@@ -99,7 +99,7 @@ class StoreSuratAction
             'jenis_surat' => $validated['jenis_surat'],
             'penduduk_id' => $validated['penduduk_id'],
             'nomor_surat' => $nomorSurat,
-            'nomor_resi'  => $resi,
+            'nomor_pengajuan'  => $resi,
             'keperluan' => $validated['keperluan'],
             'tujuan' => $validated['tujuan'],
             'tanggal_surat' => $validated['tanggal_surat'],
@@ -117,7 +117,7 @@ class StoreSuratAction
             'type' => 'success',
             'message' => 'Surat berhasil dibuat!',
             'data' => $pengajuan,
-            'nomor_resi' => $resi
+            'nomor_pengajuan' => $resi
         ];
     }
 

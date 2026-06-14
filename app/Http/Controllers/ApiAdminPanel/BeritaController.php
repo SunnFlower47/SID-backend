@@ -43,7 +43,7 @@ class BeritaController extends Controller
         $data['author_id'] = Auth::id();
 
         if ($request->hasFile('gambar')) {
-            $data['gambar'] = $request->file('gambar')->store('berita', 'public');
+            $data['gambar'] = $request->file('gambar')->store('berita');
         }
 
         if ($request->status === 'published') {
@@ -83,8 +83,8 @@ class BeritaController extends Controller
         }
 
         if ($request->hasFile('gambar')) {
-            if ($berita->gambar) Storage::disk('public')->delete($berita->gambar);
-            $data['gambar'] = $request->file('gambar')->store('berita', 'public');
+            if ($berita->gambar) Storage::disk('s3')->delete($berita->gambar);
+            $data['gambar'] = $request->file('gambar')->store('berita');
         }
 
         $berita->update($data);
@@ -98,7 +98,7 @@ class BeritaController extends Controller
 
     public function destroy(Berita $berita): JsonResponse
     {
-        if ($berita->gambar) Storage::disk('public')->delete($berita->gambar);
+        if ($berita->gambar) Storage::disk('s3')->delete($berita->gambar);
         $berita->delete();
         return response()->json(['status' => 'success', 'message' => 'Berita berhasil dihapus']);
     }

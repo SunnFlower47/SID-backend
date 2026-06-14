@@ -76,6 +76,10 @@ class DesaInfoApiController extends Controller
                         'email' => $desaInfo['email'] ?? null,
                         'telepon' => $desaInfo['telepon'] ?? null,
                         'alamat' => $desaInfo['alamat_lengkap'] ?? null,
+                        'logo_desa' => DesaSetting::getValue('logo_desa', null),
+                        'visi' => DesaSetting::getValue('visi_desa', null),
+                        'misi' => DesaSetting::getValue('misi_desa', null),
+                        'sejarah' => DesaSetting::getValue('sejarah_desa', null),
                         'social' => [
                             'facebook' => $sanitizeUrl(DesaSetting::getValue('link_facebook', '')),
                             'instagram' => $sanitizeUrl(DesaSetting::getValue('link_instagram', '')),

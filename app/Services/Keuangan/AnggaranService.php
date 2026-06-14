@@ -51,7 +51,7 @@ class AnggaranService
             $namaFileBukti = null;
             if ($fileBukti) {
                 $namaFileBukti = $fileBukti->getClientOriginalName();
-                $filePath      = $fileBukti->store('keuangan/bukti', 'local');
+                $filePath      = $fileBukti->store('keuangan/bukti');
             }
 
             // Auto-generate no_bukti jika tidak diisi
@@ -113,25 +113,17 @@ class AnggaranService
 
             $hapusFile = filter_var($data['hapus_file'] ?? false, FILTER_VALIDATE_BOOLEAN);
             if ($hapusFile && $filePath) {
-                if (Storage::disk('local')->exists($filePath)) {
-                    Storage::disk('local')->delete($filePath);
-                } elseif (Storage::disk('public')->exists($filePath)) {
-                    Storage::disk('public')->delete($filePath);
-                }
+                Storage::delete($filePath);
                 $filePath = $namaFileBukti = null;
             }
 
             if ($fileBukti) {
                 // Delete old file
                 if ($filePath) {
-                    if (Storage::disk('local')->exists($filePath)) {
-                        Storage::disk('local')->delete($filePath);
-                    } elseif (Storage::disk('public')->exists($filePath)) {
-                        Storage::disk('public')->delete($filePath);
-                    }
+                    Storage::delete($filePath);
                 }
                 $namaFileBukti = $fileBukti->getClientOriginalName();
-                $filePath      = $fileBukti->store('keuangan/bukti', 'local');
+                $filePath      = $fileBukti->store('keuangan/bukti');
             }
 
             $pengeluaran->update([
@@ -175,11 +167,7 @@ class AnggaranService
 
             // Delete bukti file from storage
             if ($pengeluaran->file_bukti) {
-                if (Storage::disk('local')->exists($pengeluaran->file_bukti)) {
-                    Storage::disk('local')->delete($pengeluaran->file_bukti);
-                } elseif (Storage::disk('public')->exists($pengeluaran->file_bukti)) {
-                    Storage::disk('public')->delete($pengeluaran->file_bukti);
-                }
+                Storage::delete($pengeluaran->file_bukti);
             }
 
             $pengeluaran->delete();

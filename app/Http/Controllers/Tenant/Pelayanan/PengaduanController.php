@@ -91,7 +91,7 @@ class PengaduanController extends Controller
             if ($request->hasFile('foto')) {
                 $photos = [];
                 foreach ($request->file('foto') as $photo) {
-                    $path = $photo->store('pengaduan', 'public');
+                    $path = $photo->store('pengaduan');
                     $photos[] = $path;
                 }
                 $data['foto'] = $photos;
@@ -192,7 +192,7 @@ class PengaduanController extends Controller
             // Delete photos
             if ($pengaduan->foto) {
                 foreach ($pengaduan->foto as $photo) {
-                    Storage::disk('public')->delete($photo);
+                    Storage::disk('s3')->delete($photo);
                 }
             }
 

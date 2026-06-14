@@ -45,7 +45,7 @@ class PeraturanDesa extends Model
     public function getFileDokumenUrlAttribute()
     {
         if (!$this->file_dokumen) return null;
-        return asset('storage/' . $this->file_dokumen);
+        return \Illuminate\Support\Facades\Storage::url($this->file_dokumen);
     }
 
     /**

@@ -64,6 +64,7 @@ Route::prefix('v1')->group(function () {
     Route::get('/struktur-desa', [\App\Http\Controllers\Api\StrukturDesaController::class, 'index'])->middleware(['throttle:100,1', 'private.api']);
     Route::get('/perangkat-desa', [\App\Http\Controllers\Api\StrukturDesaController::class, 'perangkatDesa'])->middleware(['throttle:100,1', 'private.api']);
     Route::get('/rt-rw', [\App\Http\Controllers\Api\StrukturDesaController::class, 'rtRw'])->middleware(['throttle:100,1', 'private.api']);
+    Route::get('/master-wilayah', [\App\Http\Controllers\Api\StrukturDesaController::class, 'masterWilayah'])->middleware(['throttle:100,1', 'private.api']);
     Route::get('/bumdes', [\App\Http\Controllers\Api\StrukturDesaController::class, 'bumdes'])->middleware(['throttle:100,1', 'private.api']);
     Route::get('/struktur-desa/category/{category}', [\App\Http\Controllers\Api\StrukturDesaController::class, 'byCategory'])->middleware(['throttle:100,1', 'private.api']);
 

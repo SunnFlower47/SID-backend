@@ -81,10 +81,10 @@ class Berita extends Model
     public function getImageUrlAttribute()
     {
         if ($this->gambar) {
-            return asset('storage/berita/' . $this->gambar);
+            return \Illuminate\Support\Facades\Storage::url($this->gambar);
         }
 
-        return asset('images/default-berita.jpg');
+        return null;
     }
 
     /**

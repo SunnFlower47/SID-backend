@@ -111,7 +111,7 @@ export default function Index({ auth, struktur, stats, filters, kategoriOptions 
                                                     <div className="w-10 h-10 rounded-xl bg-gray-100 overflow-hidden shrink-0 border border-gray-200">
                                                         {item.foto ? (
                                                             <img 
-                                                                src={`/storage/${item.foto}`} 
+                                                                src={item.foto_url || `/storage/${item.foto}`} 
                                                                 alt={item.nama} 
                                                                 className="w-full h-full object-cover"
                                                             />

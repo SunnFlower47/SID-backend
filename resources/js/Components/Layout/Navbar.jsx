@@ -20,7 +20,27 @@ import CommandPalette from './CommandPalette';
 import axios from 'axios';
 
 export default function Navbar({ toggleMobileSidebar, toggleDesktopSidebar, sidebarCollapsed }) {
-    const { auth } = usePage().props;
+    const page = usePage();
+    const auth = page.props.auth;
+    const desaSettings = page.props.desa_settings || {};
+
+    // Helper: safely get a string value from desa_settings
+    const str = (key, fallback = '') => {
+        const val = desaSettings[key];
+        return typeof val === 'string' ? val : fallback;
+    };
+
+    // Resolve logo URL: support full http URLs (MinIO) and /storage paths
+    const logoSrc = (() => {
+        const logo = str('logo_desa');
+        if (!logo) return '/assets/images/logo-desa-cibatu.png';
+        if (logo.startsWith('http') || logo.startsWith('/storage')) return logo;
+        return `/storage/${logo}`;
+    })();
+
+    const namaDesa = str('nama_desa', 'Desa Cibatu').replace(/^Desa\s+/i, '') || 'Cibatu';
+    const kabupaten = str('kabupaten', 'Purwakarta');
+
     const [showProfile, setShowProfile] = useState(false);
     const [showNotifications, setShowNotifications] = useState(false);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -103,14 +123,20 @@ export default function Navbar({ toggleMobileSidebar, toggleDesktopSidebar, side
 
                     
                     <div className="lg:hidden w-10 h-10 bg-white p-0.5 rounded-xl flex items-center justify-center shadow-md shrink-0">
-                        <img src="/assets/images/logo-desa-cibatu.png" alt="Logo" className="w-full h-full object-contain" />
+                        <img 
+                            src={logoSrc}
+                            alt="Logo" 
+                            className="w-full h-full object-contain" 
+                        />
                     </div>
 
                     {/* Branding - Only visible when sidebar is collapsed on desktop */}
                     {sidebarCollapsed && (
                         <div className="hidden lg:block animate-in fade-in slide-in-from-left-2 duration-500">
                             <h2 className="text-sm font-black text-gray-900 tracking-tighter uppercase italic leading-none">Sistem Informasi Desa</h2>
-                            <p className="text-[10px] font-bold text-green-600 uppercase tracking-[0.2em] mt-0.5 leading-none">Cibatu • Purwakarta</p>
+                            <p className="text-[10px] font-bold text-green-600 uppercase tracking-[0.2em] mt-0.5 leading-none">
+                                {namaDesa} • {kabupaten}
+                            </p>
                         </div>
                     )}
                 </div>

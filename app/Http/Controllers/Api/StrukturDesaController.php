@@ -92,6 +92,26 @@ class StrukturDesaController extends Controller
     }
 
     /**
+     * Get raw master wilayah (Dusun, RW, RT) for form dropdowns
+     */
+    public function masterWilayah()
+    {
+        try {
+            $dusun = \App\Models\Dusun::where('is_active', true)->get(['id', 'kode', 'nama']);
+            $rw = \App\Models\Rw::where('is_active', true)->get(['id', 'kode', 'nama']);
+            $rt = \App\Models\Rt::where('is_active', true)->get(['id', 'rw_id', 'dusun_id', 'kode', 'nama']);
+
+            return $this->successResponse([
+                'dusun' => $dusun,
+                'rw' => $rw,
+                'rt' => $rt
+            ]);
+        } catch (\Exception $e) {
+            return $this->errorResponse('Gagal mengambil data master wilayah', 500, $e->getMessage());
+        }
+    }
+
+    /**
      * Get BUMDes data from struktur desa
      */
     public function bumdes()

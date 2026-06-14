@@ -72,7 +72,7 @@ class PeraturanDesaController extends Controller
         if ($request->hasFile('file_dokumen')) {
             $file = $request->file('file_dokumen');
             $filename = 'PERDES_' . str_replace(' ', '_', $data['jenis_peraturan']) . '_' . $data['tahun_anggaran'] . '_' . time() . '.' . $file->getClientOriginalExtension();
-            $data['file_dokumen'] = $file->storeAs('sekretariat/peraturan_desa', $filename, 'public');
+            $data['file_dokumen'] = $file->storeAs('sekretariat/peraturan_desa', $filename);
         }
 
         PeraturanDesa::create($data);
@@ -108,12 +108,12 @@ class PeraturanDesaController extends Controller
 
         if ($request->hasFile('file_dokumen')) {
             // Hapus file lama jika ada
-            if ($peraturan->file_dokumen && Storage::disk('public')->exists($peraturan->file_dokumen)) {
-                Storage::disk('public')->delete($peraturan->file_dokumen);
+            if ($peraturan->file_dokumen && Storage::disk('s3')->exists($peraturan->file_dokumen)) {
+                Storage::disk('s3')->delete($peraturan->file_dokumen);
             }
             $file = $request->file('file_dokumen');
             $filename = 'PERDES_' . str_replace(' ', '_', $data['jenis_peraturan']) . '_' . $data['tahun_anggaran'] . '_' . time() . '.' . $file->getClientOriginalExtension();
-            $data['file_dokumen'] = $file->storeAs('sekretariat/peraturan_desa', $filename, 'public');
+            $data['file_dokumen'] = $file->storeAs('sekretariat/peraturan_desa', $filename);
         }
 
         $peraturan->update($data);
@@ -131,8 +131,8 @@ class PeraturanDesaController extends Controller
 
         $peraturan = PeraturanDesa::findOrFail($id);
         
-        if ($peraturan->file_dokumen && Storage::disk('public')->exists($peraturan->file_dokumen)) {
-            Storage::disk('public')->delete($peraturan->file_dokumen);
+        if ($peraturan->file_dokumen && Storage::disk('s3')->exists($peraturan->file_dokumen)) {
+            Storage::disk('s3')->delete($peraturan->file_dokumen);
         }
 
         $peraturan->delete();

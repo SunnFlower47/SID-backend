@@ -121,7 +121,7 @@ class KontakDesaController extends Controller
         $data['urutan'] = $request->urutan ?? 0;
 
         if ($request->hasFile('foto')) {
-            $data['foto'] = $request->file('foto')->store('kontak-desa', 'public');
+            $data['foto'] = $request->file('foto')->store('kontak-desa');
         }
 
         KontakDesa::create($data);
@@ -201,9 +201,9 @@ class KontakDesaController extends Controller
         if ($request->hasFile('foto')) {
             // Delete old photo
             if ($kontakDesa->foto) {
-                Storage::disk('public')->delete($kontakDesa->foto);
+                Storage::disk('s3')->delete($kontakDesa->foto);
             }
-            $data['foto'] = $request->file('foto')->store('kontak-desa', 'public');
+            $data['foto'] = $request->file('foto')->store('kontak-desa');
         } else {
             unset($data['foto']);
         }
@@ -221,7 +221,7 @@ class KontakDesaController extends Controller
     public function destroy(KontakDesa $kontakDesa)
     {
         if ($kontakDesa->foto) {
-            Storage::disk('public')->delete($kontakDesa->foto);
+            Storage::disk('s3')->delete($kontakDesa->foto);
         }
 
         $kontakDesa->delete();

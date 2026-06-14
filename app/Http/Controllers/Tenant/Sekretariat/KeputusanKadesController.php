@@ -62,7 +62,7 @@ class KeputusanKadesController extends Controller
         $data['author_id'] = auth()->id();
 
         if ($request->hasFile('file_dokumen')) {
-            $data['file_dokumen'] = $request->file('file_dokumen')->store('sekretariat/keputusan_kades', 'public');
+            $data['file_dokumen'] = $request->file('file_dokumen')->store('sekretariat/keputusan_kades');
         }
 
         KeputusanKades::create($data);
@@ -98,10 +98,10 @@ class KeputusanKadesController extends Controller
 
         if ($request->hasFile('file_dokumen')) {
             // Delete old file if exists
-            if ($keputusan->file_dokumen && Storage::disk('public')->exists($keputusan->file_dokumen)) {
-                Storage::disk('public')->delete($keputusan->file_dokumen);
+            if ($keputusan->file_dokumen && Storage::disk('s3')->exists($keputusan->file_dokumen)) {
+                Storage::disk('s3')->delete($keputusan->file_dokumen);
             }
-            $data['file_dokumen'] = $request->file('file_dokumen')->store('sekretariat/keputusan_kades', 'public');
+            $data['file_dokumen'] = $request->file('file_dokumen')->store('sekretariat/keputusan_kades');
         }
 
         $keputusan->update($data);

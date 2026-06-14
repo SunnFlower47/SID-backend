@@ -53,7 +53,7 @@ export default function Show({ auth, strukturDesa }) {
                             <div className="w-32 h-44 sm:w-40 sm:h-52 bg-gray-50 rounded-2xl border-4 border-white shadow-xl mx-auto overflow-hidden shrink-0 mb-6">
                                 {strukturDesa.foto ? (
                                     <img 
-                                        src={`/storage/${strukturDesa.foto}`} 
+                                        src={strukturDesa.foto_url || `/storage/${strukturDesa.foto}`} 
                                         alt={strukturDesa.nama} 
                                         className="w-full h-full object-cover"
                                     />

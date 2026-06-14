@@ -124,12 +124,12 @@ class PeraturanDesaController extends Controller
         if ($request->hasFile('file_dokumen')) {
             // Hapus file lama jika ada
             if ($peraturan->file_dokumen) {
-                Storage::disk('public')->delete($peraturan->file_dokumen);
+                Storage::disk('s3')->delete($peraturan->file_dokumen);
             }
 
             $file = $request->file('file_dokumen');
             $filename = 'PERDES_' . str_replace(' ', '_', $peraturan->jenis_peraturan) . '_' . $peraturan->tahun_anggaran . '_' . time() . '.' . $file->getClientOriginalExtension();
-            $path = $file->storeAs('keuangan/peraturan', $filename, 'public');
+            $path = $file->storeAs('keuangan/peraturan', $filename);
 
             $peraturan->update(['file_dokumen' => $path]);
 
@@ -151,7 +151,7 @@ class PeraturanDesaController extends Controller
         }
 
         if ($peraturan->file_dokumen) {
-            Storage::disk('public')->delete($peraturan->file_dokumen);
+            Storage::disk('s3')->delete($peraturan->file_dokumen);
         }
 
         $peraturan->delete();

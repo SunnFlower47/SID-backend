@@ -14,6 +14,8 @@ class StrukturDesa extends Model
 {
     use HasWilayahLabels, LogsActivity;
 
+    protected $appends = ['kategori_label', 'alamat_lengkap', 'status_label', 'foto_url'];
+
     protected $fillable = [
         'nama',
         'jabatan',
@@ -148,5 +150,22 @@ class StrukturDesa extends Model
             ->logFillable()
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
+    }
+
+    /**
+     * Get fully resolved photo URL (handles MinIO/S3)
+     */
+    public function getFotoUrlAttribute()
+    {
+        if (!$this->foto) {
+            return null;
+        }
+
+        // If it's already a full URL, return as is
+        if (str_starts_with($this->foto, 'http')) {
+            return $this->foto;
+        }
+
+        return \Illuminate\Support\Facades\Storage::disk('s3')->url($this->foto);
     }
 }

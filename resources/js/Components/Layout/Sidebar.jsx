@@ -141,7 +141,26 @@ const menuGroups = [
 ];
 
 export default function Sidebar({ collapsed, isMobile = false, closeMobile, toggleDesktop }) {
-    const { url } = usePage();
+    const page = usePage();
+    const url = page.url;
+    const desaSettings = page.props.desa_settings || {};
+
+    // Helper: safely get a string value from desa_settings
+    const str = (key, fallback = '') => {
+        const val = desaSettings[key];
+        return typeof val === 'string' ? val : fallback;
+    };
+
+    // Resolve logo URL: support full http URLs (MinIO) and /storage paths
+    const logoSrc = (() => {
+        const logo = str('logo_desa');
+        if (!logo) return '/assets/images/logo-desa-cibatu.png';
+        if (logo.startsWith('http') || logo.startsWith('/storage')) return logo;
+        return `/storage/${logo}`;
+    })();
+
+    const namaDesa = str('nama_desa', 'Desa Cibatu').replace(/^Desa\s+/i, '') || 'Cibatu';
+
     const [openGroup, setOpenGroup] = useState(null);
 
     const isRouteActive = (routeName) => {
@@ -222,11 +241,17 @@ export default function Sidebar({ collapsed, isMobile = false, closeMobile, togg
             )}>
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 md:w-12 md:h-12 bg-white p-0.5 rounded-2xl flex items-center justify-center shadow-md shrink-0 overflow-hidden">
-                        <img src="/assets/images/logo-desa-cibatu.png" alt="Logo" className="w-full h-full object-contain" />
+                        <img 
+                            src={logoSrc}
+                            alt="Logo" 
+                            className="w-full h-full object-contain" 
+                        />
                     </div>
                     {!collapsed && (
                         <div className="animate-in fade-in duration-500">
-                            <h1 className="text-lg font-bold text-gray-900 leading-none tracking-tighter uppercase">SID Cibatu</h1>
+                            <h1 className="text-lg font-bold text-gray-900 leading-none tracking-tighter uppercase">
+                                SID {namaDesa}
+                            </h1>
                             <p className="text-green-600 text-[10px] font-black mt-1 uppercase tracking-widest">Sistem Informasi Desa</p>
                         </div>
                     )}

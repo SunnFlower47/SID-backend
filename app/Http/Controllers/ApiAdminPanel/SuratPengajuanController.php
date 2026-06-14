@@ -62,7 +62,7 @@ class SuratPengajuanController extends Controller
         $pengajuan = SuratPengajuan::create([
             ...$validated,
             'nomor_surat' => null,
-            'nomor_resi'  => $resi,
+            'nomor_pengajuan'  => $resi,
             'status' => 'pending',
             'data_tambahan' => $validated['data_tambahan'] ?? [],
         ]);

@@ -55,7 +55,7 @@ class StrukturDesaController extends Controller
         $data['status_aktif'] = $request->boolean('status_aktif');
         
         if ($request->hasFile('foto')) {
-            $data['foto'] = $request->file('foto')->store('struktur-desa', 'public');
+            $data['foto'] = $request->file('foto')->store('struktur-desa');
         }
 
         $struktur = StrukturDesa::create($data);
@@ -93,8 +93,8 @@ class StrukturDesaController extends Controller
         }
 
         if ($request->hasFile('foto')) {
-            if ($strukturDesa->foto) Storage::disk('public')->delete($strukturDesa->foto);
-            $data['foto'] = $request->file('foto')->store('struktur-desa', 'public');
+            if ($strukturDesa->foto) Storage::disk('s3')->delete($strukturDesa->foto);
+            $data['foto'] = $request->file('foto')->store('struktur-desa');
         }
 
         $strukturDesa->update($data);
@@ -103,7 +103,7 @@ class StrukturDesaController extends Controller
 
     public function destroy(StrukturDesa $strukturDesa): JsonResponse
     {
-        if ($strukturDesa->foto) Storage::disk('public')->delete($strukturDesa->foto);
+        if ($strukturDesa->foto) Storage::disk('s3')->delete($strukturDesa->foto);
         $strukturDesa->delete();
         return response()->json(['status' => 'success', 'message' => 'Data perangkat desa dihapus']);
     }

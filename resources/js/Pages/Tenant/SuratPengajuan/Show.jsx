@@ -110,7 +110,7 @@ export default function Show({ auth, suratPengajuan, statusList, suratType, bsre
                             </div>
                             <div className="p-6">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <InfoRow label="Nomor Resi / Pelacakan" value={p.nomor_resi || '-'} icon={Hash} color="blue" />
+                                    <InfoRow label="Nomor Pengajuan" value={p.nomor_pengajuan || '-'} icon={Hash} color="blue" />
                                     <InfoRow label="Nomor Surat Resmi" value={p.nomor_surat || 'BELUM TERBIT'} icon={FileText} color="blue" />
                                     <InfoRow label="Jenis Surat" value={p.surat_type_name || p.jenis_surat} icon={Type} color="purple" />
                                     <InfoRow label="Tanggal Surat" value={dayjs(p.tanggal_surat).format('DD MMMM YYYY')} icon={Calendar} color="green" />
@@ -169,8 +169,14 @@ export default function Show({ auth, suratPengajuan, statusList, suratType, bsre
                                 <h4 className="text-lg font-black text-gray-900 uppercase italic tracking-tighter mb-1">
                                     {p.penduduk?.nama || p.nama_pengaju || p.data_tambahan?.nama || 'NAMA TIDAK TERSEDIA'}
                                </h4>
-                                <p className="text-xs font-bold text-gray-400 tracking-widest uppercase mb-4">
+                                <p className="text-[10px] font-bold text-gray-400 tracking-widest uppercase mb-1">
                                     NIK: {p.penduduk?.nik || p.nik_pengaju || p.data_tambahan?.nik || '-'}
+                                </p>
+                                <p className="text-[10px] font-bold text-gray-400 tracking-widest uppercase mb-1">
+                                    EMAIL: {p.email_pengaju || p.penduduk?.email || '-'}
+                                </p>
+                                <p className="text-[10px] font-bold text-gray-400 tracking-widest uppercase mb-4">
+                                    TELEPON: {p.no_hp_pengaju || p.penduduk?.telepon || '-'}
                                 </p>
                                 
                                 {(p.penduduk || p.data_tambahan?.asal_daerah) && (

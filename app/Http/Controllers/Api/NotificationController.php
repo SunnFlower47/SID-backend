@@ -32,7 +32,8 @@ class NotificationController extends Controller
                         'status' => $surat->status,
                         'url' => route('admin.surat-pengajuan.show', $surat->id),
                         'icon' => 'fas fa-file-alt',
-                        'color' => $this->getStatusColor($surat->status)
+                        'color' => $this->getStatusColor($surat->status),
+                        'timestamp' => $surat->created_at->timestamp
                     ];
                 });
 
@@ -51,17 +52,31 @@ class NotificationController extends Controller
                         'status' => $pengaduan->status,
                         'url' => route('pengaduan.show', $pengaduan->id),
                         'icon' => 'fas fa-exclamation-triangle',
-                        'color' => $this->getPengaduanStatusColor($pengaduan->status)
+                        'color' => $this->getPengaduanStatusColor($pengaduan->status),
+                        'timestamp' => $pengaduan->created_at->timestamp
                     ];
                 });
 
-            // Combine and sort by time
+            // Combine and sort by timestamp
             $notifications = $recentSurat->concat($recentPengaduan)
-                ->sortByDesc('time')
-                ->values();
+                ->sortByDesc('timestamp')
+                ->values()
+                ->map(function($item) {
+                    unset($item['timestamp']);
+                    return $item;
+                });
 
             // Count unread notifications
             $unreadCount = $notifications->where('status', '!=', 'selesai')->count();
+
+            // If it's an Inertia page visit (like clicking "Lihat Semua"), return the Inertia page
+            if (!$request->wantsJson() || $request->header('X-Inertia')) {
+                return \Inertia\Inertia::render('Tenant/Notification/Index', [
+                    'notifications' => $notifications,
+                    'unreadCount' => $unreadCount,
+                    'totalCount' => $notifications->count()
+                ]);
+            }
 
             return response()->json([
                 'success' => true,

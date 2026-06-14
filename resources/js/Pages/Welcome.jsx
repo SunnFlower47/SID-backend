@@ -2,7 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Head, Link, usePage } from '@inertiajs/react';
 
 export default function Welcome() {
-    const { auth, flash } = usePage().props;
+    const { auth, flash, desa_settings } = usePage().props;
+    const namaDesa = desa_settings?.nama_desa || 'Desa Cibatu';
+    const namaDesaShort = namaDesa.replace(/^Desa\s+/i, '');
+    const logoDesa = typeof desa_settings?.logo_desa === 'string'
+        ? (desa_settings.logo_desa.startsWith('http') || desa_settings.logo_desa.startsWith('/storage') ? desa_settings.logo_desa : `/storage/${desa_settings.logo_desa}`) 
+        : "/assets/images/logo-desa-cibatu.png";
+    const kabupaten = desa_settings?.kabupaten || 'Purwakarta';
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isAlertVisible, setIsAlertVisible] = useState(false);
     const [alertMessage, setAlertMessage] = useState('');
@@ -177,8 +183,8 @@ export default function Welcome() {
     return (
         <div className="min-h-screen bg-gray-50 text-gray-800 font-sans selection:bg-green-500 selection:text-white">
             <Head>
-                <title>Welcome - Admin Panel Desa Cibatu</title>
-                <meta name="description" content="Dashboard administrasi digital terintegrasi untuk pengelolaan data penduduk, surat, pengaduan, dan transparansi anggaran Desa Cibatu." />
+                <title>{`Welcome - Admin Panel ${namaDesa}`}</title>
+                <meta name="description" content={`Dashboard administrasi digital terintegrasi untuk pengelolaan data penduduk, surat, pengaduan, dan transparansi anggaran ${namaDesa}.`} />
             </Head>
 
             {/* Premium Flash Alert Banner */}
@@ -217,13 +223,13 @@ export default function Welcome() {
                         {/* Brand Logo & Title */}
                         <div className="flex items-center space-x-3 group cursor-pointer">
                             <img
-                                src="/assets/images/logo-desa-cibatu.png"
-                                alt="Logo Desa Cibatu"
+                                src={logoDesa}
+                                alt={`Logo ${namaDesa}`}
                                 className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl shadow-md border-2 border-green-500/20 group-hover:scale-105 transition-all duration-300"
                             />
                             <div>
                                 <h1 className="text-lg sm:text-xl font-black text-gray-950 uppercase italic tracking-tighter leading-none group-hover:text-green-600 transition-colors">
-                                    Desa Cibatu
+                                    {namaDesa}
                                 </h1>
                                 <p className="text-[10px] sm:text-xs font-black text-gray-400 uppercase tracking-widest mt-1">
                                     Purwakarta, Jawa Barat
@@ -327,7 +333,7 @@ export default function Welcome() {
                 <div className="absolute inset-0 z-0">
                     <img
                         src="/assets/images/foto-sawah-1.webp"
-                        alt="Desa Cibatu"
+                        alt={namaDesa}
                         className="w-full h-full object-cover opacity-30 object-center scale-105 animate-pulse-slow"
                     />
                     <div className="absolute inset-0 bg-gradient-to-tr from-green-950/95 via-emerald-900/80 to-teal-950/95"></div>
@@ -348,7 +354,7 @@ export default function Welcome() {
                             <h2 className="text-3xl sm:text-5xl md:text-6xl font-black uppercase italic tracking-tighter leading-[0.95] text-white">
                                 Admin Panel
                                 <span className="block text-gradient bg-gradient-to-r from-yellow-300 via-amber-200 to-yellow-400 bg-clip-text text-transparent mt-2">
-                                    Desa Cibatu
+                                    {namaDesa}
                                 </span>
                             </h2>
 
@@ -599,7 +605,7 @@ export default function Welcome() {
                         <span className="text-xs font-black text-yellow-300 uppercase tracking-widest block">Metrik Administrasi</span>
                         <h3 className="text-2xl sm:text-4xl font-black uppercase italic tracking-tighter">Statistik Layanan Kami</h3>
                         <p className="text-sm text-emerald-100 font-semibold leading-relaxed">
-                            Indikator keberhasilan pelayanan administrasi kependudukan digital serta tingkat kepuasan warga Desa Cibatu.
+                            Indikator keberhasilan pelayanan administrasi kependudukan digital serta tingkat kepuasan warga {namaDesa}.
                         </p>
                     </div>
 
@@ -667,17 +673,17 @@ export default function Welcome() {
                         <div className="lg:col-span-2 space-y-6">
                             <div className="flex items-center space-x-3 cursor-pointer">
                                 <img
-                                    src="/assets/images/logo-desa-cibatu.png"
-                                    alt="Logo Desa Cibatu"
+                                    src={logoDesa}
+                                    alt={`Logo ${namaDesa}`}
                                     className="h-12 w-12 rounded-xl"
                                 />
                                 <div>
                                     <h3 className="text-lg font-black uppercase italic tracking-tighter leading-none text-white">Admin Panel</h3>
-                                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mt-1">Sistem Administrasi Desa Cibatu</p>
+                                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mt-1">Sistem Administrasi {namaDesa}</p>
                                 </div>
                             </div>
                             <p className="text-sm text-gray-400 font-semibold leading-relaxed max-w-sm">
-                                Dashboard administrasi digital yang efisien, aman, dan transparan, dirancang khusus untuk mengoptimalkan pelayanan publik bagi seluruh penduduk Desa Cibatu.
+                                Dashboard administrasi digital yang efisien, aman, dan transparan, dirancang khusus untuk mengoptimalkan pelayanan publik bagi seluruh penduduk {namaDesa}.
                             </p>
                             {/* Social Media Link Icons — Dinamis dari DB */}
                             <div className="flex items-center space-x-3">
@@ -778,7 +784,7 @@ export default function Welcome() {
 
                     {/* Copyright bar */}
                     <div className="flex flex-col sm:flex-row items-center justify-between text-xs font-bold text-gray-500 gap-4">
-                        <p>© {new Date().getFullYear()} Pemerintah Desa Cibatu, Purwakarta. Seluruh Hak Cipta Dilindungi.</p>
+                        <p>© {new Date().getFullYear()} Pemerintah {namaDesa}, {kabupaten}. Seluruh Hak Cipta Dilindungi.</p>
                         <div className="flex items-center space-x-6">
                             <Link href={route('privacy-policy')} className="hover:text-white transition-colors">Kebijakan Privasi</Link>
                             <Link href={route('terms-of-service')} className="hover:text-white transition-colors">Ketentuan Layanan</Link>

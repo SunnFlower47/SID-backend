@@ -59,13 +59,13 @@ class DesaSettingsController extends Controller
                 // Hapus file lama agar tidak menumpuk
                 $existingSetting = DesaSetting::where('key', $setting['key'])->first();
                 if ($existingSetting && $existingSetting->value) {
-                    $oldPath = str_replace('/storage/', '', parse_url($existingSetting->value, PHP_URL_PATH));
-                    if (Storage::disk('public')->exists($oldPath)) {
-                        Storage::disk('public')->delete($oldPath);
+                    $oldPath = ltrim(parse_url($existingSetting->value, PHP_URL_PATH), '/');
+                    if (Storage::exists($oldPath)) {
+                        Storage::delete($oldPath);
                     }
                 }
 
-                $path = $file->storeAs($folder, $filename, 'public');
+                $path = $file->storeAs($folder, $filename);
                 $value = Storage::url($path);
 
                 // Hapus cache API GeoJSON agar data terbaru langsung tersaji
@@ -112,13 +112,13 @@ class DesaSettingsController extends Controller
 
             // Hapus file lama agar tidak menumpuk
             if ($setting->value) {
-                $oldPath = str_replace('/storage/', '', parse_url($setting->value, PHP_URL_PATH));
-                if (Storage::disk('public')->exists($oldPath)) {
-                    Storage::disk('public')->delete($oldPath);
+                $oldPath = ltrim(parse_url($setting->value, PHP_URL_PATH), '/');
+                if (Storage::exists($oldPath)) {
+                    Storage::delete($oldPath);
                 }
             }
 
-            $path = $file->storeAs($folder, $filename, 'public');
+            $path = $file->storeAs($folder, $filename);
             $validated['value'] = Storage::url($path);
 
             // Hapus cache API GeoJSON agar data terbaru langsung tersaji

@@ -61,7 +61,7 @@ class PengaduanController extends Controller
         if ($request->hasFile('foto')) {
             $paths = [];
             foreach ($request->file('foto') as $photo) {
-                $paths[] = $photo->store('pengaduan', 'public');
+                $paths[] = $photo->store('pengaduan');
             }
             $data['foto'] = $paths;
         }
@@ -110,7 +110,7 @@ class PengaduanController extends Controller
     {
         Gate::authorize('surat.view');
         if ($pengaduan->foto) {
-            foreach ($pengaduan->foto as $photo) Storage::disk('public')->delete($photo);
+            foreach ($pengaduan->foto as $photo) Storage::disk('s3')->delete($photo);
         }
         $pengaduan->delete();
         return response()->json(['status' => 'success', 'message' => 'Pengaduan berhasil dihapus']);

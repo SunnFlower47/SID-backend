@@ -43,7 +43,7 @@ class FasilitasDesaController extends Controller
 
         $data = $request->all();
         if ($request->hasFile('foto')) {
-            $data['foto'] = $request->file('foto')->store('fasilitas-desa', 'public');
+            $data['foto'] = $request->file('foto')->store('fasilitas-desa');
         }
 
         $fasilitas = FasilitasDesa::create($data);
@@ -64,8 +64,8 @@ class FasilitasDesaController extends Controller
     {
         $data = $request->all();
         if ($request->hasFile('foto')) {
-            if ($fasilitasDesa->foto) Storage::disk('public')->delete($fasilitasDesa->foto);
-            $data['foto'] = $request->file('foto')->store('fasilitas-desa', 'public');
+            if ($fasilitasDesa->foto) Storage::disk('s3')->delete($fasilitasDesa->foto);
+            $data['foto'] = $request->file('foto')->store('fasilitas-desa');
         }
 
         $fasilitasDesa->update($data);
@@ -74,7 +74,7 @@ class FasilitasDesaController extends Controller
 
     public function destroy(FasilitasDesa $fasilitasDesa): JsonResponse
     {
-        if ($fasilitasDesa->foto) Storage::disk('public')->delete($fasilitasDesa->foto);
+        if ($fasilitasDesa->foto) Storage::disk('s3')->delete($fasilitasDesa->foto);
         $fasilitasDesa->delete();
         return response()->json(['status' => 'success', 'message' => 'Fasilitas desa berhasil dihapus']);
     }

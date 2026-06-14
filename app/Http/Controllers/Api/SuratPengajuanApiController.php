@@ -21,7 +21,7 @@ class SuratPengajuanApiController extends Controller
         return [
             'id' => $surat->id,
             'nomor_surat' => $surat->nomor_surat,
-            'nomor_resi' => $surat->nomor_resi,
+            'nomor_pengajuan' => $surat->nomor_pengajuan,
             'jenis_surat_nama' => $surat->suratType ? $surat->suratType->nama : $surat->jenis_surat,
             'status' => $surat->status,
             'keperluan' => $surat->keperluan,
@@ -65,15 +65,21 @@ class SuratPengajuanApiController extends Controller
      */
     public function store(Request $request)
     {
+        // Deteksi cerdas: Jika nama surat mengandung kata "domisili" (case-insensitive)
+        $isDomisili = str_contains(strtolower($request->nama_surat ?? ''), 'domisili') 
+                   || $request->surat_type === 'keterangan-domisili';
+
         $validator = Validator::make($request->all(), [
-            'penduduk_id' => 'required|exists:penduduks,id',
-            'nik' => 'required|string|size:16',
-            'tanggal_lahir' => 'required|date',
+            'penduduk_id' => $isDomisili ? 'nullable' : 'required|exists:penduduks,id',
+            'nik' => $isDomisili ? 'nullable|string' : 'required|string|size:16',
+            'tanggal_lahir' => $isDomisili ? 'nullable|date' : 'required|date',
             'surat_type' => 'required|string',
+            'nama_surat' => 'required|string',
             'keperluan' => 'required|string|max:1000',
             'tujuan' => 'nullable|string|max:255',
             'tanggal_surat' => 'required|date',
             'email_pengaju' => 'nullable|email|max:255',
+            'no_hp_pengaju' => 'nullable|string|max:20',
             'file_lampiran' => 'nullable|file|mimes:pdf|max:2048',
         ]);
 
@@ -81,26 +87,41 @@ class SuratPengajuanApiController extends Controller
             return response()->json(['success' => false, 'message' => 'Validasi gagal', 'errors' => $validator->errors()], 422);
         }
 
+        $penduduk = null;
+        $nikPengaju = null;
+        $namaPengaju = null;
 
+        if (!$isDomisili) {
+            // Verifikasi Ganda: Pastikan ID, NIK, dan Tanggal Lahir MATCH
+            $penduduk = Penduduk::where('id', $request->penduduk_id)
+                ->where('nik', $request->nik)
+                ->where('tanggal_lahir', $request->tanggal_lahir)
+                ->first();
 
-        // Verifikasi Ganda: Pastikan ID, NIK, dan Tanggal Lahir MATCH
-        $penduduk = Penduduk::where('id', $request->penduduk_id)
-            ->where('nik', $request->nik)
-            ->where('tanggal_lahir', $request->tanggal_lahir)
-            ->first();
-
-        if (!$penduduk) {
-            return response()->json([
-                'success' => false, 
-                'message' => 'Verifikasi identitas gagal. Data NIK atau Tanggal Lahir tidak sesuai dengan database kami.'
-            ], 403);
+            if (!$penduduk) {
+                return response()->json([
+                    'success' => false, 
+                    'message' => 'Verifikasi identitas gagal. Data NIK atau Tanggal Lahir tidak sesuai dengan database kami.'
+                ], 403);
+            }
+            $nikPengaju = $penduduk->nik;
+            $namaPengaju = $penduduk->nama;
+        } else {
+            // Extract from data_tambahan for Domisili
+            $dataTambahan = $request->data_tambahan;
+            if (is_string($dataTambahan)) {
+                $decoded = json_decode($dataTambahan, true);
+                if (json_last_error() === JSON_ERROR_NONE) $dataTambahan = $decoded;
+            }
+            $nikPengaju = $dataTambahan['nik'] ?? '0000000000000000';
+            $namaPengaju = $dataTambahan['nama'] ?? 'Pendatang';
         }
         
         try {
             $filePath = null;
             if ($request->hasFile('file_lampiran')) {
                 $file = $request->file('file_lampiran');
-                $filename = time() . '_' . $request->surat_type . '_' . $penduduk->nik . '.pdf';
+                $filename = time() . '_' . $request->surat_type . '_' . $nikPengaju . '.pdf';
                 $filePath = $file->storeAs('surat-pengajuan', $filename, 'local');
             }
 
@@ -114,9 +135,9 @@ class SuratPengajuanApiController extends Controller
 
             $suratPengajuan = SuratPengajuan::create([
                 'jenis_surat' => $request->surat_type,
-                'penduduk_id' => $penduduk->id,
+                'penduduk_id' => $penduduk ? $penduduk->id : null,
                 'nomor_surat' => null,
-                'nomor_resi'  => $resi,
+                'nomor_pengajuan'  => $resi,
                 'keperluan' => $request->keperluan,
                 'tujuan' => $request->tujuan,
                 'tanggal_surat' => $request->tanggal_surat,
@@ -124,15 +145,16 @@ class SuratPengajuanApiController extends Controller
                 'data_tambahan' => $dataTambahan,
                 'file_lampiran' => $filePath,
                 'status' => 'pending',
-                'nik_pengaju' => $penduduk->nik,
-                'nama_pengaju' => $penduduk->nama,
+                'nik_pengaju' => $nikPengaju,
+                'nama_pengaju' => $namaPengaju,
                 'email_pengaju' => $request->email_pengaju,
+                'no_hp_pengaju' => $request->no_hp_pengaju,
             ]);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Pengajuan surat berhasil dikirim',
-                'nomor_resi' => $resi,
+                'nomor_pengajuan' => $resi,
                 'data' => $this->formatPublicResponse($suratPengajuan)
             ], 201);
 
@@ -205,7 +227,7 @@ class SuratPengajuanApiController extends Controller
 
         $query = SuratPengajuan::where(function($q) use ($nomorSurat) {
             $q->where('nomor_surat', $nomorSurat)
-              ->orWhere('nomor_resi', $nomorSurat);
+              ->orWhere('nomor_pengajuan', $nomorSurat);
         });
         
         // Opsional: Tetap cek NIK jika dikirim dari frontend untuk keamanan tambahan
