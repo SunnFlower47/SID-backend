@@ -25,6 +25,7 @@
         "spatie/laravel-activitylog": "^4.10",
         "spatie/laravel-backup": "^9.3",
         "spatie/laravel-permission": "^6.21",
+        "stancl/tenancy": "^3.10",
         "symfony/dom-crawler": "^7.3",
         "tightenco/ziggy": "^2.6"
     },

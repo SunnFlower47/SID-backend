@@ -18,6 +18,51 @@ class User extends Authenticatable
     use HasApiTokens, HasFactory, Notifiable, HasRoles, LogsActivity;
 
     /**
+     * Dynamically use the tenant connection if tenancy is initialized.
+     * This prevents errors when the User model is queried before tenancy
+     * is booted (e.g. by guest middleware checking old sessions).
+     */
+    public function getConnectionName()
+    {
+        if (function_exists('tenancy') && tenancy()->initialized) {
+            return 'tenant';
+        }
+        return config('database.default');
+    }
+
+    protected static function booted()
+    {
+        static::creating(function ($user) {
+            if (function_exists('tenant') && tenant() !== null) {
+                // Bypass when running seeds / console setup commands
+                if (app()->runningInConsole() && !app()->runningUnitTests()) {
+                    return;
+                }
+
+                $allocation = \App\Models\Central\TenantAllocation::where('tenant_id', tenant('id'))->first();
+                if ($allocation) {
+                    $currentUserCount = static::count();
+                    if ($currentUserCount >= $allocation->max_users) {
+                        throw \Illuminate\Validation\ValidationException::withMessages([
+                            'email' => ["Batas maksimal pengguna ({$allocation->max_users}) untuk desa ini telah tercapai. Silakan hubungi Diskominfo untuk menambah kuota."]
+                        ]);
+                    }
+                }
+            }
+        });
+        
+        static::created(function ($user) {
+            // Log user creation
+            \App\Models\Central\TenantActivityLog::log('user_created', "User baru dengan email {$user->email} berhasil ditambahkan.");
+        });
+
+        static::deleted(function ($user) {
+            // Log user deletion
+            \App\Models\Central\TenantActivityLog::log('user_deleted', "User dengan email {$user->email} telah dihapus.");
+        });
+    }
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var list<string>

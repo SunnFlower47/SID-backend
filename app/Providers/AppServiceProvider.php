@@ -26,6 +26,9 @@ class AppServiceProvider extends ServiceProvider
         \App\Models\Rt::observe(\App\Observers\VillageDataObserver::class);
         \App\Models\WilayahChangeLog::observe(\App\Observers\VillageDataObserver::class);
 
+        // Register SaaS Tenant User Observer (Double Insert ke Central)
+        \App\Models\User::observe(\App\Observers\TenantUserObserver::class);
+
         // View Composer for sidebar unread count (cached)
         \Illuminate\Support\Facades\View::composer('layouts.components.sidebar', function ($view) {
             $unreadCount = \Illuminate\Support\Facades\Cache::remember('sidebar_unread_contact_count', 60, function () {
@@ -60,5 +63,34 @@ class AppServiceProvider extends ServiceProvider
                 'email' => $user->email,
             ], false));
         });
+
+        // Define Gates for Landlord / Central (Diskominfo) dynamically from database
+        $centralAbilities = [
+            'manage-central-users',
+            'manage-allocations',
+            'manage-tenants',
+            'broadcast-announcements',
+        ];
+
+        foreach ($centralAbilities as $ability) {
+            \Illuminate\Support\Facades\Gate::define($ability, function ($user) use ($ability) {
+                if (!($user instanceof \App\Models\Central\CentralUser)) {
+                    return false;
+                }
+
+                // Failsafe bypass: superadmin role always has full access
+                if ($user->role === 'superadmin') {
+                    return true;
+                }
+
+                // Check permissions dynamically using cached array
+                $permissions = \Illuminate\Support\Facades\Cache::remember("central_role_perms_{$user->role}", 3600, function () use ($user) {
+                    $role = \App\Models\Central\CentralRole::where('name', $user->role)->first();
+                    return $role ? ($role->permissions ?? []) : [];
+                });
+
+                return in_array($ability, $permissions);
+            });
+        }
     }
 }

@@ -10,7 +10,9 @@ export default function NotificationIndex({ notifications, unreadCount, totalCou
     // Reusing the markAsRead logic from Navbar but with a router reload to keep state synced
     const handleMarkAsRead = async (id, type, url) => {
         try {
-            await axios.post(route('notifications.mark-read'), { id, type });
+            if (type !== 'announcement') {
+                await axios.post(route('notifications.mark-read'), { id, type });
+            }
             router.visit(url); // Navigate to the item
         } catch (error) {
             console.error('Failed to mark as read', error);
@@ -18,13 +20,20 @@ export default function NotificationIndex({ notifications, unreadCount, totalCou
         }
     };
 
-    const getIcon = (type) => {
+    const getIcon = (type, iconClass) => {
+        if (iconClass) return <i className={cn(iconClass, "text-lg")} />;
         if (type === 'surat') return <FileText className="w-5 h-5 text-blue-500" />;
         if (type === 'pengaduan') return <AlertTriangle className="w-5 h-5 text-yellow-500" />;
         return <Bell className="w-5 h-5 text-gray-500" />;
     };
 
-    const getBgColor = (type) => {
+    const getBgColor = (type, colorClass) => {
+        if (colorClass) {
+            if (colorClass.includes('red')) return 'bg-red-50 border-red-100';
+            if (colorClass.includes('yellow') || colorClass.includes('amber')) return 'bg-amber-50 border-amber-100';
+            if (colorClass.includes('green')) return 'bg-green-50 border-green-100';
+            if (colorClass.includes('blue')) return 'bg-blue-50 border-blue-100';
+        }
         if (type === 'surat') return 'bg-blue-50 border-blue-100';
         if (type === 'pengaduan') return 'bg-yellow-50 border-yellow-100';
         return 'bg-gray-50 border-gray-100';
@@ -74,11 +83,11 @@ export default function NotificationIndex({ notifications, unreadCount, totalCou
                                     onClick={() => handleMarkAsRead(notif.id, notif.type, notif.url)}
                                     className={cn(
                                         "w-full flex items-start gap-4 p-5 text-left transition-all hover:bg-gray-50 group",
-                                        notif.status !== 'selesai' && notif.status !== 'diproses' ? "bg-indigo-50/30" : ""
+                                        notif.status !== 'selesai' ? "bg-green-50/10" : ""
                                     )}
                                 >
-                                    <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center border shrink-0", getBgColor(notif.type))}>
-                                        {getIcon(notif.type)}
+                                    <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center border shrink-0", getBgColor(notif.type, notif.color))}>
+                                        {getIcon(notif.type, notif.icon)}
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center justify-between gap-2 mb-1">

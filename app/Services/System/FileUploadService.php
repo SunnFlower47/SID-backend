@@ -19,7 +19,33 @@ class FileUploadService
     public function upload(UploadedFile $file, string $path, string $disk = 's3')
     {
         try {
-            return $file->store($path, $disk);
+            // Check storage limit if inside tenant context
+            if (function_exists('tenant') && tenant() !== null) {
+                if (!(app()->runningInConsole() && !app()->runningUnitTests())) {
+                    $allocation = \App\Models\Central\TenantAllocation::where('tenant_id', tenant('id'))->first();
+                    if ($allocation) {
+                        $fileSizeMb = $file->getSize() / (1024 * 1024);
+                        $storageUsedMb = $allocation->getStorageUsedMb();
+                        if (($storageUsedMb + $fileSizeMb) > $allocation->storage_limit_mb) {
+                            throw \Illuminate\Validation\ValidationException::withMessages([
+                                'file' => ["Kapasitas penyimpanan desa telah mencapai batas maksimum ({$allocation->storage_limit_mb} MB). Unggah file dibatalkan."]
+                            ]);
+                        }
+                    }
+                }
+            }
+
+            $storedPath = $file->store($path, $disk);
+            
+            // Log file upload activity
+            if ($storedPath) {
+                $fileName = basename($storedPath);
+                \App\Models\Central\TenantActivityLog::log('file_uploaded', "Berhasil mengunggah file {$fileName} ke folder {$path}.");
+            }
+
+            return $storedPath;
+        } catch (\Illuminate\Validation\ValidationException $valEx) {
+            throw $valEx;
         } catch (\Exception $e) {
             Log::error("Failed to upload file to path '{$path}': " . $e->getMessage());
             return false;

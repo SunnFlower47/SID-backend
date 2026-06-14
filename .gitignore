@@ -46,3 +46,6 @@ storage/framework/views/*
 
 # Windows debug dumps
 *.stackdump
+
+# Tenant local storage directories
+/storage/tenant*

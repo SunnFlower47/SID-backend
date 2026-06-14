@@ -46,7 +46,7 @@ class DesaInfoApiController extends Controller
                     'X-Content-Type-Options' => 'nosniff',
                 ]);
             } catch (\Exception $e) {
-                return $this->errorResponse('Gagal mengambil informasi desa', $e->getMessage(), 500);
+                return $this->errorResponse('Gagal mengambil informasi desa', 500, $e->getMessage());
             }
         });
     }
@@ -101,7 +101,7 @@ class DesaInfoApiController extends Controller
                     'X-Content-Type-Options' => 'nosniff',
                 ]);
             } catch (\Exception $e) {
-                return $this->errorResponse('Gagal mengambil info desa', null, 500);
+                return $this->errorResponse('Gagal mengambil info desa', 500, $e->getMessage());
             }
         });
     }
@@ -125,7 +125,7 @@ class DesaInfoApiController extends Controller
                 'provinsi' => $desaInfo['provinsi'] ?? ''
             ]);
         } catch (\Exception $e) {
-            return $this->errorResponse('Gagal mengambil informasi kontak', $e->getMessage(), 500);
+            return $this->errorResponse('Gagal mengambil informasi kontak', 500, $e->getMessage());
         }
     }
     /**
@@ -221,7 +221,7 @@ class DesaInfoApiController extends Controller
                 ]);
 
             } catch (\Exception $e) {
-                return $this->errorResponse('Gagal mengambil GeoJSON', $e->getMessage(), 500);
+                return $this->errorResponse('Gagal mengambil GeoJSON', 500, $e->getMessage());
             }
         });
     }

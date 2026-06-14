@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Auth;
+namespace App\Http\Controllers\Tenant\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
@@ -30,16 +30,16 @@ class AuthenticatedSessionController extends Controller
      */
     public function store(LoginRequest $request): RedirectResponse
     {
-        // reCAPTCHA diverifikasi di middleware `recaptcha` (routes/auth.php)
-        // Hindari verifikasi ganda di controller karena token v3 one-time use
-        // dan bisa memicu error `timeout-or-duplicate` pada validasi kedua.
-
         $request->authenticate();
 
+        // session()->regenerate() hanya mengganti session ID, TIDAK menghapus data.
+        // tenant_id sudah disimpan di session setelah Auth::login() di LoginRequest::authenticate().
         $request->session()->regenerate();
 
         return redirect()->intended(route('dashboard', absolute: false));
     }
+
+
 
     /**
      * Destroy an authenticated session.

@@ -33,19 +33,44 @@ class LoginRequest extends FormRequest
         ];
     }
 
-    /**
-     * Attempt to authenticate the request's credentials.
-     *
-     * @throws \Illuminate\Validation\ValidationException
-     */
     public function authenticate(): void
     {
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
-            // Log failed login attempt
+        // [SaaS] Cari tenant_id berdasarkan email user di tabel central
+        $map = \App\Models\Central\UserTenantMap::with('tenant')->where('email', $this->input('email'))->first();
+
+        if ($map) {
+            if (!$map->tenant) {
+                RateLimiter::hit($this->throttleKey());
+                throw ValidationException::withMessages([
+                    'email' => 'Desa untuk akun Anda tidak ditemukan.',
+                ]);
+            }
+
+            if (isset($map->tenant->is_active) && !$map->tenant->is_active) {
+                RateLimiter::hit($this->throttleKey());
+                throw ValidationException::withMessages([
+                    'email' => 'Desa Anda sedang dinonaktifkan. Silakan hubungi admin Diskominfo.',
+                ]);
+            }
+
+            // Initialize tenancy agar model User baca dari database tenant yang benar
+            tenancy()->initialize($map->tenant_id);
+        } else {
+            RateLimiter::hit($this->throttleKey());
+            throw ValidationException::withMessages([
+                'email' => 'Akun tidak terdaftar di desa manapun.',
+            ]);
+        }
+
+        // [SaaS] Cari user secara manual setelah tenancy diinisialisasi
+        $user = \App\Models\User::where('email', $this->input('email'))->first();
+
+        if (! $user || ! \Illuminate\Support\Facades\Hash::check($this->input('password'), $user->password)) {
             Log::warning('Failed login attempt', [
                 'email' => $this->input('email'),
+                'tenant' => $map->tenant_id,
                 'ip' => $this->ip(),
                 'user_agent' => $this->userAgent(),
                 'timestamp' => now(),
@@ -58,9 +83,18 @@ class LoginRequest extends FormRequest
             ]);
         }
 
-        // Log successful login
+        // [KRUSIAL] Auth::login() secara internal memanggil session->migrate(true)
+        // yang MENGHAPUS semua session data termasuk 'tenant_id'.
+        // Karena itu, kita simpan tenant_id KE SESSION SETELAH Auth::login() selesai.
+        Auth::login($user, $this->boolean('remember'));
+
+        // Simpan tenant_id ke session SETELAH Auth::login()
+        // agar tidak terhapus oleh session->migrate(true) internal Auth::login()
+        session()->put('tenant_id', $map->tenant_id);
+
         Log::info('Successful login', [
             'email' => $this->input('email'),
+            'tenant' => $map->tenant_id,
             'ip' => $this->ip(),
             'user_agent' => $this->userAgent(),
             'timestamp' => now(),

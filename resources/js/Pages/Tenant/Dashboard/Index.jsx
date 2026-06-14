@@ -23,7 +23,9 @@ import {
     Briefcase,
     MessageSquare,
     Coins,
-    CheckCircle2
+    CheckCircle2,
+    HardDrive,
+    X
 } from 'lucide-react';
 import {
     BarChart,
@@ -60,9 +62,35 @@ export default function Dashboard({
     asetStats,
     proyekStats,
     umkmDistribution,
-    asetDistribution
+    asetDistribution,
+    announcements = [],
+    quota
 }) {
     const [activeTab, setActiveTab] = React.useState('kependudukan');
+
+    const [dismissedAnnouncements, setDismissedAnnouncements] = React.useState(() => {
+        try {
+            const saved = localStorage.getItem('dismissed_announcements');
+            return saved ? JSON.parse(saved).map(String) : [];
+        } catch (e) {
+            return [];
+        }
+    });
+
+    const handleDismiss = (id) => {
+        const idStr = String(id);
+        if (!dismissedAnnouncements.includes(idStr)) {
+            const updated = [...dismissedAnnouncements, idStr];
+            setDismissedAnnouncements(updated);
+            try {
+                localStorage.setItem('dismissed_announcements', JSON.stringify(updated));
+            } catch (e) {
+                // ignore
+            }
+        }
+    };
+
+    const visibleAnnouncements = (announcements || []).filter(ann => !dismissedAnnouncements.includes(String(ann.id)));
 
     const handleRefresh = () => {
         router.post(route('dashboard.refresh'));
@@ -114,6 +142,62 @@ export default function Dashboard({
                     </div>
                 </PageHeader>
 
+                {/* Global Broadcast Announcements */}
+                {visibleAnnouncements.length > 0 && (
+                    <div className="space-y-3">
+                        {visibleAnnouncements.map((ann) => {
+                            const colors = {
+                                info: {
+                                    bg: 'bg-blue-50/80 border-blue-200 text-blue-800',
+                                    icon: 'text-blue-500',
+                                    badge: 'bg-blue-100 text-blue-800'
+                                },
+                                warning: {
+                                    bg: 'bg-amber-50/80 border-amber-200 text-amber-800',
+                                    icon: 'text-amber-500',
+                                    badge: 'bg-amber-100 text-amber-800'
+                                },
+                                danger: {
+                                    bg: 'bg-red-50/80 border-red-200 text-red-800',
+                                    icon: 'text-red-500',
+                                    badge: 'bg-red-100 text-red-800'
+                                }
+                            }[ann.type] || {
+                                bg: 'bg-slate-50/80 border-slate-200 text-slate-800',
+                                icon: 'text-slate-500',
+                                badge: 'bg-slate-100 text-slate-800'
+                            };
+
+                            return (
+                                <div 
+                                    key={ann.id} 
+                                    className={cn("flex gap-3 border p-4 rounded-2xl shadow-sm transition-all duration-300 text-left relative group", colors.bg)}
+                                >
+                                    <div className="flex-shrink-0 mt-0.5">
+                                        <AlertTriangle className={cn("w-5 h-5", colors.icon)} />
+                                    </div>
+                                    <div className="flex-1 space-y-1 pr-8">
+                                        <div className="flex items-center gap-2">
+                                            <span className="font-extrabold text-sm uppercase tracking-wide">{ann.title}</span>
+                                            <span className={cn("text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full", colors.badge)}>
+                                                {ann.sender_name || 'Diskominfo'} Broadcast
+                                            </span>
+                                        </div>
+                                        <div className="text-xs font-medium leading-relaxed whitespace-pre-wrap">{ann.message}</div>
+                                    </div>
+                                    <button
+                                        onClick={() => handleDismiss(ann.id)}
+                                        className="absolute top-4 right-4 p-1 rounded-lg hover:bg-black/5 text-gray-400 hover:text-gray-700 transition-all cursor-pointer"
+                                        title="Tutup Pengumuman"
+                                    >
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
+
                 {/* Quick Access Section */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                     <QuickActionCard
@@ -141,6 +225,88 @@ export default function Dashboard({
                         color="purple"
                     />
                 </div>
+
+                {/* Quota Widget (Premium Card) */}
+                <Deferred data="quota" fallback={<div className="h-32 w-full bg-gray-50 rounded-[24px] border border-gray-100 animate-pulse mb-6"></div>}>
+                    {quota && (
+                        <div style={{ borderRadius: '24px' }} className="p-5 md:p-6 bg-white border border-gray-100 shadow-sm space-y-4">
+                            <div className="flex items-center justify-between border-b border-gray-50 pb-3 text-left">
+                                <div className="flex items-center gap-2">
+                                    <div className="p-2 bg-emerald-50 rounded-lg text-emerald-600">
+                                        <Activity className="w-4 h-4" />
+                                    </div>
+                                    <div>
+                                        <h4 className="text-xs font-black text-gray-950 uppercase tracking-tighter italic">Alokasi & Kuota Layanan</h4>
+                                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">Status penggunaan resource sistem Desa</p>
+                                    </div>
+                                </div>
+                                <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[9px] font-black rounded-full uppercase tracking-widest">
+                                    Terpantau
+                                </span>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* User Quota */}
+                                <div className="space-y-2 text-left">
+                                    <div className="flex justify-between items-end">
+                                        <div className="flex items-center gap-1.5">
+                                            <Users className="w-4 h-4 text-emerald-600" />
+                                            <span className="text-xs font-black text-gray-700 uppercase tracking-tight">Kapasitas Pengguna</span>
+                                        </div>
+                                        <span className="text-xs font-black text-gray-950">
+                                            {quota.users_used} / {quota.max_users} <span className="text-[10px] text-gray-400 font-bold">User</span>
+                                        </span>
+                                    </div>
+                                    <div className="relative w-full bg-gray-100 h-2.5 rounded-full overflow-hidden">
+                                        <div 
+                                            className={cn(
+                                                "h-full rounded-full transition-all duration-1000",
+                                                (quota.users_used / quota.max_users) >= 0.9 ? "bg-red-500" :
+                                                (quota.users_used / quota.max_users) >= 0.75 ? "bg-amber-500" : "bg-emerald-500"
+                                            )} 
+                                            style={{ width: `${quota.max_users > 0 ? Math.min((quota.users_used / quota.max_users) * 100, 100) : 0}%` }} 
+                                        />
+                                    </div>
+                                    <div className="flex justify-between text-[9px] font-bold text-gray-400 uppercase tracking-tight">
+                                        <span>Pemakaian: {quota.max_users > 0 ? Math.round((quota.users_used / quota.max_users) * 100) : 0}%</span>
+                                        {quota.users_used >= quota.max_users && (
+                                            <span className="text-red-500 font-black animate-pulse">Limit Tercapai</span>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Storage Quota */}
+                                <div className="space-y-2 text-left">
+                                    <div className="flex justify-between items-end">
+                                        <div className="flex items-center gap-1.5">
+                                            <HardDrive className="w-4 h-4 text-blue-600" />
+                                            <span className="text-xs font-black text-gray-700 uppercase tracking-tight">Penyimpanan File S3</span>
+                                        </div>
+                                        <span className="text-xs font-black text-gray-950">
+                                            {quota.storage_used_mb} / {quota.storage_limit_mb} <span className="text-[10px] text-gray-400 font-bold">MB</span>
+                                        </span>
+                                    </div>
+                                    <div className="relative w-full bg-gray-100 h-2.5 rounded-full overflow-hidden">
+                                        <div 
+                                            className={cn(
+                                                "h-full rounded-full transition-all duration-1000",
+                                                (quota.storage_used_mb / quota.storage_limit_mb) >= 0.9 ? "bg-red-500" :
+                                                (quota.storage_used_mb / quota.storage_limit_mb) >= 0.75 ? "bg-amber-500" : "bg-blue-500"
+                                            )} 
+                                            style={{ width: `${quota.storage_limit_mb > 0 ? Math.min((quota.storage_used_mb / quota.storage_limit_mb) * 100, 100) : 0}%` }} 
+                                        />
+                                    </div>
+                                    <div className="flex justify-between text-[9px] font-bold text-gray-400 uppercase tracking-tight">
+                                        <span>Pemakaian: {quota.storage_limit_mb > 0 ? Math.round((quota.storage_used_mb / quota.storage_limit_mb) * 100) : 0}%</span>
+                                        {quota.storage_used_mb >= quota.storage_limit_mb && (
+                                            <span className="text-red-500 font-black animate-pulse">Limit Tercapai</span>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </Deferred>
 
                 {/* Actionable Alerts (Global Pending Warning) */}
                 <Deferred data="suratStats" fallback={<div className="h-16 w-full bg-gray-50 rounded-[24px] animate-pulse mb-6"></div>}>

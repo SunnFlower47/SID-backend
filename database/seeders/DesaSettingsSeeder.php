@@ -41,6 +41,14 @@ class DesaSettingsSeeder extends Seeder
             ['key' => 'link_facebook', 'value' => 'https://facebook.com/desacibatu', 'type' => 'text', 'group' => 'social', 'description' => 'URL Facebook Desa'],
             ['key' => 'link_instagram', 'value' => 'https://instagram.com/desacibatu', 'type' => 'text', 'group' => 'social', 'description' => 'URL Instagram Desa'],
             ['key' => 'link_youtube', 'value' => 'https://youtube.com/@desacibatu', 'type' => 'text', 'group' => 'social', 'description' => 'URL YouTube Desa'],
+
+            // SaaS Web Frontend (UI, AI, SEO, Operational)
+            ['key' => 'ai_greeting', 'value' => 'Halo Warga! Ada yang bisa saya bantu terkait layanan desa?', 'type' => 'text', 'group' => 'frontend', 'description' => 'Teks salam pembuka Chat AI'],
+            ['key' => 'warna_primer', 'value' => '#10B981', 'type' => 'text', 'group' => 'frontend', 'description' => 'Warna Tema Utama Website (Format HEX)'],
+            ['key' => 'meta_title', 'value' => 'Portal Resmi Desa', 'type' => 'text', 'group' => 'seo', 'description' => 'SEO Title Tag Utama'],
+            ['key' => 'meta_description', 'value' => 'Website resmi portal pelayanan dan informasi publik warga desa.', 'type' => 'text', 'group' => 'seo', 'description' => 'SEO Meta Description'],
+            ['key' => 'meta_keywords', 'value' => 'desa digital, portal desa, pelayanan online desa', 'type' => 'text', 'group' => 'seo', 'description' => 'SEO Kata Kunci (Dipisah koma)'],
+            ['key' => 'jam_operasional', 'value' => 'Senin - Jumat: 08:00 - 15:00', 'type' => 'text', 'group' => 'general', 'description' => 'Jam Operasional Kantor Desa'],
         ];
 
         foreach ($settings as $setting) {

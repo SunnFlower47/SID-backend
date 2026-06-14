@@ -23,7 +23,14 @@ class ApiProxyController extends Controller
     {
         // 0. VALIDATE HANDSHAKE (Mastikan yang minta tanda tangan adalah Frontend Resmi kita)
         $clientKey = $request->header('X-Proxy-App-Id');
-        $serverKey = env('PROXY_CLIENT_KEY', 'CIBATU_VIBE_2026');
+        $serverKey = config('app.proxy_client_key');
+
+        if (!$serverKey) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Internal Server Error. Proxy configuration missing.',
+            ], 500);
+        }
 
         if (!$clientKey || $clientKey !== $serverKey) {
             return response()->json([
@@ -69,6 +76,13 @@ class ApiProxyController extends Controller
             if ($request->header('X-Recaptcha-Token')) $headers['X-Recaptcha-Token'] = $request->header('X-Recaptcha-Token');
             if ($request->header('X-CSRF-Token')) $headers['X-CSRF-Token'] = $request->header('X-CSRF-Token');
 
+            // Ekstrak tenant dari subdomain request (jangan percaya header client)
+            $host = $request->getHost(); // e.g., cibatu.purwakarta.desa.id
+            $tenant = explode('.', $host)[0];
+            if ($tenant && $tenant !== 'localhost' && $tenant !== '127') {
+                $headers['X-Tenant'] = $tenant;
+            }
+
             // 3. Eksekusi Request ke Internal API secara INTERNAL (Mencegah Deadlock di artisan serve)
             $internalRequest = Request::create(
                 $internalUrl,
@@ -111,16 +125,21 @@ class ApiProxyController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Terjadi kesalahan pada koneksi internal.',
-                'error' => $e->getMessage()
+                'error' => app()->environment('local') ? $e->getMessage() : 'Internal error'
             ], 500);
         }
     }
 
     public function options(Request $request)
     {
+        $allowedOrigins = config('cors.allowed_origins', []);
+        
+        $origin = $request->header('Origin');
+        $allowedOrigin = in_array($origin, $allowedOrigins) ? $origin : (count($allowedOrigins) > 0 ? $allowedOrigins[0] : '*');
+
         return response('', 200)
             ->withHeaders([
-                'Access-Control-Allow-Origin' => $request->header('Origin', '*'),
+                'Access-Control-Allow-Origin' => $allowedOrigin,
                 'Access-Control-Allow-Methods' => 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
                 'Access-Control-Allow-Headers' => 'Content-Type, Accept, Origin, User-Agent, X-Recaptcha-V3-Token, X-Recaptcha-Token, X-CSRF-Token, X-Proxy-App-Id',
                 'Access-Control-Allow-Credentials' => 'true',
