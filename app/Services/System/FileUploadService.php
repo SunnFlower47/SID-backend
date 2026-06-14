@@ -15,6 +15,7 @@ class FileUploadService
      * @param string $path The directory path where the file should be stored.
      * @param string $disk The storage disk to use (default: 'public').
      * @return string|false The path to the stored file, or false on failure.
+     */
     public function upload(UploadedFile $file, string $path, string $disk = 's3')
     {
         try {
@@ -33,6 +34,7 @@ class FileUploadService
      * @param string $path The directory path where the new file should be stored.
      * @param string $disk The storage disk to use (default: 'public').
      * @return string|false The path to the newly stored file, or false on failure.
+     */
     public function replace(UploadedFile $file, ?string $oldFilePath, string $path, string $disk = 's3')
     {
         if ($oldFilePath) {
@@ -48,6 +50,7 @@ class FileUploadService
      * @param string $filePath The path of the file to delete.
      * @param string $disk The storage disk to use (default: 'public').
      * @return bool True if successful, false otherwise.
+     */
     public function delete(string $filePath, string $disk = 's3'): bool
     {
         try {

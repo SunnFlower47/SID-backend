@@ -29,7 +29,8 @@ Artisan::command('wilayah-backup:prune {--days=30}', function () {
 use Illuminate\Support\Facades\Schedule;
 
 Schedule::command('backup:clean')->daily()->at('01:00');
-Schedule::command('backup:run')->daily()->at('02:00');
+Schedule::command('backup:run --only-db')->daily()->at('02:00');
+Schedule::command('backup:run')->monthlyOn(1, '02:30');
 Schedule::command('wilayah-backup:prune --days=30')->daily()->at('03:00');
 Schedule::command('app:cleanup-temp-storage')->daily()->at('04:00');
 Schedule::command('domisili:check-expiry')->daily()->at('00:00');
