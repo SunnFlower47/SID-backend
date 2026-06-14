@@ -55,7 +55,7 @@ export default function Show({ auth, berita }) {
                         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden text-left text-left">
                             {berita.gambar && (
                                 <div className="aspect-video w-full overflow-hidden border-b border-gray-50 text-left text-left">
-                                    <img src={`/storage/${berita.gambar}`} className="w-full h-full object-cover text-left text-left" alt={berita.judul} />
+                                    <img src={berita.image_url || `/storage/${berita.gambar}`} className="w-full h-full object-cover text-left text-left" alt={berita.judul} />
                                 </div>
                             )}
 

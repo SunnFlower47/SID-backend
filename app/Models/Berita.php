@@ -26,6 +26,8 @@ class Berita extends Model
         'featured'
     ];
 
+    protected $appends = ['image_url'];
+
     protected $casts = [
         'published_at' => 'datetime'
     ];

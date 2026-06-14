@@ -125,7 +125,7 @@ export default function Index({ auth, berita, stats, filters }) {
                                             <div className="flex-1 text-left">
                                                 <div className="aspect-video w-full rounded-2xl bg-gray-100 mb-5 overflow-hidden relative border border-gray-100 text-left">
                                                     {item.gambar ? (
-                                                        <img src={`/storage/${item.gambar}`} className="w-full h-full object-cover group-hover:scale-110 transition-all duration-700 text-left" alt={item.judul} />
+                                                        <img src={item.image_url || `/storage/${item.gambar}`} className="w-full h-full object-cover group-hover:scale-110 transition-all duration-700 text-left" alt={item.judul} />
                                                     ) : (
                                                         <div className="w-full h-full flex items-center justify-center bg-gray-50 text-gray-200">
                                                             <Newspaper className="w-12 h-12" />

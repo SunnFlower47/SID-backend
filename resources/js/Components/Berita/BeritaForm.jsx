@@ -191,7 +191,7 @@ export default function BeritaForm({ berita = null, isEdit = false }) {
                     >
                         <div className="aspect-video bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center overflow-hidden relative group text-left">
                             {preview || (isEdit && berita.gambar) ? (
-                                <img src={preview || `/storage/${berita.gambar}`} className="w-full h-full object-cover text-left" />
+                                <img src={preview || berita.image_url || `/storage/${berita.gambar}`} className="w-full h-full object-cover text-left" />
                             ) : (
                                 <div className="text-center p-6 text-left">
                                     <ImageIcon className="w-8 h-8 text-gray-300 mx-auto mb-2 text-left" />
