@@ -58,11 +58,8 @@ class DesaSettingsController extends Controller
 
                 // Hapus file lama agar tidak menumpuk
                 $existingSetting = DesaSetting::where('key', $setting['key'])->first();
-                if ($existingSetting && $existingSetting->value) {
-                    $oldPath = ltrim(parse_url($existingSetting->value, PHP_URL_PATH), '/');
-                    if (Storage::exists($oldPath)) {
-                        Storage::delete($oldPath);
-                    }
+                if ($existingSetting) {
+                    $this->deleteOldFile($existingSetting->value);
                 }
 
                 $path = $file->storeAs($folder, $filename);
@@ -111,12 +108,7 @@ class DesaSettingsController extends Controller
             $folder = $setting->type === 'image' ? 'logos' : 'geojson';
 
             // Hapus file lama agar tidak menumpuk
-            if ($setting->value) {
-                $oldPath = ltrim(parse_url($setting->value, PHP_URL_PATH), '/');
-                if (Storage::exists($oldPath)) {
-                    Storage::delete($oldPath);
-                }
-            }
+            $this->deleteOldFile($setting->value);
 
             $path = $file->storeAs($folder, $filename);
             $validated['value'] = Storage::url($path);
@@ -212,5 +204,45 @@ class DesaSettingsController extends Controller
 
         return Redirect::back()
             ->with('success', 'Pengaturan desa berhasil diimpor.');
+    }
+
+    /**
+     * Delete old file from storage safely.
+     */
+    private function deleteOldFile($value): void
+    {
+        if (!$value) {
+            return;
+        }
+
+        try {
+            $path = parse_url($value, PHP_URL_PATH);
+            if (!$path) {
+                return;
+            }
+
+            $path = ltrim($path, '/');
+
+            // Strip S3/R2 bucket name if it's the first segment (in path-style URL)
+            $bucket = env('AWS_BUCKET');
+            if ($bucket && (str_starts_with($path, $bucket . '/') || $path === $bucket)) {
+                $path = substr($path, strlen($bucket . '/'));
+            }
+
+            // Strip 'storage/' if it's local public storage path
+            if (str_starts_with($path, 'storage/')) {
+                $path = substr($path, strlen('storage/'));
+            }
+
+            if ($path && Storage::exists($path)) {
+                Storage::delete($path);
+            }
+        } catch (\Exception $e) {
+            // Log warning but do not crash the request
+            \Illuminate\Support\Facades\Log::warning("Failed to delete old file: " . $e->getMessage(), [
+                'value' => $value,
+                'resolved_path' => $path ?? null
+            ]);
+        }
     }
 }
