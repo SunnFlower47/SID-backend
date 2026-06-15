@@ -33,12 +33,14 @@ class SyncPbbMapagbumiJob implements ShouldQueue
     public function handle(): void
     {
         try {
-            // Check global rate limit in Redis to prevent 429 Too Many Requests across all tenants
+            // Check global rate limit in cache (flexible based on env CACHE_STORE: redis, database, file, etc.)
             try {
-                $redisKey = 'pbb_global_api_limit:' . date('YmdHi');
-                $requestCount = \Illuminate\Support\Facades\Redis::incr($redisKey);
+                $cacheKey = 'pbb_global_api_limit:' . date('YmdHi');
+                
+                // Menggunakan Cache facade agar otomatis mengikuti driver cache yang aktif di .env
+                $requestCount = \Illuminate\Support\Facades\Cache::increment($cacheKey);
                 if ($requestCount === 1) {
-                    \Illuminate\Support\Facades\Redis::expire($redisKey, 60);
+                    \Illuminate\Support\Facades\Cache::put($cacheKey, 1, 60); // Set expired 60 detik
                 }
 
                 $globalLimit = (int) env('PBB_API_GLOBAL_LIMIT', 25);
@@ -46,8 +48,8 @@ class SyncPbbMapagbumiJob implements ShouldQueue
                     Log::warning("PBB Sync: Global rate limit reached for this minute (" . date('H:i') . "). Skipping NOP {$this->pbbObjek->nop} to prevent 429 from Mapagbumi API.");
                     return;
                 }
-            } catch (\Exception $redisEx) {
-                Log::warning("PBB Sync: Redis connection failed, skipping global rate limit check: " . $redisEx->getMessage());
+            } catch (\Exception $cacheEx) {
+                Log::warning("PBB Sync: Cache connection failed, skipping global rate limit check: " . $cacheEx->getMessage());
             }
 
             $nop = str_replace(['.', '-'], '', $this->pbbObjek->nop);
