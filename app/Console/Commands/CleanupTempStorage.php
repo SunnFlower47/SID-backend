@@ -28,21 +28,27 @@ class CleanupTempStorage extends Command
     public function handle()
     {
         $directories = [
-            storage_path('app/private/generated_surat'),
-            storage_path('app/private/qr_codes'),
-            storage_path('app/private/surat-pdf'),
+            'private/generated_surat',
+            'private/qr_codes',
+            'private/surat-pdf',
         ];
 
         $deletedCount = 0;
+        $disk = \Illuminate\Support\Facades\Storage::disk('local');
 
         foreach ($directories as $dir) {
-            if (File::exists($dir)) {
-                $files = File::files($dir);
+            if ($disk->exists($dir)) {
+                $files = $disk->files($dir);
                 foreach ($files as $file) {
-                    // Cek jika file lebih tua dari 24 jam
-                    if (Carbon::createFromTimestamp($file->getMTime())->lessThan(Carbon::now()->subHours(24))) {
-                        File::delete($file->getPathname());
-                        $deletedCount++;
+                    try {
+                        $lastModified = $disk->lastModified($file);
+                        // Cek jika file lebih tua dari 24 jam
+                        if (\Illuminate\Support\Carbon::createFromTimestamp($lastModified)->lessThan(\Illuminate\Support\Carbon::now()->subHours(24))) {
+                            $disk->delete($file);
+                            $deletedCount++;
+                        }
+                    } catch (\Exception $e) {
+                        \Illuminate\Support\Facades\Log::error("Gagal menghapus file temp {$file}: " . $e->getMessage());
                     }
                 }
             }
