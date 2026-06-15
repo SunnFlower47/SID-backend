@@ -33,5 +33,5 @@ Schedule::command('backup:run --only-db')->daily()->at('02:00');
 Schedule::command('backup:run')->monthlyOn(1, '02:30');
 Schedule::command('wilayah-backup:prune --days=30')->daily()->at('03:00');
 Schedule::command('app:cleanup-temp-storage')->daily()->at('04:00');
-Schedule::command('domisili:check-expiry')->daily()->at('00:00');
-Schedule::command('pbb:sync --limit=15')->everyMinute()->withoutOverlapping();
+Schedule::command('tenants:run domisili:check-expiry')->daily()->at('00:00');
+Schedule::command('tenants:run pbb:sync --option="limit=15"')->everyMinute()->withoutOverlapping();

@@ -33,6 +33,23 @@ class SyncPbbMapagbumiJob implements ShouldQueue
     public function handle(): void
     {
         try {
+            // Check global rate limit in Redis to prevent 429 Too Many Requests across all tenants
+            try {
+                $redisKey = 'pbb_global_api_limit:' . date('YmdHi');
+                $requestCount = \Illuminate\Support\Facades\Redis::incr($redisKey);
+                if ($requestCount === 1) {
+                    \Illuminate\Support\Facades\Redis::expire($redisKey, 60);
+                }
+
+                $globalLimit = (int) env('PBB_API_GLOBAL_LIMIT', 25);
+                if ($requestCount > $globalLimit) {
+                    Log::warning("PBB Sync: Global rate limit reached for this minute (" . date('H:i') . "). Skipping NOP {$this->pbbObjek->nop} to prevent 429 from Mapagbumi API.");
+                    return;
+                }
+            } catch (\Exception $redisEx) {
+                Log::warning("PBB Sync: Redis connection failed, skipping global rate limit check: " . $redisEx->getMessage());
+            }
+
             $nop = str_replace(['.', '-'], '', $this->pbbObjek->nop);
             
             $response = Http::timeout(30)->withoutVerifying()->get('https://mapagbumi.purwakartakab.go.id/nop?nop=' . $nop);
