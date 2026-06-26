@@ -3,6 +3,7 @@ import { Head, Link, router, Deferred } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import ResidentStats from '@/Components/Penduduk/ResidentStats';
 import ResidentFilters from '@/Components/Penduduk/ResidentFilters';
+import ExportModal from '@/Components/Penduduk/ExportModal';
 import SkeletonStats from '@/Components/Shared/Skeleton/SkeletonStats';
 import SkeletonTable from '@/Components/Shared/Skeleton/SkeletonTable';
 import { Users, Plus, FileSpreadsheet, Crown, Heart, User, Trash2 } from 'lucide-react';
@@ -22,15 +23,20 @@ const LottieComponent = Lottie?.default || Lottie;
 
 export default function Index({ auth, penduduks, stats, rtList, rwList, dusunList, filters }) {
     const [isExporting, setIsExporting] = useState(false);
+    const [isExportModalOpen, setIsExportModalOpen] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
     const confirmDelete = useSwalDelete();
     
-    const handleExport = async () => {
+    const handleExport = async (selectedCols) => {
         setIsExporting(true);
 
         try {
             const params = new URLSearchParams(window.location.search);
             params.delete('page');
+            
+            if (selectedCols && selectedCols.length > 0) {
+                params.set('columns', selectedCols.join(','));
+            }
             
             const response = await axios.get(route('penduduk.export.excel'), {
                 params: Object.fromEntries(params),
@@ -45,6 +51,8 @@ export default function Index({ auth, penduduks, stats, rtList, rwList, dusunLis
             document.body.appendChild(link);
             link.click();
             link.remove();
+
+            setIsExportModalOpen(false);
 
             // Show success animation
             setShowSuccess(true);
@@ -93,6 +101,14 @@ export default function Index({ auth, penduduks, stats, rtList, rwList, dusunLis
                 </div>
             )}
 
+            {/* Export Modal */}
+            <ExportModal 
+                isOpen={isExportModalOpen}
+                onClose={() => setIsExportModalOpen(false)}
+                onExport={handleExport}
+                isExporting={isExporting}
+            />
+
             <div className="space-y-6 animate-in fade-in duration-700 pb-20">
                 {/* Header (Refactored) */}
                 <PageHeader 
@@ -103,7 +119,7 @@ export default function Index({ auth, penduduks, stats, rtList, rwList, dusunLis
                         {
                             label: 'EXCEL',
                             icon: FileSpreadsheet,
-                            onClick: handleExport,
+                            onClick: () => setIsExportModalOpen(true),
                             loading: isExporting,
                             variant: 'ghost'
                         },

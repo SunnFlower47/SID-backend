@@ -3,7 +3,8 @@
 namespace App\Exports;
 
 use App\Models\Penduduk;
-use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\FromQuery;
+use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
@@ -17,22 +18,72 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use Illuminate\Http\Request;
 
-class PendudukExport implements FromCollection, WithHeadings, WithMapping, WithStyles, WithTitle, WithEvents
+class PendudukExport implements FromQuery, WithChunkReading, WithHeadings, WithMapping, WithStyles, WithTitle, WithEvents
 {
     protected $request;
     protected $rowNumber = 0;
+    protected $isDynamic = false;
+    protected $selectedColumns = [];
+    protected $availableColumns = [];
 
     public function __construct(Request $request)
     {
         $this->request = $request;
+
+        $this->availableColumns = [
+            'nomor_urut' => ['header' => 'NOMOR URUT', 'map' => fn($p, $row) => $row],
+            'nama' => ['header' => 'NAMA LENGKAP / PANGGILAN', 'map' => fn($p) => strtoupper($p->nama ?: '')],
+            'jenis_kelamin' => ['header' => 'JENIS KELAMIN', 'map' => fn($p) => strtoupper($p->jenis_kelamin_label ?: '')],
+            'status_perkawinan' => ['header' => 'STATUS PERKAWINAN', 'map' => fn($p) => strtoupper($p->status_perkawinan ?: '-')],
+            'tempat_lahir' => ['header' => 'TEMPAT LAHIR', 'map' => fn($p) => strtoupper($p->tempat_lahir ?: '')],
+            'tanggal_lahir' => ['header' => 'TANGGAL LAHIR', 'map' => fn($p) => $p->tanggal_lahir ? $p->tanggal_lahir->format('d/m/Y') : ''],
+            'agama' => ['header' => 'AGAMA', 'map' => fn($p) => strtoupper($p->agama ?: '')],
+            'pendidikan' => ['header' => 'PENDIDIKAN TERAKHIR', 'map' => fn($p) => strtoupper($p->pendidikan ?: '')],
+            'pekerjaan' => ['header' => 'PEKERJAAN', 'map' => fn($p) => strtoupper($p->pekerjaan ?: '')],
+            'membaca_huruf' => ['header' => 'DAPAT MEMBACA HURUF', 'map' => fn($p) => strtoupper($p->dapat_membaca_huruf ?: '-')],
+            'warganegara' => ['header' => 'KEWARGANEGARAAN', 'map' => fn($p) => strtoupper($p->warganegara ?: 'WNI')],
+            'alamat' => ['header' => 'ALAMAT', 'map' => fn($p) => strtoupper($p->alamat ?: '')],
+            'rt' => ['header' => 'RT', 'map' => fn($p) => strtoupper($p->rt_label ?: '')],
+            'rw' => ['header' => 'RW', 'map' => fn($p) => strtoupper($p->rw_label ?: '')],
+            'kedudukan_keluarga' => ['header' => 'KEDUDUKAN DLM KELUARGA', 'map' => fn($p) => strtoupper($p->kedudukan_keluarga ?: '-')],
+            'nik' => ['header' => 'NIK', 'map' => fn($p) => $p->nik ? "'" . $p->nik : '', 'is_text' => true],
+            'nkk' => ['header' => 'NO. KK', 'map' => fn($p) => $p->nkk ? "'" . $p->nkk : '', 'is_text' => true],
+            'nama_ayah' => ['header' => 'NAMA AYAH', 'map' => fn($p) => strtoupper($p->nama_ayah ?: '')],
+            'nama_ibu' => ['header' => 'NAMA IBU', 'map' => fn($p) => strtoupper($p->nama_ibu ?: '')],
+            'dusun' => ['header' => 'DUSUN', 'map' => fn($p) => strtoupper($p->dusun_label ?: '-')],
+            'golongan_darah' => ['header' => 'GOLONGAN DARAH', 'map' => fn($p) => strtoupper($p->golongan_darah ?: '-')],
+            'no_akta_lahir' => ['header' => 'NO. AKTA LAHIR', 'map' => fn($p) => $p->no_akta_lahir ?: '-'],
+            'status_pendidikan' => ['header' => 'STATUS PENDIDIKAN', 'map' => fn($p) => strtoupper($p->status_pendidikan ?: '-')],
+            'telepon' => ['header' => 'TELEPON', 'map' => fn($p) => $p->telepon ?: '-'],
+            'jenis_cacat' => ['header' => 'JENIS CACAT', 'map' => fn($p) => strtoupper($p->cacat_type ?: '-')],
+            'sakit_menahun' => ['header' => 'SAKIT MENAHUN', 'map' => fn($p) => strtoupper($p->sakit_menahun ?: '-')],
+            'status_asuransi' => ['header' => 'STATUS ASURANSI', 'map' => fn($p) => strtoupper($p->status_asuransi ?: '-')],
+            'keterangan' => ['header' => 'KETERANGAN', 'map' => fn($p) => strtoupper($p->keterangan ?: '')],
+        ];
+
+        $cols = $request->input('columns');
+        if (!empty($cols) && is_string($cols)) {
+            $cols = explode(',', $cols);
+        }
+
+        if (!empty($cols) && is_array($cols)) {
+            $this->isDynamic = true;
+            if (!in_array('nomor_urut', $cols)) {
+                array_unshift($cols, 'nomor_urut');
+            }
+            $this->selectedColumns = $cols;
+        }
     }
 
-    /**
-    * @return \Illuminate\Support\Collection
-    */
-    public function collection()
+    public function query()
     {
         $query = Penduduk::withWilayah()->with('kartuKeluarga');
+
+        // Mode: pilih penduduk individu secara spesifik
+        if ($this->request->filled('penduduk_ids')) {
+            $ids = explode(',', $this->request->penduduk_ids);
+            return $query->whereIn('id', $ids);
+        }
 
         // Apply same filters as controller
         if ($this->request->filled('search')) {
@@ -52,26 +103,27 @@ class PendudukExport implements FromCollection, WithHeadings, WithMapping, WithS
             $query->whereHas('kartuKeluarga', fn($q) => $q->where('rw_id', $this->request->rw_id));
         }
 
-        if ($this->request->filled('jenis_kelamin') && $this->request->jenis_kelamin !== 'all') {
-            $query->where('jenis_kelamin', $this->request->jenis_kelamin);
-        }
-
         if ($this->request->filled('dusun_id') && $this->request->dusun_id !== 'all') {
             $query->whereHas('kartuKeluarga', fn($q) => $q->where('dusun_id', $this->request->dusun_id));
         }
 
-        // Filter by age range
-        if ($this->request->filled('filter_umur') && $this->request->filter_umur !== 'all') {
-            $filterUmur = $this->request->filter_umur;
-            $today = \Carbon\Carbon::now();
+        if ($this->request->filled('jenis_kelamin') && $this->request->jenis_kelamin !== 'all') {
+            $query->where('jenis_kelamin', $this->request->jenis_kelamin);
+        }
 
-            switch ($filterUmur) {
-                case 'bayi':
-                    $query->where('tanggal_lahir', '>=', $today->copy()->subYears(2));
-                    break;
+        if ($this->request->filled('status_perkawinan') && $this->request->status_perkawinan !== 'all') {
+            $query->where('status_perkawinan', $this->request->status_perkawinan);
+        }
+
+        if ($this->request->filled('golongan_darah') && $this->request->golongan_darah !== 'all') {
+            $query->where('golongan_darah', $this->request->golongan_darah);
+        }
+
+        if ($this->request->filled('kategori_usia') && $this->request->kategori_usia !== 'all') {
+            $today = now();
+            switch ($this->request->kategori_usia) {
                 case 'balita':
-                    $query->where('tanggal_lahir', '>=', $today->copy()->subYears(5))
-                          ->where('tanggal_lahir', '<', $today->copy()->subYears(2));
+                    $query->where('tanggal_lahir', '>=', $today->copy()->subYears(5));
                     break;
                 case 'anak':
                     $query->where('tanggal_lahir', '>=', $today->copy()->subYears(12))
@@ -107,8 +159,12 @@ class PendudukExport implements FromCollection, WithHeadings, WithMapping, WithS
                          WHEN kedudukan_keluarga = 'Saudara' THEN 8
                          ELSE 9
                      END")
-                     ->orderBy('tanggal_lahir', 'asc')
-                     ->get();
+                     ->orderBy('tanggal_lahir', 'asc');
+    }
+
+    public function chunkSize(): int
+    {
+        return 500;
     }
 
     public function title(): string
@@ -118,6 +174,16 @@ class PendudukExport implements FromCollection, WithHeadings, WithMapping, WithS
 
     public function headings(): array
     {
+        if ($this->isDynamic) {
+            $headers = [];
+            foreach ($this->selectedColumns as $col) {
+                if (isset($this->availableColumns[$col])) {
+                    $headers[] = $this->availableColumns[$col]['header'];
+                }
+            }
+            return [$headers];
+        }
+
         return [
             [
                 'NOMOR URUT',
@@ -161,6 +227,16 @@ class PendudukExport implements FromCollection, WithHeadings, WithMapping, WithS
     public function map($penduduk): array
     {
         $this->rowNumber++;
+
+        if ($this->isDynamic) {
+            $row = [];
+            foreach ($this->selectedColumns as $col) {
+                if (isset($this->availableColumns[$col])) {
+                    $row[] = $this->availableColumns[$col]['map']($penduduk, $this->rowNumber);
+                }
+            }
+            return $row;
+        }
 
         return [
             $this->rowNumber, // A
@@ -218,6 +294,12 @@ class PendudukExport implements FromCollection, WithHeadings, WithMapping, WithS
             ]
         ];
 
+        if ($this->isDynamic) {
+            return [
+                1 => $style,
+            ];
+        }
+
         return [
             1 => $style,
             2 => $style,
@@ -231,43 +313,75 @@ class PendudukExport implements FromCollection, WithHeadings, WithMapping, WithS
                 $sheet = $event->sheet->getDelegate();
                 $highestRow = $sheet->getHighestRow();
                 $highestColumn = $sheet->getHighestColumn();
-
-                // Merge specific header columns (rowspan=2)
-                $columnsToMerge = ['A', 'B', 'C', 'D', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'AA', 'AB'];
-                foreach ($columnsToMerge as $col) {
-                    $sheet->mergeCells($col . '1:' . $col . '2');
-                }
-                
-                // Merge TEMPAT & TANGGAL LAHIR (colspan=2)
-                $sheet->mergeCells('E1:F1');
-
-                // Auto-fit column widths
                 $highestColumnIndex = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($highestColumn);
-                for ($col = 1; $col <= $highestColumnIndex; $col++) {
-                    $column = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col);
-                    $sheet->getColumnDimension($column)->setAutoSize(true);
+
+                if ($this->isDynamic) {
+                    // Auto-fit column widths
+                    for ($col = 1; $col <= $highestColumnIndex; $col++) {
+                        $column = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col);
+                        $sheet->getColumnDimension($column)->setAutoSize(true);
+                    }
+
+                    $sheet->getRowDimension(1)->setRowHeight(25);
+
+                    // Add borders
+                    $sheet->getStyle('A1:' . $highestColumn . $highestRow)
+                        ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+
+                    // Center align data cells
+                    $sheet->getStyle('A2:' . $highestColumn . $highestRow)
+                        ->getAlignment()
+                        ->setHorizontal(Alignment::HORIZONTAL_CENTER)
+                        ->setVertical(Alignment::VERTICAL_CENTER);
+
+                    // Format text columns (like NIK, NKK)
+                    $colIndex = 1;
+                    foreach ($this->selectedColumns as $col) {
+                        if (isset($this->availableColumns[$col]) && isset($this->availableColumns[$col]['is_text']) && $this->availableColumns[$col]['is_text']) {
+                            $columnLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex);
+                            $sheet->getStyle($columnLetter . '2:' . $columnLetter . $highestRow)->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_TEXT);
+                        }
+                        $colIndex++;
+                    }
+
+                    $sheet->freezePane('A2');
+                } else {
+                    // Merge specific header columns (rowspan=2)
+                    $columnsToMerge = ['A', 'B', 'C', 'D', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'AA', 'AB'];
+                    foreach ($columnsToMerge as $col) {
+                        $sheet->mergeCells($col . '1:' . $col . '2');
+                    }
+                    
+                    // Merge TEMPAT & TANGGAL LAHIR (colspan=2)
+                    $sheet->mergeCells('E1:F1');
+
+                    // Auto-fit column widths
+                    for ($col = 1; $col <= $highestColumnIndex; $col++) {
+                        $column = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col);
+                        $sheet->getColumnDimension($column)->setAutoSize(true);
+                    }
+
+                    // Header rows height
+                    $sheet->getRowDimension(1)->setRowHeight(25);
+                    $sheet->getRowDimension(2)->setRowHeight(20);
+
+                    // Add borders to all data cells
+                    $sheet->getStyle('A1:' . $highestColumn . $highestRow)
+                        ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+
+                    // Center align all data cells
+                    $sheet->getStyle('A3:' . $highestColumn . $highestRow)
+                        ->getAlignment()
+                        ->setHorizontal(Alignment::HORIZONTAL_CENTER)
+                        ->setVertical(Alignment::VERTICAL_CENTER);
+
+                    // Format NIK (P) and KK (Q) as text
+                    $sheet->getStyle('P3:P' . $highestRow)->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_TEXT);
+                    $sheet->getStyle('Q3:Q' . $highestRow)->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_TEXT);
+
+                    // Freeze below headers
+                    $sheet->freezePane('A3');
                 }
-
-                // Header rows height
-                $sheet->getRowDimension(1)->setRowHeight(25);
-                $sheet->getRowDimension(2)->setRowHeight(20);
-
-                // Add borders to all data cells
-                $sheet->getStyle('A1:' . $highestColumn . $highestRow)
-                    ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-
-                // Center align all data cells
-                $sheet->getStyle('A3:' . $highestColumn . $highestRow)
-                    ->getAlignment()
-                    ->setHorizontal(Alignment::HORIZONTAL_CENTER)
-                    ->setVertical(Alignment::VERTICAL_CENTER);
-
-                // Format NIK (P) and KK (Q) as text
-                $sheet->getStyle('P3:P' . $highestRow)->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_TEXT);
-                $sheet->getStyle('Q3:Q' . $highestRow)->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_TEXT);
-
-                // Freeze below headers
-                $sheet->freezePane('A3');
             },
         ];
     }

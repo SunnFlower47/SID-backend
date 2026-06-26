@@ -3,14 +3,15 @@
 namespace App\Exports;
 
 use App\Models\PenerimaBantuanSosial;
-use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\FromQuery;
+use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithColumnWidths;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class PenerimaBantuanSosialExport implements FromCollection, WithHeadings, WithMapping, WithStyles, WithColumnWidths
+class PenerimaBantuanSosialExport implements FromQuery, WithChunkReading, WithHeadings, WithMapping, WithStyles, WithColumnWidths
 {
     protected $filters;
 
@@ -19,7 +20,7 @@ class PenerimaBantuanSosialExport implements FromCollection, WithHeadings, WithM
         $this->filters = $filters;
     }
 
-    public function collection()
+    public function query()
     {
         $query = PenerimaBantuanSosial::with(['penduduk', 'bantuanSosial']);
 
@@ -39,7 +40,12 @@ class PenerimaBantuanSosialExport implements FromCollection, WithHeadings, WithM
             });
         }
 
-        return $query->get();
+        return $query;
+    }
+
+    public function chunkSize(): int
+    {
+        return 500;
     }
 
     public function headings(): array
