@@ -3,14 +3,15 @@
 namespace App\Exports;
 
 use App\Models\SuratPengajuan;
-use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\FromQuery;
+use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithColumnWidths;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class SuratPengajuanExport implements FromCollection, WithHeadings, WithMapping, WithStyles, WithColumnWidths
+class SuratPengajuanExport implements FromQuery, WithChunkReading, WithHeadings, WithMapping, WithStyles, WithColumnWidths
 {
     protected $filters;
 
@@ -19,7 +20,7 @@ class SuratPengajuanExport implements FromCollection, WithHeadings, WithMapping,
         $this->filters = $filters;
     }
 
-    public function collection()
+    public function query()
     {
         $query = SuratPengajuan::with(['penduduk']);
 
@@ -39,7 +40,12 @@ class SuratPengajuanExport implements FromCollection, WithHeadings, WithMapping,
             $query->whereMonth('created_at', $this->filters['bulan']);
         }
 
-        return $query->get();
+        return $query;
+    }
+
+    public function chunkSize(): int
+    {
+        return 500;
     }
 
     public function headings(): array

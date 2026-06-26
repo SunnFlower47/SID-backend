@@ -3,7 +3,8 @@
 namespace App\Exports;
 
 use App\Models\Penduduk;
-use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\FromQuery;
+use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
@@ -14,12 +15,9 @@ use Maatwebsite\Excel\Events\AfterSheet;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 
-class AllPendudukExport implements FromCollection, WithHeadings, WithMapping, WithStyles, WithColumnWidths, WithEvents, WithColumnFormatting
+class AllPendudukExport implements FromQuery, WithChunkReading, WithHeadings, WithMapping, WithStyles, WithColumnWidths, WithEvents, WithColumnFormatting
 {
-    /**
-    * @return \Illuminate\Support\Collection
-    */
-    public function collection()
+    public function query()
     {
         return Penduduk::with('kartuKeluarga.rtMaster', 'kartuKeluarga.rwMaster', 'kartuKeluarga.dusunMaster')
             ->orderBy('kartu_keluarga_id')
@@ -33,8 +31,12 @@ class AllPendudukExport implements FromCollection, WithHeadings, WithMapping, Wi
                 WHEN kedudukan_keluarga = 'Famili Lain' THEN 7
                 ELSE 8
             END")
-            ->orderBy('nama')
-            ->get();
+            ->orderBy('nama');
+    }
+
+    public function chunkSize(): int
+    {
+        return 500;
     }
 
     public function headings(): array

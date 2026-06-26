@@ -11,6 +11,13 @@ Route::middleware([])->group(function () {
     // Penduduk routes
     Route::prefix('penduduk')->name('penduduk.')->controller(PendudukController::class)->group(function () {
         Route::get('/export/excel', 'exportExcel')->name('export.excel');
+        Route::get('/export-dinamis', function () {
+            return inertia('Tenant/Penduduk/ExportDinamis', [
+                'rtList'    => \App\Models\Rt::orderBy('kode')->get(),
+                'rwList'    => \App\Models\Rw::orderBy('kode')->get(),
+                'dusunList' => \App\Models\Dusun::orderBy('nama')->get(),
+            ]);
+        })->name('export-dinamis.index');
         Route::get('/check-nik', 'checkNIKExists')->name('check-nik');
         Route::get('/search', 'search')->name('search');
         Route::get('/family/{nkk}/address', 'showFamilyAddressForm')->name('family.address.form');
