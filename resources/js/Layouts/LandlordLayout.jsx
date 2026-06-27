@@ -16,8 +16,7 @@ import {
     ChevronLeft,
     ChevronRight,
     Bell,
-    UserRound,
-    Lock
+    ChevronDown
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Swal from 'sweetalert2';
@@ -131,48 +130,48 @@ export default function LandlordLayout({ children }) {
     const activeMenu = menuItems.find(item => item.active)?.name || 'Central Panel';
 
     return (
-        <div className="min-h-screen bg-slate-50/50 flex w-full overflow-hidden font-sans">
+        <div className="min-h-screen bg-[#f8fafc] flex w-full overflow-hidden font-sans antialiased">
             {/* Mobile Navigation Header */}
-            <header className="md:hidden fixed top-0 left-0 right-0 h-16 flex items-center justify-between px-6 bg-slate-950 text-white border-b border-slate-900 z-50 shadow-md">
+            <header className="md:hidden fixed top-0 left-0 right-0 h-16 flex items-center justify-between px-6 bg-[#0f172a] text-white border-b border-slate-900 z-50 shadow-sm">
                 <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30">
-                        <Radio className="w-5 h-5 animate-pulse" />
+                    <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/20">
+                        <Radio className="w-4 h-4 animate-pulse" />
                     </div>
-                    <span className="font-black text-lg text-white tracking-tight">
-                        DESA<span className="text-indigo-400 font-extrabold">SAAS</span>
+                    <span className="font-extrabold text-base tracking-tight">
+                        DESA<span className="text-indigo-400">SAAS</span>
                     </span>
                 </div>
                 <button 
                     onClick={() => setSidebarOpen(!sidebarOpen)}
-                    className="p-2 hover:bg-slate-900 rounded-lg transition-colors text-slate-350"
+                    className="p-2 hover:bg-slate-900 rounded-xl transition-colors text-slate-400 hover:text-white"
                 >
-                    {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                    {sidebarOpen ? <X className="w-5.5 h-5.5" /> : <Menu className="w-5.5 h-5.5" />}
                 </button>
             </header>
 
             {/* Mobile Sidebar Overlay */}
             {sidebarOpen && (
                 <div 
-                    className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-[90] md:hidden transition-all duration-300"
+                    className="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[90] md:hidden transition-all duration-300"
                     onClick={() => setSidebarOpen(false)}
                 />
             )}
 
             {/* Sidebar (Desktop & Mobile Drawer) */}
             <aside className={cn(
-                "fixed inset-y-0 left-0 z-[100] bg-slate-950 text-slate-300 border-r border-slate-900/60 flex flex-col transition-all duration-300 ease-in-out md:sticky md:top-0 md:h-screen md:flex shrink-0",
-                collapsed ? "w-20" : "w-64",
+                "fixed inset-y-0 left-0 z-[100] bg-[#0f172a] text-slate-350 border-r border-slate-900/40 flex flex-col transition-all duration-300 ease-in-out md:sticky md:top-0 md:h-screen md:flex shrink-0",
+                collapsed ? "w-20" : "w-60",
                 sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
             )}>
                 {/* Logo Section */}
-                <div className="h-20 flex items-center justify-between px-6 border-b border-slate-900/60 shrink-0">
-                    <div className="flex items-center gap-3 overflow-hidden">
-                        <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-600/30 shrink-0">
-                            <Radio className="w-5 h-5 animate-pulse" />
+                <div className="h-16 flex items-center justify-between px-5 border-b border-slate-900/40 shrink-0">
+                    <div className="flex items-center gap-2.5 overflow-hidden">
+                        <div className="w-8.5 h-8.5 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-600/25 shrink-0">
+                            <Radio className="w-4.5 h-4.5 animate-pulse" />
                         </div>
                         {!collapsed && (
-                            <span className="font-black text-lg text-white tracking-tight animate-in fade-in duration-300 whitespace-nowrap">
-                                DESA<span className="text-indigo-400 font-black">SAAS</span>
+                            <span className="font-black text-base text-white tracking-tight animate-in fade-in duration-300 whitespace-nowrap">
+                                DESA<span className="text-indigo-400 font-extrabold">SAAS</span>
                             </span>
                         )}
                     </div>
@@ -180,14 +179,14 @@ export default function LandlordLayout({ children }) {
                     {/* Sidebar Toggle Button (Desktop Only) */}
                     <button 
                         onClick={toggleSidebar}
-                        className="hidden md:flex items-center justify-center w-7 h-7 bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white rounded-lg border border-slate-800/80 transition-colors shrink-0"
+                        className="hidden md:flex items-center justify-center w-6 h-6 bg-slate-900/80 hover:bg-slate-800 text-slate-500 hover:text-white rounded-lg border border-slate-800 transition-all shrink-0"
                     >
-                        {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+                        {collapsed ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronLeft className="w-3.5 h-3.5" />}
                     </button>
                 </div>
 
                 {/* Sidebar Navigation */}
-                <nav className="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto custom-scrollbar">
+                <nav className="flex-1 px-3 py-5 space-y-1 overflow-y-auto custom-scrollbar">
                     {menuItems.filter(item => item.show).map((item) => {
                         const Icon = item.icon;
                         return (
@@ -196,19 +195,26 @@ export default function LandlordLayout({ children }) {
                                 href={item.href}
                                 onClick={() => setSidebarOpen(false)}
                                 className={cn(
-                                    "flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all duration-300 group relative",
+                                    "flex items-center gap-3 px-3.5 py-3 rounded-xl text-xs font-bold transition-all duration-200 group relative",
                                     item.active
-                                        ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/25 scale-[1.02]'
-                                        : 'hover:bg-slate-900 hover:text-slate-200 text-slate-400'
+                                        ? 'bg-indigo-500/5 text-white'
+                                        : 'hover:bg-slate-900/50 hover:text-slate-200 text-slate-400'
                                 )}
                                 title={collapsed ? item.name : undefined}
                             >
-                                <Icon className={cn("w-5 h-5 shrink-0 transition-transform duration-300 group-hover:scale-105", item.active ? "text-white" : "text-slate-450 group-hover:text-indigo-400")} />
+                                {/* Left Indicator Line */}
+                                {item.active && (
+                                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.75 h-5 bg-indigo-500 rounded-r" />
+                                )}
+                                
+                                <Icon className={cn("w-4.5 h-4.5 shrink-0 transition-all duration-200", item.active ? "text-indigo-400" : "text-slate-500 group-hover:text-slate-300")} />
+                                
                                 {!collapsed && (
                                     <span className="animate-in fade-in duration-300 whitespace-nowrap truncate">{item.name}</span>
                                 )}
+                                
                                 {collapsed && (
-                                    <div className="absolute left-full ml-4 px-3 py-1.5 bg-slate-950 text-white text-xs font-black uppercase tracking-wider rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap border border-slate-800 shadow-xl z-50">
+                                    <div className="absolute left-full ml-4 px-2.5 py-1.5 bg-slate-950 text-white text-[10px] font-black uppercase tracking-wider rounded-lg opacity-0 group-hover:opacity-100 transition-all pointer-events-none whitespace-nowrap border border-slate-800 shadow-xl z-50">
                                         {item.name}
                                     </div>
                                 )}
@@ -219,14 +225,14 @@ export default function LandlordLayout({ children }) {
 
                 {/* User Profile Summary (When Sidebar is Expanded) */}
                 {!collapsed && (
-                    <div className="p-4 border-t border-slate-900/60 shrink-0">
-                        <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-slate-900/40 border border-slate-900/60">
-                            <div className="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center text-slate-350 font-bold border border-slate-800 shrink-0 select-none">
+                    <div className="p-3 border-t border-slate-900/40 shrink-0">
+                        <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-slate-900/30 border border-slate-900/40">
+                            <div className="w-8 h-8 rounded-lg bg-indigo-600/10 text-indigo-400 font-black text-xs flex items-center justify-center border border-indigo-500/20 shrink-0 select-none">
                                 {auth?.user?.name ? auth.user.name.charAt(0).toUpperCase() : 'A'}
                             </div>
                             <div className="flex-1 min-w-0">
-                                <p className="text-xs font-black text-white truncate uppercase tracking-tight">{auth?.user?.name || 'Super Admin'}</p>
-                                <p className="text-[10px] text-indigo-400 font-bold uppercase tracking-wider mt-0.5">Diskominfo</p>
+                                <p className="text-[11px] font-bold text-slate-200 truncate uppercase tracking-tight">{auth?.user?.name || 'Super Admin'}</p>
+                                <p className="text-[9px] text-slate-500 font-medium tracking-wider mt-0.5">Diskominfo Central</p>
                             </div>
                         </div>
                     </div>
@@ -236,18 +242,19 @@ export default function LandlordLayout({ children }) {
             {/* Main Area */}
             <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden pt-16 md:pt-0">
                 {/* Desktop Header Navbar */}
-                <header className="hidden md:flex h-20 items-center justify-between px-8 bg-white border-b border-gray-100 shadow-sm shrink-0 sticky top-0 z-40 backdrop-blur-md bg-white/80">
-                    {/* Left: Section Title */}
-                    <div>
-                        <h1 className="text-base font-black text-gray-950 uppercase tracking-tight leading-none italic">{activeMenu}</h1>
-                        <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest mt-1">Diskominfo Central Panel</p>
+                <header className="hidden md:flex h-16 items-center justify-between px-8 bg-white border-b border-slate-100 shrink-0 sticky top-0 z-40 backdrop-blur-md bg-white/70">
+                    {/* Left: Breadcrumbs */}
+                    <div className="flex items-center gap-2 text-xs font-bold text-slate-400 select-none">
+                        <span className="uppercase tracking-wider">SaaS Central</span>
+                        <span className="text-slate-300 font-normal">/</span>
+                        <span className="text-slate-800 uppercase tracking-tight font-black">{activeMenu}</span>
                     </div>
 
-                    {/* Right: User Menu */}
-                    <div className="flex items-center gap-4">
+                    {/* Right: Actions */}
+                    <div className="flex items-center gap-3">
                         <Link 
                             href={route('landlord.monitoring.index')}
-                            className="p-3 bg-gray-50 hover:bg-indigo-50 border border-gray-100 hover:border-transparent text-gray-400 hover:text-indigo-600 rounded-2xl transition-all shadow-sm"
+                            className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50/50 rounded-xl transition-all"
                             title="Pemantauan Sistem"
                         >
                             <Activity className="w-4.5 h-4.5" />
@@ -258,43 +265,40 @@ export default function LandlordLayout({ children }) {
                             <button
                                 onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
                                 className={cn(
-                                    "flex items-center gap-2.5 p-2 bg-gray-50 border border-gray-100 rounded-2xl hover:bg-indigo-50/50 hover:border-indigo-100 transition-all shadow-sm group",
-                                    profileDropdownOpen && "bg-indigo-50/50 border-indigo-100 shadow-md"
+                                    "flex items-center gap-2 p-1 bg-slate-50 hover:bg-slate-100/80 rounded-xl transition-all group",
+                                    profileDropdownOpen && "bg-slate-100"
                                 )}
                             >
-                                <div className="w-8 h-8 rounded-xl bg-indigo-600 text-white font-black text-xs flex items-center justify-center shadow-lg shadow-indigo-600/25 group-hover:scale-105 transition-transform select-none">
+                                <div className="w-7 h-7 rounded-lg bg-indigo-600 text-white font-black text-[11px] flex items-center justify-center shadow-md shadow-indigo-600/10 group-hover:scale-105 transition-transform select-none">
                                     {auth?.user?.name ? auth.user.name.charAt(0).toUpperCase() : 'A'}
                                 </div>
-                                <div className="text-left hidden lg:block pr-1 select-none">
-                                    <p className="text-xs font-black text-gray-900 leading-none">{auth?.user?.name || 'Super Admin'}</p>
-                                    <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mt-0.5">Diskominfo</p>
-                                </div>
+                                <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600 mr-1 shrink-0" />
                             </button>
 
                             {/* Dropdown Menu */}
                             {profileDropdownOpen && (
-                                <div className="absolute right-0 mt-3 w-56 bg-white border border-gray-100 rounded-3xl shadow-2xl z-50 p-2 animate-in fade-in slide-in-from-top-2 duration-200">
-                                    <div className="px-4 py-3 border-b border-gray-50">
-                                        <p className="text-xs font-black text-gray-950 uppercase tracking-tight truncate leading-none">{auth?.user?.name || 'Super Admin'}</p>
-                                        <p className="text-[10px] text-gray-400 font-bold mt-1 truncate">{auth?.user?.email || 'admin@diskominfo.go.id'}</p>
+                                <div className="absolute right-0 mt-2.5 w-52 bg-white border border-slate-100 rounded-2xl shadow-xl z-50 p-1.5 animate-in fade-in slide-in-from-top-1 duration-150">
+                                    <div className="px-3 py-2 border-b border-slate-50">
+                                        <p className="text-xs font-black text-slate-900 uppercase tracking-tight truncate leading-none">{auth?.user?.name || 'Super Admin'}</p>
+                                        <p className="text-[10px] text-slate-400 font-medium mt-1 truncate">{auth?.user?.email || 'admin@diskominfo.go.id'}</p>
                                     </div>
-                                    <div className="p-1 space-y-1">
+                                    <div className="p-1 space-y-0.5">
                                         <Link
                                             href={route('landlord.settings.index')}
                                             onClick={() => setProfileDropdownOpen(false)}
-                                            className="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-bold text-gray-750 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+                                            className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors"
                                         >
-                                            <Settings className="w-4 h-4 text-gray-450" />
-                                            Pengaturan Sistem
+                                            <Settings className="w-4 h-4 text-slate-400" />
+                                            Pengaturan
                                         </Link>
                                     </div>
-                                    <div className="p-1 border-t border-gray-50">
+                                    <div className="p-1 border-t border-slate-50">
                                         <button
                                             onClick={handleLogout}
-                                            className="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-bold text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                                            className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-red-650 hover:bg-red-50 transition-colors cursor-pointer"
                                         >
                                             <LogOut className="w-4 h-4" />
-                                            Keluar Sesi (Log Out)
+                                            Log Out
                                         </button>
                                     </div>
                                 </div>
@@ -304,7 +308,7 @@ export default function LandlordLayout({ children }) {
                 </header>
 
                 {/* Main Scrollable Content */}
-                <main className="flex-1 overflow-y-auto p-6 md:p-10 custom-scrollbar">
+                <main className="flex-1 overflow-y-auto p-6 md:p-8 custom-scrollbar">
                     <div className="mx-auto max-w-[85rem] w-full">
                         {children}
                     </div>
