@@ -51,7 +51,7 @@ return [
          * Connection used as a "template" for the dynamically created tenant database connection.
          * Note: don't name your template connection tenant. That name is reserved by package.
          */
-        'template_tenant_connection' => null,
+        'template_tenant_connection' => env('TENANT_DB_CONNECTION', null),
 
         /**
          * Tenant database names are created like this:
