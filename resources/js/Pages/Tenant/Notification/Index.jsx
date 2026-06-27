@@ -109,10 +109,9 @@ export default function NotificationIndex({ notifications, unreadCount, totalCou
                                                 {notif.time}
                                             </span>
                                         </div>
-                                        <div 
-                                            className="text-sm text-gray-600 font-medium line-clamp-2 prose prose-slate max-w-none"
-                                            dangerouslySetInnerHTML={{ __html: notif.message }}
-                                        />
+                                        <p className="text-sm text-gray-600 font-medium line-clamp-2 leading-relaxed">
+                                            {notif.type === 'announcement' ? notif.message.replace(/<[^>]*>/g, '') : notif.message}
+                                        </p>
                                         
                                         <div className="mt-2 flex items-center gap-2">
                                             <span className={cn(

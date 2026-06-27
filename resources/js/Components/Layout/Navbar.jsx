@@ -273,7 +273,9 @@ export default function Navbar({ toggleMobileSidebar, toggleDesktopSidebar, side
                                                                     <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
                                                                 )}
                                                             </p>
-                                                            <p className="text-[11px] font-medium text-gray-500 mt-0.5 line-clamp-2 leading-relaxed">{notif.message}</p>
+                                                            <p className="text-[11px] font-medium text-gray-500 mt-0.5 line-clamp-2 leading-relaxed">
+                                                                {notif.type === 'announcement' ? notif.message.replace(/<[^>]*>/g, '') : notif.message}
+                                                            </p>
                                                             <p className="text-[9px] font-black text-gray-400 mt-2 flex items-center gap-2">
                                                                 <Clock className="w-3 h-3 text-green-600" />
                                                                 <span>{notif.time || notif.created_at_label || 'Baru saja'}</span>
