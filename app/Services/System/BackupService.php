@@ -15,7 +15,11 @@ class BackupService
      */
     public function getBackupDir(): string
     {
-        return config('backup.backup.name') ?? 'Laravel';
+        $base = config('backup.backup.name') ?? 'Laravel';
+        if (function_exists('tenant') && tenant('id')) {
+            return $base . '/tenants/' . tenant('id');
+        }
+        return $base;
     }
 
     /**
@@ -25,6 +29,13 @@ class BackupService
     {
         $backupDir   = $this->getBackupDir();
         $backupFiles = collect();
+
+        // Automatically create tenant folder if it doesn't exist
+        if (function_exists('tenant') && tenant('id')) {
+            if (!Storage::disk('local')->exists($backupDir)) {
+                Storage::disk('local')->makeDirectory($backupDir);
+            }
+        }
 
         if (Storage::disk('local')->exists($backupDir)) {
             $files = Storage::disk('local')->files($backupDir);
@@ -83,6 +94,13 @@ class BackupService
      */
     public function createBackup(string $type, ?string $customName = null): void
     {
+        $dir = $this->getBackupDir();
+        config(['backup.backup.name' => $dir]);
+
+        if (function_exists('tenant') && tenant('id')) {
+            $type = 'database';
+        }
+
         $backupName = $customName ?: 'backup_' . now()->format('Y-m-d_H-i-s');
 
         switch ($type) {
@@ -326,6 +344,7 @@ class BackupService
      */
     public function cleanBackups(): void
     {
+        config(['backup.backup.name' => $this->getBackupDir()]);
         Artisan::call('backup:clean');
     }
 }

@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import LandlordLayout from '@/Layouts/LandlordLayout';
 import { PageHeader, FormCard, FormField, TableCard, DataTable, Badge, Modal } from '@/Components/Shared';
-import { Settings, Save, User, HardDrive, Phone, Lock, Globe, ShieldCheck, Plus, Edit2, Trash2 } from 'lucide-react';
+import { Settings, Save, User, HardDrive, Phone, Lock, Globe, ShieldCheck, Plus, Edit2, Trash2, Database, History, RotateCcw, Download, Play, Files, PieChart, Archive, FileArchive, Clock, Weight, Inbox } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Swal from 'sweetalert2';
 
-export default function Index({ settings, user, roles }) {
+export default function Index({ settings, user, roles, backupFiles = [], diskSpace = {}, stats = {} }) {
     const { flash } = usePage().props;
     const [activeTab, setActiveTab] = useState('system');
 
@@ -122,6 +122,71 @@ export default function Index({ settings, user, roles }) {
         });
     };
 
+    const handleCreateBackup = (type) => {
+        Swal.fire({
+            title: 'Mulai Backup SaaS?',
+            text: type === 'full' 
+                ? 'Mencadangkan database central + seluruh desa + seluruh file sistem. Proses ini memerlukan waktu beberapa saat.'
+                : type === 'files'
+                ? 'Hanya mencadangkan berkas sistem & dokumen upload (tanpa database).'
+                : 'Mencadangkan database central dan seluruh database desa (tanpa file sistem).',
+            icon: 'info',
+            showCancelButton: true,
+            confirmButtonColor: '#4f46e5',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'Ya, Mulai Backup',
+            cancelButtonText: 'Batal',
+            showLoaderOnConfirm: true,
+            preConfirm: () => {
+                return new Promise((resolve) => {
+                    router.post(route('landlord.settings.backup.create'), { type }, {
+                        onFinish: () => resolve(),
+                        preserveScroll: true
+                    });
+                });
+            },
+            allowOutsideClick: () => !Swal.isLoading()
+        });
+    };
+
+    const handleDeleteBackup = (filename) => {
+        Swal.fire({
+            title: 'Hapus Berkas Backup?',
+            text: `Berkas backup "${filename}" akan dihapus permanen dari server.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'Ya, Hapus!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                router.delete(route('landlord.settings.backup.destroy', filename), {
+                    preserveScroll: true
+                });
+            }
+        });
+    };
+
+    const formatBytes = (bytes, decimals = 2) => {
+        if (!+bytes) return '0 Bytes';
+        const k = 1024;
+        const dm = decimals < 0 ? 0 : decimals;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
+    };
+
+    const diskPercentage = diskSpace?.percentage || 0;
+    const diskUsed = diskSpace?.used || 0;
+    const diskFree = diskSpace?.free || 0;
+    const totalFilesCount = stats?.total_files || 0;
+    const totalFilesSize = stats?.total_size || 0;
+
+    const diskSpaceColor = diskPercentage > 90 ? 'bg-red-500' 
+                         : diskPercentage > 75 ? 'bg-amber-500' 
+                         : 'bg-emerald-500';
+
     const submit = (e) => {
         e.preventDefault();
         put(route('landlord.settings.update'), {
@@ -135,6 +200,7 @@ export default function Index({ settings, user, roles }) {
         { id: 'system', label: 'Sistem & Alokasi', icon: HardDrive },
         { id: 'profile', label: 'Profil & Keamanan', icon: User },
         { id: 'roles', label: 'Manajemen Role', icon: ShieldCheck },
+        { id: 'backup', label: 'Sistem Backup', icon: Database },
     ];
 
     const roleColumns = [
@@ -431,8 +497,210 @@ export default function Index({ settings, user, roles }) {
                             </div>
                         )}
 
+                        {/* Tab 4: Backup System */}
+                        {activeTab === 'backup' && (
+                            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                    {/* Storage & Stats */}
+                                    <div className="lg:col-span-1 space-y-6">
+                                        {/* Disk Capacity */}
+                                        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 relative overflow-hidden">
+                                            <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider flex items-center mb-4">
+                                                <HardDrive className="w-4 h-4 mr-2 text-indigo-600" />
+                                                Disk Server SaaS
+                                            </h3>
+                                            <div className="mb-2 flex justify-between items-end">
+                                                <span className="text-3xl font-black text-gray-900 leading-none">
+                                                    {diskPercentage}%
+                                                </span>
+                                                <span className="text-xs font-bold text-gray-500 uppercase">Terpakai</span>
+                                            </div>
+                                            <div className="w-full bg-gray-100 rounded-full h-3 mb-4 overflow-hidden">
+                                                <div className={`h-3 rounded-full ${diskSpaceColor} transition-all duration-1000`} style={{ width: `${diskPercentage}%` }}></div>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-4 text-xs">
+                                                <div>
+                                                    <p className="text-gray-500 font-medium uppercase tracking-wider mb-0.5">Digunakan</p>
+                                                    <p className="font-bold text-gray-900">{formatBytes(diskUsed)}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-gray-500 font-medium uppercase tracking-wider mb-0.5">Sisa Ruang</p>
+                                                    <p className="font-bold text-gray-900">{formatBytes(diskFree)}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Quick Stats */}
+                                        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
+                                            <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider mb-4 flex items-center">
+                                                <PieChart className="w-4 h-4 mr-2 text-indigo-600" />
+                                                Statistik Backup SaaS
+                                            </h3>
+                                            <div className="space-y-4">
+                                                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-2xl">
+                                                    <div className="flex items-center">
+                                                        <div className="w-8 h-8 rounded-xl bg-indigo-100 flex items-center justify-center mr-3">
+                                                            <Files className="w-4 h-4 text-indigo-600" />
+                                                        </div>
+                                                        <span className="text-xs font-bold text-gray-600 uppercase">Total Berkas</span>
+                                                    </div>
+                                                    <span className="font-black text-gray-900">{totalFilesCount}</span>
+                                                </div>
+                                                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-2xl">
+                                                    <div className="flex items-center">
+                                                        <div className="w-8 h-8 rounded-xl bg-purple-100 flex items-center justify-center mr-3">
+                                                            <Weight className="w-4 h-4 text-purple-600" />
+                                                        </div>
+                                                        <span className="text-xs font-bold text-gray-600 uppercase">Total Ukuran</span>
+                                                    </div>
+                                                    <span className="font-black text-gray-900">{formatBytes(totalFilesSize)}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Action & Table List */}
+                                    <div className="lg:col-span-2 space-y-6">
+                                        {/* Actions */}
+                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                            <button
+                                                type="button"
+                                                onClick={() => handleCreateBackup('database')}
+                                                className="group relative overflow-hidden bg-white rounded-3xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition-all text-left"
+                                            >
+                                                <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center mb-3">
+                                                    <Database className="w-5 h-5" />
+                                                </div>
+                                                <h4 className="font-black text-gray-950 uppercase italic tracking-tight text-xs mb-1">Backup Database</h4>
+                                                <p className="text-[10px] text-gray-500 leading-relaxed">Backup database pusat & seluruh database desa-desa.</p>
+                                            </button>
+
+                                            <button
+                                                type="button"
+                                                onClick={() => handleCreateBackup('files')}
+                                                className="group relative overflow-hidden bg-white rounded-3xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition-all text-left"
+                                            >
+                                                <div className="w-10 h-10 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center mb-3">
+                                                    <Files className="w-5 h-5" />
+                                                </div>
+                                                <h4 className="font-black text-gray-950 uppercase italic tracking-tight text-xs mb-1">Backup Storage</h4>
+                                                <p className="text-[10px] text-gray-500 leading-relaxed">Mencadangkan seluruh berkas upload & dokumen warga.</p>
+                                            </button>
+
+                                            <button
+                                                type="button"
+                                                onClick={() => handleCreateBackup('full')}
+                                                className="group relative overflow-hidden bg-white rounded-3xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition-all text-left"
+                                            >
+                                                <div className="w-10 h-10 bg-pink-50 text-pink-600 rounded-xl flex items-center justify-center mb-3">
+                                                    <Archive className="w-5 h-5" />
+                                                </div>
+                                                <h4 className="font-black text-gray-950 uppercase italic tracking-tight text-xs mb-1">Backup Full SaaS</h4>
+                                                <p className="text-[10px] text-gray-500 leading-relaxed">Gabungan database dan seluruh file sistem aplikasi.</p>
+                                            </button>
+                                        </div>
+
+                                        {/* Riwayat Backup */}
+                                        <TableCard
+                                            title="Riwayat Backup SaaS"
+                                            icon={History}
+                                            total={backupFiles.length}
+                                            totalLabel="Berkas"
+                                            noPadding
+                                        >
+                                            <div className="overflow-x-auto">
+                                                <table className="w-full text-sm text-left">
+                                                    <thead className="bg-gray-50/50 text-gray-500 text-xs uppercase font-bold tracking-wider">
+                                                        <tr>
+                                                            <th className="px-6 py-4 whitespace-nowrap">Info Berkas</th>
+                                                            <th className="px-6 py-4">Tipe & Ukuran</th>
+                                                            <th className="px-6 py-4 text-center">Aksi</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody className="divide-y divide-gray-100">
+                                                        {backupFiles.length > 0 ? (
+                                                            backupFiles.map((backup, index) => {
+                                                                const isFull = backup.name.includes('full');
+                                                                const isDb = backup.name.includes('database') || backup.name.includes('only-db');
+                                                                const isFiles = backup.name.includes('files') || backup.name.includes('only-files');
+                                                                const typeLabel = isFull ? 'Full Backup' : (isDb ? 'Database' : (isFiles ? 'Storage' : 'Backup'));
+                                                                const badgeColor = isFull ? 'bg-pink-100 text-pink-700 border-pink-200' 
+                                                                                 : isDb ? 'bg-indigo-100 text-indigo-700 border-indigo-200'
+                                                                                 : 'bg-purple-100 text-purple-700 border-purple-200';
+
+                                                                return (
+                                                                    <tr key={index} className="hover:bg-gray-50/50 transition-colors">
+                                                                        <td className="px-6 py-4">
+                                                                            <div className="flex items-start">
+                                                                                <FileArchive className="w-5 h-5 text-gray-400 mr-3 mt-0.5 shrink-0" />
+                                                                                <div>
+                                                                                    <div className="font-bold text-gray-900 truncate max-w-[150px] sm:max-w-xs" title={backup.name}>
+                                                                                        {backup.name}
+                                                                                    </div>
+                                                                                    <div className="text-[10px] text-gray-400 font-bold mt-1 flex items-center">
+                                                                                        <Clock className="w-3.5 h-3.5 mr-1 text-gray-300" />
+                                                                                        {backup.created_at ? new Date(backup.created_at).toLocaleString('id-ID', {
+                                                                                            day: 'numeric', month: 'short', year: 'numeric',
+                                                                                            hour: '2-digit', minute: '2-digit'
+                                                                                        }) : 'Unknown'}
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        </td>
+                                                                        <td className="px-6 py-4">
+                                                                            <div className="flex flex-col items-start gap-1">
+                                                                                <span className={`inline-flex items-center px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider border ${badgeColor}`}>
+                                                                                    {typeLabel}
+                                                                                </span>
+                                                                                <span className="text-[11px] font-bold text-gray-500 font-mono">
+                                                                                    {formatBytes(backup.size)}
+                                                                                </span>
+                                                                            </div>
+                                                                        </td>
+                                                                        <td className="px-6 py-4 text-center">
+                                                                            <div className="flex items-center justify-center space-x-2">
+                                                                                <a
+                                                                                    href={route('landlord.settings.backup.download', backup.name)}
+                                                                                    className="inline-flex items-center justify-center p-2 bg-blue-50 hover:bg-blue-600 text-blue-600 hover:text-white rounded-xl transition-all border border-blue-100 hover:border-transparent cursor-pointer"
+                                                                                    title="Unduh File"
+                                                                                >
+                                                                                    <Download className="w-4 h-4" />
+                                                                                </a>
+                                                                                <button
+                                                                                    type="button"
+                                                                                    onClick={() => handleDeleteBackup(backup.name)}
+                                                                                    className="inline-flex items-center justify-center p-2 bg-slate-50 hover:bg-slate-800 text-slate-500 hover:text-white rounded-xl transition-all border border-slate-100 hover:border-transparent cursor-pointer"
+                                                                                    title="Hapus Backup"
+                                                                                >
+                                                                                    <Trash2 className="w-4 h-4" />
+                                                                                </button>
+                                                                            </div>
+                                                                        </td>
+                                                                    </tr>
+                                                                );
+                                                            })
+                                                        ) : (
+                                                            <tr>
+                                                                <td colSpan="3" className="px-6 py-12 text-center">
+                                                                    <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                                                                        <Inbox className="w-8 h-8 text-gray-300" />
+                                                                    </div>
+                                                                    <p className="text-sm font-bold text-gray-900">Belum Ada Backup SaaS</p>
+                                                                    <p className="text-xs text-gray-500 mt-1">Gunakan tombol di atas untuk memulai pencadangan.</p>
+                                                                </td>
+                                                            </tr>
+                                                        )}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </TableCard>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         {/* Submit Button (Only for Settings Form) */}
-                        {activeTab !== 'roles' && (
+                        {activeTab !== 'roles' && activeTab !== 'backup' && (
                             <div className="flex justify-end pt-4">
                                 <button
                                     type="submit"

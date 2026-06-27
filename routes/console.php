@@ -81,6 +81,7 @@ Artisan::command('app:backup-run {--only-db} {--only-files}', function () {
 use Illuminate\Support\Facades\Schedule;
 
 Schedule::command('backup:clean')->daily()->at('01:00');
+Schedule::command('tenants:run backup:clean')->daily()->at('01:30');
 Schedule::command('app:backup-run --only-db')->daily()->at('02:00');
 Schedule::command('app:backup-run')->monthlyOn(1, '02:30');
 Schedule::command('wilayah-backup:prune --days=30')->daily()->at('03:00');

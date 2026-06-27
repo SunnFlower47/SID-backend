@@ -38,14 +38,16 @@ class BackupController extends Controller
      */
     public function create(Request $request)
     {
+        $request->merge(['type' => 'database']);
+
         $request->validate([
-            'type' => 'required|in:database,files,full',
+            'type' => 'required|in:database',
             'name' => 'nullable|string|max:255'
         ]);
 
         try {
             $this->backupService->createBackup($request->type, $request->name);
-            return back()->with('success', 'Backup berhasil dibuat!');
+            return back()->with('success', 'Backup database desa berhasil dibuat!');
         } catch (\Exception $e) {
             return back()->with('error', 'Gagal membuat backup: ' . $e->getMessage());
         }

@@ -15,7 +15,7 @@ class SettingController extends Controller
     /**
      * Show the landlord settings page.
      */
-    public function index()
+    public function index(\App\Services\System\BackupService $backupService)
     {
         Gate::authorize('manage-central-users');
 
@@ -37,6 +37,9 @@ class SettingController extends Controller
                 'email' => $user->email,
             ],
             'roles' => CentralRole::all(),
+            'backupFiles' => $backupService->getBackupFiles(),
+            'diskSpace' => $backupService->getDiskSpaceInfo(),
+            'stats' => $backupService->getBackupStats(),
         ]);
     }
 

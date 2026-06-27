@@ -55,4 +55,8 @@ Route::middleware('auth:landlord')->group(function () {
     Route::post('settings/roles', [SettingController::class, 'storeRole'])->name('landlord.settings.roles.store');
     Route::put('settings/roles/{role}', [SettingController::class, 'updateRole'])->name('landlord.settings.roles.update');
     Route::delete('settings/roles/{role}', [SettingController::class, 'destroyRole'])->name('landlord.settings.roles.destroy');
+
+    Route::post('settings/backup', [\App\Http\Controllers\Landlord\BackupController::class, 'create'])->name('landlord.settings.backup.create');
+    Route::get('settings/backup/download/{filename}', [\App\Http\Controllers\Landlord\BackupController::class, 'download'])->name('landlord.settings.backup.download');
+    Route::delete('settings/backup/{filename}', [\App\Http\Controllers\Landlord\BackupController::class, 'destroy'])->name('landlord.settings.backup.destroy');
 });
