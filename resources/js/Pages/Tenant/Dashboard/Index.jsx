@@ -183,7 +183,10 @@ export default function Dashboard({
                                                 {ann.sender_name || 'Diskominfo'} Broadcast
                                             </span>
                                         </div>
-                                        <div className="text-xs font-medium leading-relaxed whitespace-pre-wrap">{ann.message}</div>
+                                        <div 
+                                            className="text-xs font-medium leading-relaxed prose prose-slate max-w-none text-left"
+                                            dangerouslySetInnerHTML={{ __html: ann.message }}
+                                        />
                                     </div>
                                     <button
                                         onClick={() => handleDismiss(ann.id)}

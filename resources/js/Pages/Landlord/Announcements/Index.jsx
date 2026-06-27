@@ -4,6 +4,8 @@ import LandlordLayout from '@/Layouts/LandlordLayout';
 import { PageHeader, FormCard, FormField, TableCard, DataTable, Badge } from '@/Components/Shared';
 import { Megaphone, Send, Info, AlertTriangle, AlertCircle, Calendar, Clock, Check, X, ChevronDown, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import ReactQuill from 'react-quill-new';
+import 'react-quill-new/dist/quill.snow.css';
 
 export default function Index({ announcements, tenants = [] }) {
     const { flash } = usePage().props;
@@ -36,7 +38,10 @@ export default function Index({ announcements, tenants = [] }) {
                     <div className="text-[10px] text-indigo-600 font-extrabold uppercase tracking-wider">
                         Pengirim: {row.sender_name || 'Diskominfo'} • Target: {row.target_type === 'all' ? 'Semua Desa' : `Spesifik (${row.target_tenant_ids?.join(', ') || ''})`}
                     </div>
-                    <div className="text-slate-600 text-xs line-clamp-2 leading-relaxed whitespace-pre-line">{row.message}</div>
+                    <div 
+                        className="text-slate-600 text-xs line-clamp-2 leading-relaxed select-none pointer-events-none prose prose-slate max-w-none"
+                        dangerouslySetInnerHTML={{ __html: row.message }}
+                    />
                 </div>
             )
         },
@@ -183,15 +188,33 @@ export default function Index({ announcements, tenants = [] }) {
                                         />
                                     )}
 
-                                    <FormField.Textarea 
-                                        label="Isi Pengumuman / Pesan"
-                                        placeholder="Masukkan isi pesan pengumuman secara rinci..."
-                                        value={data.message}
-                                        onChange={e => setData('message', e.target.value)}
-                                        error={errors.message}
-                                        rows={5}
-                                        required
-                                    />
+                                    <div className="space-y-1.5 relative text-left">
+                                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
+                                            Isi Pengumuman / Pesan <span className="text-red-500">*</span>
+                                        </label>
+                                        <div className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm focus-within:border-indigo-500 focus-within:ring-4 focus-within:ring-indigo-500/10 transition-all">
+                                            <ReactQuill 
+                                                theme="snow"
+                                                value={data.message}
+                                                onChange={val => setData('message', val)}
+                                                placeholder="Masukkan isi pesan pengumuman secara rinci..."
+                                                modules={{
+                                                    toolbar: [
+                                                        [{ 'header': [1, 2, 3, false] }],
+                                                        ['bold', 'italic', 'underline', 'strike'],
+                                                        [{'list': 'ordered'}, {'list': 'bullet'}],
+                                                        ['link', 'clean']
+                                                    ],
+                                                }}
+                                                className="text-xs"
+                                            />
+                                        </div>
+                                        {errors.message && (
+                                            <p className="text-[10px] font-bold text-red-600 uppercase tracking-tight ml-1">
+                                                {errors.message}
+                                            </p>
+                                        )}
+                                    </div>
 
                                     <button
                                         type="submit"
