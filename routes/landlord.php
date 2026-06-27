@@ -46,6 +46,7 @@ Route::middleware('auth:landlord')->group(function () {
     Route::put('allocations/{allocation}', [TenantAllocationController::class, 'update'])->name('landlord.allocations.update');
 
     Route::get('monitoring', [MonitoringController::class, 'index'])->name('landlord.monitoring.index');
+    Route::delete('monitoring/clear-logs', [MonitoringController::class, 'clearLogs'])->name('landlord.monitoring.clear-logs');
 
     Route::resource('announcements', AnnouncementController::class)->only(['index', 'store']);
 

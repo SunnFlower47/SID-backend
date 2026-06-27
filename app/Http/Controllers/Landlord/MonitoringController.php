@@ -9,6 +9,7 @@ use App\Models\Tenant;
 use App\Models\Central\TenantAllocation;
 use App\Models\Central\TenantActivityLog;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 
 class MonitoringController extends Controller
@@ -42,14 +43,16 @@ class MonitoringController extends Controller
                 $dbSizeMb = 0.0;
             }
 
-            // User count
+            // User count & Health Check
             $userCount = 0;
+            $dbHealthy = true;
             try {
                 $tenant->run(function () use (&$userCount) {
                     $userCount = \App\Models\User::count();
                 });
             } catch (\Exception $e) {
                 $userCount = 0;
+                $dbHealthy = false;
             }
 
             // Storage size
@@ -70,6 +73,7 @@ class MonitoringController extends Controller
                 'storage_used_mb' => $storageUsedMb,
                 'storage_limit_mb' => $allocation->storage_limit_mb,
                 'is_active' => (bool) $tenant->is_active,
+                'db_healthy' => $dbHealthy,
             ];
         }
 
@@ -94,10 +98,67 @@ class MonitoringController extends Controller
             ->latest()
             ->paginate(15);
 
+        // Fetch and parse Laravel Error logs
+        $laravelLogs = $this->parseLaravelLog();
+
         return Inertia::render('Landlord/Monitoring/Index', [
             'tenants' => $tenantData,
             'systemInfo' => $systemInfo,
             'logs' => $logs,
+            'laravelLogs' => $laravelLogs,
         ]);
+    }
+
+    public function clearLogs()
+    {
+        Gate::authorize('manage-central-users'); // Superadmin privilege
+
+        $logPath = storage_path('logs/laravel.log');
+        if (file_exists($logPath)) {
+            file_put_contents($logPath, '');
+        }
+
+        return redirect()->back()->with('success', 'Laravel error logs berhasil dibersihkan.');
+    }
+
+    private function parseLaravelLog()
+    {
+        $logPath = storage_path('logs/laravel.log');
+        if (!file_exists($logPath)) {
+            return [];
+        }
+
+        // Limit reading to the last 150KB of the file for performance
+        $maxBytes = 150 * 1024;
+        $fileSize = filesize($logPath);
+        
+        if ($fileSize > $maxBytes) {
+            $fp = fopen($logPath, 'r');
+            fseek($fp, $fileSize - $maxBytes);
+            $fileContent = fread($fp, $maxBytes);
+            fclose($fp);
+            // Trim partial line at the beginning
+            $firstNewLine = strpos($fileContent, "\n");
+            if ($firstNewLine !== false) {
+                $fileContent = substr($fileContent, $firstNewLine + 1);
+            }
+        } else {
+            $fileContent = file_get_contents($logPath);
+        }
+
+        $pattern = '/\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})\] (\w+)\.(\w+): (.*?)(?=\n\[\d{4}-\d{2}-\d{2}|\z)/s';
+        preg_match_all($pattern, $fileContent, $matches, PREG_SET_ORDER);
+        
+        $parsedLogs = [];
+        foreach ($matches as $match) {
+            $parsedLogs[] = [
+                'timestamp' => $match[1],
+                'env' => $match[2],
+                'level' => strtoupper($match[3]),
+                'message' => trim($match[4]),
+            ];
+        }
+        
+        return array_slice(array_reverse($parsedLogs), 0, 100);
     }
 }
