@@ -147,7 +147,7 @@ export default function Navbar({ toggleMobileSidebar, toggleDesktopSidebar, side
         <>
             <CommandPalette isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
 
-            <header className="bg-white border-b border-gray-200 h-20 px-4 md:px-8 flex items-center justify-between shrink-0 sticky top-0 z-40 transition-all duration-300">
+            <header className="bg-white/75 backdrop-blur-md border-b border-gray-200/50 h-20 px-4 md:px-8 flex items-center justify-between shrink-0 sticky top-0 z-40 transition-all duration-300 shadow-sm shadow-slate-100/10">
                 {/* Left side - Menu Toggles */}
                 <div className="flex items-center gap-3 md:gap-4">
                     {/* Mobile Toggle */}
@@ -219,7 +219,7 @@ export default function Navbar({ toggleMobileSidebar, toggleDesktopSidebar, side
                         </button>
 
                         {showNotifications && (
-                            <div className="fixed sm:absolute top-20 sm:top-full left-4 right-4 sm:left-auto sm:right-0 mt-3 sm:w-96 bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden z-[60] animate-in slide-in-from-top-2 duration-300">
+                            <div className="fixed sm:absolute top-20 sm:top-full left-4 right-4 sm:left-auto sm:right-0 mt-3 sm:w-96 bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-gray-150/40 overflow-hidden z-[60] animate-in slide-in-from-top-2 duration-300">
                                 <div className="p-6 border-b border-gray-50 bg-gray-50/50 flex items-center justify-between">
                                     <h3 className="text-sm font-black text-gray-950 uppercase tracking-widest italic">Notifikasi</h3>
                                     {unreadCount > 0 && (
@@ -327,7 +327,7 @@ export default function Navbar({ toggleMobileSidebar, toggleDesktopSidebar, side
                         </div>
 
                         {showProfile && (
-                            <div className="fixed sm:absolute top-20 sm:top-full left-4 right-4 sm:left-auto sm:right-0 mt-3 sm:w-72 bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden z-[60] animate-in slide-in-from-top-2 duration-300">
+                            <div className="fixed sm:absolute top-20 sm:top-full left-4 right-4 sm:left-auto sm:right-0 mt-3 sm:w-72 bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-gray-150/40 overflow-hidden z-[60] animate-in slide-in-from-top-2 duration-300">
                                 <div className="px-6 py-10 bg-white border-b border-gray-50 relative overflow-hidden">
                                     <div className="absolute right-0 top-0 w-32 h-32 bg-green-50 rounded-full blur-3xl -mr-16 -mt-16 opacity-40" />
                                     <div className="relative z-10">
