@@ -159,12 +159,12 @@ export default function LandlordLayout({ children }) {
 
             {/* Sidebar (Desktop & Mobile Drawer) */}
             <aside className={cn(
-                "fixed inset-y-0 left-0 z-[100] bg-[#0f172a] text-slate-350 border-r border-slate-900/40 flex flex-col transition-all duration-300 ease-in-out md:sticky md:top-0 md:h-screen md:flex shrink-0",
+                "fixed inset-y-0 left-0 z-[100] bg-[#0f172a] text-slate-350 border-r border-slate-900/40 flex flex-col transition-all duration-300 ease-in-out md:sticky md:top-0 md:h-screen md:flex shrink-0 overflow-x-hidden",
                 collapsed ? "w-20" : "w-60",
                 sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
             )}>
                 {/* Logo Section */}
-                <div className="h-16 flex items-center justify-between px-5 border-b border-slate-900/40 shrink-0">
+                <div className={cn("h-16 flex items-center border-b border-slate-900/40 shrink-0", collapsed ? "justify-center px-0" : "justify-between px-5")}>
                     <div className="flex items-center gap-2.5 overflow-hidden">
                         <div className="w-8.5 h-8.5 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-600/25 shrink-0">
                             <Radio className="w-4.5 h-4.5 animate-pulse" />
@@ -175,18 +175,10 @@ export default function LandlordLayout({ children }) {
                             </span>
                         )}
                     </div>
-                    
-                    {/* Sidebar Toggle Button (Desktop Only) */}
-                    <button 
-                        onClick={toggleSidebar}
-                        className="hidden md:flex items-center justify-center w-6 h-6 bg-slate-900/80 hover:bg-slate-800 text-slate-500 hover:text-white rounded-lg border border-slate-800 transition-all shrink-0"
-                    >
-                        {collapsed ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronLeft className="w-3.5 h-3.5" />}
-                    </button>
                 </div>
 
                 {/* Sidebar Navigation */}
-                <nav className="flex-1 px-3 py-5 space-y-1 overflow-y-auto custom-scrollbar">
+                <nav className="flex-1 px-3 py-5 space-y-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
                     {menuItems.filter(item => item.show).map((item) => {
                         const Icon = item.icon;
                         return (
@@ -242,12 +234,23 @@ export default function LandlordLayout({ children }) {
             {/* Main Area */}
             <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden pt-16 md:pt-0">
                 {/* Desktop Header Navbar */}
-                <header className="hidden md:flex h-16 items-center justify-between px-8 bg-white border-b border-slate-100 shrink-0 sticky top-0 z-40 backdrop-blur-md bg-white/70">
-                    {/* Left: Breadcrumbs */}
-                    <div className="flex items-center gap-2 text-xs font-bold text-slate-400 select-none">
-                        <span className="uppercase tracking-wider">SaaS Central</span>
-                        <span className="text-slate-300 font-normal">/</span>
-                        <span className="text-slate-800 uppercase tracking-tight font-black">{activeMenu}</span>
+                <header className="hidden md:flex h-16 items-center justify-between px-8 bg-white border-b border-slate-100 shrink-0 sticky top-0 z-40 backdrop-blur-md bg-white/80">
+                    {/* Left: Toggle & Breadcrumbs */}
+                    <div className="flex items-center gap-3">
+                        {/* Sidebar Toggle Button */}
+                        <button 
+                            onClick={toggleSidebar}
+                            className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-slate-50 rounded-xl transition-all mr-1 shrink-0"
+                            title={collapsed ? "Buka Sidebar" : "Tutup Sidebar"}
+                        >
+                            {collapsed ? <ChevronRight className="w-4.5 h-4.5" /> : <ChevronLeft className="w-4.5 h-4.5" />}
+                        </button>
+
+                        <div className="flex items-center gap-2 text-xs font-bold text-slate-400 select-none">
+                            <span className="uppercase tracking-wider">SaaS Central</span>
+                            <span className="text-slate-300 font-normal">/</span>
+                            <span className="text-slate-800 uppercase tracking-tight font-black">{activeMenu}</span>
+                        </div>
                     </div>
 
                     {/* Right: Actions */}
