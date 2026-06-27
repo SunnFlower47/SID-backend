@@ -67,8 +67,8 @@ class NotificationController extends Controller
                     return [
                         'id' => $ann->id,
                         'type' => 'announcement',
-                        'title' => 'Pengumuman ' . ($ann->sender_name ?? 'Diskominfo'),
-                        'message' => $ann->title . ": " . \Illuminate\Support\Str::limit($ann->message, 80),
+                        'title' => '[' . ($ann->sender_name ?? 'Diskominfo') . '] ' . $ann->title,
+                        'message' => $ann->message,
                         'time' => $ann->created_at->diffForHumans(),
                         'status' => 'info',
                         'url' => route('dashboard'),

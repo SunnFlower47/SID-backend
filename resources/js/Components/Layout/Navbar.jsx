@@ -18,6 +18,7 @@ import {
 import { cn } from '@/lib/utils';
 import CommandPalette from './CommandPalette';
 import axios from 'axios';
+import Swal from 'sweetalert2';
 
 export default function Navbar({ toggleMobileSidebar, toggleDesktopSidebar, sidebarCollapsed }) {
     const page = usePage();
@@ -104,12 +105,39 @@ export default function Navbar({ toggleMobileSidebar, toggleDesktopSidebar, side
                 setNotifications(prev => prev.map(n => (n.id === notif.id && n.type === notif.type) ? { ...n, status: 'selesai' } : n));
                 setUnreadCount(prev => Math.max(0, prev - 1));
             }
-            if (notif.url) {
+            
+            if (notif.type === 'announcement') {
+                Swal.fire({
+                    title: notif.title,
+                    html: `<div class="text-left font-medium prose prose-slate text-xs p-4 bg-gray-50 border border-gray-100 rounded-2xl max-h-[300px] overflow-y-auto leading-relaxed text-slate-700">${notif.message}</div>`,
+                    confirmButtonText: 'TUTUP',
+                    confirmButtonColor: '#4f46e5',
+                    background: '#ffffff',
+                    customClass: {
+                        popup: 'rounded-3xl border-none shadow-2xl',
+                        title: 'font-black tracking-tighter uppercase italic text-base text-slate-800 border-b border-gray-100 pb-3',
+                        confirmButton: 'rounded-2xl px-6 py-2.5 font-black tracking-wider text-[10px]'
+                    }
+                });
+            } else if (notif.url) {
                 router.visit(notif.url);
             }
         } catch (error) {
             console.error('Failed to mark notification as read', error);
-            if (notif.url) {
+            if (notif.type === 'announcement') {
+                Swal.fire({
+                    title: notif.title,
+                    html: `<div class="text-left font-medium prose prose-slate text-xs p-4 bg-gray-50 border border-gray-100 rounded-2xl max-h-[300px] overflow-y-auto leading-relaxed text-slate-700">${notif.message}</div>`,
+                    confirmButtonText: 'TUTUP',
+                    confirmButtonColor: '#4f46e5',
+                    background: '#ffffff',
+                    customClass: {
+                        popup: 'rounded-3xl border-none shadow-2xl',
+                        title: 'font-black tracking-tighter uppercase italic text-base text-slate-800 border-b border-gray-100 pb-3',
+                        confirmButton: 'rounded-2xl px-6 py-2.5 font-black tracking-wider text-[10px]'
+                    }
+                });
+            } else if (notif.url) {
                 router.visit(notif.url);
             }
         }
