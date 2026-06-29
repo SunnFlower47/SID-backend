@@ -1,10 +1,90 @@
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link, usePage, router } from '@inertiajs/react';
 import LandlordLayout from '@/Layouts/LandlordLayout';
 import { PageHeader, TableCard, DataTable, Badge } from '@/Components/Shared';
 import { Building2, Plus, Edit, Trash2 } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 export default function Index({ tenants }) {
     const { flash } = usePage().props;
+
+    const handleDeactivate = (e, tenantId, tenantName) => {
+        e.preventDefault();
+        Swal.fire({
+            title: 'Nonaktifkan Desa?',
+            text: `Akses ke website warga dan admin panel desa "${tenantName}" akan ditutup sementara.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#f59e0b',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'Ya, Nonaktifkan',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                router.delete(route('tenants.destroy', tenantId), {
+                    preserveScroll: true,
+                    onSuccess: () => Swal.fire('Berhasil', 'Desa berhasil dinonaktifkan.', 'success')
+                });
+            }
+        });
+    };
+
+    const handleHardDelete = (e, tenantId, tenantName) => {
+        e.preventDefault();
+        Swal.fire({
+            title: 'Hapus Desa Permanen?',
+            text: `PERHATIAN: Seluruh database, tabel kependudukan, arsip surat, dan data operator desa "${tenantName}" akan DIHAPUS PERMANEN dari server!`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'Ya, Lanjut Hapus!',
+            cancelButtonText: 'Batal',
+            focusCancel: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: 'Verifikasi Keamanan',
+                    text: `Ketikkan ID/Slug desa "${tenantId}" di bawah untuk mengonfirmasi penghapusan permanen:`,
+                    input: 'text',
+                    inputPlaceholder: tenantId,
+                    showCancelButton: true,
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: '#64748b',
+                    confirmButtonText: 'Hapus Permanen!',
+                    cancelButtonText: 'Batal',
+                    inputValidator: (value) => {
+                        if (!value) {
+                            return 'Anda harus mengetikkan ID desa untuk melanjutkan!';
+                        }
+                        if (value.toLowerCase() !== tenantId.toLowerCase()) {
+                            return 'ID desa yang dimasukkan tidak cocok!';
+                        }
+                    }
+                }).then((secondResult) => {
+                    if (secondResult.isConfirmed) {
+                        Swal.fire({
+                            title: 'Memproses...',
+                            text: 'Sedang menghapus database desa, mohon tunggu.',
+                            allowOutsideClick: false,
+                            allowEscapeKey: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+
+                        router.delete(route('tenants.hard-delete', tenantId), {
+                            onError: (errors) => {
+                                Swal.fire('Gagal!', errors.error || 'Terjadi kesalahan saat menghapus desa.', 'error');
+                            },
+                            onSuccess: () => {
+                                Swal.fire('Terhapus!', 'Desa berhasil dihapus permanen.', 'success');
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    };
 
     const columns = [
         {
@@ -69,26 +149,27 @@ export default function Index({ tenants }) {
                 <div className="flex items-center justify-center gap-2">
                     <Link 
                         href={route('tenants.edit', row.id)} 
-                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 text-slate-600 rounded-xl text-xs font-bold transition-all"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 text-slate-650 rounded-xl text-xs font-bold transition-all"
                     >
                         <Edit className="w-3.5 h-3.5" />
                         Edit
                     </Link>
                     {row.is_active ? (
-                        <Link 
-                            href={route('tenants.destroy', row.id)} 
-                            method="delete" 
-                            as="button" 
-                            className="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-100 hover:bg-red-50 hover:text-red-700 text-slate-600 rounded-xl text-xs font-bold transition-all"
-                            onClick={(e) => {
-                                if(!confirm('Yakin ingin menonaktifkan desa ini? Akses ke website dan admin panel akan ditutup.')) e.preventDefault();
-                            }}
+                        <button 
+                            onClick={(e) => handleDeactivate(e, row.id, row.name)}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-100 hover:bg-amber-50 hover:text-amber-700 text-slate-650 rounded-xl text-xs font-bold transition-all cursor-pointer"
+                        >
+                            <Trash2 className="w-3.5 h-3.5 text-amber-500" />
+                            Nonaktifkan
+                        </button>
+                    ) : (
+                        <button 
+                            onClick={(e) => handleHardDelete(e, row.id, row.name)}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 bg-red-550/10 hover:bg-red-600 hover:text-white text-red-700 rounded-xl text-xs font-bold transition-all cursor-pointer"
                         >
                             <Trash2 className="w-3.5 h-3.5" />
-                            Nonaktifkan
-                        </Link>
-                    ) : (
-                        <span className="text-gray-400 text-xs italic font-semibold">Nonaktif</span>
+                            Hapus Permanen
+                        </button>
                     )}
                 </div>
             )
