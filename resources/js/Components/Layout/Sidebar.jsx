@@ -7,24 +7,6 @@ const getIcon = (name) => {
     return Icons[name] || Icons.HelpCircle || Icons.AlertCircle;
 };
 
-const getColorTheme = (colorStr) => {
-    const match = colorStr?.match(/from-(\w+)-/);
-    const color = match ? match[1] : 'green';
-
-    const themes = {
-        green: { bg: 'bg-green-50/70 border-green-200/40 text-green-700', activeIcon: 'text-green-600', indicator: 'bg-green-600' },
-        purple: { bg: 'bg-purple-50/70 border-purple-200/40 text-purple-700', activeIcon: 'text-purple-600', indicator: 'bg-purple-600' },
-        blue: { bg: 'bg-blue-50/70 border-blue-200/40 text-blue-700', activeIcon: 'text-blue-600', indicator: 'bg-blue-600' },
-        amber: { bg: 'bg-amber-50/70 border-amber-200/40 text-amber-700', activeIcon: 'text-amber-600', indicator: 'bg-amber-600' },
-        indigo: { bg: 'bg-indigo-50/70 border-indigo-200/40 text-indigo-700', activeIcon: 'text-indigo-600', indicator: 'bg-indigo-600' },
-        emerald: { bg: 'bg-emerald-50/70 border-emerald-200/40 text-emerald-700', activeIcon: 'text-emerald-600', indicator: 'bg-emerald-600' },
-        cyan: { bg: 'bg-cyan-50/70 border-cyan-200/40 text-cyan-700', activeIcon: 'text-cyan-600', indicator: 'bg-cyan-600' },
-        red: { bg: 'bg-red-50/70 border-red-200/40 text-red-700', activeIcon: 'text-red-600', indicator: 'bg-red-600' },
-    };
-
-    return themes[color] || themes.green;
-};
-
 const menuGroups = [
     {
         name: 'Dashboard',
@@ -250,12 +232,12 @@ export default function Sidebar({ collapsed, isMobile = false, closeMobile, togg
 
     return (
         <div className={cn(
-            "h-full bg-white/80 backdrop-blur-lg border-r border-gray-150 transition-all duration-300 flex flex-col shadow-xl overflow-hidden",
+            "h-full bg-white border-r border-gray-200 transition-all duration-300 flex flex-col shadow-2xl overflow-hidden",
             collapsed ? "w-20" : "w-72"
         )}>
             {/* Brand Logo - Fixed Height h-20 to match Navbar */}
             <div className={cn(
-                "border-b border-gray-150 shrink-0 bg-white/10 h-20 flex items-center",
+                "border-b border-gray-200 shrink-0 bg-gradient-to-br from-white to-gray-50 h-20 flex items-center",
                 collapsed ? "justify-center px-4" : "px-6"
             )}>
                 <div className="flex items-center gap-3">
@@ -290,18 +272,15 @@ export default function Sidebar({ collapsed, isMobile = false, closeMobile, togg
                                 href={safeRoute(group.href)}
                                 onClick={() => isMobile && closeMobile && closeMobile()}
                                 className={cn(
-                                    "flex items-center rounded-2xl transition-all duration-300 relative overflow-hidden border",
+                                    "flex items-center rounded-2xl transition-all duration-300",
                                     collapsed ? "justify-center p-3" : "px-4 py-3",
                                     active
-                                        ? `${getColorTheme(group.color).bg} shadow-sm shadow-gray-100`
-                                        : "text-gray-650 hover:bg-gray-50/70 border-transparent"
+                                        ? `bg-gradient-to-r ${group.color} text-white shadow-lg shadow-green-200`
+                                        : `text-gray-700 ${group.hoverBg}`
                                 )}
                             >
-                                <Icon className={cn("w-5 h-5 shrink-0 transition-colors", !collapsed && "mr-3", active ? getColorTheme(group.color).activeIcon : "text-gray-400")} />
+                                <Icon className={cn("w-5 h-5 shrink-0", !collapsed && "mr-3")} />
                                 {!collapsed && <span className="font-bold text-sm tracking-tight">{group.name}</span>}
-                                {active && (
-                                    <div className={cn("absolute left-0 top-3 bottom-3 w-1 rounded-r-full", getColorTheme(group.color).indicator)} />
-                                )}
                             </Link>
                         );
                     }
@@ -315,26 +294,24 @@ export default function Sidebar({ collapsed, isMobile = false, closeMobile, togg
                             <button
                                 onClick={() => toggleGroup(group.name)}
                                 className={cn(
-                                    "flex items-center w-full rounded-2xl transition-all duration-300 text-gray-750 group border",
+                                    "flex items-center w-full rounded-2xl transition-all duration-300 text-gray-700 group",
                                     collapsed ? "justify-center p-3" : "justify-between px-4 py-3",
-                                    groupActive 
-                                        ? "bg-slate-50/80 text-slate-900 border-slate-100/70" 
-                                        : "hover:bg-gray-50/70 border-transparent"
+                                    groupActive ? "bg-gray-50/50" : group.hoverBg
                                 )}
                             >
                                 <div className="flex items-center">
-                                    <GroupIcon className={cn("w-5 h-5 shrink-0 transition-colors", !collapsed && "mr-3", groupActive ? "text-slate-800" : "text-gray-400 group-hover:text-slate-700")} />
+                                    <GroupIcon className={cn("w-5 h-5 shrink-0 transition-colors", !collapsed && "mr-3", groupActive ? "text-green-600" : "text-gray-400 group-hover:text-green-700")} />
                                     {!collapsed && <span className="font-bold text-sm tracking-tight">{group.name}</span>}
                                 </div>
                                 {!collapsed && (
-                                    <ChevronDown className={cn("w-4 h-4 transition-transform text-gray-300", isOpen && "rotate-180 text-slate-600")} />
+                                    <ChevronDown className={cn("w-4 h-4 transition-transform text-gray-300", isOpen && "rotate-180 text-green-600")} />
                                 )}
                             </button>
 
                             {(!collapsed && isOpen) && (
                                 <div className={cn(
                                     "space-y-1 animate-in slide-in-from-top-2 duration-300",
-                                    !collapsed && "ml-4 pl-4 border-l border-gray-150 mt-2"
+                                    !collapsed && "ml-4 pl-4 border-l border-gray-100 mt-2"
                                 )}>
                                     {group.items.map((item) => {
                                         const active = isRouteActive(item.href);
@@ -345,20 +322,17 @@ export default function Sidebar({ collapsed, isMobile = false, closeMobile, togg
                                                 href={safeRoute(item.href)}
                                                 onClick={() => isMobile && closeMobile && closeMobile()}
                                                 className={cn(
-                                                    "flex items-center rounded-xl transition-all duration-300 relative overflow-hidden border",
+                                                    "flex items-center rounded-xl transition-all duration-300 relative",
                                                     collapsed ? "justify-center p-2.5" : "px-4 py-2.5",
                                                     active
-                                                        ? `${getColorTheme(group.color).bg} shadow-sm shadow-gray-50`
-                                                        : "text-gray-650 hover:bg-gray-50/70 border-transparent"
+                                                        ? `bg-gradient-to-r ${group.color} text-white shadow-md shadow-gray-200`
+                                                        : `text-gray-600 ${group.hoverBg}`
                                                 )}
                                             >
-                                                <ItemIcon className={cn("w-4 h-4 shrink-0 transition-colors", !collapsed && "mr-3", active ? getColorTheme(group.color).activeIcon : "text-gray-400")} />
+                                                <ItemIcon className={cn("w-4 h-4 shrink-0", !collapsed && "mr-3", active ? "text-white" : "text-gray-400")} />
                                                 {!collapsed && <span className="text-sm font-semibold tracking-tight">{item.name}</span>}
-                                                {active && (
-                                                    <div className={cn("absolute left-0 top-2.5 bottom-2.5 w-1 rounded-r-full", getColorTheme(group.color).indicator)} />
-                                                )}
                                                 {active && collapsed && (
-                                                    <div className={cn("absolute right-0 w-1 h-6 rounded-l-full", getColorTheme(group.color).indicator)} />
+                                                    <div className="absolute right-0 w-1 h-6 bg-white rounded-l-full" />
                                                 )}
                                             </Link>
                                         );

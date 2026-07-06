@@ -5,10 +5,11 @@ import { PageHeader, TableCard, DataTable, Badge } from '@/Components/Shared';
 import { Activity, Database, HardDrive, Users, Server, Clock, ShieldAlert, CheckCircle2, AlertOctagon, Terminal, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
 import Swal from 'sweetalert2';
 
-export default function Index({ tenants, systemInfo, logs, laravelLogs }) {
+export default function Index({ tenants, systemInfo, logs, landlordLogs, laravelLogs }) {
     const { flash } = usePage().props;
     const [selectedLevel, setSelectedLevel] = React.useState('ALL');
     const [expandedIndex, setExpandedIndex] = React.useState(null);
+    const [activeTab, setActiveTab] = React.useState('landlord_audit');
 
     const tenantColumns = [
         {
@@ -58,50 +59,113 @@ export default function Index({ tenants, systemInfo, logs, laravelLogs }) {
                 const percent = Math.min(100, Math.round((row.user_count / row.max_users) * 100));
                 const barColor = percent > 90 ? 'bg-red-500' : percent > 75 ? 'bg-amber-500' : 'bg-indigo-600';
                 return (
-                    <div className="flex flex-col items-center w-full max-w-[150px] mx-auto">
-                        <div className="flex justify-between w-full text-xs font-black text-slate-700 mb-1">
-                            <span>{row.user_count} User</span>
-                            <span className="text-gray-400">/ {row.max_users} Limit</span>
+                    <div className="flex flex-col items-center max-w-[140px] mx-auto">
+                        <div className="flex justify-between w-full text-xs font-bold mb-1">
+                            <span className="text-slate-700">{row.user_count} Users</span>
+                            <span className="text-slate-400">{row.max_users}</span>
                         </div>
-                        <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                            <div className={`h-full ${barColor} transition-all`} style={{ width: `${percent}%` }}></div>
+                        <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden border border-slate-200/60">
+                            <div className={`h-full ${barColor} rounded-full transition-all duration-500`} style={{ width: `${percent}%` }}></div>
                         </div>
                     </div>
                 );
             }
         },
         {
-            header: 'Penyimpanan (Storage)',
+            header: 'Penyimpanan (S3 / MinIO)',
             className: 'text-center',
             render: (row) => {
                 const percent = Math.min(100, Math.round((row.storage_used_mb / row.storage_limit_mb) * 100));
                 const barColor = percent > 90 ? 'bg-red-500' : percent > 75 ? 'bg-amber-500' : 'bg-indigo-600';
                 return (
-                    <div className="flex flex-col items-center w-full max-w-[150px] mx-auto">
-                        <div className="flex justify-between w-full text-xs font-black text-slate-700 mb-1">
-                            <span>{row.storage_used_mb.toFixed(1)} MB</span>
-                            <span className="text-gray-400">/ {row.storage_limit_mb} MB</span>
+                    <div className="flex flex-col items-center max-w-[140px] mx-auto">
+                        <div className="flex justify-between w-full text-xs font-bold mb-1">
+                            <span className="text-slate-700">{row.storage_used_mb} MB</span>
+                            <span className="text-slate-400">{row.storage_limit_mb} MB</span>
                         </div>
-                        <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                            <div className={`h-full ${barColor} transition-all`} style={{ width: `${percent}%` }}></div>
+                        <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden border border-slate-200/60">
+                            <div className={`h-full ${barColor} rounded-full transition-all duration-500`} style={{ width: `${percent}%` }}></div>
                         </div>
                     </div>
                 );
             }
         },
         {
-            header: 'Status',
+            header: 'Status Tenant',
             className: 'text-center',
             render: (row) => (
                 <div className="flex justify-center">
                     <Badge 
                         color={row.is_active ? 'green' : 'red'}
-                        dot={row.is_active ? 'green' : 'red'}
+                        className="text-[10px]"
                     >
                         {row.is_active ? 'Aktif' : 'Nonaktif'}
                     </Badge>
                 </div>
             )
+        }
+    ];
+
+    const landlordLogColumns = [
+        {
+            header: 'Aktor (Email / IP)',
+            className: 'text-left min-w-[160px]',
+            render: (row) => (
+                <div className="flex flex-col">
+                    <span className="font-bold text-slate-800 text-xs">{row.actor_email || 'System / Auto'}</span>
+                    <span className="text-[10px] text-slate-400 font-mono mt-0.5">{row.ip_address || '-'}</span>
+                </div>
+            )
+        },
+        {
+            header: 'Kejadian (Event)',
+            accessor: 'event',
+            className: 'text-center w-[160px]',
+            render: (row) => {
+                const colors = {
+                    login_success: 'green',
+                    login_failed: 'red',
+                    logout: 'slate',
+                    account_locked: 'red',
+                    two_factor_enabled: 'blue',
+                    two_factor_verified: 'emerald',
+                    two_factor_disabled: 'amber',
+                    tenant_hard_deleted: 'red',
+                };
+                return (
+                    <div className="flex justify-center">
+                        <Badge 
+                            color={colors[row.event] || 'indigo'}
+                            dot={colors[row.event] || 'indigo'}
+                            className="text-[10px]"
+                        >
+                            {row.event ? row.event.replace(/_/g, ' ').toUpperCase() : 'UNKNOWN'}
+                        </Badge>
+                    </div>
+                );
+            }
+        },
+        {
+            header: 'Deskripsi Log Audit',
+            accessor: 'description',
+            className: 'text-left text-slate-700 text-xs font-semibold min-w-[200px]'
+        },
+        {
+            header: 'User Agent / Browser',
+            className: 'text-left text-[11px] text-slate-400 max-w-[200px] truncate',
+            render: (row) => <span title={row.user_agent}>{row.user_agent || '-'}</span>
+        },
+        {
+            header: 'Waktu Kejadian',
+            className: 'text-center text-xs font-bold text-gray-500 w-[150px]',
+            render: (row) => new Date(row.created_at).toLocaleString('id-ID', {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            })
         }
     ];
 
@@ -203,7 +267,7 @@ export default function Index({ tenants, systemInfo, logs, laravelLogs }) {
                 <PageHeader 
                     icon={Activity}
                     title="Pemantauan Sistem & Resource"
-                    subtitle="Monitor status kesehatan database, alokasi resource tenant, dan metrik server SaaS."
+                    subtitle="Monitor status kesehatan database, alokasi resource tenant, log audit keamanan, dan metrik server SaaS."
                     gradient="from-indigo-600 via-indigo-700 to-indigo-800"
                 />
 
@@ -225,18 +289,18 @@ export default function Index({ tenants, systemInfo, logs, laravelLogs }) {
                             <Server className="w-6 h-6" />
                         </div>
                         <div>
-                            <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">PHP Version</div>
-                            <div className="text-xl font-black">{systemInfo.php_version}</div>
-                            <div className="text-[10px] text-slate-400 font-extrabold mt-1">Engine Versi</div>
+                            <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Lingkungan Server</div>
+                            <div className="text-xl font-black">PHP {systemInfo.php_version}</div>
+                            <div className="text-[10px] text-blue-400 font-extrabold mt-1">Laravel Architecture</div>
                         </div>
                     </div>
 
                     <div className="bg-slate-900 border border-slate-800/60 p-6 rounded-3xl shadow-xl flex items-center gap-4 text-white">
                         <div className="p-3 bg-purple-500/10 text-purple-400 rounded-2xl">
-                            <Database className="w-6 h-6" />
+                            <Activity className="w-6 h-6" />
                         </div>
                         <div>
-                            <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Laravel Framework</div>
+                            <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Versi Aplikasi</div>
                             <div className="text-xl font-black">v{systemInfo.laravel_version}</div>
                             <div className="text-[10px] text-slate-400 font-extrabold mt-1">Framework Versi</div>
                         </div>
@@ -254,9 +318,71 @@ export default function Index({ tenants, systemInfo, logs, laravelLogs }) {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                    {/* Tenants Health Overview */}
-                    <div className="lg:col-span-12">
+                {/* Tabs Navigation Bar */}
+                <div className="flex flex-wrap items-center justify-between gap-4 bg-white/80 backdrop-blur border border-slate-200/80 p-2.5 rounded-3xl shadow-sm">
+                    <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+                        {[
+                            { id: 'landlord_audit', label: 'Log Audit Keamanan Landlord', icon: ShieldAlert, count: landlordLogs?.total || 0, badgeClass: 'bg-red-500 text-white' },
+                            { id: 'tenants', label: 'Kesehatan & Resource Desa', icon: Database, count: tenants.length, badgeClass: 'bg-indigo-100 text-indigo-700' },
+                            { id: 'tenant_audit', label: 'Log Aktivitas Tenant Desa', icon: Clock, count: logs?.total || 0, badgeClass: 'bg-slate-100 text-slate-600' },
+                            { id: 'laravel_logs', label: 'System Debugger (laravel.log)', icon: Terminal },
+                        ].map((tab) => {
+                            const Icon = tab.icon;
+                            const isActive = activeTab === tab.id;
+                            return (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => setActiveTab(tab.id)}
+                                    className={`flex items-center gap-2.5 px-4 py-2.5 rounded-2xl font-bold text-xs transition-all ${
+                                        isActive 
+                                            ? 'bg-slate-900 text-white shadow-lg shadow-slate-900/20 scale-[1.02]' 
+                                            : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
+                                    }`}
+                                >
+                                    <Icon className={`w-4 h-4 ${isActive ? 'text-indigo-400' : 'text-slate-400'}`} />
+                                    <span>{tab.label}</span>
+                                    {tab.count !== undefined && (
+                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
+                                            isActive ? 'bg-white/20 text-white' : tab.badgeClass
+                                        }`}>
+                                            {tab.count}
+                                        </span>
+                                    )}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {/* Tab Content Section */}
+                <div className="space-y-8">
+                    {/* Tab 1: Landlord Audit Logs */}
+                    {activeTab === 'landlord_audit' && (
+                        <TableCard
+                            title="Log Audit Keamanan Landlord (Diskominfo)"
+                            icon={ShieldAlert}
+                            total={landlordLogs?.total || 0}
+                            totalLabel="Kejadian Keamanan"
+                            pagination={landlordLogs}
+                            noPadding
+                        >
+                            {!landlordLogs || landlordLogs.data.length === 0 ? (
+                                <div className="p-16 text-center text-gray-400 font-bold text-sm space-y-2">
+                                    <ShieldAlert className="w-10 h-10 text-gray-300 mx-auto" />
+                                    <p>Belum ada insiden atau aktivitas keamanan Landlord yang terekam.</p>
+                                </div>
+                            ) : (
+                                <DataTable 
+                                    columns={landlordLogColumns}
+                                    data={landlordLogs.data}
+                                    borderedBody={true}
+                                />
+                            )}
+                        </TableCard>
+                    )}
+
+                    {/* Tab 2: Tenants Health Overview */}
+                    {activeTab === 'tenants' && (
                         <TableCard
                             title="Kesehatan Database & Resource Desa"
                             icon={Database}
@@ -270,10 +396,35 @@ export default function Index({ tenants, systemInfo, logs, laravelLogs }) {
                                 borderedBody={true}
                             />
                         </TableCard>
-                    </div>
+                    )}
 
-                    {/* Laravel Debug Log Terminal */}
-                    <div className="lg:col-span-12">
+                    {/* Tab 3: Tenant Activity Audit Logs */}
+                    {activeTab === 'tenant_audit' && (
+                        <TableCard
+                            title="Jejak Aktivitas & Audit Logs Desa"
+                            icon={Clock}
+                            total={logs?.total || 0}
+                            totalLabel="Log Kejadian"
+                            pagination={logs}
+                            noPadding
+                        >
+                            {!logs || logs.data.length === 0 ? (
+                                <div className="p-16 text-center text-gray-400 font-bold text-sm space-y-2">
+                                    <Clock className="w-10 h-10 text-gray-300 mx-auto" />
+                                    <p>Belum ada catatan aktivitas tenant desa yang terekam.</p>
+                                </div>
+                            ) : (
+                                <DataTable 
+                                    columns={logColumns}
+                                    data={logs.data}
+                                    borderedBody={true}
+                                />
+                            )}
+                        </TableCard>
+                    )}
+
+                    {/* Tab 4: Laravel Debug Log Terminal */}
+                    {activeTab === 'laravel_logs' && (
                         <div className="bg-slate-900 border border-slate-800 rounded-3xl shadow-xl overflow-hidden flex flex-col">
                             {/* Terminal Header */}
                             <div className="bg-slate-950 px-6 py-4 border-b border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -380,32 +531,7 @@ export default function Index({ tenants, systemInfo, logs, laravelLogs }) {
                                 </span>
                             </div>
                         </div>
-                    </div>
-
-                    {/* Audit Logs */}
-                    <div className="lg:col-span-12">
-                        <TableCard
-                            title="Jejak Aktivitas & Audit Logs Desa"
-                            icon={Clock}
-                            total={logs.total}
-                            totalLabel="Log Kejadian"
-                            pagination={logs}
-                            noPadding
-                        >
-                            {logs.data.length === 0 ? (
-                                <div className="p-12 text-center text-gray-400 font-bold text-sm">
-                                    <ShieldAlert className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-                                    Belum ada catatan aktivitas yang terekam.
-                                </div>
-                            ) : (
-                                <DataTable 
-                                    columns={logColumns}
-                                    data={logs.data}
-                                    borderedBody={true}
-                                />
-                            )}
-                        </TableCard>
-                    </div>
+                    )}
                 </div>
             </div>
         </LandlordLayout>

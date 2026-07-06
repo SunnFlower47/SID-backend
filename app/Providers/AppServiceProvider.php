@@ -4,8 +4,10 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Event;
 use Spatie\Activitylog\Models\Activity;
 use App\Observers\ActivityLogObserver;
+use App\Listeners\LogLandlordAuthEvents;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -15,6 +17,11 @@ class AppServiceProvider extends ServiceProvider
     {
         // Register Activity Log Observer
         Activity::observe(ActivityLogObserver::class);
+
+        // Register Landlord Auth Audit Trail Listeners
+        Event::listen(\Illuminate\Auth\Events\Login::class, LogLandlordAuthEvents::class);
+        Event::listen(\Illuminate\Auth\Events\Logout::class, LogLandlordAuthEvents::class);
+        Event::listen(\Illuminate\Auth\Events\Failed::class, LogLandlordAuthEvents::class);
 
         // Register KK Sync Observers
         \App\Models\Penduduk::observe(\App\Observers\PendudukObserver::class);

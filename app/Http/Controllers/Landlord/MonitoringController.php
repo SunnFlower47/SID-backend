@@ -93,10 +93,14 @@ class MonitoringController extends Controller
             'os' => PHP_OS,
         ];
 
-        // Recent activity logs
+        // Recent activity logs (Tenant)
         $logs = TenantActivityLog::with('tenant')
             ->latest()
-            ->paginate(15);
+            ->paginate(15, ['*'], 'tenant_page');
+
+        // Landlord audit logs (Security & Admin actions)
+        $landlordLogs = \App\Models\Central\LandlordAuditLog::latest()
+            ->paginate(15, ['*'], 'landlord_page');
 
         // Fetch and parse Laravel Error logs
         $laravelLogs = $this->parseLaravelLog();
@@ -105,6 +109,7 @@ class MonitoringController extends Controller
             'tenants' => $tenantData,
             'systemInfo' => $systemInfo,
             'logs' => $logs,
+            'landlordLogs' => $landlordLogs,
             'laravelLogs' => $laravelLogs,
         ]);
     }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Landlord;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Tenant;
+use App\Models\Central\LandlordAuditLog;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
 
@@ -147,6 +148,14 @@ class TenantController extends Controller
     {
         \Illuminate\Support\Facades\Gate::authorize('manage-tenants');
 
+        // Catat sebelum nonaktifkan
+        LandlordAuditLog::recordAction(
+            event: 'tenant_deactivated',
+            subjectType: 'Tenant',
+            subjectId: $tenant->id,
+            description: "Desa '{$tenant->name}' ({$tenant->id}) dinonaktifkan."
+        );
+
         // Ganti Hapus permanen menjadi Nonaktifkan
         $tenant->update(['is_active' => false]);
         return redirect()->route('tenants.index')->with('success', 'Desa berhasil dinonaktifkan.');
@@ -185,6 +194,14 @@ class TenantController extends Controller
             $tenant->delete();
 
             \Illuminate\Support\Facades\Log::info("Tenant {$tenantId} berhasil di-hard delete via UI.");
+
+            LandlordAuditLog::recordAction(
+                event: 'tenant_hard_deleted',
+                subjectType: 'Tenant',
+                subjectId: $tenantId,
+                description: "Desa '{$tenantName}' ({$tenantId}) dihapus secara permanen beserta database-nya.",
+                metadata: ['tenant_name' => $tenantName]
+            );
 
             return redirect()->route('tenants.index')->with('success', 'Desa berhasil dihapus secara permanen beserta basis datanya.');
         } catch (\Exception $e) {

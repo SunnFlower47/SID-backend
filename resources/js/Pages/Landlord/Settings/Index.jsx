@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Head, useForm, usePage } from '@inertiajs/react';
+import { Head, useForm, usePage, Link, router } from '@inertiajs/react';
 import LandlordLayout from '@/Layouts/LandlordLayout';
 import { PageHeader, FormCard, FormField, TableCard, DataTable, Badge, Modal } from '@/Components/Shared';
 import { Settings, Save, User, HardDrive, Phone, Lock, Globe, ShieldCheck, Plus, Edit2, Trash2, Database, History, RotateCcw, Download, Play, Files, PieChart, Archive, FileArchive, Clock, Weight, Inbox } from 'lucide-react';
@@ -192,6 +192,42 @@ export default function Index({ settings, user, roles, backupFiles = [], diskSpa
         put(route('landlord.settings.update'), {
             onSuccess: () => {
                 reset('password', 'password_confirmation');
+            }
+        });
+    };
+
+    const handleDisable2FA = () => {
+        Swal.fire({
+            title: 'Nonaktifkan 2FA?',
+            text: 'Masukkan password Anda untuk mengkonfirmasi penonaktifan verifikasi dua langkah:',
+            input: 'password',
+            inputPlaceholder: 'Password login Anda...',
+            inputAttributes: {
+                autocapitalize: 'off',
+                autocorrect: 'off'
+            },
+            showCancelButton: true,
+            confirmButtonText: 'Nonaktifkan 2FA',
+            cancelButtonText: 'Batal',
+            confirmButtonColor: '#ef4444',
+            showLoaderOnConfirm: true,
+            preConfirm: (password) => {
+                if (!password) {
+                    Swal.showValidationMessage('Password wajib diisi!');
+                    return false;
+                }
+                return new Promise((resolve) => {
+                    router.post(route('landlord.2fa.disable'), { password }, {
+                        onSuccess: () => {
+                            Swal.fire('Nonaktif', 'Verifikasi Dua Langkah berhasil dinonaktifkan.', 'success');
+                            resolve();
+                        },
+                        onError: (err) => {
+                            Swal.showValidationMessage(err.password || 'Gagal menonaktifkan 2FA.');
+                            resolve();
+                        }
+                    });
+                });
             }
         });
     };
@@ -466,6 +502,67 @@ export default function Index({ settings, user, roles, backupFiles = [], diskSpa
                                             error={errors.password_confirmation}
                                         />
                                     </div>
+                                </FormCard>
+
+                                <FormCard 
+                                    icon={ShieldCheck}
+                                    title="Verifikasi Dua Langkah (2FA TOTP)"
+                                    subtitle="Keamanan tambahan menggunakan aplikasi autentikator (Google Authenticator, Authy)."
+                                >
+                                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                                        <div>
+                                            <div className="flex items-center gap-2">
+                                                <span className="font-bold text-slate-800 text-sm">Status 2FA:</span>
+                                                {user.two_factor_enabled ? (
+                                                    <Badge color="emerald" dot="emerald">Aktif (Terverifikasi)</Badge>
+                                                ) : (
+                                                    <Badge color="red" dot="red">Belum Aktif</Badge>
+                                                )}
+                                            </div>
+                                            <p className="text-xs text-slate-500 mt-1">
+                                                {user.two_factor_enabled 
+                                                    ? 'Akun Anda dilindungi dengan TOTP. Kode OTP dibutuhkan setiap kali Anda login.'
+                                                    : 'Anda wajib mengaktifkan 2FA untuk menjaga keamanan akses ke panel Diskominfo.'}
+                                            </p>
+                                        </div>
+
+                                        <div>
+                                            {user.two_factor_enabled ? (
+                                                <button
+                                                    type="button"
+                                                    onClick={handleDisable2FA}
+                                                    className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl shadow-sm transition"
+                                                >
+                                                    Nonaktifkan 2FA
+                                                </button>
+                                            ) : (
+                                                <Link
+                                                    href={route('landlord.2fa.setup')}
+                                                    className="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-sm transition"
+                                                >
+                                                    Setup 2FA Sekarang
+                                                </Link>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {flash?.recoveryCodes && (
+                                        <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                                            <div className="font-bold text-amber-900 text-xs mb-1 flex items-center gap-1">
+                                                <span>⚠️ Simpan Kode Pemulihan Darurat Anda!</span>
+                                            </div>
+                                            <p className="text-xs text-amber-700 mb-3">
+                                                Jika Anda kehilangan ponsel atau tidak dapat mengakses aplikasi autentikator, gunakan kode berikut untuk masuk. Setiap kode hanya dapat digunakan <b>satu kali</b>:
+                                            </p>
+                                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 font-mono text-xs font-bold bg-white p-3 rounded border border-amber-200 select-all text-center">
+                                                {flash.recoveryCodes.map((c, idx) => (
+                                                    <div key={idx} className="p-1 bg-slate-50 rounded border border-slate-100 text-indigo-600">
+                                                        {c}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
                                 </FormCard>
                             </div>
                         )}

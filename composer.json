@@ -21,6 +21,7 @@
         "league/flysystem-aws-s3-v3": "^3.34",
         "maatwebsite/excel": "^3.1",
         "phpoffice/phpword": "^1.4",
+        "pragmarx/google2fa": "^9.0",
         "simplesoftwareio/simple-qrcode": "^4.2",
         "spatie/laravel-activitylog": "^4.10",
         "spatie/laravel-backup": "^9.3",
