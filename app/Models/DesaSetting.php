@@ -214,6 +214,14 @@ class DesaSetting extends Model
 
         // Format: [Kode Surat]/[Nomor Urut]/[Kode Desa]/[Bulan Romawi]/[Tahun]
         if ($kodeSurat) {
+            // Cek apakah $kodeSurat adalah ID/Slug di Master Surat (surat_types)
+            // Contoh: jika 'kematian' atau 'pindah', otomatis ambil kode klasifikasi resmi (misal '474.3') dari Master Surat
+            $type = \App\Models\SuratType::where('id', $kodeSurat)
+                ->orWhere('id', 'LIKE', $kodeSurat)
+                ->first();
+            if ($type && !empty($type->kode)) {
+                $kodeSurat = $type->kode;
+            }
             return "{$kodeSurat}/{$nomorUrut}/{$kodeDesa}/{$bulanRomawi}/{$tahun}";
         }
         

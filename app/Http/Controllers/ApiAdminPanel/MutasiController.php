@@ -296,14 +296,7 @@ class MutasiController extends Controller
 
     private function generateNomorSuratKematian()
     {
-        $bulan = date('m');
-        $tahun = date('Y');
-        $count = Mutasi::where('jenis_mutasi', 'kematian')
-                ->whereYear('created_at', $tahun)
-                ->whereMonth('created_at', $bulan)
-                ->count() + 1;
-        
-        return sprintf("%03d", $count);
+        return \App\Models\DesaSetting::generateNomorSurat('kematian');
     }
 
     /**
