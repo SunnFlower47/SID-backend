@@ -25,16 +25,16 @@ class RolesAndPermissionsSeeder extends Seeder
         // Create permissions from config
         foreach ($permissionGroups as $group => $permissions) {
             foreach ($permissions as $permission) {
-                Permission::firstOrCreate(['name' => $permission]);
+                Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'web']);
                 $allPermissions[] = $permission;
             }
         }
 
         // Create standard roles
-        $superAdminRole = Role::firstOrCreate(['name' => 'Super Admin']);
-        $adminRole = Role::firstOrCreate(['name' => 'Admin Desa']);
-        $stafRole = Role::firstOrCreate(['name' => 'Staf Desa']);
-        $viewerRole = Role::firstOrCreate(['name' => 'Viewer']);
+        $superAdminRole = Role::firstOrCreate(['name' => 'Super Admin', 'guard_name' => 'web']);
+        $adminRole = Role::firstOrCreate(['name' => 'Admin Desa', 'guard_name' => 'web']);
+        $stafRole = Role::firstOrCreate(['name' => 'Staf Desa', 'guard_name' => 'web']);
+        $viewerRole = Role::firstOrCreate(['name' => 'Viewer', 'guard_name' => 'web']);
 
         // Assign permissions to roles
         $superAdminRole->givePermissionTo($allPermissions);
@@ -57,57 +57,93 @@ class RolesAndPermissionsSeeder extends Seeder
         });
         $viewerRole->syncPermissions($viewerPermissions);
 
+        // Dynamic domain based on tenant ID to prevent email collision across tenants
+        $tenantId = tenant('id') ?? 'cibatu';
+        $domain = ($tenantId === 'cibatu') ? 'desacibatu.com' : "{$tenantId}.desacibatu.com";
+
+        // Read operator details from tenant metadata if defined (during Landlord onboarding)
+        $tenantModel = tenant();
+        $opName = $tenantModel->operator_name ?? 'Super Administrator';
+        $opEmail = $tenantModel->operator_email ?? "superadmin@{$domain}";
+        $opPassword = $tenantModel->operator_password ? Hash::make($tenantModel->operator_password) : Hash::make('password');
+
         // Create or update default users
-        $users = [
-            [
-                'name' => 'Super Administrator',
-                'email' => 'superadmin@desacibatu.com',
-                'password' => Hash::make('password'),
-                'role' => 'Super Admin'
-            ],
-            [
-                'name' => 'Administrator',
-                'email' => 'admin@desacibatu.com',
-                'password' => Hash::make('password'),
-                'role' => 'Admin Desa'
-            ],
-            [
-                'name' => 'Sekretaris Desa',
-                'email' => 'sekretaris@desacibatu.com',
-                'password' => Hash::make('password'),
-                'role' => 'Admin Desa'
-            ],
-            [
-                'name' => 'Staf Pelayanan',
-                'email' => 'staf@desacibatu.com',
-                'password' => Hash::make('password'),
-                'role' => 'Staf Desa'
-            ],
-            [
-                'name' => 'Kepala Desa',
-                'email' => 'kepaladesa@desacibatu.com',
-                'password' => Hash::make('password'),
-                'role' => 'Viewer'
-            ],
-            [
-                'name' => 'Viewer',
-                'email' => 'viewer@desacibatu.com',
-                'password' => Hash::make('password'),
-                'role' => 'Viewer'
-            ]
-        ];
+        if ($tenantId === 'cibatu') {
+            $users = [
+                [
+                    'name' => 'Super Administrator',
+                    'email' => 'superadmin@desacibatu.com',
+                    'password' => Hash::make('password'),
+                    'role' => 'Super Admin'
+                ],
+                [
+                    'name' => 'Administrator',
+                    'email' => 'admin@desacibatu.com',
+                    'password' => Hash::make('password'),
+                    'role' => 'Admin Desa'
+                ],
+                [
+                    'name' => 'Sekretaris Desa',
+                    'email' => 'sekretaris@desacibatu.com',
+                    'password' => Hash::make('password'),
+                    'role' => 'Admin Desa'
+                ],
+                [
+                    'name' => 'Staf Pelayanan',
+                    'email' => 'staf@desacibatu.com',
+                    'password' => Hash::make('password'),
+                    'role' => 'Staf Desa'
+                ],
+                [
+                    'name' => 'Kepala Desa',
+                    'email' => 'kepaladesa@desacibatu.com',
+                    'password' => Hash::make('password'),
+                    'role' => 'Viewer'
+                ],
+                [
+                    'name' => 'Viewer',
+                    'email' => 'viewer@desacibatu.com',
+                    'password' => Hash::make('password'),
+                    'role' => 'Viewer'
+                ]
+            ];
+        } else {
+            $users = [
+                [
+                    'name' => $opName,
+                    'email' => $opEmail,
+                    'password' => $opPassword,
+                    'role' => 'Super Admin'
+                ]
+            ];
+        }
 
         foreach ($users as $userData) {
             $user = User::firstOrCreate(
                 ['email' => $userData['email']],
                 [
                     'name' => $userData['name'],
-                    'password' => $userData['password']
+                    'password' => $userData['password'],
+                    'email_verified_at' => now(), // [SaaS] Auto-verified: akun dibuat oleh sistem, bukan self-register
                 ]
             );
 
+            // Pastikan akun lama yang belum verified juga di-update
+            if (!$user->email_verified_at) {
+                $user->update(['email_verified_at' => now()]);
+            }
+
+
             // Assign the role
             $user->syncRoles([$userData['role']]);
+
+            // [SaaS] Insert mapping ke database central agar user bisa login dari admin.sistem-desa-cibatu.test
+            if (tenant('id')) {
+                \App\Models\Central\UserTenantMap::firstOrCreate([
+                    'email' => $userData['email'],
+                    'tenant_id' => tenant('id')
+                ]);
+            }
 
             echo "User {$user->name} assigned role: {$userData['role']}\n";
         }

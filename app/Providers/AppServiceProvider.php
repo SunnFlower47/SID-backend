@@ -4,8 +4,10 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Event;
 use Spatie\Activitylog\Models\Activity;
 use App\Observers\ActivityLogObserver;
+use App\Listeners\LogLandlordAuthEvents;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -16,6 +18,11 @@ class AppServiceProvider extends ServiceProvider
         // Register Activity Log Observer
         Activity::observe(ActivityLogObserver::class);
 
+        // Register Landlord Auth Audit Trail Listeners
+        Event::listen(\Illuminate\Auth\Events\Login::class, LogLandlordAuthEvents::class);
+        Event::listen(\Illuminate\Auth\Events\Logout::class, LogLandlordAuthEvents::class);
+        Event::listen(\Illuminate\Auth\Events\Failed::class, LogLandlordAuthEvents::class);
+
         // Register KK Sync Observers
         \App\Models\Penduduk::observe(\App\Observers\PendudukObserver::class);
         \App\Models\Mutasi::observe(\App\Observers\MutasiObserver::class);
@@ -25,6 +32,9 @@ class AppServiceProvider extends ServiceProvider
         \App\Models\Rw::observe(\App\Observers\VillageDataObserver::class);
         \App\Models\Rt::observe(\App\Observers\VillageDataObserver::class);
         \App\Models\WilayahChangeLog::observe(\App\Observers\VillageDataObserver::class);
+
+        // Register SaaS Tenant User Observer (Double Insert ke Central)
+        \App\Models\User::observe(\App\Observers\TenantUserObserver::class);
 
         // View Composer for sidebar unread count (cached)
         \Illuminate\Support\Facades\View::composer('layouts.components.sidebar', function ($view) {
@@ -60,5 +70,34 @@ class AppServiceProvider extends ServiceProvider
                 'email' => $user->email,
             ], false));
         });
+
+        // Define Gates for Landlord / Central (Diskominfo) dynamically from database
+        $centralAbilities = [
+            'manage-central-users',
+            'manage-allocations',
+            'manage-tenants',
+            'broadcast-announcements',
+        ];
+
+        foreach ($centralAbilities as $ability) {
+            \Illuminate\Support\Facades\Gate::define($ability, function ($user) use ($ability) {
+                if (!($user instanceof \App\Models\Central\CentralUser)) {
+                    return false;
+                }
+
+                // Failsafe bypass: superadmin role always has full access
+                if ($user->role === 'superadmin') {
+                    return true;
+                }
+
+                // Check permissions dynamically using cached array
+                $permissions = \Illuminate\Support\Facades\Cache::remember("central_role_perms_{$user->role}", 3600, function () use ($user) {
+                    $role = \App\Models\Central\CentralRole::where('name', $user->role)->first();
+                    return $role ? ($role->permissions ?? []) : [];
+                });
+
+                return in_array($ability, $permissions);
+            });
+        }
     }
 }

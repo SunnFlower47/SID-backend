@@ -33,6 +33,25 @@ class SyncPbbMapagbumiJob implements ShouldQueue
     public function handle(): void
     {
         try {
+            // Check global rate limit in cache (flexible based on env CACHE_STORE: redis, database, file, etc.)
+            try {
+                $cacheKey = 'pbb_global_api_limit:' . date('YmdHi');
+                
+                // Menggunakan Cache facade agar otomatis mengikuti driver cache yang aktif di .env
+                $requestCount = \Illuminate\Support\Facades\Cache::increment($cacheKey);
+                if ($requestCount === 1) {
+                    \Illuminate\Support\Facades\Cache::put($cacheKey, 1, 60); // Set expired 60 detik
+                }
+
+                $globalLimit = (int) env('PBB_API_GLOBAL_LIMIT', 25);
+                if ($requestCount > $globalLimit) {
+                    Log::warning("PBB Sync: Global rate limit reached for this minute (" . date('H:i') . "). Skipping NOP {$this->pbbObjek->nop} to prevent 429 from Mapagbumi API.");
+                    return;
+                }
+            } catch (\Exception $cacheEx) {
+                Log::warning("PBB Sync: Cache connection failed, skipping global rate limit check: " . $cacheEx->getMessage());
+            }
+
             $nop = str_replace(['.', '-'], '', $this->pbbObjek->nop);
             
             $response = Http::timeout(30)->withoutVerifying()->get('https://mapagbumi.purwakartakab.go.id/nop?nop=' . $nop);

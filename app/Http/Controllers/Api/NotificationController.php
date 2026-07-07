@@ -57,8 +57,29 @@ class NotificationController extends Controller
                     ];
                 });
 
+            // Get recent announcements from central (active, not expired & targeted)
+            $recentAnnouncements = \App\Models\Central\BroadcastAnnouncement::active()
+                ->forTenant(tenant('id'))
+                ->where('created_at', '>=', Carbon::now()->subDays(7))
+                ->latest()
+                ->get()
+                ->map(function ($ann) {
+                    return [
+                        'id' => $ann->id,
+                        'type' => 'announcement',
+                        'title' => '[' . ($ann->sender_name ?? 'Diskominfo') . '] ' . $ann->title,
+                        'message' => $ann->message,
+                        'time' => $ann->created_at->diffForHumans(),
+                        'status' => 'info',
+                        'url' => route('dashboard'),
+                        'icon' => 'fas fa-bullhorn',
+                        'color' => $ann->type === 'danger' ? 'text-red-600' : ($ann->type === 'warning' ? 'text-yellow-600' : 'text-blue-600'),
+                        'timestamp' => $ann->created_at->timestamp
+                    ];
+                });
+
             // Combine and sort by timestamp
-            $notifications = $recentSurat->concat($recentPengaduan)
+            $notifications = $recentSurat->concat($recentPengaduan)->concat($recentAnnouncements)
                 ->sortByDesc('timestamp')
                 ->values()
                 ->map(function($item) {
@@ -142,13 +163,19 @@ class NotificationController extends Controller
                 ->where('status', '!=', 'selesai')
                 ->count();
 
-            $totalCount = $suratCount + $pengaduanCount;
+            $announcementCount = \App\Models\Central\BroadcastAnnouncement::active()
+                ->forTenant(tenant('id'))
+                ->where('created_at', '>=', Carbon::now()->subDays(7))
+                ->count();
+
+            $totalCount = $suratCount + $pengaduanCount + $announcementCount;
 
             return response()->json([
                 'success' => true,
                 'data' => [
                     'surat_count' => $suratCount,
                     'pengaduan_count' => $pengaduanCount,
+                    'announcement_count' => $announcementCount,
                     'total_count' => $totalCount
                 ]
             ]);

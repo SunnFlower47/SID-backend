@@ -31,12 +31,37 @@ class SyncPbbCommand extends Command
         
         $this->info("Memulai proses sinkronisasi PBB (Maksimal: {$limit} NOP)...");
 
-        // Ambil NOP yang belum pernah disinkronisasi atau terakhir sinkron > 1 hari
-        $objeks = PajakPbbObjek::whereNull('last_synced_at')
-            ->orWhere('last_synced_at', '<', now()->subDays(1))
-            ->orderBy('last_synced_at', 'asc')
-            ->limit($limit)
-            ->get();
+        // Ambil NOP yang belum pernah disinkronisasi atau disinkronkan berdasarkan prioritas status pembayaran
+        $currentYear = date('Y');
+        
+        $objeks = PajakPbbObjek::where(function ($query) use ($currentYear) {
+            $query->whereNull('last_synced_at') // Prioritas 1: Belum pernah disinkronisasi
+                ->orWhere(function ($q) use ($currentYear) {
+                    // Prioritas 2: Jika tagihan tahun ini BELUM LUNAS, sinkronkan ulang setelah 7 hari
+                    $q->where('last_synced_at', '<', now()->subDays(7))
+                      ->whereHas('tagihans', function ($t) use ($currentYear) {
+                          $t->where('tahun', $currentYear)->where('status', 'BELUM LUNAS');
+                      });
+                })
+                ->orWhere(function ($q) use ($currentYear) {
+                    // Prioritas 3: Jika sudah LUNAS tahun ini, cukup sinkronkan setelah 30 hari
+                    $q->where('last_synced_at', '<', now()->subDays(30))
+                      ->whereHas('tagihans', function ($t) use ($currentYear) {
+                          $t->where('tahun', $currentYear)->where('status', 'LUNAS');
+                      });
+                })
+                ->orWhere(function ($q) use ($currentYear) {
+                    // Prioritas 4: Fallback jika belum memiliki data tagihan tahun ini, cek setelah 14 hari
+                    $q->where('last_synced_at', '<', now()->subDays(14))
+                      ->whereDoesntHave('tagihans', function ($t) use ($currentYear) {
+                          $t->where('tahun', $currentYear);
+                      });
+                });
+        })
+        ->orderByRaw('last_synced_at IS NULL DESC') // Prioritaskan yang belum pernah disinkronisasi
+        ->orderBy('last_synced_at', 'asc')
+        ->limit($limit)
+        ->get();
 
         if ($objeks->isEmpty()) {
             $this->info("Semua NOP sudah mutakhir.");

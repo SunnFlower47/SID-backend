@@ -12,36 +12,65 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $this->call([
-            // 1. Roles, Permissions, and Admin Users
-            RolesAndPermissionsSeeder::class,
-            
-            // 2. Global Village Information (Settings)
-            DesaSettingsSeeder::class,
-            
-            // 4. Struktur Desa (Pejabat Desa)
-            StrukturDesaSeeder::class,
-            
-            // 5. Master Jenis Surat (Layanan Surat)
-            SuratTypeSeeder::class,
+        // 0. Seed Default Central Roles
+        $defaultRoles = [
+            [
+                'name' => 'superadmin',
+                'display_name' => 'Super Admin',
+                'permissions' => ['manage-central-users', 'manage-allocations', 'manage-tenants', 'broadcast-announcements'],
+            ],
+            [
+                'name' => 'operator_onboarding',
+                'display_name' => 'Operator Onboarding',
+                'permissions' => ['manage-tenants', 'broadcast-announcements'],
+            ],
+            [
+                'name' => 'operator_monitoring',
+                'display_name' => 'Operator Monitoring',
+                'permissions' => [],
+            ],
+        ];
 
-            // 6. Master Wilayah (RT/RW/Dusun dasar)
-            WilayahSeeder::class,
-        ]);
-
-        // 7. Simulation & Demo Data (HANYA UNTUK NON-PRODUCTION)
-        if (!app()->environment('production')) {
-            $this->call([
-                BeritaSeeder::class,
-                TestimoniSeeder::class,
-                PendudukSeeder::class,
-            ]);
-            $this->command->info('Dummy data seeded for local development.');
-        } else {
-            $this->command->warn('Production environment detected. Dummy data skipped.');
+        foreach ($defaultRoles as $roleData) {
+            \App\Models\Central\CentralRole::updateOrCreate(
+                ['name' => $roleData['name']],
+                [
+                    'display_name' => $roleData['display_name'],
+                    'permissions' => $roleData['permissions'],
+                ]
+            );
         }
+
+        // 1. Akun Super Admin Diskominfo (Landlord)
+        \App\Models\Central\CentralUser::firstOrCreate(
+            ['email' => 'admin@diskominfo.go.id'],
+            [
+                'name' => 'Super Admin Diskominfo',
+                'password' => \Illuminate\Support\Facades\Hash::make('password123'),
+                'role' => 'superadmin',
+            ]
+        );
+
+        // 2. Default Central Settings
+        $defaultSettings = [
+            'default_max_users' => '10',
+            'default_storage_limit_mb' => '1024',
+            'diskominfo_hotline' => '081234567890',
+            'diskominfo_email' => 'diskominfo@purwakartakab.go.id',
+            'central_base_domain' => 'sistem-desa-cibatu.test',
+            'central_admin_domain' => 'admin.sistem-desa-cibatu.test',
+        ];
+
+        foreach ($defaultSettings as $key => $value) {
+            \App\Models\Central\CentralSetting::firstOrCreate(
+                ['key' => $key],
+                ['value' => $value]
+            );
+        }
+
+        $this->command->info("Central DB seeded successfully (Landlord Account & Settings created).");
         
-        
-        echo "\nDatabase Reset and Seeding Completed Successfully!\n";
+        $this->command->warn("NOTE: Data desa (roles, settings, penduduk) tidak di-seed di sini.");
+        $this->command->warn("Data desa akan di-seed secara otomatis melalui TenantInitialSeeder saat tenant baru dibuat.");
     }
 }

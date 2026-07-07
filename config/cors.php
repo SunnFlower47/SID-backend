@@ -21,18 +21,7 @@ return [
 
     'allowed_origins' => env('CORS_ALLOWED_ORIGINS')
         ? explode(',', env('CORS_ALLOWED_ORIGINS'))
-        : [
-            'http://localhost:3000',
-            'http://localhost:3001',
-            'http://localhost:3030',
-            'http://127.0.0.1:3000',
-            'http://sistem-desa-cibatu.test',
-            'https://pemdescibatu2001.online',
-            'https://api-vilage.sunnflower.site',
-            'https://vilage.sunnflower.site',
-            'https://web-desa-sid.vercel.app',
-            'https://cibatu-vibe-ai-505268805663.asia-southeast2.run.app'
-        ],
+        : [],
 
     'allowed_origins_patterns' => [],
 

@@ -45,6 +45,19 @@ class DashboardController extends Controller
             'proyekStats' => Inertia::defer(fn() => once(fn() => $this->statsService->getDashboardStats())['proyek'] ?? null),
             'umkmDistribution' => Inertia::defer(fn() => once(fn() => $this->statsService->getDashboardStats())['umkm_distribution'] ?? []),
             'asetDistribution' => Inertia::defer(fn() => once(fn() => $this->statsService->getDashboardStats())['aset_distribution'] ?? []),
+            'announcements' => \App\Models\Central\BroadcastAnnouncement::active()->forTenant(tenant('id'))->latest()->take(5)->get(),
+            'quota' => Inertia::defer(function() {
+                $allocation = \App\Models\Central\TenantAllocation::where('tenant_id', tenant('id'))->first();
+                if ($allocation) {
+                    return [
+                        'max_users' => $allocation->max_users,
+                        'users_used' => \App\Models\User::count(),
+                        'storage_limit_mb' => $allocation->storage_limit_mb,
+                        'storage_used_mb' => $allocation->getStorageUsedMb(),
+                    ];
+                }
+                return null;
+            }),
         ]);
     }
 
