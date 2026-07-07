@@ -92,7 +92,7 @@ export default function Show({ auth, domisili }) {
                                         <p className="text-sm font-black text-gray-700 uppercase tracking-widest mb-2">{domisili.nomor_surat || 'BELUM TERBIT'}</p>
                                         {domisili.surat_pengajuan_id && (
                                             <Link
-                                                href={route('surat-pengajuan.show', domisili.surat_pengajuan_id)}
+                                                href={route('admin.surat-pengajuan.show', domisili.surat_pengajuan_id)}
                                                 className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-wider transition-all shadow-sm"
                                                 title="Lihat detail surat, cetak PDF, atau lakukan TTE"
                                             >

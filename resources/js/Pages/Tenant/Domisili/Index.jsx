@@ -205,7 +205,7 @@ export default function Index({ auth, domisilis, stats, filters, rtList, rwList,
                                                                 <Eye className="w-3.5 h-3.5" />
                                                             </Link>
                                                             {d.surat_pengajuan_id && (
-                                                                <Link href={route('surat-pengajuan.show', d.surat_pengajuan_id)} className="w-8 h-8 flex items-center justify-center rounded-xl bg-purple-50 text-purple-600 hover:bg-purple-600 hover:text-white transition-all" title="Lihat & Cetak Surat">
+                                                                <Link href={route('admin.surat-pengajuan.show', d.surat_pengajuan_id)} className="w-8 h-8 flex items-center justify-center rounded-xl bg-purple-50 text-purple-600 hover:bg-purple-600 hover:text-white transition-all" title="Lihat & Cetak Surat">
                                                                     <FileText className="w-3.5 h-3.5" />
                                                                 </Link>
                                                             )}
@@ -252,7 +252,7 @@ export default function Index({ auth, domisilis, stats, filters, rtList, rwList,
                                             <div className="flex gap-2">
                                                 <Link href={route('domisili.show', d.id)} className="px-3 py-2.5 bg-blue-50 text-blue-600 rounded-xl" title="Detail"><Eye className="w-4 h-4" /></Link>
                                                 {d.surat_pengajuan_id && (
-                                                    <Link href={route('surat-pengajuan.show', d.surat_pengajuan_id)} className="px-3 py-2.5 bg-purple-50 text-purple-600 rounded-xl" title="Lihat & Cetak Surat"><FileText className="w-4 h-4" /></Link>
+                                                    <Link href={route('admin.surat-pengajuan.show', d.surat_pengajuan_id)} className="px-3 py-2.5 bg-purple-50 text-purple-600 rounded-xl" title="Lihat & Cetak Surat"><FileText className="w-4 h-4" /></Link>
                                                 )}
                                                 <Link href={route('domisili.edit', d.id)} className="flex-1 py-2.5 bg-gray-50 text-gray-700 rounded-xl text-[10px] font-black text-center uppercase tracking-widest">EDIT</Link>
                                                 {d.status !== 'dicabut' && <button onClick={() => handlePerpanjang(d.id, d.nama)} className="flex-1 py-2.5 bg-green-50 text-green-700 rounded-xl text-[10px] font-black text-center uppercase tracking-widest">PERPANJANG</button>}
