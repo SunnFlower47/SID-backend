@@ -46,24 +46,44 @@ class AdminSecurityMiddleware
      */
     private function checkSuspiciousActivity(Request $request): void
     {
-        $suspiciousPatterns = [
-            'sql' => ['union', 'select', 'insert', 'update', 'delete', 'drop'],
-            'xss' => ['<script', 'javascript:', 'onload=', 'onerror='],
-            'path' => ['../', '..\\', '/etc/', '/var/', 'C:\\'],
+        // Pola berbahaya yang langsung di-BLOCK (bukan hanya di-log)
+        $blockPatterns = [
+            'sql' => ['union select', 'drop table', 'truncate table', 'delete from', 'insert into'],
+            'xss' => ['<script', 'javascript:', 'onload=', 'onerror=', 'onclick='],
+            'path' => ['../', '..\\', '/etc/passwd', '/etc/shadow'],
+        ];
+
+        // Pola yang hanya di-log (suspicious tapi bisa false positive)
+        $warnPatterns = [
+            'sql_warn' => ['select ', 'update ', ' where '],
         ];
 
         $requestData = strtolower($request->getContent() . ' ' . $request->getQueryString());
 
-        foreach ($suspiciousPatterns as $type => $patterns) {
+        foreach ($blockPatterns as $type => $patterns) {
             foreach ($patterns as $pattern) {
                 if (strpos($requestData, $pattern) !== false) {
-                    Log::warning('Suspicious activity detected', [
-                        'type' => $type,
-                        'pattern' => $pattern,
-                        'ip' => $request->ip(),
+                    Log::warning('Suspicious activity BLOCKED', [
+                        'type'       => $type,
+                        'pattern'    => $pattern,
+                        'ip'         => $request->ip(),
                         'user_agent' => $request->userAgent(),
-                        'url' => $request->url(),
-                        'data' => substr($requestData, 0, 500), // Limit log size
+                        'url'        => $request->url(),
+                        'user_id'    => auth()->id(),
+                        'timestamp'  => now(),
+                    ]);
+                    abort(403, 'Suspicious activity detected.');
+                }
+            }
+        }
+
+        foreach ($warnPatterns as $type => $patterns) {
+            foreach ($patterns as $pattern) {
+                if (strpos($requestData, $pattern) !== false) {
+                    Log::warning('Suspicious activity detected (warning only)', [
+                        'type'    => $type,
+                        'ip'      => $request->ip(),
+                        'url'     => $request->url(),
                         'timestamp' => now(),
                     ]);
                     break;

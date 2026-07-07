@@ -125,8 +125,8 @@ Route::prefix('v1')->group(function () {
     // Search Penduduk (Verifikasi NIK - reCAPTCHA dinonaktifkan sementara untuk lomba #JuaraVibeCoding)
     Route::post('/search-penduduk', [SuratPengajuanApiController::class, 'checkNik'])->middleware(['throttle:100,1', 'private.api', 'captcha:v3']);
 
-    // Admin Notifications (for header)
-    Route::get('/contact-messages/notifications', [\App\Http\Controllers\Tenant\Pelayanan\ContactMessageController::class, 'notifications'])->middleware(['throttle:100,1', 'private.api']);
+    // Admin Notifications (for header) — H3 FIX: tambah middleware auth
+    Route::get('/contact-messages/notifications', [\App\Http\Controllers\Tenant\Pelayanan\ContactMessageController::class, 'notifications'])->middleware(['throttle:100,1', 'private.api', 'auth']);
 
     // ========================================
     // FORM SUBMISSIONS (Private API)
@@ -160,7 +160,6 @@ Route::prefix('v1')->group(function () {
     })->middleware(['throttle:300,1', 'private.api']);
 
     // CAPTCHA & Rate Limiting
-    Route::get('/captcha', [\App\Http\Controllers\Api\SecureSearchController::class, 'generateCaptcha'])->middleware(['throttle:300,5', 'private.api']);
     Route::get('/rate-limit-status', [\App\Http\Controllers\Api\SecureSearchController::class, 'getRateLimitStatus'])->middleware(['throttle:200,1', 'private.api']);
 
 });

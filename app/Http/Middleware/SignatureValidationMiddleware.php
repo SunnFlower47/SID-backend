@@ -37,7 +37,7 @@ class SignatureValidationMiddleware
         $currentTime = time();
         $timeDiff = abs($currentTime - (int)$timestamp);
 
-        if ($timeDiff > 3600) { // 1 jam window untuk debugging
+        if ($timeDiff > 300) { // H2 FIX: 5 menit (bukan 1 jam) untuk cegah replay attack
             Log::warning('Timestamp expired', [
                 'ip' => $request->ip(),
                 'timestamp' => $timestamp,
@@ -55,21 +55,19 @@ class SignatureValidationMiddleware
         // Validasi signature
         $expectedSignature = hash_hmac('sha256', $timestamp, $secret);
 
-        // Debug logging
-        Log::info('Signature Validation Debug', [
-            'timestamp' => $timestamp,
-            'secret_length' => strlen($secret),
-            'provided_signature' => $signature,
-            'expected_signature' => $expectedSignature,
+        // H2 FIX: JANGAN log expected_signature — bisa bocor via log access
+        Log::info('Signature Validation', [
+            'timestamp'       => $timestamp,
+            'secret_length'   => strlen($secret),
             'signature_match' => hash_equals($expectedSignature, $signature),
+            'ip'              => $request->ip(),
         ]);
 
         if (!hash_equals($expectedSignature, $signature)) {
             Log::warning('Invalid signature', [
-                'ip' => $request->ip(),
+                'ip'        => $request->ip(),
                 'timestamp' => $timestamp,
-                'provided_signature' => $signature,
-                'expected_signature' => $expectedSignature,
+                // Zero Trust: JANGAN catat provided_signature atau expected_signature di log
             ]);
 
             return response()->json([

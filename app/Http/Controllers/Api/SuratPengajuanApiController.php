@@ -221,21 +221,17 @@ class SuratPengajuanApiController extends Controller
         $nomorSurat = $request->query('nomor') ?? $request->input('nomor_surat');
         $nik = $request->query('nik') ?? $request->input('nik');
 
-        if (!$nomorSurat) {
-            return response()->json(['success' => false, 'message' => 'Nomor surat wajib diisi'], 400);
+        // C6 FIX: NIK wajib untuk mencegah enumerasi status surat orang lain
+        if (!$nomorSurat || !$nik) {
+            return response()->json(['success' => false, 'message' => 'Nomor surat dan NIK wajib diisi'], 400);
         }
 
-        $query = SuratPengajuan::where(function($q) use ($nomorSurat) {
+        $pengajuan = SuratPengajuan::where(function($q) use ($nomorSurat) {
             $q->where('nomor_surat', $nomorSurat)
               ->orWhere('nomor_pengajuan', $nomorSurat);
-        });
-        
-        // Opsional: Tetap cek NIK jika dikirim dari frontend untuk keamanan tambahan
-        if ($nik) {
-            $query->where('nik_pengaju', $nik);
-        }
-
-        $pengajuan = $query->first();
+        })
+        ->where('nik_pengaju', $nik) // NIK sekarang WAJIB
+        ->first();
 
         if (!$pengajuan) {
             return response()->json(['success' => false, 'message' => 'Surat tidak ditemukan'], 404);

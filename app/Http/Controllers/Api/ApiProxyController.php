@@ -23,7 +23,16 @@ class ApiProxyController extends Controller
     {
         // 0. VALIDATE HANDSHAKE (Mastikan yang minta tanda tangan adalah Frontend Resmi kita)
         $clientKey = $request->header('X-Proxy-App-Id');
-        $serverKey = env('PROXY_CLIENT_KEY', 'CIBATU_VIBE_2026');
+        $serverKey = config('app.proxy_client_key');
+
+        // Fail-safe: jika PROXY_CLIENT_KEY tidak dikonfigurasi di .env, tolak semua request
+        if (!$serverKey) {
+            Log::error('PROXY_CLIENT_KEY not configured in environment. All proxy requests rejected.');
+            return response()->json([
+                'success' => false,
+                'message' => 'Service unavailable.',
+            ], 503);
+        }
 
         if (!$clientKey || $clientKey !== $serverKey) {
             return response()->json([
