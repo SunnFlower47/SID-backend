@@ -6,7 +6,7 @@ import SkeletonStats from '@/Components/Shared/Skeleton/SkeletonStats';
 import SkeletonTable from '@/Components/Shared/Skeleton/SkeletonTable';
 import DomisiliStats from '@/Components/Domisili/DomisiliStats';
 import DomisiliFilters from '@/Components/Domisili/DomisiliFilters';
-import { MapPin, Plus, CheckCircle, Clock, AlertTriangle, XCircle, Edit, Trash2, RefreshCw, Ban, Filter, Search, UserCheck, Eye, User, Home, Info, Calendar, Briefcase, Heart, X, ClipboardList } from 'lucide-react';
+import { MapPin, Plus, CheckCircle, Clock, AlertTriangle, XCircle, Edit, Trash2, RefreshCw, Ban, Filter, Search, UserCheck, Eye, User, Home, Info, Calendar, Briefcase, Heart, X, ClipboardList, FileText } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { cn } from '@/lib/utils';
 import Lottie from 'lottie-react';
@@ -204,6 +204,11 @@ export default function Index({ auth, domisilis, stats, filters, rtList, rwList,
                                                             <Link href={route('domisili.show', d.id)} className="w-8 h-8 flex items-center justify-center rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all" title="Detail">
                                                                 <Eye className="w-3.5 h-3.5" />
                                                             </Link>
+                                                            {d.surat_pengajuan_id && (
+                                                                <Link href={route('surat-pengajuan.show', d.surat_pengajuan_id)} className="w-8 h-8 flex items-center justify-center rounded-xl bg-purple-50 text-purple-600 hover:bg-purple-600 hover:text-white transition-all" title="Lihat & Cetak Surat">
+                                                                    <FileText className="w-3.5 h-3.5" />
+                                                                </Link>
+                                                            )}
                                                             <Link href={route('domisili.edit', d.id)} className="w-8 h-8 flex items-center justify-center rounded-xl bg-gray-50 text-gray-600 hover:bg-gray-800 hover:text-white transition-all" title="Edit">
                                                                 <Edit className="w-3.5 h-3.5" />
                                                             </Link>
@@ -245,7 +250,10 @@ export default function Index({ auth, domisilis, stats, filters, rtList, rwList,
                                                 Berlaku: {d.tanggal_berlaku ? new Date(d.tanggal_berlaku).toLocaleDateString('id-ID') : '-'}
                                              </p>
                                             <div className="flex gap-2">
-                                                <Link href={route('domisili.show', d.id)} className="px-3 py-2.5 bg-blue-50 text-blue-600 rounded-xl"><Eye className="w-4 h-4" /></Link>
+                                                <Link href={route('domisili.show', d.id)} className="px-3 py-2.5 bg-blue-50 text-blue-600 rounded-xl" title="Detail"><Eye className="w-4 h-4" /></Link>
+                                                {d.surat_pengajuan_id && (
+                                                    <Link href={route('surat-pengajuan.show', d.surat_pengajuan_id)} className="px-3 py-2.5 bg-purple-50 text-purple-600 rounded-xl" title="Lihat & Cetak Surat"><FileText className="w-4 h-4" /></Link>
+                                                )}
                                                 <Link href={route('domisili.edit', d.id)} className="flex-1 py-2.5 bg-gray-50 text-gray-700 rounded-xl text-[10px] font-black text-center uppercase tracking-widest">EDIT</Link>
                                                 {d.status !== 'dicabut' && <button onClick={() => handlePerpanjang(d.id, d.nama)} className="flex-1 py-2.5 bg-green-50 text-green-700 rounded-xl text-[10px] font-black text-center uppercase tracking-widest">PERPANJANG</button>}
                                                 <button onClick={() => handleDelete(d.id, d.nama)} className="px-3 py-2.5 bg-red-50 text-red-600 rounded-xl"><Trash2 className="w-4 h-4" /></button>

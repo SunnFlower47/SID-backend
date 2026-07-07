@@ -89,7 +89,16 @@ export default function Show({ auth, domisili }) {
                                     </div>
                                     <div className="p-5 bg-gray-50/50 rounded-3xl border border-gray-100 text-center group hover:bg-white hover:shadow-md transition-all">
                                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2">Nomor Surat Domisili</p>
-                                        <p className="text-sm font-black text-gray-700 uppercase tracking-widest">{domisili.nomor_surat || 'BELUM TERBIT'}</p>
+                                        <p className="text-sm font-black text-gray-700 uppercase tracking-widest mb-2">{domisili.nomor_surat || 'BELUM TERBIT'}</p>
+                                        {domisili.surat_pengajuan_id && (
+                                            <Link
+                                                href={route('surat-pengajuan.show', domisili.surat_pengajuan_id)}
+                                                className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-wider transition-all shadow-sm"
+                                                title="Lihat detail surat, cetak PDF, atau lakukan TTE"
+                                            >
+                                                <FileText className="w-3.5 h-3.5" /> Lihat / Cetak Surat
+                                            </Link>
+                                        )}
                                     </div>
                                 </div>
                             </div>
