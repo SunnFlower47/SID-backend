@@ -44,7 +44,7 @@ class User extends Authenticatable
                     $currentUserCount = static::count();
                     if ($currentUserCount >= $allocation->max_users) {
                         throw \Illuminate\Validation\ValidationException::withMessages([
-                            'email' => ["Batas maksimal pengguna ({$allocation->max_users}) untuk desa ini telah tercapai. Silakan hubungi Diskominfo untuk menambah kuota."]
+                            'email' => ["Batas maksimal pengguna ({$allocation->max_users}) untuk desa ini telah tercapai. Silakan hubungi Admin Pusat untuk menambah kuota."]
                         ]);
                     }
                 }

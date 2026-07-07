@@ -68,7 +68,7 @@ export default function LandlordNavbar({ collapsed, toggleSidebar, activeMenu, a
                         </div>
                         <div className="text-left hidden lg:block select-none shrink-0">
                             <p className="text-xs font-black text-slate-800 leading-none">{auth?.user?.name || 'Super Admin'}</p>
-                            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">Diskominfo</p>
+                            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">Admin Panel Central</p>
                         </div>
                         <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600 shrink-0" />
                     </button>
@@ -83,9 +83,9 @@ export default function LandlordNavbar({ collapsed, toggleSidebar, activeMenu, a
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <p className="text-xs font-black text-slate-900 uppercase tracking-tight truncate leading-none">{auth?.user?.name || 'Super Admin'}</p>
-                                    <p className="text-[10px] text-slate-400 font-medium mt-1 truncate">{auth?.user?.email || 'admin@diskominfo.go.id'}</p>
+                                    <p className="text-[10px] text-slate-400 font-medium mt-1 truncate">{auth?.user?.email || 'admin@central.go.id'}</p>
                                     <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[8px] font-black bg-indigo-50 text-indigo-655 uppercase mt-1 border border-indigo-100/50">
-                                        Diskominfo Central
+                                        Admin Panel Central
                                     </span>
                                 </div>
                             </div>

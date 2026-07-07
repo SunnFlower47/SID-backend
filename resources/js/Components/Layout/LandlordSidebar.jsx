@@ -143,7 +143,7 @@ export default function LandlordSidebar({ collapsed, sidebarOpen, setSidebarOpen
                         </div>
                         <div className="flex-1 min-w-0">
                             <p className="text-[11px] font-bold text-slate-200 truncate uppercase tracking-tight">{auth?.user?.name || 'Super Admin'}</p>
-                            <p className="text-[9px] text-slate-500 font-medium tracking-wider mt-0.5">Diskominfo Central</p>
+                            <p className="text-[9px] text-slate-500 font-medium tracking-wider mt-0.5">Admin Panel Central</p>
                         </div>
                     </div>
                 </div>

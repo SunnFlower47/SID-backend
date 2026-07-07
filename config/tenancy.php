@@ -19,11 +19,11 @@ return [
     'central_domains' => [
         // Local testing
         'sistem-desa-cibatu.test',
-        'diskominfo.sistem-desa-cibatu.test',
+        'central.sistem-desa-cibatu.test',
         'admin.sistem-desa-cibatu.test',
         // Production
         'purwakarta.desa.id',
-        'diskominfo.purwakarta.desa.id',
+        'central.purwakarta.desa.id',
         'admin.purwakarta.desa.id',
     ],
 

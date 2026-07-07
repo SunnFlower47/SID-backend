@@ -147,8 +147,8 @@ export default function Index({ users, roles }) {
             <div className="space-y-8">
                 <PageHeader 
                     icon={Users}
-                    title="User Central Diskominfo"
-                    subtitle="Kelola akun admin pusat, staf, dan hak akses operasional Diskominfo."
+                    title="User Central Admin"
+                    subtitle="Kelola akun admin pusat, staf, dan hak akses operasional Admin Panel Central."
                     gradient="from-indigo-600 via-indigo-700 to-indigo-800"
                     actions={[
                         {
@@ -201,7 +201,7 @@ export default function Index({ users, roles }) {
                             <FormField.Input 
                                 label="Email Address"
                                 type="email"
-                                placeholder="nama@diskominfo.go.id"
+                                placeholder="nama@central.go.id"
                                 value={data.email}
                                 onChange={e => setData('email', e.target.value)}
                                 error={errors.email}

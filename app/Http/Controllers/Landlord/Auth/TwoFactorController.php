@@ -33,7 +33,7 @@ class TwoFactorController extends Controller
 
         // Generate URL untuk TOTP
         $qrUrl = (new Google2FA())->getQRCodeUrl(
-            'Sistem Desa (Diskominfo)',
+            'Sistem Desa (Admin Panel Central)',
             $user->email,
             $user->two_factor_secret
         );

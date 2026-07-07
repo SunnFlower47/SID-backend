@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('broadcast_announcements', function (Blueprint $table) {
-            $table->string('sender_name')->default('Diskominfo')->after('type');
+            $table->string('sender_name')->default('Admin Pusat')->after('type');
             $table->string('target_type')->default('all')->after('sender_name'); // 'all' or 'specific'
             $table->json('target_tenant_ids')->nullable()->after('target_type');
         });

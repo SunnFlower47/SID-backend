@@ -180,7 +180,7 @@ export default function Dashboard({
                                         <div className="flex items-center gap-2">
                                             <span className="font-extrabold text-sm uppercase tracking-wide">{ann.title}</span>
                                             <span className={cn("text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full", colors.badge)}>
-                                                {ann.sender_name || 'Diskominfo'} Broadcast
+                                                {ann.sender_name || 'Admin Pusat'} Broadcast
                                             </span>
                                         </div>
                                         <div 

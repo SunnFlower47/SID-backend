@@ -237,7 +237,7 @@ class BsreService
             'WAITING_FOR_VERIFICATION' => 'Sertifikat Elektronik sedang dalam proses verifikasi.',
             'NEW'                      => 'Sertifikat Elektronik belum diaktivasi. Silakan aktivasi terlebih dahulu.',
             'NO_CERTIFICATE'           => 'Pengguna terdaftar namun belum memiliki Sertifikat Elektronik.',
-            'NOT_REGISTERED'           => 'Pengguna belum terdaftar di BSrE. Hubungi Diskominfo setempat.',
+            'NOT_REGISTERED'           => 'Pengguna belum terdaftar di BSrE. Hubungi Admin Pusat.',
             'SUSPEND'                  => 'Akun pengguna dalam kondisi suspend.',
             'REVOKE'                   => 'Sertifikat Elektronik telah dicabut.',
             default                    => "Status tidak dikenali: {$status}",

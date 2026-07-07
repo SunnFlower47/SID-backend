@@ -43,7 +43,7 @@ class InitializeTenancyByLoggedInUser
                     auth()->logout();
                     session()->invalidate();
                     session()->regenerateToken();
-                    return redirect()->route('login')->with('error', 'Desa Anda dinonaktifkan. Silakan hubungi admin Diskominfo.');
+                    return redirect()->route('login')->with('error', 'Desa Anda dinonaktifkan. Silakan hubungi Admin Pusat.');
                 }
                 
                 tenancy()->initialize($tenantId);
@@ -97,7 +97,7 @@ class InitializeTenancyByLoggedInUser
                         auth()->logout();
                         session()->invalidate();
                         session()->regenerateToken();
-                        return redirect()->route('login')->with('error', 'Desa Anda dinonaktifkan. Silakan hubungi admin Diskominfo.');
+                        return redirect()->route('login')->with('error', 'Desa Anda dinonaktifkan. Silakan hubungi Admin Pusat.');
                     }
                     
                     tenancy()->initialize($map->tenant_id);

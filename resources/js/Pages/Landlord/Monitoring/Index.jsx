@@ -359,7 +359,7 @@ export default function Index({ tenants, systemInfo, logs, landlordLogs, laravel
                     {/* Tab 1: Landlord Audit Logs */}
                     {activeTab === 'landlord_audit' && (
                         <TableCard
-                            title="Log Audit Keamanan Landlord (Diskominfo)"
+                            title="Log Audit Keamanan (Admin Panel Central)"
                             icon={ShieldAlert}
                             total={landlordLogs?.total || 0}
                             totalLabel="Kejadian Keamanan"

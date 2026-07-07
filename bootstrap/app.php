@@ -18,7 +18,7 @@
             then: function () {
                 // Landlord routes
                 \Illuminate\Support\Facades\Route::middleware('web')
-                    ->domain(env('LANDLORD_DOMAIN', 'diskominfo.sistem-desa-cibatu.test'))
+                    ->domain(env('LANDLORD_DOMAIN', 'central.sistem-desa-cibatu.test'))
                     ->group(base_path('routes/landlord.php'));
 
                 // Tenant/Admin Panel routes
@@ -76,7 +76,7 @@
 
             // Custom redirect for unauthenticated users based on domain
             $middleware->redirectGuestsTo(function (\Illuminate\Http\Request $request) {
-                if ($request->getHost() === env('LANDLORD_DOMAIN', 'diskominfo.sistem-desa-cibatu.test')) {
+                if ($request->getHost() === env('LANDLORD_DOMAIN', 'central.sistem-desa-cibatu.test')) {
                     return route('landlord.login');
                 }
                 

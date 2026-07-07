@@ -25,7 +25,7 @@ class SettingController extends Controller
             'default_max_users' => CentralSetting::get('default_max_users', '10'),
             'default_storage_limit_mb' => CentralSetting::get('default_storage_limit_mb', '1024'),
             'diskominfo_hotline' => CentralSetting::get('diskominfo_hotline', '081234567890'),
-            'diskominfo_email' => CentralSetting::get('diskominfo_email', 'diskominfo@purwakartakab.go.id'),
+            'diskominfo_email' => CentralSetting::get('diskominfo_email', 'admin@central.go.id'),
             'central_base_domain' => CentralSetting::get('central_base_domain', 'sistem-desa-cibatu.test'),
             'central_admin_domain' => CentralSetting::get('central_admin_domain', 'admin.sistem-desa-cibatu.test'),
         ];

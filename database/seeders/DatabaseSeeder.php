@@ -41,11 +41,11 @@ class DatabaseSeeder extends Seeder
             );
         }
 
-        // 1. Akun Super Admin Diskominfo (Landlord)
+        // 1. Akun Super Admin Central (Landlord)
         \App\Models\Central\CentralUser::firstOrCreate(
-            ['email' => 'admin@diskominfo.go.id'],
+            ['email' => 'admin@central.go.id'],
             [
-                'name' => 'Super Admin Diskominfo',
+                'name' => 'Super Admin Central',
                 'password' => \Illuminate\Support\Facades\Hash::make('password123'),
                 'role' => 'superadmin',
             ]
@@ -56,7 +56,7 @@ class DatabaseSeeder extends Seeder
             'default_max_users' => '10',
             'default_storage_limit_mb' => '1024',
             'diskominfo_hotline' => '081234567890',
-            'diskominfo_email' => 'diskominfo@purwakartakab.go.id',
+            'diskominfo_email' => 'admin@central.go.id',
             'central_base_domain' => 'sistem-desa-cibatu.test',
             'central_admin_domain' => 'admin.sistem-desa-cibatu.test',
         ];

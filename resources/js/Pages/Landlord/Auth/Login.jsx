@@ -83,8 +83,8 @@ export default function Login({ status }) {
 
             <div className="w-full sm:max-w-md mt-6 px-6 py-8 bg-white shadow-md overflow-hidden sm:rounded-lg">
                 <div className="text-center mb-8">
-                    <h1 className="text-2xl font-bold text-gray-800">Landlord Dashboard</h1>
-                    <p className="text-gray-500 text-sm mt-1">Sistem Multi-Tenant Diskominfo Purwakarta</p>
+                    <h1 className="text-2xl font-bold text-gray-800">Admin Panel Central</h1>
+                    <p className="text-gray-500 text-sm mt-1">Pusat Kendali Sistem Multi-Tenant SaaS</p>
                 </div>
 
                 {status && <div className="mb-4 font-medium text-sm text-green-600">{status}</div>}
@@ -103,7 +103,7 @@ export default function Login({ status }) {
 
                 <form onSubmit={submit}>
                     <div>
-                        <label htmlFor="email" className="block font-medium text-sm text-gray-700">Email Admin Diskominfo</label>
+                        <label htmlFor="email" className="block font-medium text-sm text-gray-700">Email Admin Pusat</label>
                         <input
                             id="email"
                             type="email"

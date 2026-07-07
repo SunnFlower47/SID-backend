@@ -401,7 +401,7 @@ export default function Index({ settings, user, roles, backupFiles = [], diskSpa
                                 >
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <FormField.Input 
-                                            label="Hotline WhatsApp Diskominfo"
+                                            label="Hotline WhatsApp Admin Pusat"
                                             type="text"
                                             placeholder="Contoh: 081234567890"
                                             value={data.diskominfo_hotline}
@@ -410,9 +410,9 @@ export default function Index({ settings, user, roles, backupFiles = [], diskSpa
                                             required
                                         />
                                         <FormField.Input 
-                                            label="Email Bantuan Diskominfo"
+                                            label="Email Bantuan Admin Pusat"
                                             type="email"
-                                            placeholder="Contoh: diskominfo@purwakartakab.go.id"
+                                            placeholder="Contoh: admin@central.go.id"
                                             value={data.diskominfo_email}
                                             onChange={e => setData('diskominfo_email', e.target.value)}
                                             error={errors.diskominfo_email}
@@ -522,7 +522,7 @@ export default function Index({ settings, user, roles, backupFiles = [], diskSpa
                                             <p className="text-xs text-slate-500 mt-1">
                                                 {user.two_factor_enabled 
                                                     ? 'Akun Anda dilindungi dengan TOTP. Kode OTP dibutuhkan setiap kali Anda login.'
-                                                    : 'Anda wajib mengaktifkan 2FA untuk menjaga keamanan akses ke panel Diskominfo.'}
+                                                    : 'Anda wajib mengaktifkan 2FA untuk menjaga keamanan akses ke Admin Panel Central.'}
                                             </p>
                                         </div>
 
@@ -846,7 +846,7 @@ export default function Index({ settings, user, roles, backupFiles = [], diskSpa
                                 )}
                                 <div className="space-y-2 bg-slate-50 p-4 rounded-2xl border border-slate-100">
                                     {[
-                                        { key: 'manage-central-users', label: 'Kelola User Central & Pengaturan', desc: 'Mengatur admin pusat diskominfo dan hak akses role.' },
+                                        { key: 'manage-central-users', label: 'Kelola User Central & Pengaturan', desc: 'Mengatur admin pusat dan hak akses role.' },
                                         { key: 'manage-allocations', label: 'Kelola Alokasi Resource', desc: 'Mengatur kuota user dan kapasitas storage desa.' },
                                         { key: 'manage-tenants', label: 'Kelola Tenant / Desa', desc: 'Mendaftarkan, mengedit, menonaktifkan, atau menghapus desa.' },
                                         { key: 'broadcast-announcements', label: 'Siaran Pengumuman', desc: 'Menyiarkan pengumuman massal ke dashboard desa.' },

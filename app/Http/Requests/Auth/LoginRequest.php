@@ -51,7 +51,7 @@ class LoginRequest extends FormRequest
             if (isset($map->tenant->is_active) && !$map->tenant->is_active) {
                 RateLimiter::hit($this->throttleKey());
                 throw ValidationException::withMessages([
-                    'email' => 'Desa Anda sedang dinonaktifkan. Silakan hubungi admin Diskominfo.',
+                    'email' => 'Desa Anda sedang dinonaktifkan. Silakan hubungi Admin Pusat.',
                 ]);
             }
 

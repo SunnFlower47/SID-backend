@@ -16,7 +16,7 @@ use App\Http\Controllers\Landlord\SettingController;
 | Landlord Routes
 |--------------------------------------------------------------------------
 |
-| Semua route di sini dikhususkan untuk Diskominfo / Super Admin.
+| Semua route di sini dikhususkan untuk Admin Panel Central / Super Admin.
 | Menggunakan auth guard 'landlord'.
 |
 */

@@ -67,7 +67,7 @@ class NotificationController extends Controller
                     return [
                         'id' => $ann->id,
                         'type' => 'announcement',
-                        'title' => '[' . ($ann->sender_name ?? 'Diskominfo') . '] ' . $ann->title,
+                        'title' => '[' . ($ann->sender_name ?? 'Admin Pusat') . '] ' . $ann->title,
                         'message' => $ann->message,
                         'time' => $ann->created_at->diffForHumans(),
                         'status' => 'info',

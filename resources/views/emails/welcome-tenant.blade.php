@@ -91,7 +91,7 @@
         </div>
         <div class="content">
             <p>Halo <strong>{{ $tenant->operator_name }}</strong>,</p>
-            <p>Pendaftaran tenant baru untuk <strong>{{ $tenant->name }}</strong> telah berhasil diproses oleh Diskominfo. Database dan domain Anda kini sudah siap digunakan.</p>
+            <p>Pendaftaran tenant baru untuk <strong>{{ $tenant->name }}</strong> telah berhasil diproses oleh Admin Panel Central. Database dan domain Anda kini sudah siap digunakan.</p>
             
             <p>Berikut adalah rincian informasi akun admin utama untuk mengakses Admin Panel desa Anda:</p>
 
@@ -125,7 +125,7 @@
 
             <p style="font-size: 13px; color: #ef4444; font-weight: 600;">PENTING: Demi alasan keamanan, segera ganti password sementara Anda setelah berhasil login untuk pertama kali melalui menu Pengaturan Profil.</p>
             
-            <p>Salam hangat,<br>Tim Diskominfo Kabupaten Purwakarta</p>
+            <p>Salam hangat,<br>Tim Admin Panel Central</p>
         </div>
         <div class="footer">
             <p>&copy; {{ date('Y') }} Sistem Layanan Desa Terpadu SaaS. All rights reserved.</p>

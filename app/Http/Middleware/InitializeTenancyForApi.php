@@ -48,7 +48,7 @@ class InitializeTenancyForApi
                         'message' => 'Desa dinonaktifkan.',
                         'error' => 'TENANT_INACTIVE',
                         'diskominfo_hotline' => \App\Models\Central\CentralSetting::get('diskominfo_hotline', '081234567890'),
-                        'diskominfo_email' => \App\Models\Central\CentralSetting::get('diskominfo_email', 'diskominfo@purwakartakab.go.id'),
+                        'diskominfo_email' => \App\Models\Central\CentralSetting::get('diskominfo_email', 'admin@central.go.id'),
                     ], 403);
                 }
             } catch (\Exception $e) {

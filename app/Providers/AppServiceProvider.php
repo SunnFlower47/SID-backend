@@ -71,7 +71,7 @@ class AppServiceProvider extends ServiceProvider
             ], false));
         });
 
-        // Define Gates for Landlord / Central (Diskominfo) dynamically from database
+        // Define Gates for Landlord / Central (Admin Panel Central) dynamically from database
         $centralAbilities = [
             'manage-central-users',
             'manage-allocations',

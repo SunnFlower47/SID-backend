@@ -15,7 +15,7 @@ export default function Index({ announcements, tenants = [] }) {
         message: '',
         type: 'info',
         expires_at: '',
-        sender_name: 'Diskominfo',
+        sender_name: 'Admin Pusat',
         target_type: 'all',
         target_tenant_ids: [],
     });
@@ -36,7 +36,7 @@ export default function Index({ announcements, tenants = [] }) {
                 <div className="space-y-1">
                     <div className="font-black text-slate-800 text-sm leading-snug">{row.title}</div>
                     <div className="text-[10px] text-indigo-600 font-extrabold uppercase tracking-wider">
-                        Pengirim: {row.sender_name || 'Diskominfo'} • Target: {row.target_type === 'all' ? 'Semua Desa' : `Spesifik (${row.target_tenant_ids?.join(', ') || ''})`}
+                        Pengirim: {row.sender_name || 'Admin Pusat'} • Target: {row.target_type === 'all' ? 'Semua Desa' : `Spesifik (${row.target_tenant_ids?.join(', ') || ''})`}
                     </div>
                     <div 
                         className="text-slate-600 text-xs line-clamp-2 leading-relaxed select-none pointer-events-none prose prose-slate max-w-none"
@@ -130,7 +130,7 @@ export default function Index({ announcements, tenants = [] }) {
 
                                     <FormField.Input 
                                         label="Nama Pengirim / Instansi"
-                                        placeholder="Contoh: Diskominfo, Kementerian, Kecamatan..."
+                                        placeholder="Contoh: Admin Pusat, Dinas PMD, Kecamatan..."
                                         value={data.sender_name}
                                         onChange={e => setData('sender_name', e.target.value)}
                                         error={errors.sender_name}

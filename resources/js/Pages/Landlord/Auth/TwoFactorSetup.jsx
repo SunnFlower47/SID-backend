@@ -14,7 +14,7 @@ export default function TwoFactorSetup({ qrCodeImage, secretKey }) {
 
     return (
         <div className="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-slate-100 px-4">
-            <Head title="Setup 2FA - Landlord Diskominfo" />
+            <Head title="Setup 2FA - Admin Panel Central" />
 
             <div className="w-full sm:max-w-lg mt-6 px-8 py-8 bg-white shadow-xl overflow-hidden rounded-2xl border border-slate-200">
                 <div className="text-center mb-6">
@@ -22,7 +22,7 @@ export default function TwoFactorSetup({ qrCodeImage, secretKey }) {
                         🔐
                     </div>
                     <h1 className="text-2xl font-bold text-slate-800">Setup Verifikasi 2 Langkah</h1>
-                    <p className="text-slate-500 text-sm mt-1">Keamanan Tambahan Akun Super Admin Diskominfo</p>
+                    <p className="text-slate-500 text-sm mt-1">Keamanan Tambahan Akun Super Admin Central</p>
                 </div>
 
                 {flash?.warning && (
