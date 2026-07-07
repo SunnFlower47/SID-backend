@@ -115,6 +115,12 @@ class SuratPengajuanController extends Controller
     public function edit(SuratPengajuan $suratPengajuan)
     {
         Gate::authorize('surat.view');
+
+        if ($suratPengajuan->is_tte) {
+            return redirect()->route('admin.surat-pengajuan.show', $suratPengajuan->id)
+                ->with('error', 'Surat yang sudah memiliki Tanda Tangan Elektronik (TTE) resmi tidak dapat diubah lagi demi menjaga keaslian dokumen.');
+        }
+
         $suratPengajuan->load('penduduk');
 
         // Flatten data_tambahan agar form frontend bisa membaca data bersarang (contoh: kematian.hari menjadi kematian_hari)
@@ -146,6 +152,11 @@ class SuratPengajuanController extends Controller
     public function update(Request $request, SuratPengajuan $suratPengajuan)
     {
         Gate::authorize('surat.view');
+
+        if ($suratPengajuan->is_tte) {
+            return redirect()->route('admin.surat-pengajuan.show', $suratPengajuan->id)
+                ->with('error', 'Surat yang sudah memiliki Tanda Tangan Elektronik (TTE) resmi tidak dapat diubah lagi demi menjaga keaslian dokumen.');
+        }
 
         $validated = $request->validate([
             'jenis_surat'         => 'required|string',

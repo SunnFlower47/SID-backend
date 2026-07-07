@@ -57,16 +57,16 @@ export default function Show({ auth, suratPengajuan, statusList, suratType, bsre
                             external: true,
                             variant: 'white'
                         } : null,
-                        {
+                        (!p.is_tte) ? {
                             label: 'EDIT DATA',
                             icon: Edit,
                             href: route('admin.surat-pengajuan.edit', p.id),
                             variant: 'white'
-                        },
+                        } : null,
                         (!suratType?.has_multi_template) ? {
-                            label: 'CETAK SURAT',
-                            icon: Printer,
-                            href: route('admin.surat-pengajuan.pdf', p.id),
+                            label: p.is_tte ? 'UNDUH PDF TTE' : 'CETAK SURAT',
+                            icon: p.is_tte ? Download : Printer,
+                            href: p.is_tte ? route('admin.tte.download', p.id) : route('admin.surat-pengajuan.pdf', p.id),
                             external: true,
                             variant: 'primary'
                         } : null
