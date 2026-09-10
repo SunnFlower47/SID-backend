@@ -123,7 +123,7 @@ Route::prefix('v1')->group(function () {
     Route::get('/surat-types', [SuratPengajuanApiController::class, 'index'])->middleware(['throttle:100,1', 'private.api']);
 
     // Search Penduduk (Verifikasi NIK - reCAPTCHA dinonaktifkan sementara untuk lomba #JuaraVibeCoding)
-    Route::post('/search-penduduk', [SuratPengajuanApiController::class, 'checkNik'])->middleware(['throttle:100,1', 'private.api', 'captcha:v3']);
+    Route::post('/search-penduduk', [SuratPengajuanApiController::class, 'checkNik'])->middleware(['throttle:100,1', 'private.api']);
 
     // Admin Notifications (for header) — H3 FIX: tambah middleware auth
     Route::get('/contact-messages/notifications', [\App\Http\Controllers\Tenant\Pelayanan\ContactMessageController::class, 'notifications'])->middleware(['throttle:100,1', 'private.api', 'auth']);
