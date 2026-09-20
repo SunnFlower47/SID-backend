@@ -12,7 +12,9 @@ Route::middleware([])->group(function () {
     Route::prefix('penduduk')->name('penduduk.')->controller(PendudukController::class)->group(function () {
         Route::get('/export/excel', 'exportExcel')->name('export.excel');
         Route::get('/export-dinamis', function () {
+            $mutasiService = app(\App\Services\Kependudukan\MutasiService::class);
             return inertia('Tenant/Penduduk/ExportDinamis', [
+                'wilayahTree' => $mutasiService->getWilayahTree(),
                 'rtList'    => \App\Models\Rt::orderBy('kode')->get(),
                 'rwList'    => \App\Models\Rw::orderBy('kode')->get(),
                 'dusunList' => \App\Models\Dusun::orderBy('nama')->get(),

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Head } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { PageHeader, FormCard } from '@/Components/Shared';
@@ -44,7 +44,7 @@ const AVAILABLE_COLUMNS = [
 
 const selectStyle = "w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-sm font-medium focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none disabled:bg-gray-50 disabled:text-gray-400 text-gray-700";
 
-export default function ExportDinamis({ auth, rtList = [], rwList = [], dusunList = [] }) {
+export default function ExportDinamis({ auth, wilayahTree = [], rtList = [], rwList = [], dusunList = [] }) {
     // Column selection
     const [selectedCols, setSelectedCols] = useState(['nik', 'nama', 'jenis_kelamin', 'tempat_lahir', 'tanggal_lahir', 'agama', 'alamat', 'rt', 'rw', 'dusun']);
 
@@ -64,10 +64,50 @@ export default function ExportDinamis({ auth, rtList = [], rwList = [], dusunLis
     const [isExporting, setIsExporting] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
 
-    // Filter RT: jika RW dipilih, tampilkan RT di RW tersebut; jika tidak, tampilkan semua RT (seperti di Menu Penduduk)
-    const filteredRt = selectedRw
-        ? rtList.filter(rt => String(rt.rw_id) === String(selectedRw))
-        : rtList;
+    // Filter RW berdasarkan dusun yang dipilih (secara hierarkis dari wilayahTree atau relasi RT)
+    const availableRws = useMemo(() => {
+        if (!selectedDusun) return rwList;
+        
+        // 1. Coba cari dari wilayahTree
+        const treeDusun = wilayahTree.find(d => String(d.id) === String(selectedDusun));
+        if (treeDusun && treeDusun.rws && treeDusun.rws.length > 0) {
+            return treeDusun.rws;
+        }
+
+        // 2. Coba cari lewat relasi RT di dusun tersebut
+        const matched = rwList.filter(rw => {
+            if (rw.dusun_id) return String(rw.dusun_id) === String(selectedDusun);
+            return rtList.some(rt => String(rt.dusun_id) === String(selectedDusun) && String(rt.rw_id) === String(rw.id));
+        });
+
+        // 3. Fallback: jika dusun belum memiliki mapping khusus, tetap sediakan list agar tidak kosong
+        return matched.length > 0 ? matched : rwList;
+    }, [selectedDusun, wilayahTree, rwList, rtList]);
+
+    // Filter RT: jika RW & Dusun dipilih, prioritaskan RT di RW & Dusun tersebut
+    const availableRts = useMemo(() => {
+        if (selectedDusun && selectedRw) {
+            const treeDusun = wilayahTree.find(d => String(d.id) === String(selectedDusun));
+            const treeRw = treeDusun?.rws?.find(r => String(r.id) === String(selectedRw));
+            if (treeRw && treeRw.rts && treeRw.rts.length > 0) {
+                return treeRw.rts;
+            }
+            const matched = rtList.filter(rt => String(rt.rw_id) === String(selectedRw) && String(rt.dusun_id) === String(selectedDusun));
+            if (matched.length > 0) return matched;
+            return rtList.filter(rt => String(rt.rw_id) === String(selectedRw));
+        }
+
+        if (selectedRw) {
+            return rtList.filter(rt => String(rt.rw_id) === String(selectedRw));
+        }
+
+        if (selectedDusun) {
+            const matched = rtList.filter(rt => String(rt.dusun_id) === String(selectedDusun));
+            if (matched.length > 0) return matched;
+        }
+
+        return rtList;
+    }, [selectedDusun, selectedRw, wilayahTree, rtList]);
 
     const toggleColumn = (id) => setSelectedCols(prev =>
         prev.includes(id) ? prev.filter(col => col !== id) : [...prev, id]
@@ -217,13 +257,13 @@ export default function ExportDinamis({ auth, rtList = [], rwList = [], dusunLis
                                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Wilayah (Dusun / RW / RT)</label>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <select value={selectedDusun} onChange={e => setSelectedDusun(e.target.value)} className={selectStyle}>
+                                    <select value={selectedDusun} onChange={e => { setSelectedDusun(e.target.value); setSelectedRw(''); setSelectedRt(''); }} className={selectStyle}>
                                         <option value="">Semua Dusun</option>
                                         {dusunList.map(d => <option key={d.id} value={d.id}>{d.nama}</option>)}
                                     </select>
                                     <select value={selectedRw} onChange={e => { setSelectedRw(e.target.value); setSelectedRt(''); }} className={selectStyle}>
                                         <option value="">Semua RW</option>
-                                        {rwList.map(rw => (
+                                        {availableRws.map(rw => (
                                             <option key={rw.id} value={rw.id}>
                                                 {rw.kode ? (rw.kode.toLowerCase().startsWith('rw') ? rw.kode : `RW ${rw.kode}`) : (rw.nama || `RW ${rw.id}`)}
                                             </option>
@@ -231,7 +271,7 @@ export default function ExportDinamis({ auth, rtList = [], rwList = [], dusunLis
                                     </select>
                                     <select value={selectedRt} onChange={e => setSelectedRt(e.target.value)} className={selectStyle}>
                                         <option value="">Semua RT</option>
-                                        {filteredRt.map(rt => (
+                                        {availableRts.map(rt => (
                                             <option key={rt.id} value={rt.id}>
                                                 {rt.kode ? (rt.kode.toLowerCase().startsWith('rt') ? rt.kode : `RT ${rt.kode}`) : (rt.nama || `RT ${rt.id}`)}
                                             </option>
