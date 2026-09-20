@@ -139,9 +139,10 @@ export default function Index({ auth, berita, stats, filters }) {
                                                 </div>
 
                                                 <h4 className="text-lg font-black text-gray-900 leading-tight mb-3 line-clamp-2 uppercase italic tracking-tighter group-hover:text-green-700 transition-colors text-left">{item.judul}</h4>
-                                                <p className="text-gray-500 text-xs font-bold leading-relaxed line-clamp-2 mb-6 text-left">
-                                                    {item.excerpt || "Tidak ada ringkasan tersedia untuk konten ini."}
-                                                </p>
+                                                <p 
+                                                     className="text-gray-500 text-xs font-bold leading-relaxed line-clamp-2 mb-6 text-left"
+                                                     dangerouslySetInnerHTML={{ __html: item.excerpt || "Tidak ada ringkasan tersedia untuk konten ini." }}
+                                                />
                                             </div>
 
                                             <div className="space-y-4 pt-6 border-t border-gray-50 text-left">

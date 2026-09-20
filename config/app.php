@@ -136,6 +136,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Proxy Client Key
+    |--------------------------------------------------------------------------
+    |
+    | This value is used for internal proxy handshake authentication.
+    | MUST be set in .env — no fallback default for security.
+    |
+    */
+
+    'proxy_client_key' => env('PROXY_CLIENT_KEY'),
+
+    /*
+    |--------------------------------------------------------------------------
     | API Base URL
     |--------------------------------------------------------------------------
     |

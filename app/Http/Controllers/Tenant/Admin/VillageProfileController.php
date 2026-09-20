@@ -42,6 +42,8 @@ class VillageProfileController extends Controller
             'telepon' => 'nullable|string|max:50',
             'email' => 'nullable|email|max:255',
             'website' => 'nullable|url|max:255',
+            'nama_kepala_desa' => 'nullable|string|max:255',
+            'jam_operasional' => 'nullable|string|max:255',
             
             // Geography
             'latitude' => 'nullable|string',
@@ -55,12 +57,17 @@ class VillageProfileController extends Controller
             'tahun_berdiri' => 'nullable|string',
             'kepala_desa_pertama' => 'nullable|string',
             'karakteristik_desa' => 'nullable|string',
+            'ai_greeting' => 'nullable|string',
+            'meta_description' => 'nullable|string',
+            'meta_keywords' => 'nullable|string',
             
             // Social Media
             'link_facebook' => 'nullable|url|max:255',
             'link_instagram' => 'nullable|url|max:255',
             'link_youtube' => 'nullable|url|max:255',
             'link_whatsapp' => 'nullable|url|max:255',
+            'link_tiktok' => 'nullable|url|max:255',
+            'warna_primer' => 'nullable|string|max:10',
         ]);
 
         // Mapping keys to groups
@@ -76,6 +83,8 @@ class VillageProfileController extends Controller
             'website' => DesaSetting::GROUP_GENERAL,
             'latitude' => DesaSetting::GROUP_GENERAL,
             'longitude' => DesaSetting::GROUP_GENERAL,
+            'nama_kepala_desa' => DesaSetting::GROUP_GENERAL,
+            'jam_operasional' => DesaSetting::GROUP_GENERAL,
             'luas_total' => DesaSetting::GROUP_GEOGRAPHY,
             'visi' => DesaSetting::GROUP_PROFILE,
             'misi' => DesaSetting::GROUP_PROFILE,
@@ -83,10 +92,15 @@ class VillageProfileController extends Controller
             'tahun_berdiri' => DesaSetting::GROUP_PROFILE,
             'kepala_desa_pertama' => DesaSetting::GROUP_PROFILE,
             'karakteristik_desa' => DesaSetting::GROUP_PROFILE,
+            'ai_greeting' => DesaSetting::GROUP_PROFILE,
+            'meta_description' => DesaSetting::GROUP_PROFILE,
+            'meta_keywords' => DesaSetting::GROUP_PROFILE,
             'link_facebook' => DesaSetting::GROUP_SOCIAL,
             'link_instagram' => DesaSetting::GROUP_SOCIAL,
             'link_youtube' => DesaSetting::GROUP_SOCIAL,
             'link_whatsapp' => DesaSetting::GROUP_SOCIAL,
+            'link_tiktok' => DesaSetting::GROUP_SOCIAL,
+            'warna_primer' => DesaSetting::GROUP_LOGO,
         ];
 
         foreach ($validated as $key => $value) {

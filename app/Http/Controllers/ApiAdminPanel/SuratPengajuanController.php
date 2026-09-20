@@ -157,8 +157,11 @@ class SuratPengajuanController extends Controller
 
     private function generateNomorSurat($suratType)
     {
-        $suratSettings = \App\Models\DesaSetting::getSuratSettings();
-        $kodeSurat = $suratSettings["kode_surat_{$suratType}"] ?? 'SK';
+        $type = \App\Models\SuratType::where('id', $suratType)
+            ->orWhere('id', 'LIKE', $suratType)
+            ->first();
+            
+        $kodeSurat = $type ? $type->kode : 'SK';
         return \App\Models\DesaSetting::generateNomorSurat($kodeSurat);
     }
 }

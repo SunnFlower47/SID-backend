@@ -89,11 +89,18 @@ class DesaInfoApiController extends Controller
                         'karakteristik_desa' => DesaSetting::getValue('karakteristik_desa', 'Industri'),
                         'latitude' => $desaInfo['latitude'] ?? null,
                         'longitude' => $desaInfo['longitude'] ?? null,
+                        'ai_greeting' => DesaSetting::getValue('ai_greeting', 'Halo Warga! Ada yang bisa saya bantu?'),
+                        'warna_primer' => DesaSetting::getValue('warna_primer', '#10b981'),
+                        'nama_kepala_desa' => DesaSetting::getKepalaDesaInfo()['nama'] ?? 'Bapak Kades',
+                        'meta_description' => DesaSetting::getValue('meta_description', 'Portal layanan mandiri...'),
+                        'meta_keywords' => DesaSetting::getValue('meta_keywords', 'desa digital, purwakarta'),
+                        'jam_operasional' => DesaSetting::getValue('jam_operasional', 'Senin - Jumat: 08:00 - 15:00'),
                         'social' => [
                             'facebook' => $sanitizeUrl(DesaSetting::getValue('link_facebook', '')),
                             'instagram' => $sanitizeUrl(DesaSetting::getValue('link_instagram', '')),
                             'whatsapp' => $sanitizeUrl(DesaSetting::getValue('link_whatsapp', '')),
                             'youtube' => $sanitizeUrl(DesaSetting::getValue('link_youtube', '')),
+                            'tiktok' => $sanitizeUrl(DesaSetting::getValue('link_tiktok', '')),
                         ],
                     ]
                 ])->withHeaders([

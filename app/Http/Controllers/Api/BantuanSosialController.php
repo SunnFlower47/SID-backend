@@ -36,13 +36,11 @@ class BantuanSosialController extends Controller
      */
     public function checkByNik(Request $request)
     {
-        // Debug logging untuk input
+        // H4 FIX: Hanya log metadata, BUKAN data PII warga
         Log::info('Bantuan sosial check request', [
-            'nik' => $request->nik,
-            'tanggal_lahir' => $request->tanggal_lahir,
-            'captcha_answer' => $request->captcha_answer,
-            'captcha_question' => $request->captcha_question,
-            'all_data' => $request->all()
+            'has_nik'          => !empty($request->nik),
+            'has_tanggal_lahir' => !empty($request->tanggal_lahir),
+            'ip'               => $request->ip(),
         ]);
 
         $validator = Validator::make($request->all(), [

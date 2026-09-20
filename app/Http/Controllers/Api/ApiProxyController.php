@@ -25,11 +25,13 @@ class ApiProxyController extends Controller
         $clientKey = $request->header('X-Proxy-App-Id');
         $serverKey = config('app.proxy_client_key');
 
+        // Fail-safe: jika PROXY_CLIENT_KEY tidak dikonfigurasi di .env, tolak semua request
         if (!$serverKey) {
+            Log::error('PROXY_CLIENT_KEY not configured in environment. All proxy requests rejected.');
             return response()->json([
                 'success' => false,
-                'message' => 'Internal Server Error. Proxy configuration missing.',
-            ], 500);
+                'message' => 'Service unavailable.',
+            ], 503);
         }
 
         if (!$clientKey || $clientKey !== $serverKey) {

@@ -262,6 +262,18 @@ class SuratPengajuanService
      */
     public function generateDocument(SuratPengajuan $suratPengajuan)
     {
+        // Pengaman TTE: Jika surat sudah ditandatangani secara elektronik (TTE),
+        // langsung unduh file PDF resmi yang sudah ber-TTE agar tidak merender ulang draft mentah.
+        if ($suratPengajuan->is_tte && !empty($suratPengajuan->signed_pdf_path)) {
+            $disk = \Illuminate\Support\Facades\Storage::disk('local');
+            if ($disk->exists($suratPengajuan->signed_pdf_path)) {
+                $fileName = 'Surat-TTE-' . ($suratPengajuan->nomor_surat
+                    ? \Illuminate\Support\Str::slug($suratPengajuan->nomor_surat)
+                    : $suratPengajuan->id) . '.pdf';
+                return $disk->download($suratPengajuan->signed_pdf_path, $fileName);
+            }
+        }
+
         $suratType = SuratType::find($suratPengajuan->jenis_surat);
 
         if (!$suratType || !$suratType->is_active) {
