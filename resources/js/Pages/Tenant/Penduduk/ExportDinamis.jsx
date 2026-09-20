@@ -64,20 +64,10 @@ export default function ExportDinamis({ auth, rtList = [], rwList = [], dusunLis
     const [isExporting, setIsExporting] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
 
-    // Filter RW berdasarkan dusun yang dipilih (dicari lewat relasi RT di dusun tersebut)
-    const filteredRw = selectedDusun
-        ? rwList.filter(rw => {
-            if (rw.dusun_id) return String(rw.dusun_id) === String(selectedDusun);
-            return rtList.some(rt => String(rt.dusun_id) === String(selectedDusun) && String(rt.rw_id) === String(rw.id));
-        })
-        : rwList;
-
-    // Filter RT berdasarkan dusun dan/atau RW yang dipilih
-    const filteredRt = rtList.filter(rt => {
-        if (selectedDusun && String(rt.dusun_id) !== String(selectedDusun)) return false;
-        if (selectedRw && String(rt.rw_id) !== String(selectedRw)) return false;
-        return true;
-    });
+    // Filter RT: jika RW dipilih, tampilkan RT di RW tersebut; jika tidak, tampilkan semua RT (seperti di Menu Penduduk)
+    const filteredRt = selectedRw
+        ? rtList.filter(rt => String(rt.rw_id) === String(selectedRw))
+        : rtList;
 
     const toggleColumn = (id) => setSelectedCols(prev =>
         prev.includes(id) ? prev.filter(col => col !== id) : [...prev, id]
@@ -227,19 +217,19 @@ export default function ExportDinamis({ auth, rtList = [], rwList = [], dusunLis
                                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Wilayah (Dusun / RW / RT)</label>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <select value={selectedDusun} onChange={e => { setSelectedDusun(e.target.value); setSelectedRw(''); setSelectedRt(''); }} className={selectStyle}>
+                                    <select value={selectedDusun} onChange={e => setSelectedDusun(e.target.value)} className={selectStyle}>
                                         <option value="">Semua Dusun</option>
                                         {dusunList.map(d => <option key={d.id} value={d.id}>{d.nama}</option>)}
                                     </select>
                                     <select value={selectedRw} onChange={e => { setSelectedRw(e.target.value); setSelectedRt(''); }} className={selectStyle}>
                                         <option value="">Semua RW</option>
-                                        {filteredRw.map(rw => (
+                                        {rwList.map(rw => (
                                             <option key={rw.id} value={rw.id}>
                                                 {rw.kode ? (rw.kode.toLowerCase().startsWith('rw') ? rw.kode : `RW ${rw.kode}`) : (rw.nama || `RW ${rw.id}`)}
                                             </option>
                                         ))}
                                     </select>
-                                    <select value={selectedRt} disabled={!selectedDusun && !selectedRw} onChange={e => setSelectedRt(e.target.value)} className={selectStyle}>
+                                    <select value={selectedRt} onChange={e => setSelectedRt(e.target.value)} className={selectStyle}>
                                         <option value="">Semua RT</option>
                                         {filteredRt.map(rt => (
                                             <option key={rt.id} value={rt.id}>
