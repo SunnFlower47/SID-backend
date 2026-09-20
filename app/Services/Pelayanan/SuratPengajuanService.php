@@ -98,7 +98,20 @@ class SuratPengajuanService
                 'P' => 'Perempuan',
                 default => $penduduk?->jenis_kelamin,
             },
-            'umur' => $penduduk?->usia,
+            'umur' => function() use ($penduduk, $suratPengajuan) {
+                if (!$penduduk || !$penduduk->tanggal_lahir) return null;
+                
+                if ($suratPengajuan->jenis_surat === 'kematian') {
+                    $dt = $suratPengajuan->data_tambahan ?? [];
+                    $tgl = $dt['kematian_tanggal'] ?? $dt['tanggal_meninggal'] ?? ($dt['kematian']['tanggal'] ?? null);
+                    if ($tgl) {
+                        try {
+                            return \Carbon\Carbon::parse($penduduk->tanggal_lahir)->diffInYears(\Carbon\Carbon::parse($tgl));
+                        } catch (\Exception $e) {}
+                    }
+                }
+                return $penduduk->usia;
+            }(),
             'bulan_romawi' => DesaSetting::intToRoman(
                 Carbon::parse($suratPengajuan->tanggal_surat)->format('n')
             ),
