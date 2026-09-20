@@ -64,13 +64,20 @@ export default function ExportDinamis({ auth, rtList = [], rwList = [], dusunLis
     const [isExporting, setIsExporting] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
 
-    // Filter RW berdasarkan dusun yang dipilih
+    // Filter RW berdasarkan dusun yang dipilih (dicari lewat relasi RT di dusun tersebut)
     const filteredRw = selectedDusun
-        ? rwList.filter(rw => rw.dusun_id == selectedDusun)
+        ? rwList.filter(rw => {
+            if (rw.dusun_id) return String(rw.dusun_id) === String(selectedDusun);
+            return rtList.some(rt => String(rt.dusun_id) === String(selectedDusun) && String(rt.rw_id) === String(rw.id));
+        })
         : rwList;
-    const filteredRt = selectedRw
-        ? rtList.filter(rt => rt.rw_id == selectedRw)
-        : rtList;
+
+    // Filter RT berdasarkan dusun dan/atau RW yang dipilih
+    const filteredRt = rtList.filter(rt => {
+        if (selectedDusun && String(rt.dusun_id) !== String(selectedDusun)) return false;
+        if (selectedRw && String(rt.rw_id) !== String(selectedRw)) return false;
+        return true;
+    });
 
     const toggleColumn = (id) => setSelectedCols(prev =>
         prev.includes(id) ? prev.filter(col => col !== id) : [...prev, id]
@@ -224,13 +231,21 @@ export default function ExportDinamis({ auth, rtList = [], rwList = [], dusunLis
                                         <option value="">Semua Dusun</option>
                                         {dusunList.map(d => <option key={d.id} value={d.id}>{d.nama}</option>)}
                                     </select>
-                                    <select value={selectedRw} disabled={!selectedDusun} onChange={e => { setSelectedRw(e.target.value); setSelectedRt(''); }} className={selectStyle}>
+                                    <select value={selectedRw} onChange={e => { setSelectedRw(e.target.value); setSelectedRt(''); }} className={selectStyle}>
                                         <option value="">Semua RW</option>
-                                        {filteredRw.map(rw => <option key={rw.id} value={rw.id}>{rw.kode}</option>)}
+                                        {filteredRw.map(rw => (
+                                            <option key={rw.id} value={rw.id}>
+                                                {rw.kode ? (rw.kode.toLowerCase().startsWith('rw') ? rw.kode : `RW ${rw.kode}`) : (rw.nama || `RW ${rw.id}`)}
+                                            </option>
+                                        ))}
                                     </select>
-                                    <select value={selectedRt} disabled={!selectedRw} onChange={e => setSelectedRt(e.target.value)} className={selectStyle}>
+                                    <select value={selectedRt} disabled={!selectedDusun && !selectedRw} onChange={e => setSelectedRt(e.target.value)} className={selectStyle}>
                                         <option value="">Semua RT</option>
-                                        {filteredRt.map(rt => <option key={rt.id} value={rt.id}>{rt.kode}</option>)}
+                                        {filteredRt.map(rt => (
+                                            <option key={rt.id} value={rt.id}>
+                                                {rt.kode ? (rt.kode.toLowerCase().startsWith('rt') ? rt.kode : `RT ${rt.kode}`) : (rt.nama || `RT ${rt.id}`)}
+                                            </option>
+                                        ))}
                                     </select>
                                 </div>
                             </div>
