@@ -98,8 +98,8 @@ class KeputusanKadesController extends Controller
 
         if ($request->hasFile('file_dokumen')) {
             // Delete old file if exists
-            if ($keputusan->file_dokumen && Storage::disk('s3')->exists($keputusan->file_dokumen)) {
-                Storage::disk('s3')->delete($keputusan->file_dokumen);
+            if ($keputusan->file_dokumen) {
+                \App\Helpers\StorageHelper::deleteFile($keputusan->file_dokumen);
             }
             $data['file_dokumen'] = $request->file('file_dokumen')->store('sekretariat/keputusan_kades');
         }

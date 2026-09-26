@@ -192,7 +192,7 @@ class PengaduanController extends Controller
             // Delete photos
             if ($pengaduan->foto) {
                 foreach ($pengaduan->foto as $photo) {
-                    Storage::disk('s3')->delete($photo);
+                    \App\Helpers\StorageHelper::deleteFile($photo);
                 }
             }
 

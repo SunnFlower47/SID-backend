@@ -93,7 +93,7 @@ class StrukturDesaController extends Controller
         }
 
         if ($request->hasFile('foto')) {
-            if ($strukturDesa->foto) Storage::disk('s3')->delete($strukturDesa->foto);
+            if ($strukturDesa->foto) \App\Helpers\StorageHelper::deleteFile($strukturDesa->foto);
             $data['foto'] = $request->file('foto')->store('struktur-desa');
         }
 
@@ -103,7 +103,7 @@ class StrukturDesaController extends Controller
 
     public function destroy(StrukturDesa $strukturDesa): JsonResponse
     {
-        if ($strukturDesa->foto) Storage::disk('s3')->delete($strukturDesa->foto);
+        if ($strukturDesa->foto) \App\Helpers\StorageHelper::deleteFile($strukturDesa->foto);
         $strukturDesa->delete();
         return response()->json(['status' => 'success', 'message' => 'Data perangkat desa dihapus']);
     }

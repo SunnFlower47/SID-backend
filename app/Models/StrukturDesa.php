@@ -166,6 +166,24 @@ class StrukturDesa extends Model
             return $this->foto;
         }
 
-        return \Illuminate\Support\Facades\Storage::disk('s3')->url($this->foto);
+        // Cek di disk default
+        if (\Illuminate\Support\Facades\Storage::exists($this->foto)) {
+            return \Illuminate\Support\Facades\Storage::url($this->foto);
+        }
+
+        // Jika tidak ada di default disk, cek di disk s3
+        try {
+            if (config('filesystems.disks.s3.key') && \Illuminate\Support\Facades\Storage::disk('s3')->exists($this->foto)) {
+                return \Illuminate\Support\Facades\Storage::disk('s3')->url($this->foto);
+            }
+        } catch (\Throwable $e) {}
+
+        // Jika tidak ada di s3 disk, cek di disk public (local)
+        if (\Illuminate\Support\Facades\Storage::disk('public')->exists($this->foto)) {
+            return \Illuminate\Support\Facades\Storage::disk('public')->url($this->foto);
+        }
+
+        // Fallback default
+        return \Illuminate\Support\Facades\Storage::url($this->foto);
     }
 }

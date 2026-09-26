@@ -83,7 +83,7 @@ class BeritaController extends Controller
         }
 
         if ($request->hasFile('gambar')) {
-            if ($berita->gambar) Storage::disk('s3')->delete($berita->gambar);
+            if ($berita->gambar) \App\Helpers\StorageHelper::deleteFile($berita->gambar);
             $data['gambar'] = $request->file('gambar')->store('berita');
         }
 
@@ -98,7 +98,7 @@ class BeritaController extends Controller
 
     public function destroy(Berita $berita): JsonResponse
     {
-        if ($berita->gambar) Storage::disk('s3')->delete($berita->gambar);
+        if ($berita->gambar) \App\Helpers\StorageHelper::deleteFile($berita->gambar);
         $berita->delete();
         return response()->json(['status' => 'success', 'message' => 'Berita berhasil dihapus']);
     }

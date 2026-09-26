@@ -77,7 +77,7 @@ class UmkmController extends Controller
         $data = $request->all();
         if ($request->hasFile('foto_usaha')) {
             if ($umkm->foto_usaha) {
-                foreach ($umkm->foto_usaha as $foto) Storage::disk('s3')->delete($foto);
+                foreach ($umkm->foto_usaha as $foto) \App\Helpers\StorageHelper::deleteFile($foto);
             }
             $paths = [];
             foreach ($request->file('foto_usaha') as $file) {
@@ -93,7 +93,7 @@ class UmkmController extends Controller
     public function destroy(Umkm $umkm): JsonResponse
     {
         if ($umkm->foto_usaha) {
-            foreach ($umkm->foto_usaha as $foto) Storage::disk('s3')->delete($foto);
+            foreach ($umkm->foto_usaha as $foto) \App\Helpers\StorageHelper::deleteFile($foto);
         }
         $umkm->delete();
         return response()->json(['status' => 'success', 'message' => 'Data UMKM berhasil dihapus']);
