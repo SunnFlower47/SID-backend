@@ -25,6 +25,13 @@ class CspNonceMiddleware
 
         $response = $next($request);
 
+        // Security headers hardening
+        $response->headers->set('X-Content-Type-Options', 'nosniff');
+        $response->headers->set('X-Frame-Options', 'SAMEORIGIN');
+        $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
+        $response->headers->set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+        $response->headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+
         $cspHeader = $this->buildCspHeader($nonce);
         $response->headers->set('Content-Security-Policy', $cspHeader);
 
@@ -41,8 +48,7 @@ class CspNonceMiddleware
         
         return implode('; ', [
             "default-src 'self' https://www.google.com https://www.gstatic.com https://www.recaptcha.net",
-            "script-src 'self' 'nonce-{$nonce}' 'unsafe-inline' 'unsafe-eval' {$hosts} https://api-vilage.sunnflower.site https://www.google.com https://www.gstatic.com https://www.recaptcha.net https://unpkg.com https://cdn.jsdelivr.net https://cdn.tailwindcss.com https://static.cloudflareinsights.com",
-            "script-src-attr 'unsafe-inline'",
+            "script-src 'self' 'nonce-{$nonce}' {$hosts} https://api-vilage.sunnflower.site https://www.google.com https://www.gstatic.com https://www.recaptcha.net https://unpkg.com https://cdn.jsdelivr.net https://cdn.tailwindcss.com https://static.cloudflareinsights.com",
             "style-src 'self' 'unsafe-inline' {$hosts} https://api-vilage.sunnflower.site https://fonts.googleapis.com https://fonts.bunny.net https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://cdn.tailwindcss.com",
             "font-src 'self' https://fonts.gstatic.com https://fonts.bunny.net https://cdnjs.cloudflare.com",
             "img-src 'self' data: blob: https: {$hosts} https://api-vilage.sunnflower.site",

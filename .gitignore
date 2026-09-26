@@ -48,4 +48,5 @@ storage/framework/views/*
 *.stackdump
 
 # Tenant storage
-/storage/tenant*/
+/storage/tenant*
+

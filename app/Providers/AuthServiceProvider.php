@@ -29,7 +29,7 @@ class AuthServiceProvider extends ServiceProvider
     {
         // Implicitly grant "Super Admin" role all permissions
         Gate::before(function ($user, $ability) {
-            return $user->hasRole('Super Admin') ? true : null;
+            return method_exists($user, 'hasRole') && $user->hasRole('Super Admin') ? true : null;
         });
 
         // Testimoni permissions are now handled via Spatie 'pelayanan_informasi' permission

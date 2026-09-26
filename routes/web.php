@@ -30,16 +30,17 @@ Route::post('/clear-session-message', function (Request $request) {
 
 // ─── Authenticated Routes ─────────────────────────────────────────────────────
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['tenant.auth', 'auth'])->group(function () {
 
     // Logout
-    Route::post('/logout', [\App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'destroy'])->name('logout');
+    Route::post('/logout', [\App\Http\Controllers\Tenant\Auth\AuthenticatedSessionController::class, 'destroy'])->name('logout');
 
     // Dashboard
     Route::controller(DashboardController::class)->group(function () {
-        Route::get('/dashboard', 'index')->middleware(['verified'])->name('dashboard');
+        Route::get('/dashboard', 'index')->name('dashboard');
         Route::post('/dashboard/refresh', 'refresh')->name('dashboard.refresh');
     });
+
 
     // Cache Management
     Route::post('/clear-cache', function () {

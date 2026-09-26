@@ -72,9 +72,9 @@ class PrivateApiMiddleware
             ], 403);
         }
 
-        // 2. Cek Kadaluwarsa (Toleransi 300 detik / 5 Menit)
+        // 2. Cek Kadaluwarsa (Toleransi 30 detik)
         $currentTime = time();
-        if (abs($currentTime - $timestamp) > 300) {
+        if (abs($currentTime - $timestamp) > 30) {
             return response()->json([
                 'success' => false,
                 'message' => 'Request Expired (Time Sync Error)',

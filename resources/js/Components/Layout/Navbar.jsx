@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link, usePage } from '@inertiajs/react';
+import { Link, usePage, router } from '@inertiajs/react';
 import {
     Bell,
     Search,
@@ -18,6 +18,7 @@ import {
 import { cn } from '@/lib/utils';
 import CommandPalette from './CommandPalette';
 import axios from 'axios';
+import Swal from 'sweetalert2';
 
 export default function Navbar({ toggleMobileSidebar, toggleDesktopSidebar, sidebarCollapsed }) {
     const page = usePage();
@@ -95,13 +96,50 @@ export default function Navbar({ toggleMobileSidebar, toggleDesktopSidebar, side
         };
     }, []);
 
-    const markAsRead = async (id) => {
+    const markAsRead = async (notif) => {
         try {
-            await axios.post(route('notifications.mark-read'), { id });
-            setNotifications(prev => prev.map(n => n.id === id ? { ...n, read_at: new Date() } : n));
-            setUnreadCount(prev => Math.max(0, prev - 1));
+            if (notif.status !== 'selesai') {
+                if (notif.type !== 'announcement') {
+                    await axios.post(route('notifications.mark-read'), { type: notif.type, id: notif.id });
+                }
+                setNotifications(prev => prev.map(n => (n.id === notif.id && n.type === notif.type) ? { ...n, status: 'selesai' } : n));
+                setUnreadCount(prev => Math.max(0, prev - 1));
+            }
+            
+            if (notif.type === 'announcement') {
+                Swal.fire({
+                    title: notif.title,
+                    html: `<div class="text-left font-medium prose prose-slate text-xs p-4 bg-gray-50 border border-gray-100 rounded-2xl max-h-[300px] overflow-y-auto leading-relaxed text-slate-700">${notif.message}</div>`,
+                    confirmButtonText: 'TUTUP',
+                    confirmButtonColor: '#4f46e5',
+                    background: '#ffffff',
+                    customClass: {
+                        popup: 'rounded-3xl border-none shadow-2xl',
+                        title: 'font-black tracking-tighter uppercase italic text-base text-slate-800 border-b border-gray-100 pb-3',
+                        confirmButton: 'rounded-2xl px-6 py-2.5 font-black tracking-wider text-[10px]'
+                    }
+                });
+            } else if (notif.url) {
+                router.visit(notif.url);
+            }
         } catch (error) {
-            console.error('Failed to mark notification as read');
+            console.error('Failed to mark notification as read', error);
+            if (notif.type === 'announcement') {
+                Swal.fire({
+                    title: notif.title,
+                    html: `<div class="text-left font-medium prose prose-slate text-xs p-4 bg-gray-50 border border-gray-100 rounded-2xl max-h-[300px] overflow-y-auto leading-relaxed text-slate-700">${notif.message}</div>`,
+                    confirmButtonText: 'TUTUP',
+                    confirmButtonColor: '#4f46e5',
+                    background: '#ffffff',
+                    customClass: {
+                        popup: 'rounded-3xl border-none shadow-2xl',
+                        title: 'font-black tracking-tighter uppercase italic text-base text-slate-800 border-b border-gray-100 pb-3',
+                        confirmButton: 'rounded-2xl px-6 py-2.5 font-black tracking-wider text-[10px]'
+                    }
+                });
+            } else if (notif.url) {
+                router.visit(notif.url);
+            }
         }
     };
 
@@ -198,31 +236,54 @@ export default function Navbar({ toggleMobileSidebar, toggleDesktopSidebar, side
                                         </div>
                                     ) : notifications.length > 0 ? (
                                         <div className="divide-y divide-gray-50">
-                                            {notifications.map((notif, i) => (
-                                                <div
-                                                    key={i}
-                                                    onClick={() => markAsRead(notif.id)}
-                                                    className={cn(
-                                                        "p-4 hover:bg-gray-50 transition-colors cursor-pointer flex gap-4 items-start group",
-                                                        !notif.read_at ? "bg-green-50/20" : ""
-                                                    )}
-                                                >
-                                                    <div className={cn(
-                                                        "w-10 h-10 rounded-xl shrink-0 flex items-center justify-center shadow-sm",
-                                                        notif.type?.includes('surat') ? "bg-blue-100 text-blue-600" : "bg-orange-100 text-orange-600"
-                                                    )}>
-                                                        <History className="w-5 h-5" />
+                                            {notifications.map((notif, i) => {
+                                                const isUnread = notif.status !== 'selesai';
+                                                
+                                                const isRed = notif.color?.includes('red');
+                                                const isYellow = notif.color?.includes('yellow') || notif.color?.includes('amber');
+                                                const isGreen = notif.color?.includes('green');
+                                                
+                                                const iconBgClass = isRed ? "bg-red-50 text-red-600" :
+                                                                  isYellow ? "bg-amber-50 text-amber-600" :
+                                                                  isGreen ? "bg-green-50 text-green-600" : "bg-blue-50 text-blue-600";
+                                                
+                                                return (
+                                                    <div
+                                                        key={i}
+                                                        onClick={() => markAsRead(notif)}
+                                                        className={cn(
+                                                            "p-4 hover:bg-gray-50 transition-colors cursor-pointer flex gap-4 items-start group",
+                                                            isUnread ? "bg-green-50/20" : ""
+                                                        )}
+                                                    >
+                                                        <div className={cn(
+                                                            "w-10 h-10 rounded-xl shrink-0 flex items-center justify-center shadow-sm border border-transparent",
+                                                            iconBgClass
+                                                        )}>
+                                                            {notif.icon ? (
+                                                                <i className={cn(notif.icon, "text-sm", notif.color)} />
+                                                            ) : (
+                                                                <History className="w-5 h-5" />
+                                                            )}
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className="text-xs font-black text-gray-950 uppercase tracking-tighter flex items-center gap-1.5">
+                                                                {notif.title || 'Informasi Sistem'}
+                                                                {isUnread && (
+                                                                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
+                                                                )}
+                                                            </p>
+                                                            <p className="text-[11px] font-medium text-gray-500 mt-0.5 line-clamp-2 leading-relaxed">
+                                                                {notif.type === 'announcement' ? notif.message.replace(/<[^>]*>/g, '') : notif.message}
+                                                            </p>
+                                                            <p className="text-[9px] font-black text-gray-400 mt-2 flex items-center gap-2">
+                                                                <Clock className="w-3 h-3 text-green-600" />
+                                                                <span>{notif.time || notif.created_at_label || 'Baru saja'}</span>
+                                                            </p>
+                                                        </div>
                                                     </div>
-                                                    <div className="flex-1 min-w-0">
-                                                        <p className="text-xs font-black text-gray-950 uppercase tracking-tighter">{notif.title || 'Informasi Sistem'}</p>
-                                                        <p className="text-[11px] font-medium text-gray-500 mt-0.5 line-clamp-2 leading-relaxed">{notif.message}</p>
-                                                        <p className="text-[9px] font-black text-gray-400 mt-2 flex items-center gap-2">
-                                                            <Clock className="w-3 h-3 text-green-600" />
-                                                            <span>{notif.time || notif.created_at_label || 'Baru saja'}</span>
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            ))}
+                                                );
+                                            })}
                                         </div>
                                     ) : (
                                         <div className="py-16 text-center">

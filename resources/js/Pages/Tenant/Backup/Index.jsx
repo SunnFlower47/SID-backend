@@ -180,33 +180,23 @@ export default function BackupIndex({ backupFiles, diskSpace, stats }) {
                     {/* Right Column: Actions & List */}
                     <div className="lg:col-span-2 space-y-6">
                         {/* Actions */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <button
-                                onClick={() => handleCreateBackup('database')}
-                                className="group relative overflow-hidden bg-white rounded-3xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-all text-left"
-                            >
-                                <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                                    <Icons.Database className="w-24 h-24 transform translate-x-4 -translate-y-4" />
-                                </div>
-                                <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-4">
+                        {/* Actions */}
+                        <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+                            <div className="flex items-center gap-4 text-left">
+                                <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center shrink-0">
                                     <Icons.Database className="w-6 h-6" />
                                 </div>
-                                <h3 className="font-black text-gray-900 uppercase italic tracking-tight mb-1">Backup Database</h3>
-                                <p className="text-xs text-gray-500 leading-relaxed">Pilihan aman dan cepat. Hanya mem-backup data penduduk, surat, pengaturan, dll.</p>
-                            </button>
-
+                                <div>
+                                    <h3 className="font-black text-gray-900 uppercase italic tracking-tight text-base">Backup Database Desa</h3>
+                                    <p className="text-xs text-gray-500 leading-relaxed max-w-md">Menyimpan data penduduk, pengajuan surat, laporan pengaduan, dan seluruh konfigurasi sistem desa Anda ke dalam berkas backup aman.</p>
+                                </div>
+                            </div>
                             <button
-                                onClick={() => handleCreateBackup('full')}
-                                className="group relative overflow-hidden bg-white rounded-3xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-all text-left"
+                                onClick={() => handleCreateBackup('database')}
+                                className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold text-xs uppercase tracking-wider transition-all active:scale-95 shadow-lg shadow-blue-600/10 shrink-0 cursor-pointer"
                             >
-                                <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                                    <Icons.Archive className="w-24 h-24 transform translate-x-4 -translate-y-4" />
-                                </div>
-                                <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mb-4">
-                                    <Icons.Archive className="w-6 h-6" />
-                                </div>
-                                <h3 className="font-black text-gray-900 uppercase italic tracking-tight mb-1">Backup Full (Aplikasi)</h3>
-                                <p className="text-xs text-gray-500 leading-relaxed">Termasuk database dan seluruh file sistem. Sangat besar dan memakan waktu lama.</p>
+                                <Icons.Play className="w-4 h-4 mr-2" />
+                                Buat Backup Baru
                             </button>
                         </div>
 
