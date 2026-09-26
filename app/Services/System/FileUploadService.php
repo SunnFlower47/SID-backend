@@ -13,11 +13,12 @@ class FileUploadService
      *
      * @param UploadedFile $file The file to upload.
      * @param string $path The directory path where the file should be stored.
-     * @param string $disk The storage disk to use (default: 'public').
+     * @param string|null $disk The storage disk to use (default: dynamic from filesystems.default).
      * @return string|false The path to the stored file, or false on failure.
      */
-    public function upload(UploadedFile $file, string $path, string $disk = 's3')
+    public function upload(UploadedFile $file, string $path, ?string $disk = null)
     {
+        $disk = $disk ?? config('filesystems.default', 'public');
         try {
             return $file->store($path, $disk);
         } catch (\Exception $e) {
@@ -32,11 +33,12 @@ class FileUploadService
      * @param UploadedFile $file The new file to upload.
      * @param string|null $oldFilePath The path of the old file to delete.
      * @param string $path The directory path where the new file should be stored.
-     * @param string $disk The storage disk to use (default: 'public').
+     * @param string|null $disk The storage disk to use (default: dynamic from filesystems.default).
      * @return string|false The path to the newly stored file, or false on failure.
      */
-    public function replace(UploadedFile $file, ?string $oldFilePath, string $path, string $disk = 's3')
+    public function replace(UploadedFile $file, ?string $oldFilePath, string $path, ?string $disk = null)
     {
+        $disk = $disk ?? config('filesystems.default', 'public');
         if ($oldFilePath) {
             $this->delete($oldFilePath, $disk);
         }
@@ -48,11 +50,12 @@ class FileUploadService
      * Delete a file from storage.
      *
      * @param string $filePath The path of the file to delete.
-     * @param string $disk The storage disk to use (default: 'public').
+     * @param string|null $disk The storage disk to use (default: dynamic from filesystems.default).
      * @return bool True if successful, false otherwise.
      */
-    public function delete(string $filePath, string $disk = 's3'): bool
+    public function delete(string $filePath, ?string $disk = null): bool
     {
+        $disk = $disk ?? config('filesystems.default', 'public');
         try {
             if (Storage::disk($disk)->exists($filePath)) {
                 return Storage::disk($disk)->delete($filePath);

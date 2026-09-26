@@ -124,7 +124,7 @@ class PeraturanDesaController extends Controller
         if ($request->hasFile('file_dokumen')) {
             // Hapus file lama jika ada
             if ($peraturan->file_dokumen) {
-                Storage::disk('s3')->delete($peraturan->file_dokumen);
+                \App\Helpers\StorageHelper::deleteFile($peraturan->file_dokumen);
             }
 
             $file = $request->file('file_dokumen');
@@ -151,7 +151,7 @@ class PeraturanDesaController extends Controller
         }
 
         if ($peraturan->file_dokumen) {
-            Storage::disk('s3')->delete($peraturan->file_dokumen);
+            \App\Helpers\StorageHelper::deleteFile($peraturan->file_dokumen);
         }
 
         $peraturan->delete();

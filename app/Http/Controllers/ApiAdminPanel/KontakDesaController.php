@@ -63,7 +63,7 @@ class KontakDesaController extends Controller
     {
         $data = $request->all();
         if ($request->hasFile('foto')) {
-            if ($kontakDesa->foto) Storage::disk('s3')->delete($kontakDesa->foto);
+            if ($kontakDesa->foto) \App\Helpers\StorageHelper::deleteFile($kontakDesa->foto);
             $data['foto'] = $request->file('foto')->store('kontak-desa');
         }
 
@@ -73,7 +73,7 @@ class KontakDesaController extends Controller
 
     public function destroy(KontakDesa $kontakDesa): JsonResponse
     {
-        if ($kontakDesa->foto) Storage::disk('s3')->delete($kontakDesa->foto);
+        if ($kontakDesa->foto) \App\Helpers\StorageHelper::deleteFile($kontakDesa->foto);
         $kontakDesa->delete();
         return response()->json(['status' => 'success', 'message' => 'Kontak desa dihapus']);
     }

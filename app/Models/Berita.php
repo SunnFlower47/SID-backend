@@ -94,9 +94,11 @@ class Berita extends Model
             }
 
             // Jika tidak ada di default disk, cek di disk s3
-            if (config('filesystems.disks.s3') && \Illuminate\Support\Facades\Storage::disk('s3')->exists($this->gambar)) {
-                return \Illuminate\Support\Facades\Storage::disk('s3')->url($this->gambar);
-            }
+            try {
+                if (config('filesystems.disks.s3.key') && \Illuminate\Support\Facades\Storage::disk('s3')->exists($this->gambar)) {
+                    return \Illuminate\Support\Facades\Storage::disk('s3')->url($this->gambar);
+                }
+            } catch (\Throwable $e) {}
 
             // Jika tidak ada di s3 disk, cek di disk public (local)
             if (\Illuminate\Support\Facades\Storage::disk('public')->exists($this->gambar)) {

@@ -121,8 +121,23 @@ class AnggaranController extends Controller
             abort(404, 'File tidak ditemukan.');
         }
 
-        if (\Illuminate\Support\Facades\Storage::disk('s3')->exists($pengeluaran->file_bukti)) {
-            return \Illuminate\Support\Facades\Storage::disk('s3')->response($pengeluaran->file_bukti, $pengeluaran->nama_file_bukti);
+        $defaultDisk = config('filesystems.default', 'public');
+        if (\Illuminate\Support\Facades\Storage::disk($defaultDisk)->exists($pengeluaran->file_bukti)) {
+            return \Illuminate\Support\Facades\Storage::disk($defaultDisk)->response($pengeluaran->file_bukti, $pengeluaran->nama_file_bukti);
+        }
+
+        if ($defaultDisk !== 'public' && \Illuminate\Support\Facades\Storage::disk('public')->exists($pengeluaran->file_bukti)) {
+            return \Illuminate\Support\Facades\Storage::disk('public')->response($pengeluaran->file_bukti, $pengeluaran->nama_file_bukti);
+        }
+
+        try {
+            if ($defaultDisk !== 's3' && config('filesystems.disks.s3.key') && \Illuminate\Support\Facades\Storage::disk('s3')->exists($pengeluaran->file_bukti)) {
+                return \Illuminate\Support\Facades\Storage::disk('s3')->response($pengeluaran->file_bukti, $pengeluaran->nama_file_bukti);
+            }
+        } catch (\Throwable $e) {}
+
+        if (\Illuminate\Support\Facades\Storage::disk('local')->exists($pengeluaran->file_bukti)) {
+            return \Illuminate\Support\Facades\Storage::disk('local')->response($pengeluaran->file_bukti, $pengeluaran->nama_file_bukti);
         }
 
         abort(404, 'File tidak ditemukan di server.');

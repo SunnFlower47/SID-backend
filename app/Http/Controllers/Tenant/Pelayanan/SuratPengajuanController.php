@@ -307,12 +307,21 @@ class SuratPengajuanController extends Controller
         // or 'public/surat-pengajuan/filename.pdf' previously.
         $path = $suratPengajuan->file_lampiran;
 
-        // Try s3 disk first (new default)
-        if (\Illuminate\Support\Facades\Storage::disk('s3')->exists($path)) {
-            return \Illuminate\Support\Facades\Storage::disk('s3')->download($path);
+        $defaultDisk = config('filesystems.default', 'public');
+        if (\Illuminate\Support\Facades\Storage::disk($defaultDisk)->exists($path)) {
+            return \Illuminate\Support\Facades\Storage::disk($defaultDisk)->download($path);
         }
 
-        // Fallback for files that were saved in local disk before migration
+        if ($defaultDisk !== 'public' && \Illuminate\Support\Facades\Storage::disk('public')->exists($path)) {
+            return \Illuminate\Support\Facades\Storage::disk('public')->download($path);
+        }
+
+        try {
+            if ($defaultDisk !== 's3' && config('filesystems.disks.s3.key') && \Illuminate\Support\Facades\Storage::disk('s3')->exists($path)) {
+                return \Illuminate\Support\Facades\Storage::disk('s3')->download($path);
+            }
+        } catch (\Throwable $e) {}
+
         if (\Illuminate\Support\Facades\Storage::disk('local')->exists($path)) {
             return \Illuminate\Support\Facades\Storage::disk('local')->download($path);
         }

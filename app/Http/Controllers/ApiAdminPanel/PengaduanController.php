@@ -110,7 +110,7 @@ class PengaduanController extends Controller
     {
         Gate::authorize('surat.view');
         if ($pengaduan->foto) {
-            foreach ($pengaduan->foto as $photo) Storage::disk('s3')->delete($photo);
+            foreach ($pengaduan->foto as $photo) \App\Helpers\StorageHelper::deleteFile($photo);
         }
         $pengaduan->delete();
         return response()->json(['status' => 'success', 'message' => 'Pengaduan berhasil dihapus']);

@@ -31,6 +31,35 @@ class StorageHelper
     }
 
     /**
+     * Hapus file secara aman dari disk default atau fallback disk (public, s3, local)
+     */
+    public static function deleteFile($path)
+    {
+        if (!$path) {
+            return false;
+        }
+
+        $defaultDisk = config('filesystems.default', 'public');
+        try {
+            if (Storage::disk($defaultDisk)->exists($path)) {
+                return Storage::disk($defaultDisk)->delete($path);
+            }
+        } catch (\Throwable $e) {}
+
+        foreach (['public', 's3', 'local'] as $disk) {
+            if ($disk === $defaultDisk) continue;
+            try {
+                if ($disk === 's3' && !config('filesystems.disks.s3.key')) continue;
+                if (Storage::disk($disk)->exists($path)) {
+                    return Storage::disk($disk)->delete($path);
+                }
+            } catch (\Throwable $e) {}
+        }
+
+        return false;
+    }
+
+    /**
      * Download file dengan headers yang benar
      */
     public static function downloadFile($path, $filename = null)

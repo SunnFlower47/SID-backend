@@ -201,7 +201,7 @@ class KontakDesaController extends Controller
         if ($request->hasFile('foto')) {
             // Delete old photo
             if ($kontakDesa->foto) {
-                Storage::disk('s3')->delete($kontakDesa->foto);
+                \App\Helpers\StorageHelper::deleteFile($kontakDesa->foto);
             }
             $data['foto'] = $request->file('foto')->store('kontak-desa');
         } else {
@@ -221,7 +221,7 @@ class KontakDesaController extends Controller
     public function destroy(KontakDesa $kontakDesa)
     {
         if ($kontakDesa->foto) {
-            Storage::disk('s3')->delete($kontakDesa->foto);
+            \App\Helpers\StorageHelper::deleteFile($kontakDesa->foto);
         }
 
         $kontakDesa->delete();
