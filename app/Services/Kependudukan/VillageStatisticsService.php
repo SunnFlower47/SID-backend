@@ -144,7 +144,7 @@ class VillageStatisticsService
      */
     public function getDetailedStats()
     {
-        $cacheKey = $this->getVersionedKey('detailed_village_stats');
+        $cacheKey = $this->getVersionedKey('detailed_village_stats_v3');
 
         return Cache::remember($cacheKey, 3600, function () {
             $groupStats = DB::table('penduduks as p')
@@ -165,6 +165,69 @@ class VillageStatisticsService
                 ->groupBy('p.jenis_kelamin', 'rt.kode', 'rw.kode', 'd.nama', 'p.status_perkawinan', 'p.kedudukan_keluarga')
                 ->get();
 
+            // Total counters
+            $totalPenduduk = Penduduk::whereNull('deleted_at')->count();
+            $totalKK = KartuKeluarga::where('anggota_aktif', '>', 0)->count();
+            $totalRt = Rt::count();
+            $totalRw = Rw::count();
+            $totalDusun = Dusun::count();
+
+            // Averages
+            $avgPendudukPerRt = $totalRt > 0 ? round($totalPenduduk / $totalRt, 1) : 0;
+            $avgPendudukPerRw = $totalRw > 0 ? round($totalPenduduk / $totalRw, 1) : 0;
+            $avgKkPerRt = $totalRt > 0 ? round($totalKK / $totalRt, 1) : 0;
+            $avgKkPerRw = $totalRw > 0 ? round($totalKK / $totalRw, 1) : 0;
+            $avgJiwaPerKk = $totalKK > 0 ? round($totalPenduduk / $totalKK, 1) : 0;
+
+            // Breakdown per RW
+            $rws = Rw::orderBy('kode')->get();
+            $rtCounts = Rt::select('rw_id', DB::raw('COUNT(*) as total_rt'))
+                ->whereNotNull('rw_id')
+                ->groupBy('rw_id')
+                ->pluck('total_rt', 'rw_id');
+
+            $pendudukRwCounts = DB::table('penduduks as p')
+                ->join('kartu_keluargas as kk', 'p.kartu_keluarga_id', '=', 'kk.id')
+                ->select('kk.rw_id', DB::raw('COUNT(*) as total_penduduk'))
+                ->whereNull('p.deleted_at')
+                ->whereNotNull('kk.rw_id')
+                ->groupBy('kk.rw_id')
+                ->pluck('total_penduduk', 'kk.rw_id');
+
+            $kkRwCounts = DB::table('kartu_keluargas')
+                ->select('rw_id', DB::raw('COUNT(*) as total_kk'))
+                ->where('anggota_aktif', '>', 0)
+                ->whereNotNull('rw_id')
+                ->groupBy('rw_id')
+                ->pluck('total_kk', 'rw_id');
+
+            $dusunRwMap = Rt::with('dusun')
+                ->whereNotNull('rw_id')
+                ->get()
+                ->groupBy('rw_id')
+                ->map(fn($rts) => $rts->first()?->dusun?->nama ?? '-');
+
+            $rwBreakdown = $rws->map(function ($rw) use ($rtCounts, $pendudukRwCounts, $kkRwCounts, $dusunRwMap, $totalPenduduk) {
+                $rtCount = (int) ($rtCounts[$rw->id] ?? 0);
+                $pCount = (int) ($pendudukRwCounts[$rw->id] ?? 0);
+                $kkCount = (int) ($kkRwCounts[$rw->id] ?? 0);
+                $avgRt = $rtCount > 0 ? round($pCount / $rtCount, 1) : 0;
+                $pct = $totalPenduduk > 0 ? round(($pCount / $totalPenduduk) * 100, 1) : 0;
+
+                return [
+                    'id' => $rw->id,
+                    'kode' => $rw->kode,
+                    'label' => $rw->kode,
+                    'nama' => $rw->nama ?: 'RW ' . $rw->kode,
+                    'dusun' => $dusunRwMap[$rw->id] ?? '-',
+                    'total_rt' => $rtCount,
+                    'total_penduduk' => $pCount,
+                    'total_kk' => $kkCount,
+                    'avg_penduduk_per_rt' => $avgRt,
+                    'persentase' => $pct,
+                ];
+            })->values()->toArray();
+
             return [
                 'gender' => $this->processGroupedStats($groupStats, 'jenis_kelamin'),
                 'marital' => $this->processGroupedStats($groupStats, 'status_perkawinan'),
@@ -172,6 +235,19 @@ class VillageStatisticsService
                 'rt_distribution' => $this->processGroupedStats($groupStats, 'rt_kode'),
                 'rw_distribution' => $this->processGroupedStats($groupStats, 'rw_kode'),
                 'dusun_distribution' => $this->processGroupedStats($groupStats, 'dusun_nama'),
+                'rw_breakdown' => $rwBreakdown,
+                'territorial_averages' => [
+                    'total_rt' => $totalRt,
+                    'total_rw' => $totalRw,
+                    'total_dusun' => $totalDusun,
+                    'total_penduduk' => $totalPenduduk,
+                    'total_kk' => $totalKK,
+                    'avg_penduduk_per_rt' => $avgPendudukPerRt,
+                    'avg_penduduk_per_rw' => $avgPendudukPerRw,
+                    'avg_kk_per_rt' => $avgKkPerRt,
+                    'avg_kk_per_rw' => $avgKkPerRw,
+                    'avg_jiwa_per_kk' => $avgJiwaPerKk,
+                ],
             ];
         });
     }
@@ -300,9 +376,12 @@ class VillageStatisticsService
         return $stats->where($key, '!=', null)
             ->groupBy($key)
             ->map(function($group) use ($key) {
+                $val = $group->first()->$key;
                 return (object)[
-                    $key => $group->first()->$key,
-                    'label' => $group->first()->$key,
+                    $key => $val,
+                    'label' => $val,
+                    'rt_label' => $val,
+                    'rw_label' => $val,
                     'total' => $group->sum('total')
                 ];
             })

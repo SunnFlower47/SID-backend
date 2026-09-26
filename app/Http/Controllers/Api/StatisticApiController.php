@@ -33,11 +33,19 @@ class StatisticApiController extends Controller
                 ->whereNull('p.deleted_at')
                 ->first();
 
-            $totalPenduduk = $stats->total_penduduk;
-            $totalKK = $stats->total_kk;
-            $totalRt = $stats->total_rt;
-            $lakiLaki = $stats->laki_laki;
-            $perempuan = $stats->perempuan;
+            $totalPenduduk = (int) $stats->total_penduduk;
+            $totalKK = (int) $stats->total_kk;
+            $totalRt = (int) $stats->total_rt;
+            $lakiLaki = (int) $stats->laki_laki;
+            $perempuan = (int) $stats->perempuan;
+            $totalRw = (int) DB::table('rws')->count();
+
+            // Averages per RT, RW, and KK
+            $avgPendudukPerRt = $totalRt > 0 ? round($totalPenduduk / $totalRt, 1) : 0;
+            $avgPendudukPerRw = $totalRw > 0 ? round($totalPenduduk / $totalRw, 1) : 0;
+            $avgKkPerRt = $totalRt > 0 ? round($totalKK / $totalRt, 1) : 0;
+            $avgKkPerRw = $totalRw > 0 ? round($totalKK / $totalRw, 1) : 0;
+            $avgJiwaPerKk = $totalKK > 0 ? round($totalPenduduk / $totalKK, 1) : 0;
 
             $totalMutasi = \App\Models\Mutasi::count();
             $totalBerita = \App\Models\Berita::published()->count();
@@ -140,6 +148,12 @@ class StatisticApiController extends Controller
                     'total_penduduk' => $totalPenduduk,
                     'total_kk' => $totalKK,
                     'total_rt' => $totalRt,
+                    'total_rw' => $totalRw,
+                    'avg_penduduk_per_rt' => $avgPendudukPerRt,
+                    'avg_penduduk_per_rw' => $avgPendudukPerRw,
+                    'avg_kk_per_rt' => $avgKkPerRt,
+                    'avg_kk_per_rw' => $avgKkPerRw,
+                    'avg_jiwa_per_kk' => $avgJiwaPerKk,
                     'total_mutasi' => $totalMutasi,
                     'total_berita' => $totalBerita,
                     'total_pengajuan' => $totalPengajuan,

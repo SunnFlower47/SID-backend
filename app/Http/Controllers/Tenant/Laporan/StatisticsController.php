@@ -53,6 +53,8 @@ class StatisticsController extends Controller
             })),
             'rtStats' => Inertia::defer(fn() => once(fn() => $this->statsService->getDetailedStats())['rt_distribution']),
             'rwStats' => Inertia::defer(fn() => once(fn() => $this->statsService->getDetailedStats())['rw_distribution']),
+            'territorialAverages' => Inertia::defer(fn() => once(fn() => $this->statsService->getDetailedStats())['territorial_averages']),
+            'rwBreakdown' => Inertia::defer(fn() => once(fn() => $this->statsService->getDetailedStats())['rw_breakdown']),
             'mutationStats' => Inertia::defer(fn() => once(fn() => $this->statsService->getDashboardStats())['mutasi']),
             'recentMutations' => Inertia::defer(fn() => Cache::remember('recent_mutasi_detailed_v2', 600, function() {
                 return Mutasi::with(['penduduk' => fn($q) => $q->withTrashed()])->orderBy('created_at', 'desc')->limit(10)->get();
